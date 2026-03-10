@@ -673,13 +673,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     @Override
     public ICustomEffect saveEffect(ICustomEffect customEffect) {
         if (customEffect.getID() < 0) {
-            int oldId = customEffect.getID();
             customEffect.setID(getUnusedId());
-            // Move script handler from old ID to new ID (e.g. during clone)
-            EffectScript handler = customEffectScriptHandlers.remove(oldId);
-            if (handler != null) {
-                customEffectScriptHandlers.put(customEffect.getID(), handler);
-            }
             while (has(customEffect.getName()))
                 customEffect.setName(customEffect.getName() + "_");
         }
@@ -712,6 +706,25 @@ public class CustomEffectController implements ICustomEffectHandler {
             LogWriter.except(e);
         }
         return getCustomEffects().get(customEffect.getID());
+    }
+
+    public CustomEffect cloneEffect(int originalId) {
+        CustomEffect original = getCustomEffects().get(originalId);
+        if (original == null) return null;
+
+        NBTTagCompound nbt = original.writeToNBT(true);
+        int newId = getUnusedId();
+        nbt.setInteger("ID", newId);
+
+        CustomEffect clone = new CustomEffect();
+        clone.readFromNBT(nbt);
+
+        String name = clone.getName();
+        while (has(name)) name += "_";
+        clone.name = name;
+
+        saveEffect(clone);
+        return clone;
     }
 
 }

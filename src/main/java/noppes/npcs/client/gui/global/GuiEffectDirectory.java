@@ -8,6 +8,7 @@ import kamkeel.npcs.network.packets.request.category.CategoryRemovePacket;
 import kamkeel.npcs.network.packets.request.category.CategorySavePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectGetPacket;
 import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
+import kamkeel.npcs.network.packets.request.effects.EffectClonePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -89,12 +90,7 @@ public class GuiEffectDirectory extends GuiDirectoryCategorized {
     @Override
     protected void onCloneItem() {
         if (effect != null && effect.id >= 0) {
-            NBTTagCompound cloneNbt = effect.writeToNBT(true);
-            cloneNbt.setInteger("ID", -1);
-            String name = cloneNbt.getString("name");
-            while (itemData.containsKey(name)) name += "_";
-            cloneNbt.setString("name", name);
-            PacketClient.sendClient(new EffectSavePacket(cloneNbt, ""));
+            PacketClient.sendClient(new EffectClonePacket(effect.id));
         }
     }
 

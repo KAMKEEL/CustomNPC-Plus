@@ -223,4 +223,9 @@ public enum EnumRequestPacket {
     CategoryListRequest,
     CategoryItemsRequest,
     AbilityCategoryMoveItem,
+
+    CustomAbilityClone,
+    ChainedAbilityClone,
+    LinkedItemClone,
+    EffectClone,
 }

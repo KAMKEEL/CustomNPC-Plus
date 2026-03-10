@@ -11,10 +11,12 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.BuiltInAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilityClonePacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityClonePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.category.AbilityCategoryMovePacket;
@@ -271,24 +273,11 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
     protected void onCloneItem() {
         if (currentIsBuiltIn) return;
         if (isChainedMode() && selectedChain != null) {
-            ChainedAbility clone = new ChainedAbility();
-            NBTTagCompound chainNbt = selectedChain.writeNBT(true);
-            chainNbt.setString("Id", UUID.randomUUID().toString());
-            clone.readNBT(chainNbt);
-            String cloneName = selectedChain.getName() + "_copy";
-            clone.setName(cloneName);
-            PacketClient.sendClient(new ChainedAbilitySavePacket(clone.writeNBT(true)));
+            PacketClient.sendClient(new ChainedAbilityClonePacket(selectedChain.getName()));
             if (selectedCatId >= 0) requestItemsInCategory(selectedCatId);
         } else if (selectedAbility != null) {
-            NBTTagCompound abilityNbt = selectedAbility.writeNBT(true);
-            abilityNbt.setString("id", UUID.randomUUID().toString());
-            Ability clone = AbilityController.Instance.fromNBT(abilityNbt);
-            if (clone != null) {
-                String cloneName = selectedAbility.getName() + "_copy";
-                clone.setName(cloneName);
-                PacketClient.sendClient(new CustomAbilitySavePacket(clone.writeNBT(true)));
-                if (selectedCatId >= 0 && isCustomMode()) requestItemsInCategory(selectedCatId);
-            }
+            PacketClient.sendClient(new CustomAbilityClonePacket(selectedAbility.getName()));
+            if (selectedCatId >= 0 && isCustomMode()) requestItemsInCategory(selectedCatId);
         }
     }
 

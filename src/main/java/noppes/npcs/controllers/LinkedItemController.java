@@ -209,13 +209,7 @@ public class LinkedItemController implements ILinkedItemHandler {
 
     public ILinkedItem saveLinkedItem(ILinkedItem linkedItem) {
         if (linkedItem.getId() < 0) {
-            int oldId = linkedItem.getId();
             linkedItem.setId(getUnusedId());
-            // Move script handler from old ID to new ID (e.g. during clone)
-            LinkedItemScript handler = linkedItemsScripts.remove(oldId);
-            if (handler != null) {
-                linkedItemsScripts.put(linkedItem.getId(), handler);
-            }
             while (hasName(linkedItem.getName()))
                 linkedItem.setName(linkedItem.getName() + "_");
         }
@@ -245,6 +239,25 @@ public class LinkedItemController implements ILinkedItemHandler {
             LogWriter.except(e);
         }
         return linkedItems.get(linkedItem.getId());
+    }
+
+    public LinkedItem cloneLinkedItem(int originalId) {
+        LinkedItem original = linkedItems.get(originalId);
+        if (original == null) return null;
+
+        NBTTagCompound nbt = original.writeToNBT(true);
+        int newId = getUnusedId();
+        nbt.setInteger("Id", newId);
+
+        LinkedItem clone = new LinkedItem();
+        clone.readFromNBT(nbt);
+
+        String name = clone.getName();
+        while (hasName(name)) name += "_";
+        clone.name = name;
+
+        saveLinkedItem(clone);
+        return clone;
     }
 
     private boolean hasOther(String name, int id) {

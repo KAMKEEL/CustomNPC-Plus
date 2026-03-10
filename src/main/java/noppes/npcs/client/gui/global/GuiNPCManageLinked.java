@@ -5,6 +5,7 @@ import kamkeel.npcs.network.packets.request.linked.LinkedGetAllPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedGetPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemBuildPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemRemovePacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedItemClonePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCAddPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCRemovePacket;
@@ -288,13 +289,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
         }
         if (button.id == 4) {
             if (data.containsKey(scroll.getSelected()) && linkedItem != null && linkedItem.id >= 0) {
-                String name = linkedItem.name;
-                while (data.containsKey(name))
-                    name += "_";
-                LinkedItem linkedItemClone = this.linkedItem.clone();
-                linkedItemClone.name = name;
-                linkedItemClone.id = -1;
-                PacketClient.sendClient(new LinkedItemSavePacket(linkedItemClone.writeToNBT(false), ""));
+                PacketClient.sendClient(new LinkedItemClonePacket(this.linkedItem.id));
             }
         }
         if (button.id == 5) {

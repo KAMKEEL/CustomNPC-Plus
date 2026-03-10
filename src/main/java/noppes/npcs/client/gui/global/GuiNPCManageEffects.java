@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.global;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.effects.EffectGetPacket;
 import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
+import kamkeel.npcs.network.packets.request.effects.EffectClonePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectsGetPacket;
 import net.minecraft.client.gui.GuiButton;
@@ -106,10 +107,9 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
                 displayGuiScreen(guiyesno);
             }
         } else if (button.id == 2) {
-            CustomEffect effect = this.effect.cloneEffect();
-            while (data.containsKey(effect.name))
-                effect.name += "_";
-            PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), ""));
+            if (effect != null && effect.id >= 0) {
+                PacketClient.sendClient(new EffectClonePacket(effect.id));
+            }
         }
 
         if (button.id == 66) {

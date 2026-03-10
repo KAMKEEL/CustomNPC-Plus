@@ -9,6 +9,7 @@ import kamkeel.npcs.network.packets.request.category.CategorySavePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedGetPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemBuildPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemRemovePacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedItemClonePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.client.gui.GuiScreen;
@@ -90,12 +91,7 @@ public class GuiLinkedItemDirectory extends GuiDirectoryCategorized {
     @Override
     protected void onCloneItem() {
         if (linkedItem != null && linkedItem.id >= 0) {
-            NBTTagCompound cloneNbt = linkedItem.writeToNBT(true);
-            cloneNbt.setInteger("Id", -1);
-            String name = cloneNbt.getString("Name");
-            while (itemData.containsKey(name)) name += "_";
-            cloneNbt.setString("Name", name);
-            PacketClient.sendClient(new LinkedItemSavePacket(cloneNbt, ""));
+            PacketClient.sendClient(new LinkedItemClonePacket(linkedItem.id));
         }
     }
 
