@@ -77,7 +77,12 @@ jobs:
         with:
           java-version: '8'
           distribution: 'temurin'
-
+          
+      - name: Set up JDK 8 (Zulu)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'zulu'
       - name: Setup JDK 11 (javadoc)
         uses: actions/setup-java@v4
         with:
