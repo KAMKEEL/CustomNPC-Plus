@@ -1,28 +1,35 @@
 /* ============================================================
-   CustomNPC+ DBC Addon — Javadoc Theme (Javadoc 11)
+   CustomNPC+ — Javadoc Theme (Javadoc 11)
+   Tokyo Night — Maximum Readability Edition
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg:           #0c0c0e;
-  --bg2:          #111116;
-  --bg3:          #161b22;
-  --border:       #21262d;
-  --border2:      #30363d;
-  --text:         #e8e8ee;
-  --text-mid:     #b0b8c8;
-  --text-dim:     #6e7681;
-  --green:        #39d353;
-  --green-dim:    #1a4d2a;
-  --blue:         #58a6ff;
-  --amber:        #f0a030;
-  --purple:       #bc8cff;
-  --enchant-glow: rgba(123, 47, 255, 0.4);
-  --green-glow:   rgba(57, 211, 83, 0.3);
-  --nav-h:        40px;
-  --subnav-h:     32px;
+  /* ── Tokyo Night palette ── */
+  --bg:           #1a1b26;
+  --bg2:          #1f2335;
+  --bg3:          #24283b;
+  --border:       #3b4261;
+  --border2:      #414868;
+  --text:         #c0caf5;
+  --text-mid:     #a9b1d6;
+  --text-dim:     #565f89;
+  --green:        #9ece6a;
+  --green-dim:    #2d4a22;
+  --blue:         #7aa2f7;
+  --amber:        #e0af68;
+  --purple:       #bb9af7;
+  --cyan:         #7dcfff;
+  --red:          #f7768e;
+  --highlight-bg: rgba(122, 162, 247, 0.08);
+  --hover-bg:     rgba(187, 154, 247, 0.08);
+  --nav-h:        42px;
+  --subnav-h:     34px;
+
+  /* ── Font stacks ── */
+  --font-ui:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:  'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
 }
 
 * { box-sizing: border-box !important; }
@@ -34,15 +41,14 @@ html, body {
 body {
   background: var(--bg) !important;
   color: var(--text) !important;
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-family: var(--font-mono) !important;
   font-size: 13px !important;
   line-height: 1.6 !important;
   margin: 0 !important;
   padding: 0 !important;
-
-    min-height: 100vh !important;
-    display: flex !important;
-    flex-direction: column !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .skipNav { display: none !important; }
@@ -80,22 +86,15 @@ body {
   flex-shrink: 0 !important;
 }
 
-/* ── Every li in the top nav list gets the same treatment ──
-   There are THREE kinds:
-   1. <li><a href>Text</a></li>   — normal link
-   2. <li class="navBarCell1Rev">Text</li>  — active page
-   3. <li>Text</li>               — disabled (no link, e.g. "Package" on overview)
-   All three need identical padding so they don't merge. */
-
 .topNav > ul.navList > li {
   display: flex !important;
   align-items: center !important;
   margin: 0 !important;
-  padding: 0 14px !important;         /* SAME padding for ALL li types */
+  padding: 0 14px !important;
   height: var(--nav-h) !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 11px !important;
-  font-weight: 400 !important;
+  font-family: var(--font-ui) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
   white-space: nowrap !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
@@ -103,18 +102,16 @@ body {
   border-bottom: 2px solid transparent !important;
 }
 
-/* Links inside nav items */
 .topNav > ul.navList > li > a {
   display: flex !important;
   align-items: center !important;
   height: var(--nav-h) !important;
-  /* Cancel the parent's padding — the <a> fills the full li */
   margin: 0 -14px !important;
   padding: 0 14px !important;
   color: var(--text-dim) !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 11px !important;
-  font-weight: 400 !important;
+  font-family: var(--font-ui) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
   text-decoration: none !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
@@ -124,8 +121,8 @@ body {
 }
 
 .topNav > ul.navList > li > a:hover {
-  color: var(--green) !important;
-  border-bottom-color: var(--green) !important;
+  color: var(--blue) !important;
+  border-bottom-color: var(--blue) !important;
   background: transparent !important;
   text-shadow: none !important;
   text-decoration: none !important;
@@ -133,12 +130,9 @@ body {
 
 /* Active item */
 .topNav > ul.navList > li.navBarCell1Rev {
-  color: var(--green) !important;
-  border-bottom: 2px solid var(--green) !important;
+  color: var(--blue) !important;
+  border-bottom: 2px solid var(--blue) !important;
 }
-
-/* Disabled item (no <a>) — keep text-dim, no bottom border */
-/* Already covered by the base li rule above */
 
 /* ── Brand — pinned to far right of topNav ── */
 .topNav > .aboutLanguage {
@@ -148,7 +142,7 @@ body {
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
-  padding: 0 12px !important;
+  padding: 0 14px !important;
   background: var(--bg2) !important;
   border-left: 1px solid var(--border) !important;
   z-index: 5 !important;
@@ -169,21 +163,21 @@ body {
 .header-brand { text-decoration: none !important; }
 
 .header-title {
-  font-family: 'Press Start 2P', monospace !important;
-  font-size: 7px !important;
-  color: var(--green) !important;
-  text-shadow: 0 0 8px var(--green-glow) !important;
-  line-height: 1.5 !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--blue) !important;
+  line-height: 1.4 !important;
   white-space: nowrap !important;
 }
 
 .header-title span {
   display: block !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 9px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 10px !important;
+  font-weight: 400 !important;
   color: var(--text-dim) !important;
-  text-shadow: none !important;
-  margin-top: 2px !important;
+  margin-top: 1px !important;
 }
 
 .header-back {
@@ -191,25 +185,25 @@ body {
   align-items: center !important;
   text-decoration: none !important;
   color: var(--text-dim) !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 10px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
   padding: 5px 10px !important;
   border: 1px solid var(--border2) !important;
+  border-radius: 4px !important;
   white-space: nowrap !important;
   transition: color 0.15s, border-color 0.15s, background 0.15s !important;
 }
 
 .header-back:hover {
-  color: var(--green) !important;
-  border-color: var(--green-dim) !important;
-  background: rgba(57, 211, 83, 0.06) !important;
+  color: var(--blue) !important;
+  border-color: var(--blue) !important;
+  background: var(--highlight-bg) !important;
   text-decoration: none !important;
   text-shadow: none !important;
 }
 
-/* ── Sub nav ──
-   Structure: ul#allclasses_navbar_top | ul.navListSearch | div(script) | div(subNavList×2)
-   We want search on the LEFT, so we use order to reposition navListSearch before allclasses */
+/* ── Sub nav ── */
 .subNav {
   background: var(--bg3) !important;
   border-bottom: 1px solid var(--border) !important;
@@ -242,7 +236,7 @@ body {
 .subNav li {
   display: flex !important;
   align-items: center !important;
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-family: var(--font-ui) !important;
   font-size: 11px !important;
   color: var(--text-dim) !important;
   padding: 0 5px !important;
@@ -256,14 +250,14 @@ body {
   color: var(--blue) !important;
   text-decoration: none !important;
   font-size: 11px !important;
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-family: var(--font-ui) !important;
 }
 
-.subNav a:hover { color: var(--green) !important; text-shadow: none !important; }
+.subNav a:hover { color: var(--purple) !important; text-shadow: none !important; }
 
 .subNav label {
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 10px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
   color: var(--text-dim) !important;
   text-transform: none !important;
   margin-right: 4px !important;
@@ -293,31 +287,30 @@ main {
 .header .subTitle,
 div.subTitle {
   color: var(--text-mid) !important;
-  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-family: var(--font-ui) !important;
   font-size: 13px !important;
   line-height: 1.7 !important;
   margin-top: 8px !important;
 }
 
 .packageLabelInType {
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 10px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
   color: var(--text-dim) !important;
 }
 
 /* ── Headings ── */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Press Start 2P', monospace !important;
-  font-weight: 400 !important;
-  line-height: 1.6 !important;
+  font-family: var(--font-ui) !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
 }
 
 h1.title, h2.title {
-  font-size: 12px !important;
-  color: var(--green) !important;
-  text-shadow: 0 0 18px var(--green-glow) !important;
+  font-size: 20px !important;
+  color: var(--blue) !important;
   border-bottom: 2px solid var(--border2) !important;
   padding-bottom: 12px !important;
   margin-bottom: 20px !important;
@@ -327,19 +320,18 @@ h1.title, h2.title {
 /* Section h2 — used in help page, class summaries */
 section > h2,
 li.blockList > section > h2 {
-  font-size: 8px !important;
+  font-size: 15px !important;
   color: var(--green) !important;
-  text-shadow: 0 0 10px var(--green-glow) !important;
   border-left: 3px solid var(--green) !important;
   border-bottom: none !important;
   padding: 8px 12px !important;
   margin: 0 !important;
-  background: rgba(57, 211, 83, 0.04) !important;
+  background: rgba(158, 206, 106, 0.05) !important;
 }
 
 /* Generic h2 (table section headers like "Method Summary") */
 h2 {
-  font-size: 8px !important;
+  font-size: 15px !important;
   color: var(--amber) !important;
   border-bottom: 1px solid var(--border) !important;
   padding-bottom: 8px !important;
@@ -349,19 +341,18 @@ h2 {
 
 /* h3 — table section headers inside blockList ("Constructor Summary" etc.) */
 h3 {
-  font-size: 7px !important;
+  font-size: 13px !important;
   color: var(--text-mid) !important;
   margin: 0 !important;
   padding: 10px 14px !important;
   background: var(--bg3) !important;
   border-bottom: 1px solid var(--border) !important;
-  letter-spacing: 0.04em !important;
 }
 
 /* h4 — method detail names */
 h4 {
-  font-size: 7px !important;
-  color: var(--green) !important;
+  font-size: 13px !important;
+  color: var(--cyan) !important;
   margin: 0 !important;
   padding: 10px 14px !important;
   background: var(--bg3) !important;
@@ -372,6 +363,7 @@ h4 {
 ul.blockList > li.blockList,
 ul.blockListLast > li.blockList {
   border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
   margin-bottom: 12px !important;
   padding: 0 !important;
   background: var(--bg2) !important;
@@ -387,7 +379,7 @@ ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) {
   padding: 12px 16px !important;
   margin: 0 !important;
   color: var(--text-mid) !important;
-  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-family: var(--font-ui) !important;
   font-size: 13px !important;
   line-height: 1.7 !important;
 }
@@ -395,24 +387,23 @@ ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) {
 /* Nested lists inside section content */
 ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) > li {
   color: var(--text-mid) !important;
-  font-family: 'IBM Plex Sans', sans-serif !important;
-  font-size: 12px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
   padding: 2px 0 !important;
   list-style: none !important;
 }
 
 ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) > li::before {
-  content: '›' !important;
-  color: var(--green) !important;
+  content: '\203A' !important;
+  color: var(--blue) !important;
   margin-right: 8px !important;
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-weight: 600 !important;
 }
 
 /* ── Inherited methods block ── */
-/* "Methods inherited from class java.lang.Object" */
 ul.blockList > li.blockList > h3,
 ul.blockList > li.blockList > ul.blockList > li.blockList > h3 {
-  font-size: 7px !important;
+  font-size: 12px !important;
   color: var(--text-dim) !important;
   padding: 8px 14px !important;
   background: var(--bg3) !important;
@@ -426,14 +417,12 @@ li.blockList > code {
   display: block !important;
   padding: 10px 16px !important;
   color: var(--text-dim) !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 11px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
   background: var(--bg) !important;
   border: none !important;
   line-height: 1.8 !important;
 }
-
-
 
 /* ── Inheritance chain ── */
 ul.inheritance {
@@ -454,21 +443,22 @@ main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.
 }
 main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.navListSearch):not(.inheritance) > li {
   color: var(--text-mid) !important;
-  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-family: var(--font-ui) !important;
   font-size: 13px !important;
   padding: 2px 0 !important;
   line-height: 1.7 !important;
 }
 main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.navListSearch):not(.inheritance) > li::before {
-  content: '›' !important;
-  color: var(--green) !important;
+  content: '\203A' !important;
+  color: var(--blue) !important;
   margin-right: 8px !important;
+  font-weight: 600 !important;
 }
 
 /* General paragraphs in content */
 main > div p, .contentContainer p {
   color: var(--text-mid) !important;
-  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-family: var(--font-ui) !important;
   font-size: 13px !important;
   line-height: 1.7 !important;
   margin: 8px 0 !important;
@@ -478,8 +468,8 @@ main > div p, .contentContainer p {
 .emphasizedPhrase {
   display: block !important;
   color: var(--text-dim) !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 11px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
   font-style: italic !important;
   border-left: 2px solid var(--border2) !important;
   padding: 6px 12px !important;
@@ -502,13 +492,17 @@ footer .subNav {
   overflow: hidden !important;
 }
 
-/* ── Tables ── */
+/* ══════════════════════════════════════════════
+   TABLES
+   ══════════════════════════════════════════════ */
+
 table {
   width: 100% !important;
   border-collapse: collapse !important;
   border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
   margin: 16px 0 !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
 }
 
 caption {
@@ -520,43 +514,43 @@ caption {
 }
 
 .activeTableTab, .tableTab {
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 10px !important;
-  font-weight: 400 !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
   text-transform: none !important;
-  padding: 3px 8px !important;
+  padding: 4px 10px !important;
   border: 1px solid var(--border2) !important;
+  border-radius: 3px !important;
   display: inline-block !important;
   margin-right: 4px !important;
   cursor: pointer !important;
 }
 
 .activeTableTab {
-  color: var(--green) !important;
-  border-color: var(--green-dim) !important;
-  background: rgba(57, 211, 83, 0.06) !important;
+  color: var(--blue) !important;
+  border-color: var(--blue) !important;
+  background: var(--highlight-bg) !important;
 }
 
 .tableTab { color: var(--text-dim) !important; background: var(--bg3) !important; }
 .tableTab a { color: var(--text-dim) !important; text-decoration: none !important; }
-.tableTab a:hover { color: var(--green) !important; text-shadow: none !important; }
+.tableTab a:hover { color: var(--blue) !important; text-shadow: none !important; }
 
 /* Column headers */
 th[scope="col"] {
   background: var(--bg3) !important;
   color: var(--text-dim) !important;
-  font-family: 'Press Start 2P', monospace !important;
-  font-size: 7px !important;
-  font-weight: 400 !important;
-  letter-spacing: 0.05em !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
   text-transform: uppercase !important;
   padding: 10px 14px !important;
   border-bottom: 1px solid var(--border2) !important;
   text-align: left !important;
 }
 
-/* Data cells — Javadoc 11 uses th[scope="row"] for method/class name cells
-   IMPORTANT: browsers center <th> by default — force left align */
+/* Data cells */
 th[scope="row"], td {
   background: var(--bg2) !important;
   color: var(--text) !important;
@@ -564,7 +558,7 @@ th[scope="row"], td {
   border-bottom: 1px solid var(--border) !important;
   vertical-align: top !important;
   text-align: left !important;
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-family: var(--font-mono) !important;
   font-size: 12px !important;
   font-weight: 400 !important;
   text-transform: none !important;
@@ -575,25 +569,24 @@ tr.altColor > td, tr.altColor > th[scope="row"] { background: var(--bg) !importa
 tr.rowColor > td, tr.rowColor > th[scope="row"] { background: var(--bg2) !important; }
 
 tr:hover > td, tr:hover > th[scope="row"] {
-  background: rgba(123, 47, 255, 0.06) !important;
-  border-bottom-color: rgba(123, 47, 255, 0.25) !important;
+  background: var(--hover-bg) !important;
+  border-bottom-color: rgba(187, 154, 247, 0.2) !important;
 }
 tr:hover > td a, tr:hover > th[scope="row"] a {
   color: var(--purple) !important;
-  text-shadow: 0 0 8px var(--enchant-glow) !important;
 }
 
 /* ── Links ── */
 a, a:visited { color: var(--blue) !important; text-decoration: none !important; }
-a:hover { color: var(--purple) !important; text-shadow: 0 0 8px var(--enchant-glow) !important; text-decoration: none !important; }
-.memberNameLink a { color: var(--green) !important; }
-.memberNameLink a:hover { color: var(--purple) !important; text-shadow: 0 0 10px var(--enchant-glow) !important; }
+a:hover { color: var(--purple) !important; text-decoration: none !important; }
+.memberNameLink a { color: var(--cyan) !important; }
+.memberNameLink a:hover { color: var(--purple) !important; }
 .externalLink { color: var(--blue) !important; }
 
 /* ── Description blocks ── */
 div.block {
   color: var(--text-mid) !important;
-  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-family: var(--font-ui) !important;
   font-size: 13px !important;
   line-height: 1.7 !important;
   padding: 4px 0 !important;
@@ -604,6 +597,7 @@ ul.blockList > li.blockList > div.block{ padding: 10px 14px !important; margin: 
 ul.blockList, ul.blockListLast { list-style: none !important; padding: 0 !important; margin: 0 !important; }
 ul.blockList > li.blockList, ul.blockListLast > li.blockList {
   border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
   margin-bottom: 10px !important;
   padding: 0 !important;
 }
@@ -612,10 +606,10 @@ pre.methodSignature, pre.typeSignature {
   background: var(--bg2) !important;
   border: none !important;
   border-bottom: 1px solid var(--border) !important;
-  border-left: 3px solid var(--green) !important;
+  border-left: 3px solid var(--blue) !important;
   margin: 0 !important;
   padding: 12px 16px !important;
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-family: var(--font-mono) !important;
   font-size: 12px !important;
   color: var(--text) !important;
   overflow-x: auto !important;
@@ -625,9 +619,10 @@ pre.methodSignature, pre.typeSignature {
 pre {
   background: var(--bg2) !important;
   border: 1px solid var(--border) !important;
-  border-left: 3px solid var(--green) !important;
+  border-left: 3px solid var(--blue) !important;
+  border-radius: 4px !important;
   padding: 14px 16px !important;
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-family: var(--font-mono) !important;
   font-size: 12px !important;
   color: var(--text) !important;
   overflow-x: auto !important;
@@ -636,11 +631,12 @@ pre {
 }
 
 code {
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-family: var(--font-mono) !important;
   font-size: 12px !important;
   color: var(--text) !important;
   background: var(--bg3) !important;
   padding: 1px 5px !important;
+  border-radius: 3px !important;
 }
 
 dl { padding: 10px 14px !important; margin: 0 !important; }
@@ -648,21 +644,23 @@ dt { margin-bottom: 4px !important; }
 dd { margin: 0 0 6px 16px !important; color: var(--text-mid) !important; font-size: 12px !important; }
 
 .paramLabel, .returnLabel, .throwsLabel, .seeLabel, .simpleTagLabel {
-  font-family: 'Press Start 2P', monospace !important;
-  font-size: 7px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
   color: var(--text-dim) !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
 }
 
-.typeNameLabel { color: var(--green) !important; }
+.typeNameLabel { color: var(--cyan) !important; }
 
 .deprecationBlock {
-  background: rgba(240, 160, 48, 0.08) !important;
+  background: rgba(224, 175, 104, 0.08) !important;
   border-left: 3px solid var(--amber) !important;
+  border-radius: 4px !important;
   padding: 10px 14px !important;
   color: var(--amber) !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 /* ── Inputs ── */
@@ -670,27 +668,25 @@ input[type="text"] {
   background: var(--bg3) !important;
   border: 1px solid var(--border2) !important;
   color: var(--text) !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 11px !important;
-  padding: 3px 8px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  padding: 4px 10px !important;
   outline: none !important;
-  border-radius: 0 !important;
+  border-radius: 4px !important;
 }
-input[type="text"]:focus { border-color: var(--green) !important; }
+input[type="text"]:focus { border-color: var(--blue) !important; }
 input[type="reset"] {
   background: var(--bg3) !important;
   border: 1px solid var(--border2) !important;
   color: var(--text-dim) !important;
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-family: var(--font-ui) !important;
   font-size: 11px !important;
-  padding: 3px 8px !important;
+  padding: 4px 10px !important;
   cursor: pointer !important;
-  border-radius: 0 !important;
+  border-radius: 4px !important;
 }
 
-/* ── Bottom nav ──
-   NOTE: .bottomNav contains anchor tags and a skipNav div BEFORE ul.navList,
-   so we cannot use > child combinator — we use descendant selectors instead. */
+/* ── Bottom nav ── */
 .bottomNav {
   background: var(--bg2) !important;
   border-top: 1px solid var(--border) !important;
@@ -701,7 +697,6 @@ input[type="reset"] {
   position: relative !important;
 }
 
-/* The navList inside bottomNav — displayed as a flex row */
 .bottomNav ul.navList[title="Navigation"] {
   list-style: none !important;
   margin: 0 !important;
@@ -711,16 +706,15 @@ input[type="reset"] {
   height: var(--nav-h) !important;
 }
 
-/* All li items in bottom nav */
 .bottomNav ul.navList[title="Navigation"] li {
   display: flex !important;
   align-items: center !important;
   margin: 0 !important;
   padding: 0 14px !important;
   height: var(--nav-h) !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 11px !important;
-  font-weight: 400 !important;
+  font-family: var(--font-ui) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
   white-space: nowrap !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
@@ -736,22 +730,22 @@ input[type="reset"] {
   padding: 0 14px !important;
   color: var(--text-dim) !important;
   text-decoration: none !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 11px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
   transition: color 0.15s !important;
 }
 
 .bottomNav ul.navList[title="Navigation"] li > a:hover {
-  color: var(--green) !important;
+  color: var(--blue) !important;
   text-shadow: none !important;
 }
 
 .bottomNav ul.navList[title="Navigation"] li.navBarCell1Rev {
-  color: var(--green) !important;
-  border-top: 2px solid var(--green) !important;
+  color: var(--blue) !important;
+  border-top: 2px solid var(--blue) !important;
 }
 
-/* The aboutLanguage inside bottomNav holds only our JS script — hide it visually */
 .bottomNav .aboutLanguage {
   display: none !important;
 }
@@ -759,8 +753,8 @@ input[type="reset"] {
 .legalCopy {
   background: var(--bg2) !important;
   color: var(--text-dim) !important;
-  font-size: 10px !important;
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  font-family: var(--font-ui) !important;
   padding: 12px 16px !important;
   text-align: center !important;
   border-top: 1px solid var(--border) !important;
@@ -773,23 +767,27 @@ input[type="reset"] {
 .ui-autocomplete {
   background: var(--bg2) !important;
   border: 1px solid var(--border2) !important;
+  border-radius: 6px !important;
   max-height: 400px !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   z-index: 9999 !important;
   list-style: none !important;
   padding: 4px 0 !important;
-  margin: 0 !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+  margin: 4px 0 0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* Category headers (Modules, Packages, Types, Members, SearchTags) */
+/* Category headers */
 .ui-autocomplete .ui-autocomplete-category {
   background: var(--bg3) !important;
   color: var(--text-dim) !important;
-  font-family: 'Press Start 2P', monospace !important;
-  font-size: 7px !important;
-  padding: 6px 10px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 6px 12px !important;
   border-bottom: 1px solid var(--border) !important;
   border-top: 1px solid var(--border) !important;
   cursor: default !important;
@@ -806,8 +804,8 @@ input[type="reset"] {
 .ui-autocomplete .ui-menu-item-wrapper {
   background: var(--bg2) !important;
   color: var(--text) !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 11px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
   padding: 6px 12px !important;
   border: none !important;
   cursor: pointer !important;
@@ -821,7 +819,7 @@ input[type="reset"] {
 .ui-autocomplete .ui-menu-item-wrapper.ui-state-focus,
 .ui-autocomplete .ui-state-active,
 .ui-autocomplete .ui-state-focus {
-  background: rgba(123, 47, 255, 0.1) !important;
+  background: var(--hover-bg) !important;
   color: var(--purple) !important;
   border: none !important;
   border-left: 2px solid var(--purple) !important;
@@ -830,19 +828,19 @@ input[type="reset"] {
 
 /* Highlighted matching text */
 .resultHighlight {
-  color: var(--green) !important;
+  color: var(--cyan) !important;
   font-weight: 600 !important;
 }
 
 /* Search tag result extras */
 .searchTagHolderResult {
   color: var(--text-dim) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
 }
 
 .searchTagDescResult {
   color: var(--text-dim) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-style: italic !important;
 }
 
@@ -852,9 +850,9 @@ input[type="reset"] {
   font-style: italic !important;
 }
 
-/* Override jQuery UI defaults that bleed through */
+/* Override jQuery UI defaults */
 .ui-widget {
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-family: var(--font-mono) !important;
 }
 
 .ui-widget-content {
@@ -875,7 +873,7 @@ input[type="reset"] {
 /* ── Misc ── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
-::selection { background: rgba(57, 211, 83, 0.2); color: var(--text); }
+::selection { background: rgba(122, 162, 247, 0.25); color: var(--text); }
 hr { border: none !important; border-top: 1px solid var(--border) !important; margin: 20px 0 !important; }
