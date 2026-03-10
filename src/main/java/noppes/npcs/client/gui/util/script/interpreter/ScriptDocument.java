@@ -3822,6 +3822,10 @@ public class ScriptDocument {
                 TypeParamInfo typeParam = enclosing.getDeclaredTypeParam(typeName);
                 if (typeParam != null) {
                     TypeInfo boundType = typeParam.getBoundTypeInfo();
+                    if (boundType == null) {
+                        typeParam.resolveBoundType();
+                        boundType = typeParam.getBoundTypeInfo();
+                    }
                     if (boundType != null && boundType.isResolved()) {
                         return TypeInfo.typeParameter(typeName, boundType);
                     }
@@ -5616,7 +5620,7 @@ public class ScriptDocument {
             }
 
             // Parse the arguments (first pass - without expected types for overload resolution)
-            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null);
+            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null, null);
 
             // Check if this is a static access (Class.method() style)
             boolean isStaticAccess = isStaticAccessCall(nameStart);
@@ -5682,7 +5686,7 @@ public class ScriptDocument {
                     } else {
                         // Second pass: Re-resolve arguments with expected parameter types if method was found
                         if (resolvedMethod != null && resolvedMethod.getParameters().size() == arguments.size())
-                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod);
+                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod, receiverType);
                         
                         
                         MethodCallInfo callInfo = new MethodCallInfo(methodName, nameStart, nameEnd, openParen,
@@ -5715,7 +5719,7 @@ public class ScriptDocument {
 
                         // Second pass: Re-resolve arguments with expected parameter types if method was found
                         if (resolvedMethod != null && resolvedMethod.getParameters().size() == arguments.size()) {
-                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod);
+                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod, null);
                         }
                         
                         // Check if this is a method from a script type
@@ -5747,7 +5751,7 @@ public class ScriptDocument {
 
                         List<MethodCallInfo.Argument> globalArguments = arguments;
                         if (resolvedGlobal.getParameters().size() == arguments.size()) {
-                            globalArguments = parseMethodArguments(openParen + 1, closeParen, resolvedGlobal);
+                            globalArguments = parseMethodArguments(openParen + 1, closeParen, resolvedGlobal, null);
                         }
 
                         MethodCallInfo callInfo = new MethodCallInfo(
@@ -5771,7 +5775,7 @@ public class ScriptDocument {
                             TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
                             MethodInfo implicitMethod = callerType.getBestMethodOverload(methodName, argTypes);
                             if (implicitMethod != null && implicitMethod.getParameters().size() == arguments.size()) {
-                                arguments = parseMethodArguments(openParen + 1, closeParen, implicitMethod);
+                                arguments = parseMethodArguments(openParen + 1, closeParen, implicitMethod, callerType);
                             }
                             MethodCallInfo callInfo = new MethodCallInfo(
                                 methodName, nameStart, nameEnd, openParen, closeParen,
@@ -5939,9 +5943,10 @@ public class ScriptDocument {
      * @param start Start position of arguments (after opening paren)
      * @param end End position of arguments (at closing paren)
      * @param methodInfo Optional MethodInfo to provide expected parameter types for validation
+     * @param receiverType Optional receiver/containing type for substituting generic type parameters in argument types
      * @return List of parsed arguments with resolved types
      */
-    public List<MethodCallInfo.Argument> parseMethodArguments(int start, int end, MethodInfo methodInfo) {
+    public List<MethodCallInfo.Argument> parseMethodArguments(int start, int end, MethodInfo methodInfo, TypeInfo receiverType) {
         List<MethodCallInfo.Argument> args = new ArrayList<>();
         
         if (start >= end) 
@@ -5980,6 +5985,15 @@ public class ScriptDocument {
                     }
 
                     TypeInfo argType = resolveArgumentType(argText, actualStart, expectedParamType);
+                    
+                    // Substitute type parameters using receiver's generic context
+                    if (receiverType != null && argType != null && GenericContext.hasGenerics(receiverType)) {
+                        GenericContext ctx = GenericContext.forReceiver(receiverType);
+                        TypeInfo substituted = ctx.substitute(argType);
+                        if (substituted != null && substituted.isResolved()) {
+                            argType = substituted;
+                        }
+                    }
                     
                     String samConflictError = CURRENT_SAM_CONFLICT_ERROR.get();
                     if (samConflictError != null) {
@@ -7508,7 +7522,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         TypeInfo superClass = enclosingType != null ? enclosingType.getSuperClass() : null;
 
         // Parse arguments and find matching parent constructor
-        List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null);
+        List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null, superClass);
         TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
 
         // Find matching constructor in parent class
@@ -8949,7 +8963,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                             
                             // Parse arguments to find matching constructor
                             List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen,
-                                    null);
+                                    null, info);
                             int argCount = arguments.size();
                             TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType)
                                                            .toArray(TypeInfo[]::new);
@@ -8983,7 +8997,6 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                                 ).setConstructor(true);
                                 ctorCall.isClassTypeAccess = true;
                             } else {
-                                // Use factory method for regular types
                                 ctorCall = MethodCallInfo.constructor(
                                     info, constructor, start, end, openParen, closeParen, arguments
                                 );
