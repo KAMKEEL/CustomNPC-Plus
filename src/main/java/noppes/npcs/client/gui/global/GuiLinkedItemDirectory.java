@@ -90,10 +90,12 @@ public class GuiLinkedItemDirectory extends GuiDirectoryCategorized {
     @Override
     protected void onCloneItem() {
         if (linkedItem != null && linkedItem.id >= 0) {
-            LinkedItem clone = linkedItem.clone();
-            while (itemData.containsKey(clone.name)) clone.name += "_";
-            clone.id = -1;
-            PacketClient.sendClient(new LinkedItemSavePacket(clone.writeToNBT(true), ""));
+            NBTTagCompound cloneNbt = linkedItem.writeToNBT(true);
+            cloneNbt.setInteger("Id", -1);
+            String name = cloneNbt.getString("Name");
+            while (itemData.containsKey(name)) name += "_";
+            cloneNbt.setString("Name", name);
+            PacketClient.sendClient(new LinkedItemSavePacket(cloneNbt, ""));
         }
     }
 

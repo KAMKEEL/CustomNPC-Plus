@@ -89,9 +89,12 @@ public class GuiEffectDirectory extends GuiDirectoryCategorized {
     @Override
     protected void onCloneItem() {
         if (effect != null && effect.id >= 0) {
-            CustomEffect clone = effect.cloneEffect();
-            while (itemData.containsKey(clone.name)) clone.name += "_";
-            PacketClient.sendClient(new EffectSavePacket(clone.writeToNBT(true), ""));
+            NBTTagCompound cloneNbt = effect.writeToNBT(true);
+            cloneNbt.setInteger("ID", -1);
+            String name = cloneNbt.getString("name");
+            while (itemData.containsKey(name)) name += "_";
+            cloneNbt.setString("name", name);
+            PacketClient.sendClient(new EffectSavePacket(cloneNbt, ""));
         }
     }
 
