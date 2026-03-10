@@ -87,6 +87,7 @@ public class TypeInfo {
     private boolean isPrimitive;           // Whether this is a primitive type (e.g., int, boolean)
     private boolean isObjectLiteral;
     private String typeParameterName;      // Non-null if this TypeInfo represents a type parameter (e.g., "T")
+    private TypeInfo boundType;            // For type parameters with bounds, stores the bound for resolution
 
     // JavaScript/TypeScript type info (for types from .d.ts files)
     private final JSTypeInfo jsTypeInfo;   // The JS type info (null if Java type)
@@ -191,12 +192,15 @@ public class TypeInfo {
 
     /**
      * Create a TypeInfo representing a bounded type parameter (e.g., {@code T extends Entity}).
-     * Delegates member lookup to the bound type but records the original parameter name for display.
+     * Keeps the type parameter's own identity (paramName as simpleName/fullName) but stores the
+     * bound separately for display. Uses the bound's javaClass/kind for member resolution (erasure semantics).
      */
     public static TypeInfo typeParameter(String paramName, TypeInfo boundType) {
-        TypeInfo ti = new TypeInfo(boundType.simpleName, boundType.fullName, boundType.packageName,
-                boundType.kind, boundType.javaClass, true, boundType.enclosingType, boundType.jsTypeInfo);
+        Class<?> javaClass = (boundType != null && boundType.javaClass != null) ? boundType.javaClass : Object.class;
+        Kind kind = (boundType != null) ? boundType.kind : Kind.CLASS;
+        TypeInfo ti = new TypeInfo(paramName, paramName, "", kind, javaClass, true, null);
         ti.typeParameterName = paramName;
+        ti.boundType = boundType;
         return ti;
     }
 
@@ -206,6 +210,10 @@ public class TypeInfo {
 
     public String getTypeParameterName() {
         return typeParameterName;
+    }
+
+    public TypeInfo getBoundType() {
+        return boundType;
     }
 
     public static TypeInfo fromClass(Class<?> clazz) {
@@ -307,12 +315,14 @@ public class TypeInfo {
         }
         
         if (type instanceof TypeVariable<?>) {
-            // Type variable like T, E, K, V
             TypeVariable<?> typeVar = (TypeVariable<?>) type;
             String varName = typeVar.getName();
-            // Create an unresolved type representing the type variable
-            // The substitution system will handle replacing this with the actual type
-            return TypeInfo.unresolved(varName, varName);
+            // Check for bounds - if bounded, create typeParameter with bound
+            Type[] bounds = typeVar.getBounds();
+            if (bounds != null && bounds.length > 0 && bounds[0] != Object.class) {
+                return TypeInfo.typeParameter(varName, fromGenericType(bounds[0]));
+            }
+            return TypeInfo.typeParameter(varName);
         }
         
         if (type instanceof WildcardType) {

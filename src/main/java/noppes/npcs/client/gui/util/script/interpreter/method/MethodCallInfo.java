@@ -428,8 +428,8 @@ public class MethodCallInfo {
             TypeInfo argType = arg.getResolvedType();
             if (argType != null && paramType != null) {
                 if (!TypeChecker.isTypeCompatible(paramType, argType)) {
-                    setArgTypeError(i, "Expected " + paramType.getDisplayName() +
-                            " but got " + argType.getDisplayName());
+                    setArgTypeError(i, "Expected " + getTypeDisplayName(paramType) +
+                            " but got " +  getTypeDisplayName(argType));
                 }
             } else if (paramType == null) {
                 setArgTypeError(i, "Parameter type of '" + para.getName() + "' is unresolved");
@@ -437,6 +437,20 @@ public class MethodCallInfo {
                 setArgTypeError(i, "Cannot resolve type of argument '" + arg.getText() + "'");
             }
         }
+    }
+
+    /**
+     * in error "Expect T but got String", if T has a resolved bound aka "int" show it instead of T to avoid confusion.
+     * So the error would be "Expect int but got String" 
+     */
+    private String getTypeDisplayName(TypeInfo type) {
+        if(type.isTypeParameter()) {
+            TypeInfo bound = type.getBoundType();
+            if (bound != null)
+                return bound.getDisplayName();
+        }
+        
+        return  type.getDisplayName();
     }
 
     @Override

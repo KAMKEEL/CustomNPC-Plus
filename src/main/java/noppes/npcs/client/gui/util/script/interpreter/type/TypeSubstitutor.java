@@ -96,9 +96,7 @@ public class TypeSubstitutor {
         // Two cases:
         //  1. Unresolved TypeInfo (Java reflection path: TypeInfo.fromGenericType creates these for T, E, K, V)
         //  2. TypeInfo.typeParameter() (script-defined path: resolved but tagged as a type parameter)
-        // For tagged type parameters, use getTypeParameterName() as the lookup key — bounded params have
-        // the bound's simpleName as their simpleName (e.g., "Entity" for T extends Entity), so using
-        // simpleName would incorrectly look up "Entity" instead of "T".
+        // For tagged type parameters, use getTypeParameterName() as the lookup key.
         if (!type.isResolved() || type.isTypeParameter()) {
             String lookupKey = type.isTypeParameter() ? type.getTypeParameterName() : typeName;
             TypeInfo substitution = bindings.get(lookupKey);

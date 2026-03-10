@@ -733,9 +733,10 @@ public class TokenHoverInfo {
         addSegment("type parameter ", TokenType.MODIFIER.getHexColor());
         addSegment(paramName, TokenType.GENERIC_TYPE_PARAM.getHexColor());
 
-        if (typeInfo.getJavaClass() != null && typeInfo.getJavaClass() != Object.class) {
+        TypeInfo bound = typeInfo.getBoundType();
+        if (bound != null && bound.getJavaClass() != null && bound.getJavaClass() != Object.class) {
             addSegment(" extends ", TokenType.MODIFIER.getHexColor());
-            addSegment(typeInfo.getSimpleName(), getColorForTypeInfo(typeInfo));
+            addSegment(bound.getSimpleName(), getColorForTypeInfo(bound));
         }
     }
 

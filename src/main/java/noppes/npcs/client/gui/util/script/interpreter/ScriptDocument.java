@@ -908,20 +908,38 @@ public class ScriptDocument {
             if (trimmed.isEmpty()) continue;
 
             int extendsIdx = trimmed.indexOf("extends");
+            String paramName = extendsIdx >= 0 ? trimmed.substring(0, extendsIdx).trim() : trimmed;
+            
+            int endIdx = 0;
+            while (endIdx < paramName.length() && 
+                   (Character.isJavaIdentifierPart(paramName.charAt(endIdx)) || paramName.charAt(endIdx) == '.')) {
+                endIdx++;
+            }
+            paramName = paramName.substring(0, endIdx);
+            
+            String boundName = null;
             if (extendsIdx >= 0) {
-                String paramName = trimmed.substring(0, extendsIdx).trim();
-                String boundName = trimmed.substring(extendsIdx + 7).trim();
-                TypeParamInfo typeParam = new TypeParamInfo(paramName, boundName.isEmpty() ? null : boundName, null);
-                if (!boundName.isEmpty()) {
-                    TypeInfo boundTypeInfo = resolveType(boundName, declOffset);
-                    if (boundTypeInfo != null && boundTypeInfo.isResolved()) {
-                        typeParam.setBoundTypeInfo(boundTypeInfo);
+                String afterExtends = trimmed.substring(extendsIdx + 7).trim();
+                if (!afterExtends.isEmpty()) {
+                    int boundEndIdx = 0;
+                    while (boundEndIdx < afterExtends.length() && 
+                           (Character.isJavaIdentifierPart(afterExtends.charAt(boundEndIdx)) || afterExtends.charAt(boundEndIdx) == '.')) {
+                        boundEndIdx++;
+                    }
+                    if (boundEndIdx > 0) {
+                        boundName = afterExtends.substring(0, boundEndIdx);
                     }
                 }
-                scriptType.addDeclaredTypeParam(typeParam);
-            } else {
-                scriptType.addDeclaredTypeParam(new TypeParamInfo(trimmed, null, null));
             }
+            
+            TypeParamInfo typeParam = new TypeParamInfo(paramName, boundName, null);
+            if (boundName != null) {
+                TypeInfo boundTypeInfo = resolveType(boundName, declOffset);
+                if (boundTypeInfo != null && boundTypeInfo.isResolved()) {
+                    typeParam.setBoundTypeInfo(boundTypeInfo);
+                }
+            }
+            scriptType.addDeclaredTypeParam(typeParam);
         }
     }
 

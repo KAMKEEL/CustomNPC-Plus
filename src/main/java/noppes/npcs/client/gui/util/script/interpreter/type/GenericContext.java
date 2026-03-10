@@ -152,7 +152,6 @@ public final class GenericContext {
 
         // Direct type variable substitution.
         // Handles unresolved types (Java reflection path) and TypeInfo.typeParameter() (script-defined path).
-        // Bounded type parameters have the bound's simpleName, so use getTypeParameterName() for the lookup.
         if (!type.isResolved() || type.isTypeParameter()) {
             String lookupKey = type.isTypeParameter() ? type.getTypeParameterName() : type.getSimpleName();
             TypeInfo substitution = resolveTypeVariable(lookupKey);
