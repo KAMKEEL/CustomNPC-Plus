@@ -272,18 +272,21 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
         if (currentIsBuiltIn) return;
         if (isChainedMode() && selectedChain != null) {
             ChainedAbility clone = new ChainedAbility();
-            clone.readNBT(selectedChain.writeNBT(false));
+            NBTTagCompound chainNbt = selectedChain.writeNBT(true);
+            chainNbt.setString("Id", UUID.randomUUID().toString());
+            clone.readNBT(chainNbt);
             String cloneName = selectedChain.getName() + "_copy";
             clone.setName(cloneName);
-            PacketClient.sendClient(new ChainedAbilitySavePacket(clone.writeNBT(false)));
+            PacketClient.sendClient(new ChainedAbilitySavePacket(clone.writeNBT(true)));
             if (selectedCatId >= 0) requestItemsInCategory(selectedCatId);
         } else if (selectedAbility != null) {
-            Ability clone = AbilityController.Instance.fromNBT(selectedAbility.writeNBT(false));
+            NBTTagCompound abilityNbt = selectedAbility.writeNBT(true);
+            abilityNbt.setString("id", UUID.randomUUID().toString());
+            Ability clone = AbilityController.Instance.fromNBT(abilityNbt);
             if (clone != null) {
-                clone.setId(UUID.randomUUID().toString());
                 String cloneName = selectedAbility.getName() + "_copy";
                 clone.setName(cloneName);
-                PacketClient.sendClient(new CustomAbilitySavePacket(clone.writeNBT(false)));
+                PacketClient.sendClient(new CustomAbilitySavePacket(clone.writeNBT(true)));
                 if (selectedCatId >= 0 && isCustomMode()) requestItemsInCategory(selectedCatId);
             }
         }

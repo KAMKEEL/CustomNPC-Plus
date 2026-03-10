@@ -673,7 +673,13 @@ public class CustomEffectController implements ICustomEffectHandler {
     @Override
     public ICustomEffect saveEffect(ICustomEffect customEffect) {
         if (customEffect.getID() < 0) {
+            int oldId = customEffect.getID();
             customEffect.setID(getUnusedId());
+            // Move script handler from old ID to new ID (e.g. during clone)
+            EffectScript handler = customEffectScriptHandlers.remove(oldId);
+            if (handler != null) {
+                customEffectScriptHandlers.put(customEffect.getID(), handler);
+            }
             while (has(customEffect.getName()))
                 customEffect.setName(customEffect.getName() + "_");
         }

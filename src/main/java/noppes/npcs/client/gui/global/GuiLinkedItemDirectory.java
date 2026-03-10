@@ -93,7 +93,7 @@ public class GuiLinkedItemDirectory extends GuiDirectoryCategorized {
             LinkedItem clone = linkedItem.clone();
             while (itemData.containsKey(clone.name)) clone.name += "_";
             clone.id = -1;
-            PacketClient.sendClient(new LinkedItemSavePacket(clone.writeToNBT(false), ""));
+            PacketClient.sendClient(new LinkedItemSavePacket(clone.writeToNBT(true), ""));
         }
     }
 

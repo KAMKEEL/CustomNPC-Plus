@@ -91,7 +91,7 @@ public class GuiEffectDirectory extends GuiDirectoryCategorized {
         if (effect != null && effect.id >= 0) {
             CustomEffect clone = effect.cloneEffect();
             while (itemData.containsKey(clone.name)) clone.name += "_";
-            PacketClient.sendClient(new EffectSavePacket(clone.writeToNBT(false), ""));
+            PacketClient.sendClient(new EffectSavePacket(clone.writeToNBT(true), ""));
         }
     }
 

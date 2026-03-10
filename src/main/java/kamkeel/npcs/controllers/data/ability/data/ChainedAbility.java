@@ -15,6 +15,7 @@ import kamkeel.npcs.util.FileNameHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * A chained ability is an ordered sequence of ability references that execute

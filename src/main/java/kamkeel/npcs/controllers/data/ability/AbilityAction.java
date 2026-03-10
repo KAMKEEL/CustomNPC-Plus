@@ -5,6 +5,8 @@ import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import net.minecraft.nbt.NBTTagCompound;
 
+import java.util.UUID;
+
 /**
  * Unified slot for storing any combat action: inline ability, ability reference, or chain reference.
  * Support for all {@link IAbilityAction} types.
@@ -218,7 +220,9 @@ public class AbilityAction {
             Ability resolved = getAbility();
             if (resolved == null) return false;
 
-            inlineAbility = AbilityController.Instance.fromNBT(resolved.writeNBT(true));
+            NBTTagCompound nbt = resolved.writeNBT(true);
+            nbt.setString("id", UUID.randomUUID().toString());
+            inlineAbility = AbilityController.Instance.fromNBT(nbt);
             slotType = SlotType.INLINE_ABILITY;
             referenceId = null;
             cachedAction = null;
@@ -230,7 +234,10 @@ public class AbilityAction {
             ChainedAbility resolved = getChainedAbility();
             if (resolved == null) return false;
 
-            inlineChain = resolved.deepCopy();
+            inlineChain = new ChainedAbility();
+            NBTTagCompound chainNbt = resolved.writeNBT(true);
+            chainNbt.setString("Id", UUID.randomUUID().toString());
+            inlineChain.readNBT(chainNbt);
             slotType = SlotType.INLINE_CHAIN;
             referenceId = null;
             cachedAction = null;

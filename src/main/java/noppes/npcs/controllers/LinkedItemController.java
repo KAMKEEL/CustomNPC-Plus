@@ -209,7 +209,13 @@ public class LinkedItemController implements ILinkedItemHandler {
 
     public ILinkedItem saveLinkedItem(ILinkedItem linkedItem) {
         if (linkedItem.getId() < 0) {
+            int oldId = linkedItem.getId();
             linkedItem.setId(getUnusedId());
+            // Move script handler from old ID to new ID (e.g. during clone)
+            LinkedItemScript handler = linkedItemsScripts.remove(oldId);
+            if (handler != null) {
+                linkedItemsScripts.put(linkedItem.getId(), handler);
+            }
             while (hasName(linkedItem.getName()))
                 linkedItem.setName(linkedItem.getName() + "_");
         }
