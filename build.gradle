@@ -81,11 +81,32 @@ processResources.dependsOn generateTypeScriptDefinitions
 sourcesJar.dependsOn generateTypeScriptDefinitions
 
 
-// Register @hookName as a valid Javadoc tag
-tasks.withType(Javadoc) {
+// Javadoc configuration
+javadoc {
+    options.encoding     = 'UTF-8'
+    options.charSet      = 'UTF-8'
+    options.docEncoding  = 'UTF-8'
+
     options.tags = [
         'hookName:a:Hook Name:'
     ]
+
+    options.stylesheetFile = file('.github/javadoc/javadoc-theme.css')
+    options.header = file('.github/javadoc/javadoc-header.html').text.replaceAll('\\s+', ' ').trim()
+
+    options.addBooleanOption('-allow-script-in-comments', true)
+    options.footer = file('.github/javadoc/javadoc-footer.html').text.replaceAll('\\s+', ' ').trim()
+
+    // Only document the public API, not net.minecraft stubs
+    include 'noppes/npcs/api/**'
+
+    options.links(
+        'https://docs.oracle.com/en/java/javase/11/docs/api/'
+    )
+
+    javadocTool = javaToolchains.javadocToolFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
 }
 
 // Modify the existing 'build' task to depend on 'updateAPI'

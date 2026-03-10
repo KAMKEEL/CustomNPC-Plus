@@ -1,0 +1,775 @@
+/* ============================================================
+   CustomNPC+ DBC Addon — Javadoc Theme (Javadoc 11)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  --bg:           #0c0c0e;
+  --bg2:          #111116;
+  --bg3:          #161b22;
+  --border:       #21262d;
+  --border2:      #30363d;
+  --text:         #e8e8ee;
+  --text-mid:     #b0b8c8;
+  --text-dim:     #6e7681;
+  --green:        #39d353;
+  --green-dim:    #1a4d2a;
+  --blue:         #58a6ff;
+  --amber:        #f0a030;
+  --purple:       #bc8cff;
+  --enchant-glow: rgba(123, 47, 255, 0.4);
+  --green-glow:   rgba(57, 211, 83, 0.3);
+  --nav-h:        40px;
+  --subnav-h:     32px;
+}
+
+* { box-sizing: border-box !important; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.skipNav { display: none !important; }
+
+/* ══════════════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════════════ */
+
+.fixedNav {
+  position: fixed !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  z-index: 100 !important;
+}
+
+/* Top bar */
+.topNav {
+  position: relative !important;
+  background: var(--bg2) !important;
+  border-bottom: 1px solid var(--border) !important;
+  height: var(--nav-h) !important;
+  margin: 0 !important; padding: 0 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  overflow: visible !important;
+}
+
+/* Nav list — leave room on right for brand (~290px) */
+.topNav > ul.navList {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 0 0 4px !important;
+  padding-right: 295px !important;
+  display: flex !important;
+  align-items: stretch !important;
+  flex-shrink: 0 !important;
+}
+
+/* ── Every li in the top nav list gets the same treatment ──
+   There are THREE kinds:
+   1. <li><a href>Text</a></li>   — normal link
+   2. <li class="navBarCell1Rev">Text</li>  — active page
+   3. <li>Text</li>               — disabled (no link, e.g. "Package" on overview)
+   All three need identical padding so they don't merge. */
+
+.topNav > ul.navList > li {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 14px !important;         /* SAME padding for ALL li types */
+  height: var(--nav-h) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  white-space: nowrap !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: var(--text-dim) !important;
+  border-bottom: 2px solid transparent !important;
+}
+
+/* Links inside nav items */
+.topNav > ul.navList > li > a {
+  display: flex !important;
+  align-items: center !important;
+  height: var(--nav-h) !important;
+  /* Cancel the parent's padding — the <a> fills the full li */
+  margin: 0 -14px !important;
+  padding: 0 14px !important;
+  color: var(--text-dim) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+  border-bottom: 2px solid transparent !important;
+  transition: color 0.15s, border-color 0.15s !important;
+}
+
+.topNav > ul.navList > li > a:hover {
+  color: var(--green) !important;
+  border-bottom-color: var(--green) !important;
+  background: transparent !important;
+  text-shadow: none !important;
+  text-decoration: none !important;
+}
+
+/* Active item */
+.topNav > ul.navList > li.navBarCell1Rev {
+  color: var(--green) !important;
+  border-bottom: 2px solid var(--green) !important;
+}
+
+/* Disabled item (no <a>) — keep text-dim, no bottom border */
+/* Already covered by the base li rule above */
+
+/* ── Brand — pinned to far right of topNav ── */
+.topNav > .aboutLanguage {
+  position: absolute !important;
+  top: 0 !important; right: 0 !important;
+  height: var(--nav-h) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 0 12px !important;
+  background: var(--bg2) !important;
+  border-left: 1px solid var(--border) !important;
+  z-index: 5 !important;
+}
+
+/* Hide the duplicate in bottom nav */
+.bottomNav > .aboutLanguage,
+.bottomNav .aboutLanguage {
+  display: none !important;
+}
+
+#javadoc-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.header-brand { text-decoration: none !important; }
+
+.header-title {
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 7px !important;
+  color: var(--green) !important;
+  text-shadow: 0 0 8px var(--green-glow) !important;
+  line-height: 1.5 !important;
+  white-space: nowrap !important;
+}
+
+.header-title span {
+  display: block !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 9px !important;
+  color: var(--text-dim) !important;
+  text-shadow: none !important;
+  margin-top: 2px !important;
+}
+
+.header-back {
+  display: inline-flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+  color: var(--text-dim) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 10px !important;
+  padding: 5px 10px !important;
+  border: 1px solid var(--border2) !important;
+  white-space: nowrap !important;
+  transition: color 0.15s, border-color 0.15s, background 0.15s !important;
+}
+
+.header-back:hover {
+  color: var(--green) !important;
+  border-color: var(--green-dim) !important;
+  background: rgba(57, 211, 83, 0.06) !important;
+  text-decoration: none !important;
+  text-shadow: none !important;
+}
+
+/* ── Sub nav ──
+   Structure: ul#allclasses_navbar_top | ul.navListSearch | div(script) | div(subNavList×2)
+   We want search on the LEFT, so we use order to reposition navListSearch before allclasses */
+.subNav {
+  background: var(--bg3) !important;
+  border-bottom: 1px solid var(--border) !important;
+  height: var(--subnav-h) !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+/* Search first */
+.subNav > ul.navListSearch {
+  order: -1 !important;
+}
+
+.subNav ul,
+.subNav ul.navList,
+.subNav ul.subNavList,
+.subNav ul.navListSearch {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+.subNav li {
+  display: flex !important;
+  align-items: center !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  color: var(--text-dim) !important;
+  padding: 0 5px !important;
+  white-space: nowrap !important;
+  border: none !important;
+  height: auto !important;
+  text-transform: none !important;
+}
+
+.subNav a {
+  color: var(--blue) !important;
+  text-decoration: none !important;
+  font-size: 11px !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+.subNav a:hover { color: var(--green) !important; text-shadow: none !important; }
+
+.subNav label {
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 10px !important;
+  color: var(--text-dim) !important;
+  text-transform: none !important;
+  margin-right: 4px !important;
+}
+
+/* ══════════════════════════════════════════════
+   CONTENT
+   ══════════════════════════════════════════════ */
+
+main {
+  background: var(--bg) !important;
+  padding: 24px !important;
+  flex: 1 0 auto !important;
+}
+
+.contentContainer, div.contentContainer {
+  background: var(--bg) !important;
+  padding: 0 24px 0px !important;
+}
+
+.header {
+  padding: 0 24px 0 !important;
+  margin-bottom: 16px !important;
+}
+
+/* Subtitle under h1 on help/overview pages */
+.header .subTitle,
+div.subTitle {
+  color: var(--text-mid) !important;
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+  margin-top: 8px !important;
+}
+
+.packageLabelInType {
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 10px !important;
+  color: var(--text-dim) !important;
+}
+
+/* ── Headings ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Press Start 2P', monospace !important;
+  font-weight: 400 !important;
+  line-height: 1.6 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+h1.title, h2.title {
+  font-size: 12px !important;
+  color: var(--green) !important;
+  text-shadow: 0 0 18px var(--green-glow) !important;
+  border-bottom: 2px solid var(--border2) !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 20px !important;
+  margin-top: 0 !important;
+}
+
+/* Section h2 — used in help page, class summaries */
+section > h2,
+li.blockList > section > h2 {
+  font-size: 8px !important;
+  color: var(--green) !important;
+  text-shadow: 0 0 10px var(--green-glow) !important;
+  border-left: 3px solid var(--green) !important;
+  border-bottom: none !important;
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  background: rgba(57, 211, 83, 0.04) !important;
+}
+
+/* Generic h2 (table section headers like "Method Summary") */
+h2 {
+  font-size: 8px !important;
+  color: var(--amber) !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding-bottom: 8px !important;
+  margin-top: 28px !important;
+  margin-bottom: 12px !important;
+}
+
+/* h3 — table section headers inside blockList ("Constructor Summary" etc.) */
+h3 {
+  font-size: 7px !important;
+  color: var(--text-mid) !important;
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  background: var(--bg3) !important;
+  border-bottom: 1px solid var(--border) !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* h4 — method detail names */
+h4 {
+  font-size: 7px !important;
+  color: var(--green) !important;
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  background: var(--bg3) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* ── blockList sections — card-like containers ── */
+ul.blockList > li.blockList,
+ul.blockListLast > li.blockList {
+  border: 1px solid var(--border) !important;
+  margin-bottom: 12px !important;
+  padding: 0 !important;
+  background: var(--bg2) !important;
+}
+
+/* Help page: section cards with padding around their content */
+ul.blockList > li.blockList > section {
+  padding: 0 !important;
+}
+
+ul.blockList > li.blockList > section > p,
+ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) {
+  padding: 12px 16px !important;
+  margin: 0 !important;
+  color: var(--text-mid) !important;
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+}
+
+/* Nested lists inside section content */
+ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) > li {
+  color: var(--text-mid) !important;
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 12px !important;
+  padding: 2px 0 !important;
+  list-style: none !important;
+}
+
+ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) > li::before {
+  content: '›' !important;
+  color: var(--green) !important;
+  margin-right: 8px !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+/* ── Inherited methods block ── */
+/* "Methods inherited from class java.lang.Object" */
+ul.blockList > li.blockList > h3,
+ul.blockList > li.blockList > ul.blockList > li.blockList > h3 {
+  font-size: 7px !important;
+  color: var(--text-dim) !important;
+  padding: 8px 14px !important;
+  background: var(--bg3) !important;
+  border-bottom: 1px solid var(--border) !important;
+  margin: 0 !important;
+}
+
+/* The comma-separated code block of inherited method names */
+ul.blockList > li.blockList > code,
+li.blockList > code {
+  display: block !important;
+  padding: 10px 16px !important;
+  color: var(--text-dim) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  background: var(--bg) !important;
+  border: none !important;
+  line-height: 1.8 !important;
+}
+
+
+
+/* ── Inheritance chain ── */
+ul.inheritance {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 0 16px !important;
+  font-size: 12px !important;
+  color: var(--text-dim) !important;
+}
+ul.inheritance li { padding-left: 16px !important; }
+ul.inheritance li:first-child { padding-left: 0 !important; }
+
+/* ── General content lists (help page) ── */
+main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.navListSearch):not(.inheritance) {
+  padding-left: 0 !important;
+  margin: 4px 0 4px 12px !important;
+  list-style: none !important;
+}
+main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.navListSearch):not(.inheritance) > li {
+  color: var(--text-mid) !important;
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 13px !important;
+  padding: 2px 0 !important;
+  line-height: 1.7 !important;
+}
+main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.navListSearch):not(.inheritance) > li::before {
+  content: '›' !important;
+  color: var(--green) !important;
+  margin-right: 8px !important;
+}
+
+/* General paragraphs in content */
+main > div p, .contentContainer p {
+  color: var(--text-mid) !important;
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+  margin: 8px 0 !important;
+}
+
+/* Emphasized phrase (bottom of help page) */
+.emphasizedPhrase {
+  display: block !important;
+  color: var(--text-dim) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  font-style: italic !important;
+  border-left: 2px solid var(--border2) !important;
+  padding: 6px 12px !important;
+  margin-top: 16px !important;
+}
+
+/* Bottom footer subNav — sits below .bottomNav */
+footer {
+    /*margin-top: auto;*/
+}
+footer .subNav {
+  background: var(--bg3) !important;
+  border-top: 1px solid var(--border) !important;
+  border-bottom: none !important;
+  height: var(--subnav-h) !important;
+  padding: 0 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+/* ── Tables ── */
+table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border: 1px solid var(--border) !important;
+  margin: 16px 0 !important;
+  font-size: 12px !important;
+}
+
+caption {
+  background: var(--bg3) !important;
+  padding: 6px 12px !important;
+  text-align: left !important;
+  border-bottom: 1px solid var(--border2) !important;
+  caption-side: top !important;
+}
+
+.activeTableTab, .tableTab {
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 10px !important;
+  font-weight: 400 !important;
+  text-transform: none !important;
+  padding: 3px 8px !important;
+  border: 1px solid var(--border2) !important;
+  display: inline-block !important;
+  margin-right: 4px !important;
+  cursor: pointer !important;
+}
+
+.activeTableTab {
+  color: var(--green) !important;
+  border-color: var(--green-dim) !important;
+  background: rgba(57, 211, 83, 0.06) !important;
+}
+
+.tableTab { color: var(--text-dim) !important; background: var(--bg3) !important; }
+.tableTab a { color: var(--text-dim) !important; text-decoration: none !important; }
+.tableTab a:hover { color: var(--green) !important; text-shadow: none !important; }
+
+/* Column headers */
+th[scope="col"] {
+  background: var(--bg3) !important;
+  color: var(--text-dim) !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 7px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  padding: 10px 14px !important;
+  border-bottom: 1px solid var(--border2) !important;
+  text-align: left !important;
+}
+
+/* Data cells — Javadoc 11 uses th[scope="row"] for method/class name cells
+   IMPORTANT: browsers center <th> by default — force left align */
+th[scope="row"], td {
+  background: var(--bg2) !important;
+  color: var(--text) !important;
+  padding: 8px 14px !important;
+  border-bottom: 1px solid var(--border) !important;
+  vertical-align: top !important;
+  text-align: left !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+tr.altColor > td, tr.altColor > th[scope="row"] { background: var(--bg) !important; }
+tr.rowColor > td, tr.rowColor > th[scope="row"] { background: var(--bg2) !important; }
+
+tr:hover > td, tr:hover > th[scope="row"] {
+  background: rgba(123, 47, 255, 0.06) !important;
+  border-bottom-color: rgba(123, 47, 255, 0.25) !important;
+}
+tr:hover > td a, tr:hover > th[scope="row"] a {
+  color: var(--purple) !important;
+  text-shadow: 0 0 8px var(--enchant-glow) !important;
+}
+
+/* ── Links ── */
+a, a:visited { color: var(--blue) !important; text-decoration: none !important; }
+a:hover { color: var(--purple) !important; text-shadow: 0 0 8px var(--enchant-glow) !important; text-decoration: none !important; }
+.memberNameLink a { color: var(--green) !important; }
+.memberNameLink a:hover { color: var(--purple) !important; text-shadow: 0 0 10px var(--enchant-glow) !important; }
+.externalLink { color: var(--blue) !important; }
+
+/* ── Description blocks ── */
+div.block {
+  color: var(--text-mid) !important;
+  font-family: 'IBM Plex Sans', sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+  padding: 4px 0 !important;
+}
+ul.blockList > li.blockList > div.block{ padding: 10px 14px !important; margin: 0 !important; }
+
+/* ── Method detail ── */
+ul.blockList, ul.blockListLast { list-style: none !important; padding: 0 !important; margin: 0 !important; }
+ul.blockList > li.blockList, ul.blockListLast > li.blockList {
+  border: 1px solid var(--border) !important;
+  margin-bottom: 10px !important;
+  padding: 0 !important;
+}
+
+pre.methodSignature, pre.typeSignature {
+  background: var(--bg2) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-left: 3px solid var(--green) !important;
+  margin: 0 !important;
+  padding: 12px 16px !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 12px !important;
+  color: var(--text) !important;
+  overflow-x: auto !important;
+  white-space: pre-wrap !important;
+}
+
+pre {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border) !important;
+  border-left: 3px solid var(--green) !important;
+  padding: 14px 16px !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 12px !important;
+  color: var(--text) !important;
+  overflow-x: auto !important;
+  margin: 0 !important;
+  white-space: pre-wrap !important;
+}
+
+code {
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 12px !important;
+  color: var(--text) !important;
+  background: var(--bg3) !important;
+  padding: 1px 5px !important;
+}
+
+dl { padding: 10px 14px !important; margin: 0 !important; }
+dt { margin-bottom: 4px !important; }
+dd { margin: 0 0 6px 16px !important; color: var(--text-mid) !important; font-size: 12px !important; }
+
+.paramLabel, .returnLabel, .throwsLabel, .seeLabel, .simpleTagLabel {
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 7px !important;
+  color: var(--text-dim) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.typeNameLabel { color: var(--green) !important; }
+
+.deprecationBlock {
+  background: rgba(240, 160, 48, 0.08) !important;
+  border-left: 3px solid var(--amber) !important;
+  padding: 10px 14px !important;
+  color: var(--amber) !important;
+  font-size: 11px !important;
+}
+
+/* ── Inputs ── */
+input[type="text"] {
+  background: var(--bg3) !important;
+  border: 1px solid var(--border2) !important;
+  color: var(--text) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  padding: 3px 8px !important;
+  outline: none !important;
+  border-radius: 0 !important;
+}
+input[type="text"]:focus { border-color: var(--green) !important; }
+input[type="reset"] {
+  background: var(--bg3) !important;
+  border: 1px solid var(--border2) !important;
+  color: var(--text-dim) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  padding: 3px 8px !important;
+  cursor: pointer !important;
+  border-radius: 0 !important;
+}
+
+/* ── Bottom nav ──
+   NOTE: .bottomNav contains anchor tags and a skipNav div BEFORE ul.navList,
+   so we cannot use > child combinator — we use descendant selectors instead. */
+.bottomNav {
+  background: var(--bg2) !important;
+  border-top: 1px solid var(--border) !important;
+  min-height: var(--nav-h) !important;
+  padding: 0 !important;
+  margin-top: 32px !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* The navList inside bottomNav — displayed as a flex row */
+.bottomNav ul.navList[title="Navigation"] {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 0 0 4px !important;
+  display: flex !important;
+  align-items: stretch !important;
+  height: var(--nav-h) !important;
+}
+
+/* All li items in bottom nav */
+.bottomNav ul.navList[title="Navigation"] li {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 14px !important;
+  height: var(--nav-h) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  white-space: nowrap !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: var(--text-dim) !important;
+  border-top: 2px solid transparent !important;
+}
+
+.bottomNav ul.navList[title="Navigation"] li > a {
+  display: flex !important;
+  align-items: center !important;
+  height: var(--nav-h) !important;
+  margin: 0 -14px !important;
+  padding: 0 14px !important;
+  color: var(--text-dim) !important;
+  text-decoration: none !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+  transition: color 0.15s !important;
+}
+
+.bottomNav ul.navList[title="Navigation"] li > a:hover {
+  color: var(--green) !important;
+  text-shadow: none !important;
+}
+
+.bottomNav ul.navList[title="Navigation"] li.navBarCell1Rev {
+  color: var(--green) !important;
+  border-top: 2px solid var(--green) !important;
+}
+
+/* The aboutLanguage inside bottomNav holds only our JS script — hide it visually */
+.bottomNav .aboutLanguage {
+  display: none !important;
+}
+
+.legalCopy {
+  background: var(--bg2) !important;
+  color: var(--text-dim) !important;
+  font-size: 10px !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  padding: 12px 16px !important;
+  text-align: center !important;
+  border-top: 1px solid var(--border) !important;
+}
+
+/* ── Misc ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+::selection { background: rgba(57, 211, 83, 0.2); color: var(--text); }
+hr { border: none !important; border-top: 1px solid var(--border) !important; margin: 20px 0 !important; }

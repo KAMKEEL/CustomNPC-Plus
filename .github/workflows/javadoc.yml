@@ -1,0 +1,218 @@
+name: Generate and Deploy Javadoc
+
+on:
+  push:
+    branches:
+      - master
+      - '**'
+  delete:
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force redeploy Javadocs without a new commit'
+        required: false
+        default: 'true'
+
+jobs:
+  sanity-check:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.deploy_check.outputs.should_deploy }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for deploy tag
+        id: deploy_check
+        run: |
+          source .github/scripts/doc-config.sh
+
+          BRANCH="${GITHUB_REF#refs/heads/}"
+
+          # Always deploy on manual trigger
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "Reason: workflow_dispatch"
+            exit 0
+          fi
+
+          # Main branch: only deploy if commit message contains [deploy-docs]
+          if [ "$BRANCH" = "$MAIN_BRANCH_NAME" ]; then
+            if echo "${{ github.event.head_commit.message }}" | grep -q "\[deploy-docs\]"; then
+              echo "should_deploy=true" >> $GITHUB_OUTPUT
+              echo "Reason: master branch with [deploy-docs] tag"
+            else
+              echo "should_deploy=false" >> $GITHUB_OUTPUT
+              echo "Reason: master branch without [deploy-docs] tag, skipping"
+            fi
+            exit 0
+          fi
+
+          # Experimental branches: only deploy if whitelisted
+          for ALLOWED in "${EXPERIMENTAL_WHITELIST[@]}"; do
+            if [ "$BRANCH" = "$ALLOWED" ]; then
+              echo "should_deploy=true" >> $GITHUB_OUTPUT
+              echo "Reason: branch '$BRANCH' is whitelisted"
+              exit 0
+            fi
+          done
+
+          echo "should_deploy=false" >> $GITHUB_OUTPUT
+          echo "Reason: branch '$BRANCH' is not whitelisted, skipping"
+
+  build-and-deploy-javadoc:
+    needs: sanity-check
+    if: needs.sanity-check.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize API submodule
+        run: git submodule update --init --recursive src/api
+
+      - name: Setup JDK 8 (compile)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      - name: Setup JDK 11 (javadoc)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract convention plugin version
+        id: convention
+        run: |
+          VERSION=$(grep "id 'com.gtnewhorizons.gtnhsettingsconvention'" settings.gradle settings.gradle.kts 2>/dev/null | grep -o "version '[0-9]\+\.[0-9]\+\.[0-9]\+'" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected convention version: $VERSION"
+
+      - name: Get source commit info
+        id: source_commit
+        run: |
+          echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "date=$(git log -1 --format='%cI')" >> $GITHUB_OUTPUT
+
+      - name: Cache Gradle wrapper
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/wrapper
+          key: gradle-wrapper-${{ hashFiles('**/gradle-wrapper.properties') }}
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/caches/modules-*
+            ~/.gradle/caches/jars-*
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Cache RFG
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/rfg
+            build/tmp/.cache/expanded
+            build/tmp/deobfuscateMergedJarToSrg
+          key: ${{ runner.os }}-rfg-convention${{ steps.convention.outputs.version }}
+          restore-keys: |
+            ${{ runner.os }}-rfg-
+
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: .github/pages/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('.github/pages/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Generate Javadoc
+        run: ./gradlew javadoc
+
+      - name: Get deploy path
+        id: deploy_path
+        run: bash .github/scripts/resolve-doc-path.sh
+
+      - name: Deploy to gh-pages
+        if: steps.deploy_path.outputs.path != ''
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/docs/javadoc
+          destination_dir: ${{ steps.deploy_path.outputs.path }}
+          keep_files: true
+
+      # Give GitHub a moment to settle after the peaceiris push
+      - name: Wait for gh-pages to settle
+        run: sleep 10
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-index
+
+      - name: Generate manifest
+        run: |
+          cd gh-pages-index
+          SOURCE_HASH="${{ steps.source_commit.outputs.hash }}" \
+          SOURCE_DATE="${{ steps.source_commit.outputs.date }}" \
+          DEPLOY_PATH="${{ steps.deploy_path.outputs.path }}" \
+          bash ../.github/scripts/generate-index.sh
+
+      - name: Install page dependencies
+        run: npm ci --prefix .github/pages
+
+      - name: Build index page
+        run: |
+          cp gh-pages-index/manifest.json .github/pages/public/manifest.json
+          npm run build --prefix .github/pages
+
+      - name: Deploy index to gh-pages
+        run: |
+          cp -r .github/pages-dist/* gh-pages-index/
+          cd gh-pages-index
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A
+          git commit -m "Regenerate index and manifest [skip ci]" || echo "Unchanged"
+          git push
+
+  cleanup-on-delete:
+    if: github.event_name == 'delete' && github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: 'gh-pages'
+
+      - name: Remove deleted branch docs
+        run: |
+          BRANCH="${{ github.event.ref }}"
+          SAFE="experimental/${BRANCH//\//-}"
+          if [ -d "./$SAFE" ]; then
+            rm -rf "./$SAFE"
+            META_KEY="${SAFE//\//_}"
+            rm -f ".doc-meta/${META_KEY}.json"
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add -A
+            git commit -m "Remove docs for deleted branch: $BRANCH"
+            git push
+          else
+            echo "No docs found for $SAFE, skipping."
+          fi

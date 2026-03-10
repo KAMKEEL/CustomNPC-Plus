@@ -1,0 +1,303 @@
+.wrap {
+  margin-bottom: 48px;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 10px 16px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.red   { background: #ff5f57; }
+.amber { background: #febc2e; }
+.green { background: #28c840; }
+
+.title {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+.body {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 0 0 8px 8px;
+  padding: 16px 36px 36px;
+}
+
+/* ── Heading ── */
+.heading {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.05;
+  margin-bottom: 20px;
+}
+
+.heading strong {
+  font-weight: 600;
+  color: var(--green);
+}
+
+/* ── Prompt ── */
+.promptLine {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.prompt { color: var(--green); font-weight: 600; }
+.cmd    { color: var(--text); }
+.arg    { color: var(--blue); }
+.flag   { color: var(--amber); }
+
+/* ── Output lines ── */
+.outputLine {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.8;
+  padding-left: 20px;
+}
+
+.chevron {
+  color: var(--text-mid);
+  margin-right: 4px;
+}
+
+/* ── Links ── */
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 36px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  padding: 3px 0;
+  width: fit-content;
+  transition: opacity 0.15s;
+}
+
+.link:hover { opacity: 0.8; }
+
+.link:hover .linkLabel {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.linkTag {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  border: 1px solid;
+  border-radius: 2px;
+  padding: 1px 5px;
+  min-width: 28px;
+  text-align: center;
+  opacity: 0.9;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.linkLabel {
+  font-size: 12px;
+  color: var(--text-mid);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.linkArrow {
+  font-size: 11px;
+  opacity: 0.6;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.link:hover .linkArrow {
+  opacity: 1;
+  transform: translate(2px, -2px);
+}
+
+/* ── Authors ── */
+.authors {
+  margin-bottom: 8px;
+}
+
+.authorRow {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding-left: 36px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── Author tile ── */
+.authorTile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  text-decoration: none;
+  cursor: pointer;
+  /* width is dynamic — grows with content */
+  width: max-content;
+  min-width: 140px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+
+.authorTile::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--green);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.authorTileActive::before,
+.authorTile:hover::before {
+  opacity: 1;
+}
+
+.authorTileActive {
+  border-color: var(--green-dim);
+  background: rgba(57, 211, 83, 0.04);
+}
+
+.authorTile:hover {
+  border-color: var(--border2);
+  background: #161b22;
+  transform: translateY(-1px);
+}
+
+/* ── Author content ── */
+.authorAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+
+.authorAvatarSkeleton {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--border2);
+  flex-shrink: 0;
+  animation: shimmer 1.5s ease infinite;
+}
+
+.authorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.authorName {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  white-space: nowrap;
+}
+
+.authorLogin {
+  font-size: 10px;
+  color: var(--blue);
+  font-family: 'IBM Plex Mono', monospace;
+  white-space: nowrap;
+}
+
+/* Bio — always reserves vertical height, width animates open */
+.authorBio {
+  display: block;
+  font-size: 10px;
+  color: var(--text-dim);
+  font-family: 'IBM Plex Sans', sans-serif;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* always reserve vertical space */
+  height: 14px;
+  /* collapsed horizontally */
+  width: 0;
+  opacity: 0;
+  transition: opacity 0.25s ease, width 0.3s ease;
+}
+
+.authorTileActive .authorBio,
+.authorTile:hover .authorBio {
+  width: 200px;
+  opacity: 1;
+}
+
+/* Placeholder for loading/no-profile/no-bio states */
+.authorBioPlaceholder {
+  height: 14px;
+  margin-top: 2px;
+  width: 0;  /* never takes horizontal space, never expands */
+}
+
+.authorSkeleton {
+  height: 9px;
+  border-radius: 4px;
+  background: var(--border2);
+  animation: shimmer 1.5s ease infinite;
+}
+
+/* ── Cursor ── */
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 13px;
+  background: var(--green);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+
+/* ── Animations ── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
+
+@media (max-width: 600px) {
+  .body { padding: 20px; }
+  .links { padding-left: 20px; }
+  .authorRow { padding-left: 20px; }
+}
