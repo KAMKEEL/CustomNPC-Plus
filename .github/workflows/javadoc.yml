@@ -69,8 +69,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Initialize API submodule
-        run: git submodule update --init --recursive src/api
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
 
       - name: Setup JDK 8 (compile)
         uses: actions/setup-java@v4
