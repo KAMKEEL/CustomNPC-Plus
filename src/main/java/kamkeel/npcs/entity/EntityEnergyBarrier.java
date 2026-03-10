@@ -741,6 +741,13 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         double px = ent.posX + dirX * probe;
         double py = ent.posY + dirY * probe;
         double pz = ent.posZ + dirZ * probe;
+        // Never probe below the entity's feet — a downward probe always detects the
+        // block the entity is already standing/hovering above (false positive).
+        // MC's own collision system prevents entities from falling through floors,
+        // so the downward check is redundant. Upward probes (ceiling detection) still work.
+        if (py < ent.posY) {
+            py = ent.posY;
+        }
         AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
             px - halfW, py, pz - halfW,
             px + halfW, py + ent.height, pz + halfW

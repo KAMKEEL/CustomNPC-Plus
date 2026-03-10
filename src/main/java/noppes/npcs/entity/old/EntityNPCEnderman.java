@@ -40,7 +40,9 @@ public class EntityNPCEnderman extends EntityNpcEnderchibi {
         newHeight = (newHeight / 5f) * display.modelSize;
         newWidth = Math.max(newWidth, 0.00001f);
         newHeight = Math.max(newHeight, 0.00001f);
-        setSize(newWidth, newHeight);
+        this.width = newWidth;
+        this.height = newHeight;
+        this.setPosition(posX, posY, posZ);
         if (width / 2 > World.MAX_ENTITY_RADIUS) {
             World.MAX_ENTITY_RADIUS = width / 2;
         }

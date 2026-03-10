@@ -2459,3 +2459,16 @@ global.auction.manage.confirm.claim=Left-click again to confirm claim
 global.auction.manage.error.noItem=Stage an item first
 global.auction.manage.error.invalidStart=Enter a valid starting price
 global.auction.manage.error.invalidBuyout=Buyout must be zero or >= start
+
+# Directory Fullscreen
+gui.move=Move
+gui.moving=Moving
+gui.confirm=Confirm
+gui.move.selectItems=Select Items to Move (max %d) Press Confirm when Ready
+gui.move.selectCategory=Select Destination Category
+animation.mirror=Mirror
+gui.builtin.tag=(Built-in)
+ability.damage=Damage
+ability.allowed=Allowed
+gui.move.confirmLine=Move %d item(s) to:
+gui.category=Category

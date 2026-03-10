@@ -19,6 +19,7 @@ public class GuiCustomScroll extends GuiScreen {
     public static final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/misc.png");
     public List<String> list;
     public final HashMap<String, Integer> colors = new HashMap<>();
+    public final HashSet<String> nonInteractive = new HashSet<>();
 
     public int id;
     public int guiLeft = 0;
@@ -217,21 +218,25 @@ public class GuiCustomScroll extends GuiScreen {
                 } else
                     text = displayString;
 
-                // Entries with a custom color are non-interactive (headers/separators)
+                // Non-interactive entries (headers/separators) — colored, no hover/selection
                 Integer customColor = colors.get(rawEntry);
-                if (customColor != null) {
+                if (nonInteractive.contains(rawEntry)) {
                     if (!text.isEmpty())
-                        fontRendererObj.drawString(text, j, k, customColor);
+                        fontRendererObj.drawString(text, j, k, customColor != null ? customColor : 0xffffff);
                 } else if ((multipleSelection && selectedList.contains(text)) || (!multipleSelection && selected == i)) {
                     drawVerticalLine(j - 2, k - 4, k + 10, 0xffffffff);
                     drawVerticalLine(j + xSize - 18 + xOffset, k - 4, k + 10, 0xffffffff);
                     drawHorizontalLine(j - 2, j + xSize - 18 + xOffset, k - 3, 0xffffffff);
                     drawHorizontalLine(j - 2, j + xSize - 18 + xOffset, k + 10, 0xffffffff);
-                    fontRendererObj.drawString(text, j, k, 0xffffff);
+                    int selColor = customColor != null ? customColor : 0xffffff;
+                    fontRendererObj.drawString(text, j, k, selColor);
                 } else if (i == hover) {
-                    fontRendererObj.drawString(text, j, k, 0x00ff00);
-                } else
-                    fontRendererObj.drawString(text, j, k, 0xffffff);
+                    int hoverColor = customColor != null ? customColor : 0x00ff00;
+                    fontRendererObj.drawString(text, j, k, hoverColor);
+                } else {
+                    int defaultColor = customColor != null ? customColor : 0xffffff;
+                    fontRendererObj.drawString(text, j, k, defaultColor);
+                }
             }
         }
 
@@ -252,8 +257,8 @@ public class GuiCustomScroll extends GuiScreen {
                     continue;
                 }
 
-                // Skip non-interactive entries (colored headers/separators)
-                if (colors.containsKey(list.get(j1))) {
+                // Skip non-interactive entries (headers/separators)
+                if (nonInteractive.contains(list.get(j1))) {
                     continue;
                 }
 

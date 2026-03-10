@@ -37,7 +37,9 @@ public class EntityNPCGolem extends EntityNPCInterface {
             newWidth = 1.4f;
             newHeight = 2.5f;
         }
-        setSize(newWidth, newHeight);
+        this.width = newWidth;
+        this.height = newHeight;
+        this.setPosition(posX, posY, posZ);
         if (width / 2 > World.MAX_ENTITY_RADIUS) {
             World.MAX_ENTITY_RADIUS = width / 2;
         }

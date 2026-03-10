@@ -15,7 +15,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.SubGuiEffectGeneral;
 import noppes.npcs.client.gui.util.GuiDirectoryCategorized;
 import noppes.npcs.client.gui.util.SubGuiInterface;
@@ -180,7 +179,7 @@ public class GuiEffectDirectory extends GuiDirectoryCategorized {
         if (effect == null || effect.id == -1) return;
 
         String drawString = effect.getMenuName();
-        fontRendererObj.drawString(drawString, x, y, CustomNpcResourceListener.DefaultTextColor, true);
+        fontRendererObj.drawString(drawString, x, y, 0xFFFFFF, true);
 
         y += 14;
         fontRendererObj.drawString(StatCollector.translateToLocal("gui.name") + ": " + effect.name, x, y, 0xFFFFFF, false);
