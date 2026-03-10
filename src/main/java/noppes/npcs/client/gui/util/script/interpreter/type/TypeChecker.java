@@ -33,6 +33,9 @@ public final class TypeChecker {
         if (expected == null) return true; // void can accept anything (shouldn't happen)
         if (actual == null) return true; // Can't verify, assume compatible
 
+        // Exact match by reference equality
+        if(expected.equals(actual)) return true;
+        
         // Handle array types: compatible if element types are compatible
         if (expected.isArray() && actual.isArray()) {
             TypeInfo expectedElement = expected.getElementType();
@@ -78,13 +81,6 @@ public final class TypeChecker {
         
         if (expectedName == null || actualName == null) return true;
         
-        // Exact match by simple name
-        if (expectedName.equals(actualName)) return true;
-        
-        // Exact match by full name
-        if (expected.getFullName() != null && actual.getFullName() != null) {
-            if (expected.getFullName().equals(actual.getFullName())) return true;
-        }
         
         // Primitive widening conversions
         if ("number".equals(expectedName) && isNumericType(actualName)) {

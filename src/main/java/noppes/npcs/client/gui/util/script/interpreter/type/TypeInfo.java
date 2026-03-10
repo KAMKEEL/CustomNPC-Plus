@@ -14,11 +14,7 @@ import noppes.npcs.client.gui.util.script.interpreter.method.MethodSignature;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -1273,13 +1269,33 @@ public class TypeInfo {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TypeInfo typeInfo = (TypeInfo) o;
-        return fullName.equals(typeInfo.fullName);
+        if (!(o instanceof TypeInfo))
+            return false;
+        TypeInfo other = (TypeInfo) o;
+
+        if (!fullName.equals(other.fullName))
+            return false;
+
+        if (typeParameterName != null || other.typeParameterName != null) {
+            if (!Objects.equals(typeParameterName, other.typeParameterName))
+                return false;
+            if (!Objects.equals(boundType, other.boundType))
+                return false;
+        }
+
+        if (!Objects.equals(elementType, other.elementType))
+            return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return fullName.hashCode();
+        int result = fullName.hashCode();
+        if (typeParameterName != null)
+            result = 31 * result + typeParameterName.hashCode();
+        if (elementType != null)
+            result = 31 * result + elementType.hashCode();
+        return result;
     }
 }
