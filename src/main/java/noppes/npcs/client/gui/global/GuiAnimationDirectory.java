@@ -490,16 +490,14 @@ public class GuiAnimationDirectory extends GuiDirectoryCategorized {
         entity.prevRotationYaw = entity.rotationYaw = f3;
         entity.rotationPitch = f4;
         entity.prevRotationYawHead = entity.rotationYawHead = f7;
+        GL11.glPopMatrix();
 
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        GL11.glDisable(GL11.GL_COLOR_MATERIAL);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
-        GL11.glPopMatrix();
     }
 
     @Override

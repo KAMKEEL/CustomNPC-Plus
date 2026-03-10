@@ -741,6 +741,8 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
      * Matches GuiAbilityInterface's rendering pipeline.
      */
     private void drawAbilityPreview(float partialTicks) {
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
         // Set NPC facing direction
         npc.prevRenderYawOffset = npc.renderYawOffset = NPC_FACING_YAW;
         npc.prevRotationYaw = npc.rotationYaw = NPC_FACING_YAW;
@@ -806,8 +808,6 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
         OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        GL11.glDisable(GL11.GL_COLOR_MATERIAL);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
@@ -857,16 +857,14 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
         entity.prevRotationYaw = entity.rotationYaw = f3;
         entity.rotationPitch = f4;
         entity.prevRotationYawHead = entity.rotationYawHead = f7;
+        GL11.glPopMatrix();
 
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        GL11.glDisable(GL11.GL_COLOR_MATERIAL);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
-        GL11.glPopMatrix();
     }
 
     private void renderPreviewEntities(float partialTicks) {
