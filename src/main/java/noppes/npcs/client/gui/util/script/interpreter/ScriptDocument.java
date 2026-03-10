@@ -1692,7 +1692,9 @@ public class ScriptDocument {
      * For JavaScript: Parses "var/let/const varName = expr;" with type inference
      */
     private void parseLocalVariables() {
-        for (MethodInfo method : getAllMethods()) {
+        List<MethodInfo> allMethodsAndConstructors = getAllMethods();
+        allMethodsAndConstructors.addAll(getAllConstructors());
+        for (MethodInfo method : allMethodsAndConstructors) {
             Map<String, List<FieldInfo>> locals = new HashMap<>();
             methodLocals.put(method.getDeclarationOffset(), locals);
 
@@ -3240,6 +3242,14 @@ public class ScriptDocument {
                         break;
                     }
                 }
+                if (!insideMethod) {
+                    for (MethodInfo constructor : getAllConstructors()) {
+                        if (constructor.containsPosition(position)) {
+                            insideMethod = true;
+                            break;
+                        }
+                    }
+                }
                 if (insideMethod) continue;
 
                 boolean insideInner = false;
@@ -3323,6 +3333,11 @@ public class ScriptDocument {
                         for (MethodInfo method : getAllMethods()) {
                             if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
                         }
+                        if (!cInsideMethod) {
+                            for (MethodInfo constructor : getAllConstructors()) {
+                                if (constructor.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                            }
+                        }
                         if (cInsideMethod) return;
                         boolean cInsideInner = false;
                         for (InnerCallableScope sc : innerScopes) {
@@ -3394,6 +3409,11 @@ public class ScriptDocument {
                         for (MethodInfo method : getAllMethods()) {
                             if (method.containsPosition(firstVarAbsPos)) { greedyInsideMethod = true; break; }
                         }
+                        if (!greedyInsideMethod) {
+                            for (MethodInfo constructor : getAllConstructors()) {
+                                if (constructor.containsPosition(firstVarAbsPos)) { greedyInsideMethod = true; break; }
+                            }
+                        }
                     }
                     if (greedyInsideMethod) continue;
 
@@ -3429,6 +3449,11 @@ public class ScriptDocument {
                             else {
                                 for (MethodInfo method : getAllMethods()) {
                                     if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                }
+                                if (!cInsideMethod) {
+                                    for (MethodInfo constructor : getAllConstructors()) {
+                                        if (constructor.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                    }
                                 }
                             }
                             if (cInsideMethod) return;
@@ -3471,6 +3496,14 @@ public class ScriptDocument {
                         if (method.containsPosition(position)) {
                             insideMethod = true;
                             break;
+                        }
+                    }
+                    if (!insideMethod) {
+                        for (MethodInfo constructor : getAllConstructors()) {
+                            if (constructor.containsPosition(position)) {
+                                insideMethod = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -3537,6 +3570,11 @@ public class ScriptDocument {
                             else {
                                 for (MethodInfo method : getAllMethods()) {
                                     if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                }
+                                if (!cInsideMethod) {
+                                    for (MethodInfo constructor : getAllConstructors()) {
+                                        if (constructor.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                    }
                                 }
                             }
                             if (cInsideMethod) return;
@@ -8948,12 +8986,22 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                     while (searchPos < text.length() && Character.isWhitespace(text.charAt(searchPos)))
                         searchPos++;
                     
-                    if (searchPos < text.length() && text.charAt(searchPos) == '(') {
+                    // Skip generic args or diamond operator (e.g., <Integer> or <>)
+                    if (searchPos < text.length() && text.charAt(searchPos) == '<') {
+                        int closeAngle = text.indexOf('>', searchPos);
+                        if (closeAngle >= 0) {
+                            searchPos = closeAngle + 1;
+                            while (searchPos < text.length() && Character.isWhitespace(text.charAt(searchPos)))
+                                searchPos++;
+                        }
+                    }
+                    
+                    if (searchPos < text.length() && text.charAt(searchPos) == '(') { 
                         int openParen = searchPos;
-                        int closeParen = findMatchingParen(openParen);
+                        int closeParen = findMatchingParen(openParen); 
                         
                         if (closeParen >= 0) {
-                            // For constructor declarations, verify it's followed by opening brace
+                            // For constructor declarations, verify it's followed by opening brace 
                             if (isConstructorDecl && !isNewCreation) {
                                 int braceSearch = closeParen + 1;
                                 while (braceSearch < text.length() && Character.isWhitespace(text.charAt(braceSearch)))
@@ -9299,6 +9347,11 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         for (MethodInfo method : getAllMethods()) {
             if (method.containsPosition(position)) {
                 return method;
+            }
+        }
+        for (MethodInfo constructor : getAllConstructors()) {
+            if (constructor.containsPosition(position)) {
+                return constructor;
             }
         }
         return null;
