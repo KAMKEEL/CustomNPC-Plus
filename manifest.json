@@ -1,6 +1,6 @@
 {
-  "releases": [{"id":"1.10","version":"1.10","path":"releases/1.10","date":"2025-10-06T00:00:00Z","isLatest":true}],
-  "experimental": [{"id":"dev","branch":"dev","path":"experimental/dev","hash":"779d9ce39","date":"2026-03-10T22:56:12+01:00"}],
-  "generated": "2026-03-10T22:00:10Z",
+  "releases": [{"id":"1.10","version":"1.10","path":"releases/1.10","date":"2026-03-10T23:08:42Z","isLatest":true}],
+  "experimental": [{"id":"dev","branch":"dev","path":"experimental/dev","hash":"8b1b40d0f","date":"2026-03-10T19:06:36-04:00"}],
+  "generated": "2026-03-10T23:08:54Z",
   "source": "manifest"
 }
