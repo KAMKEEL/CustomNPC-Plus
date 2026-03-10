@@ -907,14 +907,16 @@ public class ScriptDocument {
             String trimmed = param.trim();
             if (trimmed.isEmpty()) continue;
 
-            int extendsIdx = trimmed.indexOf(" extends ");
+            int extendsIdx = trimmed.indexOf("extends");
             if (extendsIdx >= 0) {
                 String paramName = trimmed.substring(0, extendsIdx).trim();
-                String boundName = trimmed.substring(extendsIdx + 9).trim();
-                TypeParamInfo typeParam = new TypeParamInfo(paramName, boundName, null);
-                TypeInfo boundTypeInfo = resolveType(boundName, declOffset);
-                if (boundTypeInfo != null && boundTypeInfo.isResolved()) {
-                    typeParam.setBoundTypeInfo(boundTypeInfo);
+                String boundName = trimmed.substring(extendsIdx + 7).trim();
+                TypeParamInfo typeParam = new TypeParamInfo(paramName, boundName.isEmpty() ? null : boundName, null);
+                if (!boundName.isEmpty()) {
+                    TypeInfo boundTypeInfo = resolveType(boundName, declOffset);
+                    if (boundTypeInfo != null && boundTypeInfo.isResolved()) {
+                        typeParam.setBoundTypeInfo(boundTypeInfo);
+                    }
                 }
                 scriptType.addDeclaredTypeParam(typeParam);
             } else {
@@ -953,10 +955,33 @@ public class ScriptDocument {
             int paramIdx = clause.indexOf(param.getName(), offset - (ltPos + 1));
             if (paramIdx >= 0) {
                 int paramStart = ltPos + 1 + paramIdx;
-                int paramEnd = paramStart + param.getName().length();
-                marks.add(new ScriptLine.Mark(paramStart, paramEnd, TokenType.IMPORTED_CLASS, param));
+                int paramLen = param.getName().length();
+                int paramEnd = paramStart + paramLen;
+                marks.add(new ScriptLine.Mark(paramStart, paramEnd, TokenType.GENERIC_TYPE_PARAM, param));
+
+                int searchFrom = paramIdx + param.getName().length();
+                int extendsIdx = clause.indexOf("extends", searchFrom);
+                if (extendsIdx >= 0) {
+                    int extendsStart = ltPos + 1 + extendsIdx;
+                    marks.add(new ScriptLine.Mark(extendsStart, extendsStart + 7, TokenType.KEYWORD));
+
+                    TypeInfo boundType = param.getBoundTypeInfo();
+                    if (boundType != null) {
+                        String remaining = clause.substring(extendsIdx + 7).trim();
+                        if (!remaining.isEmpty()) {
+                            int boundEnd = remaining.indexOf(',');
+                            if (boundEnd < 0) boundEnd = remaining.indexOf('&');
+                            String boundName = boundEnd < 0 ? remaining : remaining.substring(0, boundEnd).trim();
+                            if (!boundName.isEmpty()) {
+                                int boundStart = extendsStart + 7;
+                                while (boundStart < gtPos && Character.isWhitespace(text.charAt(boundStart))) boundStart++;
+                                marks.add(new ScriptLine.Mark(boundStart, boundStart + boundName.length(), TokenType.getByType(boundType), boundType));
+                            }
+                        }
+                    }
+                }
             }
-        }
+        }  
     }
     /**
      * Parse fields and methods inside a script-defined type.

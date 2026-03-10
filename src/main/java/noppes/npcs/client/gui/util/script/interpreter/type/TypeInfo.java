@@ -683,6 +683,8 @@ public class TypeInfo {
     public TokenType getTokenType() {
         if (!resolved) 
             return TokenType.UNDEFINED_VAR;
+        if (isTypeParameter())
+            return TokenType.GENERIC_TYPE_PARAM;
         if(isPrimitive())
             return TokenType.KEYWORD;
         

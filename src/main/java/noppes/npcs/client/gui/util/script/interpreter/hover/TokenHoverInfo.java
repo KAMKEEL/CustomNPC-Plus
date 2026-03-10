@@ -5,6 +5,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.TypeParamInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParamTag;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocReturnTag;
@@ -153,6 +154,7 @@ public class TokenHoverInfo {
             case INTERFACE_DECL:
             case ENUM_DECL:
             case TYPE_DECL:
+            case GENERIC_TYPE_PARAM:
                 info.extractClassInfo(token);
                 break;
                 
@@ -562,6 +564,7 @@ public class TokenHoverInfo {
                 : TokenType.IMPORTED_CLASS.getHexColor();
             // Render generics with correct segment colors if present
             addTypeSegments(typeInfo);
+            addDeclaredTypeParamSegments(typeInfo);
             
             // Extends
             Class<?> superclass = clazz.getSuperclass();
@@ -621,8 +624,7 @@ public class TokenHoverInfo {
                 : scriptType.getKind() == TypeInfo.Kind.ENUM ? TokenType.ENUM_DECL.getHexColor() 
                 : TokenType.IMPORTED_CLASS.getHexColor();
             addTypeSegments(typeInfo);
-            
-            // Extends clause for ScriptTypeInfo
+            addDeclaredTypeParamSegments(typeInfo);
             if (scriptType.hasSuperClass()) {
                 addSegment(" extends ", TokenType.MODIFIER.getHexColor());
                 TypeInfo superClass = scriptType.getSuperClass();
@@ -693,6 +695,7 @@ public class TokenHoverInfo {
             iconIndicator = "I";
             addSegment("interface ", TokenType.MODIFIER.getHexColor());
             addTypeSegments(typeInfo);
+            addDeclaredTypeParamSegments(typeInfo);
             
             if (jsType.getExtendsType() != null) {
                 addSegment(" extends ", TokenType.MODIFIER.getHexColor());
@@ -728,7 +731,7 @@ public class TokenHoverInfo {
         String paramName = typeInfo.getTypeParameterName();
 
         addSegment("type parameter ", TokenType.MODIFIER.getHexColor());
-        addSegment(paramName, TokenType.IMPORTED_CLASS.getHexColor());
+        addSegment(paramName, TokenType.GENERIC_TYPE_PARAM.getHexColor());
 
         if (typeInfo.getJavaClass() != null && typeInfo.getJavaClass() != Object.class) {
             addSegment(" extends ", TokenType.MODIFIER.getHexColor());
@@ -1056,6 +1059,29 @@ public class TokenHoverInfo {
 
         String typeName = getName(typeInfo);
         splitAndAddTypeName(typeName, getColorForTypeInfo(typeInfo));
+    }
+
+    private void addDeclaredTypeParamSegments(TypeInfo typeInfo) {
+        List<TypeParamInfo> params = typeInfo.getTypeParams();
+        if (params == null || params.isEmpty()) return;
+        if (typeInfo.isParameterized()) return;
+
+        addSegment("<", TokenType.DEFAULT.getHexColor());
+        for (int i = 0; i < params.size(); i++) {
+            if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
+            TypeParamInfo param = params.get(i);
+            addSegment(param.getName(), TokenType.GENERIC_TYPE_PARAM.getHexColor());
+            if (param.getBoundTypeName() != null && !"Object".equals(param.getBoundTypeName())) {
+                addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+                TypeInfo boundType = param.getBoundTypeInfo();
+                if (boundType != null && boundType.isResolved()) {
+                    addTypeSegments(boundType);
+                } else {
+                    addSegment(param.getBoundTypeName(), TokenType.IMPORTED_CLASS.getHexColor());
+                }
+            }
+        }
+        addSegment(">", TokenType.DEFAULT.getHexColor());
     }
 
     private void splitAndAddTypeName(String typeName, int typeColor) {
