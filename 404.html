@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Redirecting...</title>
+    <script>
+        var base = '/CustomNPC-Plus/';
+        var path = window.location.pathname;
+        var relative = path.replace(base, '');
+
+        async function redirect() {
+            if (relative.startsWith('releases/') || relative.startsWith('experimental/')) {
+                window.location.replace(base);
+                return;
+            }
+            
+            try {
+                var res = await fetch(base + 'manifest.json?t=' + Date.now(), { cache: 'no-store' });
+                var manifest = await res.json();
+                var latest = manifest.releases.find(r => r.isLatest);
+                if (latest) {
+                    window.location.replace(base + latest.path + '/' + relative);
+                    return;
+                }
+            } catch (e) {}
+            
+            window.location.replace(base);
+        }
+
+        redirect();
+    </script>
+    <style>
+        body { background: #0c0c0e; color: #e8e8ee; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; flex-direction: column; gap: 16px; }
+        a { color: #c8f060; }
+        p { color: #9090a0; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <h1>404</h1>
+    <p>This page doesn't exist or has been moved.</p>
+    <p>Redirecting you shortly — if nothing happens, <a href="/CustomNPC-Plus/">click here</a>.</p>
+</body>
+</html>
