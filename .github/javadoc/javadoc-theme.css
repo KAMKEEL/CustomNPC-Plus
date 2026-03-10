@@ -1,6 +1,6 @@
 /* ============================================================
    CustomNPC+ — Javadoc Theme (Javadoc 11)
-   Tokyo Night — Maximum Readability Edition
+   Tokyo Night — Styled Edition
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -10,22 +10,27 @@
   --bg:           #1a1b26;
   --bg2:          #1f2335;
   --bg3:          #24283b;
+  --bg-elevated:  #292e42;
   --border:       #3b4261;
   --border2:      #414868;
   --text:         #c0caf5;
   --text-mid:     #a9b1d6;
   --text-dim:     #565f89;
   --green:        #9ece6a;
-  --green-dim:    #2d4a22;
+  --green-dim:    rgba(158, 206, 106, 0.12);
   --blue:         #7aa2f7;
+  --blue-dim:     rgba(122, 162, 247, 0.12);
   --amber:        #e0af68;
+  --amber-dim:    rgba(224, 175, 104, 0.10);
   --purple:       #bb9af7;
+  --purple-dim:   rgba(187, 154, 247, 0.10);
   --cyan:         #7dcfff;
+  --cyan-dim:     rgba(125, 207, 255, 0.10);
   --red:          #f7768e;
   --highlight-bg: rgba(122, 162, 247, 0.08);
   --hover-bg:     rgba(187, 154, 247, 0.08);
-  --nav-h:        42px;
-  --subnav-h:     34px;
+  --nav-h:        44px;
+  --subnav-h:     36px;
 
   /* ── Font stacks ── */
   --font-ui:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -63,7 +68,7 @@ body {
   z-index: 100 !important;
 }
 
-/* Top bar */
+/* Top bar — gradient accent stripe on top */
 .topNav {
   position: relative !important;
   background: var(--bg2) !important;
@@ -75,12 +80,22 @@ body {
   overflow: visible !important;
 }
 
-/* Nav list — leave room on right for brand (~290px) */
+/* Gradient accent line across the very top */
+.topNav::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan)) !important;
+  z-index: 10 !important;
+}
+
+/* Nav list — leave room on right for brand */
 .topNav > ul.navList {
   list-style: none !important;
   margin: 0 !important;
-  padding: 0 0 0 4px !important;
-  padding-right: 295px !important;
+  padding: 2px 0 0 8px !important;
+  padding-right: 320px !important;
   display: flex !important;
   align-items: stretch !important;
   flex-shrink: 0 !important;
@@ -90,48 +105,51 @@ body {
   display: flex !important;
   align-items: center !important;
   margin: 0 !important;
-  padding: 0 14px !important;
+  padding: 0 16px !important;
   height: var(--nav-h) !important;
   font-family: var(--font-ui) !important;
   font-size: 12px !important;
   font-weight: 500 !important;
   white-space: nowrap !important;
   text-transform: none !important;
-  letter-spacing: 0 !important;
+  letter-spacing: 0.01em !important;
   color: var(--text-dim) !important;
   border-bottom: 2px solid transparent !important;
+  transition: color 0.2s !important;
 }
 
 .topNav > ul.navList > li > a {
   display: flex !important;
   align-items: center !important;
   height: var(--nav-h) !important;
-  margin: 0 -14px !important;
-  padding: 0 14px !important;
+  margin: 0 -16px !important;
+  padding: 0 16px !important;
   color: var(--text-dim) !important;
   font-family: var(--font-ui) !important;
   font-size: 12px !important;
   font-weight: 500 !important;
   text-decoration: none !important;
   text-transform: none !important;
-  letter-spacing: 0 !important;
+  letter-spacing: 0.01em !important;
   white-space: nowrap !important;
   border-bottom: 2px solid transparent !important;
-  transition: color 0.15s, border-color 0.15s !important;
+  transition: color 0.2s, border-color 0.2s !important;
 }
 
 .topNav > ul.navList > li > a:hover {
-  color: var(--blue) !important;
-  border-bottom-color: var(--blue) !important;
+  color: var(--text) !important;
+  border-bottom-color: var(--purple) !important;
   background: transparent !important;
   text-shadow: none !important;
   text-decoration: none !important;
 }
 
-/* Active item */
+/* Active item — gradient underline */
 .topNav > ul.navList > li.navBarCell1Rev {
-  color: var(--blue) !important;
-  border-bottom: 2px solid var(--blue) !important;
+  color: var(--text) !important;
+  border-image: linear-gradient(90deg, var(--blue), var(--purple)) 1 !important;
+  border-bottom-width: 2px !important;
+  border-bottom-style: solid !important;
 }
 
 /* ── Brand — pinned to far right of topNav ── */
@@ -141,8 +159,8 @@ body {
   height: var(--nav-h) !important;
   display: flex !important;
   align-items: center !important;
-  gap: 10px !important;
-  padding: 0 14px !important;
+  gap: 12px !important;
+  padding: 0 16px !important;
   background: var(--bg2) !important;
   border-left: 1px solid var(--border) !important;
   z-index: 5 !important;
@@ -157,27 +175,35 @@ body {
 #javadoc-header {
   display: flex !important;
   align-items: center !important;
-  gap: 10px !important;
+  gap: 12px !important;
 }
 
 .header-brand { text-decoration: none !important; }
 
+/* Brand title — gradient text */
 .header-title {
   font-family: var(--font-ui) !important;
-  font-size: 13px !important;
+  font-size: 14px !important;
   font-weight: 700 !important;
-  color: var(--blue) !important;
+  background: linear-gradient(135deg, var(--blue), var(--purple)) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
   line-height: 1.4 !important;
   white-space: nowrap !important;
 }
 
 .header-title span {
   display: block !important;
-  font-family: var(--font-ui) !important;
-  font-size: 10px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 9px !important;
   font-weight: 400 !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--text-dim) !important;
   color: var(--text-dim) !important;
   margin-top: 1px !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
 }
 
 .header-back {
@@ -188,17 +214,17 @@ body {
   font-family: var(--font-ui) !important;
   font-size: 11px !important;
   font-weight: 500 !important;
-  padding: 5px 10px !important;
+  padding: 5px 12px !important;
   border: 1px solid var(--border2) !important;
-  border-radius: 4px !important;
+  border-radius: 6px !important;
   white-space: nowrap !important;
-  transition: color 0.15s, border-color 0.15s, background 0.15s !important;
+  transition: all 0.2s !important;
 }
 
 .header-back:hover {
-  color: var(--blue) !important;
-  border-color: var(--blue) !important;
-  background: var(--highlight-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--purple) !important;
+  background: var(--purple-dim) !important;
   text-decoration: none !important;
   text-shadow: none !important;
 }
@@ -209,7 +235,7 @@ body {
   border-bottom: 1px solid var(--border) !important;
   height: var(--subnav-h) !important;
   margin: 0 !important;
-  padding: 0 12px !important;
+  padding: 0 14px !important;
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
@@ -239,7 +265,7 @@ body {
   font-family: var(--font-ui) !important;
   font-size: 11px !important;
   color: var(--text-dim) !important;
-  padding: 0 5px !important;
+  padding: 0 6px !important;
   white-space: nowrap !important;
   border: none !important;
   height: auto !important;
@@ -251,6 +277,7 @@ body {
   text-decoration: none !important;
   font-size: 11px !important;
   font-family: var(--font-ui) !important;
+  transition: color 0.15s !important;
 }
 
 .subNav a:hover { color: var(--purple) !important; text-shadow: none !important; }
@@ -269,18 +296,18 @@ body {
 
 main {
   background: var(--bg) !important;
-  padding: 24px !important;
+  padding: 28px !important;
   flex: 1 0 auto !important;
 }
 
 .contentContainer, div.contentContainer {
   background: var(--bg) !important;
-  padding: 0 24px 0px !important;
+  padding: 0 28px 0px !important;
 }
 
 .header {
-  padding: 0 24px 0 !important;
-  margin-bottom: 16px !important;
+  padding: 0 28px 0 !important;
+  margin-bottom: 20px !important;
 }
 
 /* Subtitle under h1 on help/overview pages */
@@ -305,43 +332,50 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600 !important;
   line-height: 1.5 !important;
   text-transform: none !important;
-  letter-spacing: 0 !important;
+  letter-spacing: -0.01em !important;
 }
 
+/* Page title — gradient accent bar */
 h1.title, h2.title {
-  font-size: 20px !important;
-  color: var(--blue) !important;
-  border-bottom: 2px solid var(--border2) !important;
-  padding-bottom: 12px !important;
-  margin-bottom: 20px !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+  border-bottom: none !important;
+  padding-bottom: 16px !important;
+  padding-left: 16px !important;
+  margin-bottom: 24px !important;
   margin-top: 0 !important;
+  border-left: 4px solid transparent !important;
+  border-image: linear-gradient(180deg, var(--blue), var(--purple)) 1 !important;
 }
 
-/* Section h2 — used in help page, class summaries */
+/* Section h2 — colored panel */
 section > h2,
 li.blockList > section > h2 {
-  font-size: 15px !important;
+  font-size: 14px !important;
   color: var(--green) !important;
   border-left: 3px solid var(--green) !important;
   border-bottom: none !important;
-  padding: 8px 12px !important;
+  padding: 10px 14px !important;
   margin: 0 !important;
-  background: rgba(158, 206, 106, 0.05) !important;
+  background: var(--green-dim) !important;
 }
 
 /* Generic h2 (table section headers like "Method Summary") */
 h2 {
-  font-size: 15px !important;
+  font-size: 14px !important;
   color: var(--amber) !important;
-  border-bottom: 1px solid var(--border) !important;
-  padding-bottom: 8px !important;
+  border-bottom: none !important;
+  border-left: 3px solid var(--amber) !important;
+  padding: 8px 12px !important;
   margin-top: 28px !important;
   margin-bottom: 12px !important;
+  background: var(--amber-dim) !important;
 }
 
-/* h3 — table section headers inside blockList ("Constructor Summary" etc.) */
+/* h3 — table section headers inside blockList */
 h3 {
-  font-size: 13px !important;
+  font-size: 12px !important;
   color: var(--text-mid) !important;
   margin: 0 !important;
   padding: 10px 14px !important;
@@ -352,21 +386,24 @@ h3 {
 /* h4 — method detail names */
 h4 {
   font-size: 13px !important;
+  font-weight: 600 !important;
   color: var(--cyan) !important;
   margin: 0 !important;
   padding: 10px 14px !important;
   background: var(--bg3) !important;
   border-bottom: 1px solid var(--border) !important;
+  border-left: 3px solid var(--cyan) !important;
 }
 
 /* ── blockList sections — card-like containers ── */
 ul.blockList > li.blockList,
 ul.blockListLast > li.blockList {
   border: 1px solid var(--border) !important;
-  border-radius: 4px !important;
-  margin-bottom: 12px !important;
+  border-radius: 6px !important;
+  margin-bottom: 14px !important;
   padding: 0 !important;
   background: var(--bg2) !important;
+  overflow: hidden !important;
 }
 
 /* Help page: section cards with padding around their content */
@@ -376,7 +413,7 @@ ul.blockList > li.blockList > section {
 
 ul.blockList > li.blockList > section > p,
 ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) {
-  padding: 12px 16px !important;
+  padding: 14px 18px !important;
   margin: 0 !important;
   color: var(--text-mid) !important;
   font-family: var(--font-ui) !important;
@@ -389,21 +426,21 @@ ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) >
   color: var(--text-mid) !important;
   font-family: var(--font-ui) !important;
   font-size: 13px !important;
-  padding: 2px 0 !important;
+  padding: 3px 0 !important;
   list-style: none !important;
 }
 
 ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) > li::before {
   content: '\203A' !important;
-  color: var(--blue) !important;
+  color: var(--purple) !important;
   margin-right: 8px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
 }
 
 /* ── Inherited methods block ── */
 ul.blockList > li.blockList > h3,
 ul.blockList > li.blockList > ul.blockList > li.blockList > h3 {
-  font-size: 12px !important;
+  font-size: 11px !important;
   color: var(--text-dim) !important;
   padding: 8px 14px !important;
   background: var(--bg3) !important;
@@ -445,14 +482,14 @@ main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.
   color: var(--text-mid) !important;
   font-family: var(--font-ui) !important;
   font-size: 13px !important;
-  padding: 2px 0 !important;
+  padding: 3px 0 !important;
   line-height: 1.7 !important;
 }
 main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.navListSearch):not(.inheritance) > li::before {
   content: '\203A' !important;
-  color: var(--blue) !important;
+  color: var(--purple) !important;
   margin-right: 8px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
 }
 
 /* General paragraphs in content */
@@ -464,19 +501,21 @@ main > div p, .contentContainer p {
   margin: 8px 0 !important;
 }
 
-/* Emphasized phrase (bottom of help page) */
+/* Emphasized phrase */
 .emphasizedPhrase {
   display: block !important;
   color: var(--text-dim) !important;
   font-family: var(--font-mono) !important;
   font-size: 12px !important;
   font-style: italic !important;
-  border-left: 2px solid var(--border2) !important;
-  padding: 6px 12px !important;
+  border-left: 2px solid var(--purple) !important;
+  padding: 8px 14px !important;
   margin-top: 16px !important;
+  background: var(--purple-dim) !important;
+  border-radius: 0 4px 4px 0 !important;
 }
 
-/* Bottom footer subNav — sits below .bottomNav */
+/* Bottom footer subNav */
 footer {
     /*margin-top: auto;*/
 }
@@ -485,7 +524,7 @@ footer .subNav {
   border-top: 1px solid var(--border) !important;
   border-bottom: none !important;
   height: var(--subnav-h) !important;
-  padding: 0 12px !important;
+  padding: 0 14px !important;
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
@@ -500,53 +539,56 @@ table {
   width: 100% !important;
   border-collapse: collapse !important;
   border: 1px solid var(--border) !important;
-  border-radius: 4px !important;
+  border-radius: 6px !important;
   margin: 16px 0 !important;
   font-size: 13px !important;
+  overflow: hidden !important;
 }
 
 caption {
   background: var(--bg3) !important;
-  padding: 6px 12px !important;
+  padding: 8px 14px !important;
   text-align: left !important;
   border-bottom: 1px solid var(--border2) !important;
   caption-side: top !important;
 }
 
+/* Table tabs — pill style */
 .activeTableTab, .tableTab {
   font-family: var(--font-ui) !important;
   font-size: 11px !important;
   font-weight: 500 !important;
   text-transform: none !important;
-  padding: 4px 10px !important;
+  padding: 4px 12px !important;
   border: 1px solid var(--border2) !important;
-  border-radius: 3px !important;
+  border-radius: 20px !important;
   display: inline-block !important;
-  margin-right: 4px !important;
+  margin-right: 6px !important;
   cursor: pointer !important;
+  transition: all 0.2s !important;
 }
 
 .activeTableTab {
-  color: var(--blue) !important;
+  color: var(--text) !important;
   border-color: var(--blue) !important;
-  background: var(--highlight-bg) !important;
+  background: var(--blue-dim) !important;
 }
 
 .tableTab { color: var(--text-dim) !important; background: var(--bg3) !important; }
 .tableTab a { color: var(--text-dim) !important; text-decoration: none !important; }
-.tableTab a:hover { color: var(--blue) !important; text-shadow: none !important; }
+.tableTab a:hover { color: var(--text) !important; text-shadow: none !important; }
 
 /* Column headers */
 th[scope="col"] {
-  background: var(--bg3) !important;
+  background: var(--bg-elevated) !important;
   color: var(--text-dim) !important;
   font-family: var(--font-ui) !important;
-  font-size: 11px !important;
+  font-size: 10px !important;
   font-weight: 600 !important;
-  letter-spacing: 0.03em !important;
+  letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   padding: 10px 14px !important;
-  border-bottom: 1px solid var(--border2) !important;
+  border-bottom: 2px solid var(--border2) !important;
   text-align: left !important;
 }
 
@@ -554,7 +596,7 @@ th[scope="col"] {
 th[scope="row"], td {
   background: var(--bg2) !important;
   color: var(--text) !important;
-  padding: 8px 14px !important;
+  padding: 10px 14px !important;
   border-bottom: 1px solid var(--border) !important;
   vertical-align: top !important;
   text-align: left !important;
@@ -563,23 +605,25 @@ th[scope="row"], td {
   font-weight: 400 !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
+  transition: background 0.15s !important;
 }
 
+/* Stronger alternating row contrast */
 tr.altColor > td, tr.altColor > th[scope="row"] { background: var(--bg) !important; }
 tr.rowColor > td, tr.rowColor > th[scope="row"] { background: var(--bg2) !important; }
 
 tr:hover > td, tr:hover > th[scope="row"] {
-  background: var(--hover-bg) !important;
-  border-bottom-color: rgba(187, 154, 247, 0.2) !important;
+  background: var(--purple-dim) !important;
+  border-bottom-color: rgba(187, 154, 247, 0.25) !important;
 }
 tr:hover > td a, tr:hover > th[scope="row"] a {
   color: var(--purple) !important;
 }
 
 /* ── Links ── */
-a, a:visited { color: var(--blue) !important; text-decoration: none !important; }
+a, a:visited { color: var(--blue) !important; text-decoration: none !important; transition: color 0.15s !important; }
 a:hover { color: var(--purple) !important; text-decoration: none !important; }
-.memberNameLink a { color: var(--cyan) !important; }
+.memberNameLink a { color: var(--cyan) !important; font-weight: 500 !important; }
 .memberNameLink a:hover { color: var(--purple) !important; }
 .externalLink { color: var(--blue) !important; }
 
@@ -591,24 +635,26 @@ div.block {
   line-height: 1.7 !important;
   padding: 4px 0 !important;
 }
-ul.blockList > li.blockList > div.block{ padding: 10px 14px !important; margin: 0 !important; }
+ul.blockList > li.blockList > div.block{ padding: 12px 16px !important; margin: 0 !important; }
 
 /* ── Method detail ── */
 ul.blockList, ul.blockListLast { list-style: none !important; padding: 0 !important; margin: 0 !important; }
 ul.blockList > li.blockList, ul.blockListLast > li.blockList {
   border: 1px solid var(--border) !important;
-  border-radius: 4px !important;
-  margin-bottom: 10px !important;
+  border-radius: 6px !important;
+  margin-bottom: 12px !important;
   padding: 0 !important;
+  overflow: hidden !important;
 }
 
+/* Method/type signatures — accent left bar */
 pre.methodSignature, pre.typeSignature {
   background: var(--bg2) !important;
   border: none !important;
   border-bottom: 1px solid var(--border) !important;
-  border-left: 3px solid var(--blue) !important;
+  border-left: 3px solid var(--cyan) !important;
   margin: 0 !important;
-  padding: 12px 16px !important;
+  padding: 14px 18px !important;
   font-family: var(--font-mono) !important;
   font-size: 12px !important;
   color: var(--text) !important;
@@ -620,8 +666,8 @@ pre {
   background: var(--bg2) !important;
   border: 1px solid var(--border) !important;
   border-left: 3px solid var(--blue) !important;
-  border-radius: 4px !important;
-  padding: 14px 16px !important;
+  border-radius: 6px !important;
+  padding: 14px 18px !important;
   font-family: var(--font-mono) !important;
   font-size: 12px !important;
   color: var(--text) !important;
@@ -633,31 +679,31 @@ pre {
 code {
   font-family: var(--font-mono) !important;
   font-size: 12px !important;
-  color: var(--text) !important;
+  color: var(--cyan) !important;
   background: var(--bg3) !important;
-  padding: 1px 5px !important;
-  border-radius: 3px !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
 }
 
-dl { padding: 10px 14px !important; margin: 0 !important; }
+dl { padding: 12px 16px !important; margin: 0 !important; }
 dt { margin-bottom: 4px !important; }
-dd { margin: 0 0 6px 16px !important; color: var(--text-mid) !important; font-size: 12px !important; }
+dd { margin: 0 0 8px 16px !important; color: var(--text-mid) !important; font-size: 12px !important; }
 
 .paramLabel, .returnLabel, .throwsLabel, .seeLabel, .simpleTagLabel {
   font-family: var(--font-ui) !important;
   font-size: 10px !important;
   font-weight: 600 !important;
-  color: var(--text-dim) !important;
+  color: var(--purple) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
+  letter-spacing: 0.06em !important;
 }
 
 .typeNameLabel { color: var(--cyan) !important; }
 
 .deprecationBlock {
-  background: rgba(224, 175, 104, 0.08) !important;
+  background: var(--amber-dim) !important;
   border-left: 3px solid var(--amber) !important;
-  border-radius: 4px !important;
+  border-radius: 0 6px 6px 0 !important;
   padding: 10px 14px !important;
   color: var(--amber) !important;
   font-size: 12px !important;
@@ -665,28 +711,40 @@ dd { margin: 0 0 6px 16px !important; color: var(--text-mid) !important; font-si
 
 /* ── Inputs ── */
 input[type="text"] {
-  background: var(--bg3) !important;
+  background: var(--bg) !important;
   border: 1px solid var(--border2) !important;
   color: var(--text) !important;
   font-family: var(--font-mono) !important;
   font-size: 12px !important;
-  padding: 4px 10px !important;
+  padding: 5px 12px !important;
   outline: none !important;
-  border-radius: 4px !important;
+  border-radius: 6px !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
 }
-input[type="text"]:focus { border-color: var(--blue) !important; }
+input[type="text"]:focus {
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 2px var(--blue-dim) !important;
+}
 input[type="reset"] {
   background: var(--bg3) !important;
   border: 1px solid var(--border2) !important;
   color: var(--text-dim) !important;
   font-family: var(--font-ui) !important;
   font-size: 11px !important;
-  padding: 4px 10px !important;
+  padding: 5px 12px !important;
   cursor: pointer !important;
-  border-radius: 4px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s !important;
+}
+input[type="reset"]:hover {
+  border-color: var(--text-dim) !important;
+  color: var(--text-mid) !important;
 }
 
-/* ── Bottom nav ── */
+/* ══════════════════════════════════════════════
+   BOTTOM NAV
+   ══════════════════════════════════════════════ */
+
 .bottomNav {
   background: var(--bg2) !important;
   border-top: 1px solid var(--border) !important;
@@ -697,10 +755,19 @@ input[type="reset"] {
   position: relative !important;
 }
 
+/* Gradient accent line on bottom nav too */
+.bottomNav::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important; left: 0 !important; right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan)) !important;
+}
+
 .bottomNav ul.navList[title="Navigation"] {
   list-style: none !important;
   margin: 0 !important;
-  padding: 0 0 0 4px !important;
+  padding: 0 0 0 8px !important;
   display: flex !important;
   align-items: stretch !important;
   height: var(--nav-h) !important;
@@ -710,40 +777,43 @@ input[type="reset"] {
   display: flex !important;
   align-items: center !important;
   margin: 0 !important;
-  padding: 0 14px !important;
+  padding: 0 16px !important;
   height: var(--nav-h) !important;
   font-family: var(--font-ui) !important;
   font-size: 12px !important;
   font-weight: 500 !important;
   white-space: nowrap !important;
   text-transform: none !important;
-  letter-spacing: 0 !important;
+  letter-spacing: 0.01em !important;
   color: var(--text-dim) !important;
   border-top: 2px solid transparent !important;
+  transition: color 0.2s !important;
 }
 
 .bottomNav ul.navList[title="Navigation"] li > a {
   display: flex !important;
   align-items: center !important;
   height: var(--nav-h) !important;
-  margin: 0 -14px !important;
-  padding: 0 14px !important;
+  margin: 0 -16px !important;
+  padding: 0 16px !important;
   color: var(--text-dim) !important;
   text-decoration: none !important;
   font-family: var(--font-ui) !important;
   font-size: 12px !important;
   font-weight: 500 !important;
-  transition: color 0.15s !important;
+  transition: color 0.2s !important;
 }
 
 .bottomNav ul.navList[title="Navigation"] li > a:hover {
-  color: var(--blue) !important;
+  color: var(--text) !important;
   text-shadow: none !important;
 }
 
 .bottomNav ul.navList[title="Navigation"] li.navBarCell1Rev {
-  color: var(--blue) !important;
-  border-top: 2px solid var(--blue) !important;
+  color: var(--text) !important;
+  border-image: linear-gradient(90deg, var(--blue), var(--purple)) 1 !important;
+  border-top-width: 2px !important;
+  border-top-style: solid !important;
 }
 
 .bottomNav .aboutLanguage {
@@ -755,7 +825,7 @@ input[type="reset"] {
   color: var(--text-dim) !important;
   font-size: 11px !important;
   font-family: var(--font-ui) !important;
-  padding: 12px 16px !important;
+  padding: 14px 18px !important;
   text-align: center !important;
   border-top: 1px solid var(--border) !important;
 }
@@ -767,7 +837,7 @@ input[type="reset"] {
 .ui-autocomplete {
   background: var(--bg2) !important;
   border: 1px solid var(--border2) !important;
-  border-radius: 6px !important;
+  border-radius: 8px !important;
   max-height: 400px !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
@@ -775,19 +845,19 @@ input[type="reset"] {
   list-style: none !important;
   padding: 4px 0 !important;
   margin: 4px 0 0 !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(122, 162, 247, 0.05) !important;
 }
 
 /* Category headers */
 .ui-autocomplete .ui-autocomplete-category {
-  background: var(--bg3) !important;
+  background: var(--bg-elevated) !important;
   color: var(--text-dim) !important;
   font-family: var(--font-ui) !important;
   font-size: 10px !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  padding: 6px 12px !important;
+  letter-spacing: 0.06em !important;
+  padding: 6px 14px !important;
   border-bottom: 1px solid var(--border) !important;
   border-top: 1px solid var(--border) !important;
   cursor: default !important;
@@ -806,10 +876,12 @@ input[type="reset"] {
   color: var(--text) !important;
   font-family: var(--font-mono) !important;
   font-size: 12px !important;
-  padding: 6px 12px !important;
+  padding: 7px 14px !important;
   border: none !important;
+  border-left: 2px solid transparent !important;
   cursor: pointer !important;
   line-height: 1.5 !important;
+  transition: all 0.1s !important;
 }
 
 /* Hover / focus state */
@@ -819,8 +891,8 @@ input[type="reset"] {
 .ui-autocomplete .ui-menu-item-wrapper.ui-state-focus,
 .ui-autocomplete .ui-state-active,
 .ui-autocomplete .ui-state-focus {
-  background: var(--hover-bg) !important;
-  color: var(--purple) !important;
+  background: var(--purple-dim) !important;
+  color: var(--text) !important;
   border: none !important;
   border-left: 2px solid var(--purple) !important;
   margin: 0 !important;
@@ -870,10 +942,13 @@ input[type="reset"] {
   color: var(--text-dim) !important;
 }
 
-/* ── Misc ── */
+/* ══════════════════════════════════════════════
+   MISC
+   ══════════════════════════════════════════════ */
+
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
-::selection { background: rgba(122, 162, 247, 0.25); color: var(--text); }
-hr { border: none !important; border-top: 1px solid var(--border) !important; margin: 20px 0 !important; }
+::selection { background: rgba(187, 154, 247, 0.25); color: var(--text); }
+hr { border: none !important; border-top: 1px solid var(--border) !important; margin: 24px 0 !important; }
