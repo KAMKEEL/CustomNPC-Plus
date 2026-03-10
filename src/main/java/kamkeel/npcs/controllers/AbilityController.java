@@ -401,6 +401,24 @@ public class AbilityController implements IAbilityHandler {
         }
     }
 
+    public Ability cloneCustomAbility(String originalName) {
+        Ability original = customAbilities.get(originalName);
+        if (original == null || original.isBuiltIn()) return null;
+
+        NBTTagCompound nbt = original.writeNBT(true);
+        nbt.setString("id", UUID.randomUUID().toString());
+
+        Ability clone = fromNBT(nbt);
+        if (clone == null) return null;
+
+        String name = clone.getName();
+        while (customAbilities.containsKey(name)) name += "_";
+        clone.setName(name);
+
+        saveCustomAbility(clone);
+        return clone;
+    }
+
     public boolean deleteCustomAbility(String name) {
         if (name == null || name.isEmpty()) return false;
 
@@ -746,6 +764,24 @@ public class AbilityController implements IAbilityHandler {
             LogWriter.error("Error saving chained ability: " + name, e);
             return false;
         }
+    }
+
+    public ChainedAbility cloneChainedAbility(String originalName) {
+        ChainedAbility original = chainedAbilities.get(originalName);
+        if (original == null) return null;
+
+        NBTTagCompound nbt = original.writeNBT(true);
+        nbt.setString("Id", UUID.randomUUID().toString());
+
+        ChainedAbility clone = new ChainedAbility();
+        clone.readNBT(nbt);
+
+        String name = clone.getName();
+        while (chainedAbilities.containsKey(name)) name += "_";
+        clone.setName(name);
+
+        saveChainedAbility(clone);
+        return clone;
     }
 
     public boolean deleteChainedAbility(String name) {

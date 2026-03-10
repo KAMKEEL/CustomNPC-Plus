@@ -708,4 +708,23 @@ public class CustomEffectController implements ICustomEffectHandler {
         return getCustomEffects().get(customEffect.getID());
     }
 
+    public CustomEffect cloneEffect(int originalId) {
+        CustomEffect original = getCustomEffects().get(originalId);
+        if (original == null) return null;
+
+        NBTTagCompound nbt = original.writeToNBT(true);
+        int newId = getUnusedId();
+        nbt.setInteger("ID", newId);
+
+        CustomEffect clone = new CustomEffect();
+        clone.readFromNBT(nbt);
+
+        String name = clone.getName();
+        while (has(name)) name += "_";
+        clone.name = name;
+
+        saveEffect(clone);
+        return clone;
+    }
+
 }

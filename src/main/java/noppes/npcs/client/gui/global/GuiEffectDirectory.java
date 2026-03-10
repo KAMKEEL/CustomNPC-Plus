@@ -8,6 +8,7 @@ import kamkeel.npcs.network.packets.request.category.CategoryRemovePacket;
 import kamkeel.npcs.network.packets.request.category.CategorySavePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectGetPacket;
 import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
+import kamkeel.npcs.network.packets.request.effects.EffectClonePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -89,9 +90,7 @@ public class GuiEffectDirectory extends GuiDirectoryCategorized {
     @Override
     protected void onCloneItem() {
         if (effect != null && effect.id >= 0) {
-            CustomEffect clone = effect.cloneEffect();
-            while (itemData.containsKey(clone.name)) clone.name += "_";
-            PacketClient.sendClient(new EffectSavePacket(clone.writeToNBT(false), ""));
+            PacketClient.sendClient(new EffectClonePacket(effect.id));
         }
     }
 

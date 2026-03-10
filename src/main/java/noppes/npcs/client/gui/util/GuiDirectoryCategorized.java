@@ -771,7 +771,7 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
         if (subgui instanceof SubGuiEditText) {
             if (!((SubGuiEditText) subgui).cancelled && selectedCatId > 0) {
                 String name = ((SubGuiEditText) subgui).text;
-                if (name != null && !name.isEmpty() && !catData.containsKey(name)) {
+                if (name != null && !name.isEmpty() && !name.equals(prevCatName) && !catData.containsKey(name)) {
                     Category cat = new Category(selectedCatId, name);
                     onSaveCategory(cat);
                     catData.remove(prevCatName);
@@ -779,6 +779,8 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
                     prevCatName = name;
                 }
             }
+            // Restore category selection to current name (handles validation failure)
+            catScroll.setSelected(prevCatName);
         }
         if (subgui instanceof SubGuiCategoryMoveConfirm) {
             SubGuiCategoryMoveConfirm confirm = (SubGuiCategoryMoveConfirm) subgui;

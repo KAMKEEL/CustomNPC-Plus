@@ -38,6 +38,7 @@ public class SubGuiTagSelect extends SubGuiInterface implements IScrollData, ICu
     public SubGuiTagSelect(HashSet<UUID> tagUUIDs) {
         this.tagUUIDs = tagUUIDs;
         setBackground("menubg.png");
+        closeOnEsc = true;
         xSize = 430;
         ySize = 220;
 
@@ -142,6 +143,10 @@ public class SubGuiTagSelect extends SubGuiInterface implements IScrollData, ICu
     }
 
     public void keyTyped(char c, int i) {
+        if (i == 1) {
+            close();
+            return;
+        }
         super.keyTyped(c, i);
         if (getTextField(4) != null) {
             if (search.equals(getTextField(4).getText()))
