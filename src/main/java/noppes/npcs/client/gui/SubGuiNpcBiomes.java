@@ -81,7 +81,6 @@ public class SubGuiNpcBiomes extends SubGuiInterface {
             if (scroll1.hasSelected()) {
                 data.biomes.add(scroll1.getSelected());
                 scroll1.selected = -1;
-                scroll1.selected = -1;
                 initGui();
             }
         }

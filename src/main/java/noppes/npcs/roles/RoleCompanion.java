@@ -328,7 +328,7 @@ public class RoleCompanion extends RoleInterface {
             ((CompanionTrader) jobInterface).interact(player);
         if (player != owner || !npc.isEntityAlive() || npc.isAttacking())
             return;
-        if (player.isSneaking()) {
+        if (player != null && player.isSneaking()) {
             openGui(player);
         } else {
             setSitting(!isSitting());

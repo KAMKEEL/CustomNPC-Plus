@@ -15,6 +15,8 @@ import noppes.npcs.api.IPos;
 import noppes.npcs.api.ITileEntity;
 import noppes.npcs.api.IWorld;
 
+import java.util.Objects;
+
 public class ScriptBlock implements IBlock {
     protected IWorld world;
     protected Block block;
@@ -223,5 +225,10 @@ public class ScriptBlock implements IBlock {
         return obj instanceof IBlock && ((ScriptBlock) obj).getName().equals(this.getName()) &&
             ((ScriptBlock) obj).getWorld() == this.getWorld() &&
             ((ScriptBlock) obj).getPos().equals(this.getPos());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getWorld(), block, getPos());
     }
 }

@@ -39,8 +39,7 @@ public class BlockCampfire extends BlockLightable {
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int par6, float par7, float par8, float par9) {
         ItemStack item = player.inventory.getCurrentItem();
         if (item == null)
-            return true;
-        int meta = world.getBlockMetadata(x, y, z);
+            return false;
 
         if ((item.getItem() == Items.flint || item.getItem() == Items.flint_and_steel) && unlitBlock() == this) {
             super.onBlockActivated(world, x, y, z, player, par6, par7, par8, par9);
@@ -56,7 +55,7 @@ public class BlockCampfire extends BlockLightable {
             super.onBlockActivated(world, x, y, z, player, par6, par7, par8, par9);
         }
 
-        return true;
+        return false;
     }
 
     @Override

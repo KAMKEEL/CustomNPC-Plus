@@ -81,8 +81,6 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
             return;
         }
 
-        ArrayList<String> list = new ArrayList<String>();
-
         this.list = new ArrayList<String>(ClientCloneController.Instance.getClones(activeTab));
         scroll.setList(getSearchList());
     }

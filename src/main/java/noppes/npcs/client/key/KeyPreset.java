@@ -6,6 +6,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class KeyPreset {
@@ -187,6 +188,11 @@ public class KeyPreset {
         return false;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash( currentState);
+    }
+
     public static class KeyState {
         public int keyCode = -1;
         public boolean hasCtrl, hasAlt, hasShift;
@@ -233,6 +239,11 @@ public class KeyPreset {
             }
 
             return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(keyCode, hasCtrl, hasAlt, hasShift);
         }
 
         public NBTTagCompound writeToNbt() {

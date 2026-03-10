@@ -5,6 +5,8 @@ import net.minecraft.util.Vec3i;
 import net.minecraft.util.math.BlockPos;
 import noppes.npcs.api.IPos;
 
+import java.util.Objects;
+
 public class ScriptBlockPos implements IPos {
     public BlockPos blockPos;
 
@@ -168,5 +170,10 @@ public class ScriptBlockPos implements IPos {
 
     public boolean equals(Object object) {
         return object instanceof IPos && ((IPos) object).toLong() == this.toLong();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(blockPos);
     }
 }

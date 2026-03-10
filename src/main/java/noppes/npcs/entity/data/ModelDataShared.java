@@ -165,8 +165,6 @@ public class ModelDataShared implements IModelData {
     public float getBodyY() {
         if (legParts.type == 3)
             return (0.9f - modelScale.body.scaleY) * 0.75f + getLegsY();
-        if (legParts.type == 3)
-            return (0.5f - modelScale.body.scaleY) * 0.75f + getLegsY();
         return (1 - modelScale.body.scaleY) * 0.75f + getLegsY();
     }
 
