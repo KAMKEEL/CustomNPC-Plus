@@ -490,14 +490,18 @@ public class TypeInfo {
                 // Fallback to Object array if we can't create the specific array type
             }
         }
-        
-        TypeInfo arr = new TypeInfo(simpleName, fullName, pkg, elementType.kind, arrayClass, true, null, null, null, null, elementType);
+        TypeInfo arr = new TypeInfo(simpleName, fullName, pkg, elementType.kind, arrayClass, elementType.isResolved(),
+                null, null, null, null, elementType);
         arr.setPrimitive(elementType.isPrimitive());
         arr.syntheticFields.add(FieldInfo.external("length", TypeInfo.fromPrimitive("int"), null,
                 Modifier.PUBLIC | Modifier.FINAL));
         arr.syntheticMethods.add(MethodInfo.external("clone", arr, null,
                 Collections.emptyList(), Modifier.PUBLIC, null));
-        return arr;
+
+        arr.typeParameterName = elementType.typeParameterName;
+        if (elementType.boundType != null)
+            arr.boundType = arrayOf(elementType.boundType);
+        return arr; 
     }
     
     /**

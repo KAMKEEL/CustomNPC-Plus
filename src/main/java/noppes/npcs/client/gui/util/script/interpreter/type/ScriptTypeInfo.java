@@ -178,11 +178,14 @@ public class ScriptTypeInfo extends TypeInfo {
         result.outerClass = this.outerClass;
         GenericContext ctx = GenericContext.forReceiver(result);
 
-        // Parameterize methods and fields with the generic context of this type. 
+        // Parameterize methods, constructors, and fields with the generic context of this type. 
         for (Map.Entry<String, List<MethodInfo>> entry : this.methods.entrySet()) {
             List<MethodInfo> substituted = new ArrayList<>();
             for (MethodInfo m : entry.getValue()) substituted.add(substituteMethod(m, ctx));
             result.methods.put(entry.getKey(), substituted);
+        }
+        for (MethodInfo ctor : this.constructors) {
+            result.constructors.add(substituteMethod(ctor, ctx));
         }
         for (Map.Entry<String, FieldInfo> entry : this.fields.entrySet()) {
             FieldInfo f = entry.getValue();

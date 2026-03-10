@@ -443,7 +443,7 @@ public class MethodCallInfo {
      * in error "Expect T but got String", if T has a resolved bound aka "int" show it instead of T to avoid confusion.
      * So the error would be "Expect int but got String" 
      */
-    private String getTypeDisplayName(TypeInfo type) {
+    public static String getTypeDisplayName(TypeInfo type) {
         if(type.isTypeParameter()) {
             TypeInfo bound = type.getBoundType();
             if (bound != null)
