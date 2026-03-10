@@ -764,44 +764,47 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         setScissorClip(previewX, previewY, previewW, previewH);
 
-        GL11.glEnable(GL11.GL_COLOR_MATERIAL);
-        GL11.glPushMatrix();
-
-        GL11.glTranslatef(npcScreenX, npcScreenY, 500F);
-        GL11.glScalef(-renderZoom, renderZoom, renderZoom);
-        GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
-        GL11.glRotatef(CAMERA_PITCH, 1.0F, 0.0F, 0.0F);
-        GL11.glRotatef(rotation, 0.0F, 1.0F, 0.0F);
-
-        GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
-        RenderHelper.enableStandardItemLighting();
-        GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
-
-        GL11.glTranslatef(0.0F, npc.yOffset, 0.0F);
-        RenderManager.instance.playerViewY = 180F;
-        ClientEventHandler.renderingEntityInGUI = true;
-
-        // Render NPC at its position delta
         try {
-            RenderManager.instance.renderEntityWithPosYaw(npc, npcDeltaX, npcDeltaY, npcDeltaZ, 0.0F, partialTicks);
-        } catch (Exception ignored) {}
+            GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+            GL11.glPushMatrix();
 
-        // Render preview entities
-        renderPreviewEntities(partialTicks);
+            GL11.glTranslatef(npcScreenX, npcScreenY, 500F);
+            GL11.glScalef(-renderZoom, renderZoom, renderZoom);
+            GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
+            GL11.glRotatef(CAMERA_PITCH, 1.0F, 0.0F, 0.0F);
+            GL11.glRotatef(rotation, 0.0F, 1.0F, 0.0F);
 
-        // Render telegraph
-        renderPreviewTelegraph(partialTicks);
+            GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
+            RenderHelper.enableStandardItemLighting();
+            GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
 
-        ClientEventHandler.renderingEntityInGUI = false;
-        GL11.glPopMatrix();
+            GL11.glTranslatef(0.0F, npc.yOffset, 0.0F);
+            RenderManager.instance.playerViewY = 180F;
+            ClientEventHandler.renderingEntityInGUI = true;
 
-        RenderHelper.disableStandardItemLighting();
-        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-        OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            // Render NPC at its position delta
+            try {
+                RenderManager.instance.renderEntityWithPosYaw(npc, npcDeltaX, npcDeltaY, npcDeltaZ, 0.0F, partialTicks);
+            } catch (Exception ignored) {}
 
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+            // Render preview entities
+            renderPreviewEntities(partialTicks);
+
+            // Render telegraph
+            renderPreviewTelegraph(partialTicks);
+
+            ClientEventHandler.renderingEntityInGUI = false;
+            GL11.glPopMatrix();
+
+            RenderHelper.disableStandardItemLighting();
+            GL11.glDisable(GL12.GL_RESCALE_NORMAL);
+            OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        } finally {
+            ClientEventHandler.renderingEntityInGUI = false;
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        }
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
     }
 

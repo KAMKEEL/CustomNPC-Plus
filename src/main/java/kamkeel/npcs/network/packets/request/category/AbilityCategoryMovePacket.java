@@ -14,6 +14,7 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.constants.EnumCategoryType;
+import noppes.npcs.controllers.CategoryManager;
 
 import java.io.IOException;
 
@@ -62,6 +63,11 @@ public final class AbilityCategoryMovePacket extends AbstractPacket {
         int type = in.readInt();
         String itemName = ByteBufUtils.readString(in);
         int cat = in.readInt();
+
+        // Validate target category exists (0 = Uncategorized is always valid)
+        CategoryManager cm = CategorySavePacket.getManager(type);
+        if (cm == null) return;
+        if (cat != CategoryManager.UNCATEGORIZED_ID && cm.getCategory(cat) == null) return;
 
         switch (type) {
             case EnumCategoryType.ABILITY:
