@@ -790,7 +790,7 @@ public class TokenHoverInfo {
                 buildBasicMethodDeclaration(methodInfo, containingType);
                 return;
             }
-            buildMethodDeclaration(methodInfo.getJavaMethod(), containingType);
+            buildMethodDeclaration(methodInfo, containingType);
             extractJavadoc(methodInfo.getJavaMethod());
             return;
         }
@@ -1158,7 +1158,8 @@ public class TokenHoverInfo {
         declaration.add(new TextSegment(text, color));
     }
 
-    private void buildMethodDeclaration(Method method, TypeInfo containingType) {
+    private void buildMethodDeclaration(MethodInfo methodInfo, TypeInfo containingType) {
+        Method method = methodInfo.getJavaMethod();
         int mods = method.getModifiers();
         
         // Annotations (show @Contract if present, etc.)
@@ -1175,9 +1176,9 @@ public class TokenHoverInfo {
         if (Modifier.isSynchronized(mods)) addSegment("synchronized ", TokenType.MODIFIER.getHexColor());
         
         // Return type - check for actual type color (handle array suffix coloring)
-        Class<?> returnType = method.getReturnType();
+        TypeInfo returnType = methodInfo.getReturnType();
         String returnTypeName = returnType.getSimpleName();
-        splitAndAddTypeName(returnTypeName, getColorForTypeInfo(containingType));
+        splitAndAddTypeName(returnTypeName, getColorForTypeInfo(methodInfo.getReturnType()));
         addSegment(" ", TokenType.DEFAULT.getHexColor());
         
         // Method name
@@ -1185,20 +1186,19 @@ public class TokenHoverInfo {
         
         // Parameters
         addSegment("(", TokenType.DEFAULT.getHexColor());
-        Class<?>[] paramTypes = method.getParameterTypes();
-        java.lang.reflect.Parameter[] params = method.getParameters();
-        for (int i = 0; i < paramTypes.length; i++) {
+        List<FieldInfo> params = methodInfo.getParameters();
+        for (int i = 0; i < params.size(); i++) {
             if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
-            int paramTypeColor = getColorForClass(paramTypes[i]);
-            String paramTypeName = paramTypes[i].getSimpleName();
-            splitAndAddTypeName(paramTypeName, paramTypeColor);
-            if (method.isVarArgs() && i == paramTypes.length - 1) {
-                addSegment("...", TokenType.DEFAULT.getHexColor());
+            FieldInfo param = params.get(i);
+            TypeInfo paramType = param.getTypeInfo();
+            if (paramType != null) {
+                addTypeSegments(paramType);
+                if (param.isVarArg()) {
+                    addSegment("...", TokenType.DEFAULT.getHexColor());
+                }
+                addSegment(" ", TokenType.DEFAULT.getHexColor());
             }
-            addSegment(" ", TokenType.DEFAULT.getHexColor());
-            // Try to get parameter name if available
-            String paramName = params.length > i ? params[i].getName() : "arg" + i;
-            addSegment(paramName, TokenType.PARAMETER.getHexColor());
+            addSegment(param.getName(), TokenType.PARAMETER.getHexColor());
         }
         addSegment(")", TokenType.DEFAULT.getHexColor());
     }
