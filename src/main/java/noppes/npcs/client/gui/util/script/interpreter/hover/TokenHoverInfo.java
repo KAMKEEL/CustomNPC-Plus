@@ -731,6 +731,7 @@ public class TokenHoverInfo {
         String paramName = typeInfo.getTypeParameterName();
 
         addSegment("type parameter ", TokenType.MODIFIER.getHexColor());
+        addSegment("<", TokenType.DEFAULT.getHexColor());
         addSegment(paramName, TokenType.GENERIC_TYPE_PARAM.getHexColor());
 
         TypeInfo bound = typeInfo.getBoundType();
@@ -738,6 +739,7 @@ public class TokenHoverInfo {
             addSegment(" extends ", TokenType.MODIFIER.getHexColor());
             addSegment(bound.getSimpleName(), getColorForTypeInfo(bound));
         }
+        addSegment(">", TokenType.DEFAULT.getHexColor());
     }
 
     private void extractMethodCallInfo(Token token) {
