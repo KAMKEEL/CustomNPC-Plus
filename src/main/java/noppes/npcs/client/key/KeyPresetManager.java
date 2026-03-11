@@ -43,8 +43,15 @@ public class KeyPresetManager {
         try {
             File dir = getDir();
             File file = new File(dir, fileName + ".json");
-            if (!file.exists())
+            if (!file.exists()) {
+                // First run: initialize all keys to their default states if not already set
+                for (KeyPreset key : keys) {
+                    if (!key.defaultState.hasState()) {
+                        key.currentState.readFrom(key.defaultState);
+                    }
+                }
                 return;
+            }
 
             NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
             for (KeyPreset key : keys)
