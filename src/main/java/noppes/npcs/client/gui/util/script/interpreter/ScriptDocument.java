@@ -1439,18 +1439,64 @@ public class ScriptDocument {
             return params;
         }
 
-        // Pattern: Type varName (with optional spaces)
+        // Collapse all whitespace runs to single spaces, tracking original positions via posMap.
+        // posMap[normalizedIndex] = originalIndex, enabling correct absolute offsets after matching.
+        StringBuilder normalized = new StringBuilder(paramList.length());
+        int[] posMap = new int[paramList.length() + 1];
+        boolean lastWasSpace = false;
+        for (int i = 0; i < paramList.length(); i++) {
+            char c = paramList.charAt(i);
+            if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+                if (!lastWasSpace) {
+                    posMap[normalized.length()] = i;
+                    normalized.append(' ');
+                    lastWasSpace = true;
+                }
+            } else {
+                posMap[normalized.length()] = i;
+                normalized.append(c);
+                lastWasSpace = false;
+            }
+        }
+        posMap[normalized.length()] = paramList.length();
+        String normalizedStr = normalized.toString();
+
+        // Split by top-level commas (not inside < > brackets), then parse each parameter individually
+        List<int[]> paramRanges = new ArrayList<>();
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i < normalizedStr.length(); i++) {
+            char c = normalizedStr.charAt(i);
+            if (c == '<') depth++;
+            else if (c == '>') depth--;
+            else if (c == ',' && depth == 0) {
+                paramRanges.add(new int[]{start, i});
+                start = i + 1;
+            }
+        }
+        paramRanges.add(new int[]{start, normalizedStr.length()});
+
+        // Matches: type (with optional generics, arrays, dots) + optional varargs + whitespace + paramName
         Pattern paramPattern = Pattern.compile(
-                "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*(?:\\.{3})?)\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
-        Matcher m = paramPattern.matcher(paramList);
-        while (m.find()) {
-            String typeName = m.group(1);
+                "\\s*([a-zA-Z_][a-zA-Z0-9_.<>,? \\[\\]]*)(?:\\.{3})?\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*");
+
+        for (int[] range : paramRanges) {
+            String segment = normalizedStr.substring(range[0], range[1]);
+            if (segment.trim().isEmpty()) continue;
+
+            Matcher m = paramPattern.matcher(segment);
+            if (!m.matches()) continue;
+
+            String rawType = m.group(1).replaceAll("\\s+", "");
             String paramName = m.group(2);
-            boolean isVarArg = typeName.endsWith("...");
-            if (isVarArg) typeName = typeName.substring(0, typeName.length() - 3);
-            TypeInfo typeInfo = resolveType(typeName, paramListStart);
-            // Store the absolute position of the parameter name
-            int paramNameStart = paramListStart + m.start(2);
+            String between = segment.substring(m.end(1), m.start(2));
+            boolean isVarArg = between.contains("...");
+
+            TypeInfo typeInfo = resolveType(rawType, paramListStart);
+
+            // m.start(2) is relative to segment; add range[0] to get position in normalizedStr, then posMap to original
+            int normalizedNamePos = range[0] + m.start(2);
+            int paramNameStart = paramListStart + posMap[normalizedNamePos];
             FieldInfo fieldInfo = FieldInfo.parameter(paramName, typeInfo, paramNameStart, null);
             fieldInfo.setVarArg(isVarArg);
             params.add(fieldInfo);
@@ -6091,7 +6137,7 @@ public class ScriptDocument {
         
         // Check if this looks like a parameter declaration: "Type varName"
         // Pattern: identifier followed by whitespace and another identifier
-        if (argText.matches("^[A-Za-z_][a-zA-Z0-9_<>\\[\\],\\s]*\\s+[a-zA-Z_][a-zA-Z0-9_]*$")) {
+        if (argText.matches("^[A-Za-z_][a-zA-Z0-9_<>\\[\\],\\s\\n\\r]*\\s+[a-zA-Z_][a-zA-Z0-9_]*$")) {
             // Split into tokens
             String[] parts = argText.split("\\s+");
             if (parts.length >= 2) {
