@@ -20,14 +20,14 @@ public final class GenericContext {
     /** Singleton context for types with no generic parameters. Used to avoid object allocation. */
     private static final GenericContext EMPTY = new GenericContext(new HashMap<>(), new HashMap<>());
 
-    /** 
+    /**
      * Map of type variable names to their applied type arguments.
      * For example, in List&lt;String&gt;, this contains E -&gt; TypeInfo.STRING.
      * Applied bindings take precedence over bound fallbacks.
      */
     private final Map<String, TypeInfo> appliedBindings;
-    
-    /** 
+
+    /**
      * Map of type variable names to their declared upper bounds.
      * For example, in &lt;T extends Entity&gt;, this contains T -&gt; TypeInfo(Entity).
      * Used as fallback when no applied argument exists.
@@ -41,7 +41,7 @@ public final class GenericContext {
 
     /**
      * Create a GenericContext directly from declared type parameters and applied type arguments.
-     * 
+     *
      * Unlike {@link #forReceiver(TypeInfo)}, this does NOT introspect a TypeInfo, so it cannot
      * trigger recursive parameterization. Use this inside {@code parameterize()} implementations
      * to avoid the cycle: parameterize → forReceiver → substitute → parameterize.
@@ -82,10 +82,10 @@ public final class GenericContext {
 
     /**
      * Create a GenericContext for a receiver type.
-     * 
+     *
      * Fast path: returns singleton EMPTY for non-generic types (no allocation overhead).
      * Slow path: builds maps from type parameters and applied arguments for generic types.
-     * 
+     *
      * @param receiverType the type to extract generic bindings from (e.g., List&lt;String&gt;, DAO&lt;T extends Entity&gt;)
      * @return a context with applied bindings and bound fallbacks, or EMPTY singleton if receiverType is not generic
      */
@@ -127,11 +127,12 @@ public final class GenericContext {
                 if (name == null || name.isEmpty()) continue;
                 TypeInfo bound = declared.getBoundTypeInfo();
                 TypeInfo effectiveBound = (bound != null && bound.isResolved()) ? bound : TypeInfo.OBJECT;
-                
-                List<TypeInfo> additionalBounds = declared.getAdditionalBoundTypes();
-                if (additionalBounds != null && !additionalBounds.isEmpty()) {
-                    effectiveBound = IntersectionTypeInfo.of(effectiveBound, additionalBounds);
-                }
+
+                // TODO: Goatee not sure what this was for
+//                List<TypeInfo> additionalBounds = declared.getAdditionalBoundTypes();
+//                if (additionalBounds != null && !additionalBounds.isEmpty()) {
+//                    effectiveBound = IntersectionTypeInfo.of(effectiveBound, additionalBounds);
+//                }
                 bounds.put(name, effectiveBound);
             }
         }
@@ -141,28 +142,28 @@ public final class GenericContext {
 
     /**
      * Check if a type has generics that need substitution.
-     * 
+     *
      * Returns true if:
      * - Type is parameterized (e.g., List&lt;String&gt;)
      * - Type's raw form differs from the type itself
      * - Type has declared type parameters
-     * 
+     *
      * @param type the type to check
      * @return true if this type contains generic information that may need substitution
      */
     public static boolean hasGenerics(TypeInfo type) {
-        return type.isParameterized() || 
-               type.getRawType() != type || 
+        return type.isParameterized() ||
+               type.getRawType() != type ||
                (type.getTypeParams() != null && !type.getTypeParams().isEmpty());
     }
 
     /**
      * Resolve a type variable to its bound or applied type.
-     * 
+     *
      * Prefers applied bindings (e.g., E -&gt; String in List&lt;String&gt;) over declared bounds.
      * Falls back to bounds (e.g., T -&gt; Entity in &lt;T extends Entity&gt;) if no applied argument exists.
      * Returns null if the variable is not found in either map.
-     * 
+     *
      * @param name the type variable name (e.g., "T", "E", "K")
      * @return the resolved TypeInfo, or null if variable not found
      */
@@ -181,12 +182,12 @@ public final class GenericContext {
 
     /**
      * Substitute type variables in a TypeInfo recursively.
-     * 
+     *
      * Handles:
      * - Direct type variables (unresolved types representing T, E, etc.)
      * - Parameterized types (recursively substitutes inside type arguments)
      * - Array types (substitutes the element type, preserves array dimensions)
-     * 
+     *
      * @param type the type to substitute (may contain type variables)
      * @return the substituted type, or the original type if no substitutions apply
      */
@@ -246,12 +247,12 @@ public final class GenericContext {
 
     /**
      * Substitute type variables in a type string.
-     * 
+     *
      * Attempts substitution in this order:
      * 1. Normalize the string (strip imports, pick union branch, remove nullable suffix, split arrays)
      * 2. Try direct type variable lookup (e.g., "T" -&gt; resolved Entity)
      * 3. Fall back to full type resolution with substitution applied
-     * 
+     *
      * @param typeString the type expression as a string (e.g., "T", "T[]", "List&lt;T&gt;")
      * @param resolver optional TypeResolver for fallback resolution; if null, returns null on failure
      * @return the substituted type, or null if resolution fails
@@ -288,14 +289,14 @@ public final class GenericContext {
 
     /**
      * Substitute type variables in a resolved type, with string fallback.
-     * 
+     *
      * Two-phase approach:
      * 1. Try substituting the resolved type directly
      * 2. If that fails, attempt substitution via the raw string as fallback
-     * 
+     *
      * This handles edge cases where the TypeInfo doesn't capture enough information
      * to do proper substitution (e.g., union types, complex generics).
-     * 
+     *
      * @param resolvedType a TypeInfo that has already been resolved (may still contain type variables)
      * @param rawTypeString the original type string before resolution (for fallback)
      * @param resolver optional TypeResolver for string-based fallback resolution
