@@ -31,8 +31,12 @@ import java.util.List;
  */
 public class EntityAbilityLaser extends EntityEnergyProjectile {
 
-    // Laser-specific properties
+    // Laser-specific properties (target value)
     private float laserWidth = 0.2f;
+
+    // Lerp-smoothed render values
+    private float renderLaserWidth = 0.2f;
+    private float prevRenderLaserWidth = 0.2f;
     private float expansionSpeed = 2.0f; // Blocks per tick
     private float maxLength = 32.0f; // Maximum beam reach in blocks
 
@@ -144,10 +148,18 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
     @Override
     protected void updateProjectile() {
+        // Save previous render value for sub-tick interpolation
+        prevRenderLaserWidth = renderLaserWidth;
+
         if (isCharging()) {
+            // During charging, snap render value to target
+            renderLaserWidth = laserWidth;
             updateCharging();
             return;
         }
+
+        // Lerp render value toward target (smooth out sync packet jumps)
+        renderLaserWidth += (laserWidth - renderLaserWidth) * 0.15f;
 
         // Save previous positions for partial tick interpolation
         prevStartX = startX;
@@ -703,6 +715,10 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         return laserWidth;
     }
 
+    public float getInterpolatedLaserWidth(float partialTicks) {
+        return prevRenderLaserWidth + (renderLaserWidth - prevRenderLaserWidth) * partialTicks;
+    }
+
     public void setLaserWidth(float width) {
         this.laserWidth = width;
     }
@@ -892,6 +908,8 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     @Override
     protected void readProjectileNBT(NBTTagCompound nbt) {
         this.laserWidth = sanitize(nbt.hasKey("LaserWidth") ? nbt.getFloat("LaserWidth") : 0.2f, 0.2f, MAX_ENTITY_SIZE);
+        this.renderLaserWidth = this.laserWidth;
+        this.prevRenderLaserWidth = this.laserWidth;
         this.expansionSpeed = sanitize(nbt.hasKey("ExpansionSpeed") ? nbt.getFloat("ExpansionSpeed") : 2.0f, 0.1f, MAX_ENTITY_SIZE);
         this.maxLength = sanitize(nbt.hasKey("MaxLength") ? nbt.getFloat("MaxLength") : 32.0f, 1.0f, MAX_ENTITY_SIZE);
         this.dirX = nbt.getDouble("DirX");

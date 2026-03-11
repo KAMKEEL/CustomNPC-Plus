@@ -2,6 +2,8 @@ package noppes.npcs.client.gui.util.script.interpreter.type;
 
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,6 +35,9 @@ public final class TypeChecker {
         if (expected == null) return true; // void can accept anything (shouldn't happen)
         if (actual == null) return true; // Can't verify, assume compatible
 
+        // Exact match by reference equality
+        if(expected.equals(actual)) return true;
+        
         // Handle array types: compatible if element types are compatible
         if (expected.isArray() && actual.isArray()) {
             TypeInfo expectedElement = expected.getElementType();
@@ -78,13 +83,6 @@ public final class TypeChecker {
         
         if (expectedName == null || actualName == null) return true;
         
-        // Exact match by simple name
-        if (expectedName.equals(actualName)) return true;
-        
-        // Exact match by full name
-        if (expected.getFullName() != null && actual.getFullName() != null) {
-            if (expected.getFullName().equals(actual.getFullName())) return true;
-        }
         
         // Primitive widening conversions
         if ("number".equals(expectedName) && isNumericType(actualName)) {
@@ -104,7 +102,24 @@ public final class TypeChecker {
                 return true;
             }
         }
-        
+
+        // Same-name match: handles ScriptTypeInfo, non-Java types, and same-class Java types.
+        // Must run before isAssignableFrom so type arg checking isn't skipped for same-class pairs.
+        if (expected.getFullName().equals(actual.getFullName())) {
+            if (expected.isParameterized() && actual.isParameterized()) {
+                return areTypeArgumentsCompatible(expected, actual);
+            }
+            return true;
+        }
+
+        // ScriptTypeInfo inheritance: actual is a script-defined type that may extend/implement expected.
+        // ScriptTypeInfo.getJavaClass() returns null, so the Java isAssignableFrom gate below won't fire.
+        if (actual instanceof ScriptTypeInfo) {
+            if (isScriptTypeAssignableTo((ScriptTypeInfo) actual, expected)) {
+                return true;
+            }
+        }
+
         // Object type compatibility (check inheritance)
         if (expected.getJavaClass() != null && actual.getJavaClass() != null) {
             Class<?> expectedClass = expected.getJavaClass();
@@ -158,6 +173,85 @@ public final class TypeChecker {
         }
 
         return false;
+    }
+
+    /**
+     * Check assignability for ScriptTypeInfo by iteratively walking the extends/implements chain.
+     * Handles both direct and indirect inheritance (A extends B extends C implements D).
+     */
+    private static boolean isScriptTypeAssignableTo(ScriptTypeInfo actual, TypeInfo expected) {
+        String expectedFull = expected.getFullName();
+        String expectedSimple = expected.getSimpleName();
+
+        Deque<TypeInfo> worklist = new ArrayDeque<>();
+        worklist.add(actual);
+
+        while (!worklist.isEmpty()) {
+            TypeInfo current = worklist.poll();
+            if (current == null || !current.isResolved()) continue;
+
+            String currentFull = current.getFullName();
+            if (currentFull != null) {
+                if (expectedFull != null && expectedFull.equals(currentFull)) return true;
+                if (expectedSimple != null && expectedSimple.equals(current.getSimpleName())) return true;
+            }
+
+            if (current instanceof ScriptTypeInfo) {
+                ScriptTypeInfo scriptCurrent = (ScriptTypeInfo) current;
+                TypeInfo superClass = scriptCurrent.getSuperClass();
+                if (superClass != null) {
+                    worklist.add(superClass);
+                }
+                for (TypeInfo iface : scriptCurrent.getImplementedInterfaces()) {
+                    worklist.add(iface);
+                }
+            } else if (current.getJavaClass() != null && expected.getJavaClass() != null) {
+                if (expected.getJavaClass().isAssignableFrom(current.getJavaClass())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean areTypeArgumentsCompatible(TypeInfo expected, TypeInfo actual) {
+        java.util.List<TypeInfo> expectedArgs = expected.getAppliedTypeArgs();
+        java.util.List<TypeInfo> actualArgs = actual.getAppliedTypeArgs();
+
+        // Actual has no type args — it's a raw type being assigned to a parameterized type.
+        // In Java this is always valid (unchecked warning, not an error).
+        if (actualArgs.isEmpty()) {
+            return true;
+        }
+
+        // If all of actual's type args are unresolved type parameters (e.g., Box<T>
+        // from diamond "new Box<>()"), treat as raw/inferred — always compatible.
+        boolean allActualAreTypeParams = true;
+        for (TypeInfo actualArg : actualArgs) {
+            if (!actualArg.isTypeParameter()) {
+                allActualAreTypeParams = false;
+                break;
+            }
+        }
+        if (allActualAreTypeParams) {
+            return true;
+        }
+
+        for (int i = 0; i < expectedArgs.size(); i++) {
+            TypeInfo expectedArg = expectedArgs.get(i);
+            TypeInfo actualArg = actualArgs.get(i);
+
+            if (expectedArg.isTypeParameter() || actualArg.isTypeParameter()) {
+                continue;
+            }
+
+            if (!isTypeCompatible(expectedArg, actualArg) && !isTypeCompatible(actualArg, expectedArg)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

@@ -11,6 +11,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSScriptAnalyzer;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.TypeParamInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParamTag;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParser;
@@ -81,14 +82,14 @@ public class ScriptDocument {
     private static final Pattern CLASS_DECL_PATTERN = Pattern.compile(
             "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
     private static final Pattern METHOD_DECL_PATTERN = Pattern.compile(
-            "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
+            "\\b([A-Za-z_][a-zA-Z0-9_.<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
     private static final Pattern METHOD_CALL_PATTERN = Pattern.compile(
             "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
     // Also matches ',' as a delimiter so that "int x, y, z;" is recognized
     // (the first declarator "int x," is captured; continuations are scanned manually).
     private static final Pattern FIELD_DECL_PATTERN = Pattern.compile(
             "\\b([A-Za-z_][a-zA-Z0-9_.<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
-    private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");
+    private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:<([^>]*)>)?");
     
     // Cast expression pattern: captures type name inside cast parentheses
     // Matches: (Type), (Type[]), (pkg.Type), (Type<Generic>)
@@ -139,6 +140,9 @@ public class ScriptDocument {
     // Declaration errors (duplicate declarations, etc.)
     private final List<AssignmentInfo> declarationErrors = new ArrayList<>();
 
+    // Centralized error list - populated by ErrorUnderlineRenderer during rendering
+    private final List<DocumentError> errors = new ArrayList<>();
+
     // Excluded regions (strings/comments) - positions where other patterns shouldn't match
     private final List<int[]> excludedRanges = new ArrayList<>();
     
@@ -150,6 +154,11 @@ public class ScriptDocument {
     // Populated once in parseObjectLiterals() and consumed by markObjectLiteralKeys,
     // resolveExpressionType, and attachObjectLiteralContext.
     private final Map<Integer, ObjectLiteralParser.ObjectLiteralAnalysis> objectLiterals = new HashMap<>();
+
+    // Cached lambda metadata, keyed by lambda header-start offset in text.
+    // Populated in inferLambdaParameterTypes() (method calls, constructors, field assignments).
+    // Consumed by resolveExpressionType() to avoid re-inferring lambda context.
+    private final Map<Integer, LambdaCacheEntry> lambdaCache = new HashMap<>();
     
     // Thread-local to communicate SAM conflict errors from resolveIdentifier back to parseMethodArguments
     // Set when injectSamParameterTypes detects a conflict, cleared after argument is created
@@ -360,6 +369,7 @@ public class ScriptDocument {
      */
     public void formatCodeText() {
         // Clear previous state (same for both languages)
+        errors.clear();
         imports.clear();
         methods.clear();
         globalFields.clear();
@@ -376,6 +386,7 @@ public class ScriptDocument {
         declarationErrors.clear();
         scriptMethodSamContexts.clear();
         objectLiterals.clear();
+        lambdaCache.clear();
         
         // Unified pipeline for both languages
         List<ScriptLine.Mark> marks = formatUnified();
@@ -393,6 +404,9 @@ public class ScriptDocument {
 
         // Phase 7: Compute indent guides
         computeIndentGuides(marks);
+
+        // Phase 8: Populate centralized error list from all error sources
+        populateErrors();
     }
 
     // Store the last JS analyzer for autocomplete (deprecated - use methods/globalFields/methodLocals instead)
@@ -504,6 +518,20 @@ public class ScriptDocument {
     public boolean isExcludedInclusive(int position) {
         for (int[] range : excludedRanges) {
             if (position >= range[0] && position <= range[1]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if any position in [start, end) falls inside an excluded range.
+     * Uses range-overlap logic (O(excludedRanges.size())) instead of per-character checks.
+     * Two ranges [a,b) and [c,d) overlap iff a < d && c < b.
+     */
+    public boolean hasExcludedRange(int start, int end) {
+        for (int[] range : excludedRanges) {
+            if (start < range[1] && range[0] < end) {
                 return true;
             }
         }
@@ -730,6 +758,10 @@ public class ScriptDocument {
 
         // Parse global fields (outside methods) - UNIFIED for both languages
         parseGlobalFields();
+
+        // Must run before parseAssignments: sets inferredType on lambda params so that
+        // body variable resolution (e.g. "act" in "int x = act.getData()") works correctly.
+        inferLambdaParameterTypes();
         
         // Parse and validate assignments (reassignments) - UNIFIED for both languages
         parseAssignments();
@@ -740,6 +772,16 @@ public class ScriptDocument {
         // Detect method overrides and interface implementations for script types - Java only
         if (!isJavaScript()) {
             detectMethodInheritance();
+        }
+    }
+
+    static class LambdaCacheEntry {
+        final InnerCallableScope scope;
+        final TypeInfo expectedType;
+
+        LambdaCacheEntry(InnerCallableScope scope, TypeInfo expectedType) {
+            this.scope = scope;
+            this.expectedType = expectedType;
         }
     }
 
@@ -754,18 +796,23 @@ public class ScriptDocument {
         final int bodyStart;
         final int bodyEnd;
         final int modifiers;
+        final String typeParamsClause;
+        final int typeParamsClauseOffset; // Global offset of first char inside <...>
         final String extendsClause;
         final String implementsClause;
         final JSDocInfo jsDoc;
 
         RawTypeDeclaration(String name, TypeInfo.Kind kind, int declOffset, int bodyStart, int bodyEnd,
-                           int modifiers, String extendsClause, String implementsClause, JSDocInfo jsDoc) {
+                           int modifiers, String typeParamsClause, int typeParamsClauseOffset,
+                           String extendsClause, String implementsClause, JSDocInfo jsDoc) {
             this.name = name;
             this.kind = kind;
             this.declOffset = declOffset;
             this.bodyStart = bodyStart;
             this.bodyEnd = bodyEnd;
             this.modifiers = modifiers;
+            this.typeParamsClause = typeParamsClause;
+            this.typeParamsClauseOffset = typeParamsClauseOffset;
             this.extendsClause = extendsClause;
             this.implementsClause = implementsClause;
             this.jsDoc = jsDoc;
@@ -782,8 +829,10 @@ public class ScriptDocument {
      */
     private void parseScriptTypes() {
         // ========== PASS 1: Discover all type declarations (flat list) ==========
+        // Regex only anchors on keyword + name — generic clauses are extracted manually
+        // below to correctly handle nested angle brackets like <T extends Comparable<T>>.
         Pattern typeDecl = Pattern.compile(
-                "(?:(?:public|private|protected|static|final|abstract)\\s+)*(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:\\(\\))?\\s*(?:extends\\s+([A-Za-z_][a-zA-Z0-9_.]*))?\\s*(?:implements\\s+([A-Za-z_][a-zA-Z0-9_.,\\s]*))?\\s*\\{");
+                "(?:(?:public|private|protected|static|final|abstract)\\s+)*(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
 
         List<RawTypeDeclaration> rawDeclarations = new ArrayList<>();
         Matcher m = typeDecl.matcher(text);
@@ -793,14 +842,63 @@ public class ScriptDocument {
 
             String kindStr = m.group(1);
             String typeName = m.group(2);
-            String extendsClause = m.group(3);
-            String implementsClause = m.group(4);
 
-            int bodyStart = text.indexOf('{', m.start());
-            int bodyEnd = findMatchingBrace(bodyStart);
-            if (bodyEnd < 0) {
-                bodyEnd = text.length();
+            // Manually extract type params, extends, implements using depth-aware scanning
+            int scanPos = m.end();
+            while (scanPos < text.length() && Character.isWhitespace(text.charAt(scanPos)))
+                scanPos++;
+
+            // Extract type params clause <...> if present (depth-aware)
+            String typeParamsClause = null;
+            int typeParamsClauseOffset = -1;
+            if (scanPos < text.length() && text.charAt(scanPos) == '<') {
+                int depth = 1, i = scanPos + 1;
+                while (i < text.length() && depth > 0) {
+                    char c = text.charAt(i++);
+                    if (c == '<') depth++;
+                    else if (c == '>') depth--;
+                }
+                if (depth == 0) {
+                    typeParamsClauseOffset = scanPos + 1;
+                    typeParamsClause = text.substring(scanPos + 1, i - 1);
+                    scanPos = i;
+                    while (scanPos < text.length() && Character.isWhitespace(text.charAt(scanPos)))
+                        scanPos++;
+                }
             }
+
+            // Find the opening brace, scanning depth-aware for angle brackets
+            int bracePos = scanPos;
+            int angleDepth = 0;
+            while (bracePos < text.length()) {
+                char c = text.charAt(bracePos);
+                if (c == '<') angleDepth++;
+                else if (c == '>') angleDepth--;
+                else if (c == '{' && angleDepth == 0) break;
+                bracePos++;
+            }
+            if (bracePos >= text.length()) continue;
+
+            String betweenParamsAndBrace = text.substring(scanPos, bracePos).trim();
+
+            // Parse extends/implements from the text between type params and opening brace
+            String extendsClause = null;
+            String implementsClause = null;
+
+            int extIdx = indexOfAtDepthZero(betweenParamsAndBrace, "extends");
+            int implIdx = indexOfAtDepthZero(betweenParamsAndBrace, "implements");
+
+            if (extIdx >= 0) {
+                int extEnd = implIdx >= 0 ? implIdx : betweenParamsAndBrace.length();
+                extendsClause = betweenParamsAndBrace.substring(extIdx + 7, extEnd).trim();
+            }
+            if (implIdx >= 0) {
+                implementsClause = betweenParamsAndBrace.substring(implIdx + 10).trim();
+            }
+
+            int bodyStart = bracePos;
+            int bodyEnd = findMatchingBrace(bodyStart);
+            if (bodyEnd < 0) bodyEnd = text.length();
 
             TypeInfo.Kind kind;
             switch (kindStr) {
@@ -809,75 +907,115 @@ public class ScriptDocument {
                 default: kind = TypeInfo.Kind.CLASS; break;
             }
 
-            String fullMatch = text.substring(m.start(), m.end());
+            String fullMatch = text.substring(m.start(), bodyStart + 1);
             int modifiers = parseModifiers(fullMatch);
             JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, m.start());
 
             rawDeclarations.add(new RawTypeDeclaration(
                     typeName, kind, m.start(), bodyStart, bodyEnd,
-                    modifiers, extendsClause, implementsClause, jsDoc));
+                    modifiers, typeParamsClause, typeParamsClauseOffset, extendsClause, implementsClause, jsDoc));
         }
 
-        // ========== PASS 2: Build hierarchy using stack-based containment ==========
+        // ========== PASS 2a: Pre-register all type names (enables forward references) ==========
         // Sort by bodyStart ascending so outer types are processed before inner types
         rawDeclarations.sort(Comparator.comparingInt(r -> r.bodyStart));
 
-        // Stack tracks the nesting chain: top = current innermost enclosing type
-        Deque<ScriptTypeInfo> parentStack = new ArrayDeque<>();
+        // Pre-registration pass: create ScriptTypeInfo objects and register them in all
+        // lookup maps BEFORE resolving extends/implements clauses. This allows classes to
+        // reference script-defined types declared later in the file (forward references).
+        List<ScriptTypeInfo> registeredTypes = new ArrayList<>(rawDeclarations.size());
+        {
+            Deque<ScriptTypeInfo> preRegStack = new ArrayDeque<>();
+            for (RawTypeDeclaration raw : rawDeclarations) {
+                while (!preRegStack.isEmpty() && preRegStack.peek().getBodyEnd() <= raw.bodyStart) {
+                    preRegStack.pop();
+                }
 
-        for (RawTypeDeclaration raw : rawDeclarations) {
-            // Pop any parent whose body has ended before this declaration starts.
-            // This handles sibling types at the same level: when we reach InnerB,
-            // InnerA (whose bodyEnd <= InnerB.bodyStart) gets popped, leaving Outer on top.
-            while (!parentStack.isEmpty() && parentStack.peek().getBodyEnd() <= raw.bodyStart) {
-                parentStack.pop();
+                ScriptTypeInfo scriptType;
+                if (preRegStack.isEmpty()) {
+                    scriptType = ScriptTypeInfo.create(
+                            raw.name, raw.kind, raw.declOffset, raw.bodyStart, raw.bodyEnd, raw.modifiers);
+                    scriptTypes.put(raw.name, scriptType);
+                } else {
+                    ScriptTypeInfo parent = preRegStack.peek();
+                    scriptType = ScriptTypeInfo.createInner(
+                            raw.name, raw.kind, parent, raw.declOffset, raw.bodyStart, raw.bodyEnd, raw.modifiers);
+                }
+
+                if (raw.jsDoc != null) {
+                    scriptType.setJSDocInfo(raw.jsDoc);
+                }
+
+                // Parse generic type parameters early so they are available during hierarchy resolution
+                if (raw.typeParamsClause != null && !raw.typeParamsClause.trim().isEmpty()) {
+                    parseTypeParamsClause(raw.typeParamsClause, scriptType, raw.bodyStart + 1, raw.typeParamsClauseOffset);
+                }
+
+                scriptTypesByFullName.put(scriptType.getFullName(), scriptType);
+                scriptTypesByDotName.put(scriptType.getDotSeparatedName(), scriptType);
+
+                preRegStack.push(scriptType);
+                registeredTypes.add(scriptType);
             }
+        }
 
-            ScriptTypeInfo scriptType;
-            if (parentStack.isEmpty()) {
-                // Top-level type: no enclosing parent
-                scriptType = ScriptTypeInfo.create(
-                        raw.name, raw.kind, raw.declOffset, raw.bodyStart, raw.bodyEnd, raw.modifiers);
-                scriptTypes.put(raw.name, scriptType);
-            } else {
-                // Inner type: parent is top of stack. createInner sets outerClass link
-                // and adds this type to the parent's innerClasses list.
-                ScriptTypeInfo parent = parentStack.peek();
-                scriptType = ScriptTypeInfo.createInner(
-                        raw.name, raw.kind, parent, raw.declOffset, raw.bodyStart, raw.bodyEnd, raw.modifiers);
-            }
-
-            if (raw.jsDoc != null) {
-                scriptType.setJSDocInfo(raw.jsDoc);
-            }
-
-            // Register in all lookup maps for O(1) access by any naming convention
-            scriptTypesByFullName.put(scriptType.getFullName(), scriptType);
-            scriptTypesByDotName.put(scriptType.getDotSeparatedName(), scriptType);
-
-            // Push onto stack — this type can contain further nested types
-            parentStack.push(scriptType);
+        // ========== PASS 2b: Resolve hierarchy and parse members ==========
+        // All script-defined type names are now in the lookup maps, so resolveType()
+        // can find forward-declared types during extends/implements resolution.
+        for (int i = 0; i < rawDeclarations.size(); i++) {
+            RawTypeDeclaration raw = rawDeclarations.get(i);
+            ScriptTypeInfo scriptType = registeredTypes.get(i);
 
             // Resolve extends clause (parent class inheritance)
+            // Use bodyStart+1 so findEnclosingScriptType returns this type,
+            // making its declared type params (T, E, etc.) resolvable.
             if (raw.extendsClause != null && !raw.extendsClause.trim().isEmpty()) {
                 String parentName = raw.extendsClause.trim();
-                TypeInfo parentType = resolveType(parentName, raw.declOffset);
+                // Strip generic args (e.g., "NumberBox<T>" -> "NumberBox") for type resolution
+                int genIdx = parentName.indexOf('<');
+                String parentGenericArgs = null;
+                if (genIdx >= 0) {
+                    parentGenericArgs = parentName.substring(genIdx);
+                    parentName = parentName.substring(0, genIdx);
+                }
+                TypeInfo parentType = resolveType(parentName, raw.bodyStart + 1);
                 if (parentType == null) {
                     parentType = TypeInfo.unresolved(parentName, parentName);
+                }
+                // Parameterize the parent type with generic args (e.g., NumberBox<T> -> NumberBox parameterized with T)
+                if (parentGenericArgs != null && parentType.isResolved()) {
+                    // Strip surrounding < > from parentGenericArgs
+                    String argsContent = parentGenericArgs.substring(1, parentGenericArgs.length() - 1).trim();
+                    if (!argsContent.isEmpty()) {
+                        parentType = parameterizeWithClause(parentType, argsContent, raw.bodyStart + 1);
+                    }
                 }
                 scriptType.setSuperClass(parentType, parentName);
             }
 
             // Resolve implements clause (interfaces)
             if (raw.implementsClause != null && !raw.implementsClause.trim().isEmpty()) {
-                String[] interfaceNames = raw.implementsClause.split(",");
+                List<String> interfaceNames = splitAtDepthZero(raw.implementsClause, ',');
                 for (String ifaceName : interfaceNames) {
                     String trimmedName = ifaceName.trim();
                     if (trimmedName.isEmpty())
                         continue;
-                    TypeInfo ifaceType = resolveType(trimmedName, raw.declOffset);
+                    // Strip generic args (e.g., "Comparable<T>" -> "Comparable")
+                    int genIdx = trimmedName.indexOf('<');
+                    String ifaceGenericArgs = null;
+                    if (genIdx >= 0) {
+                        ifaceGenericArgs = trimmedName.substring(genIdx);
+                        trimmedName = trimmedName.substring(0, genIdx);
+                    }
+                    TypeInfo ifaceType = resolveType(trimmedName, raw.bodyStart + 1);
                     if (ifaceType == null) {
                         ifaceType = TypeInfo.unresolved(trimmedName, trimmedName);
+                    }
+                    if (ifaceGenericArgs != null && ifaceType.isResolved()) {
+                        String argsContent = ifaceGenericArgs.substring(1, ifaceGenericArgs.length() - 1).trim();
+                        if (!argsContent.isEmpty()) {
+                            ifaceType = parameterizeWithClause(ifaceType, argsContent, raw.bodyStart + 1);
+                        }
                     }
                     scriptType.addImplementedInterface(ifaceType, trimmedName);
                 }
@@ -888,6 +1026,375 @@ public class ScriptDocument {
         }
     }
 
+    /**
+     * Parse a generic type parameters clause like "E", "K, V", or "T extends Entity"
+     * into TypeParamInfo objects and add them to the script type.
+     * Validates that in multi-bound declarations (e.g., {@code T extends Number & Comparable<T>}),
+     * all bounds after the first must be interfaces (Java 8+ rule).
+     */
+    private void parseTypeParamsClause(String clause, ScriptTypeInfo scriptType, int declOffset, int clauseStartOffset) {
+        List<String> params = splitAtDepthZero(clause, ',');
+        int paramTextPos = 0;
+        for (String param : params) {
+            String trimmed = param.trim();
+            int leadingSpaces = param.indexOf(trimmed.isEmpty() ? param : trimmed);
+            if (trimmed.isEmpty()) {
+                paramTextPos += param.length() + 1;
+                continue;
+            }
+
+            int extendsIdx = indexOfAtDepthZero(trimmed, "extends");
+            String paramName = extendsIdx >= 0 ? trimmed.substring(0, extendsIdx).trim() : trimmed;
+            
+            int endIdx = 0;
+            while (endIdx < paramName.length() && 
+                   (Character.isJavaIdentifierPart(paramName.charAt(endIdx)) || paramName.charAt(endIdx) == '.')) {
+                endIdx++;
+            }
+            paramName = paramName.substring(0, endIdx);
+            
+            String boundName = null;
+            List<String> additionalBoundNames = new ArrayList<>();
+            if (extendsIdx >= 0) {
+                String afterExtends = trimmed.substring(extendsIdx + 7).trim();
+                List<String> bounds = splitAtDepthZero(afterExtends, '&');
+                
+                // Track position within trimmed to find each bound's absolute location
+                int searchFrom = extendsIdx + 7;
+                
+                for (int bi = 0; bi < bounds.size(); bi++) {
+                    String bound = bounds.get(bi).trim();
+                    if (bound.isEmpty()) continue;
+                    int boundEndIdx = 0;
+                    while (boundEndIdx < bound.length() && 
+                           (Character.isJavaIdentifierPart(bound.charAt(boundEndIdx)) || bound.charAt(boundEndIdx) == '.')) {
+                        boundEndIdx++;
+                    }
+                    if (boundEndIdx > 0) {
+                        String name = bound.substring(0, boundEndIdx);
+                        
+                        // Find the position of this bound name within trimmed
+                        int nameIdxInTrimmed = trimmed.indexOf(name, searchFrom);
+                        searchFrom = nameIdxInTrimmed + name.length();
+                        
+                        if (bi == 0) {
+                            boundName = name;
+                        } else {
+                            additionalBoundNames.add(name);
+                            
+                            // Validate: secondary bounds must be interfaces
+                            if (clauseStartOffset >= 0 && nameIdxInTrimmed >= 0) {
+                                TypeInfo addBoundCheck = resolveType(name, declOffset);
+                                if (addBoundCheck != null && addBoundCheck.isResolved() && !isInterfaceType(addBoundCheck)) {
+                                    int errorStart = clauseStartOffset + paramTextPos + leadingSpaces + nameIdxInTrimmed;
+                                    int errorEnd = errorStart + name.length();
+                                    addError(null, errorStart, errorEnd, "Interface expected here");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            TypeParamInfo typeParam = new TypeParamInfo(paramName, boundName, null);
+            if (boundName != null) {
+                TypeInfo boundTypeInfo = resolveType(boundName, declOffset);
+                if (boundTypeInfo != null && boundTypeInfo.isResolved()) {
+                    typeParam.setBoundTypeInfo(boundTypeInfo);
+                }
+            }
+            for (String addBound : additionalBoundNames) {
+                typeParam.addAdditionalBound(addBound);
+                TypeInfo addBoundType = resolveType(addBound, declOffset);
+                if (addBoundType != null && addBoundType.isResolved()) {
+                    typeParam.addAdditionalBoundType(addBoundType);
+                }
+            }
+            scriptType.addDeclaredTypeParam(typeParam);
+            paramTextPos += param.length() + 1;
+        }
+        
+    }
+    
+    private boolean isInterfaceType(TypeInfo typeInfo) {
+        if (typeInfo.isInterface()) return true;
+        Class<?> javaClass = typeInfo.getJavaClass();
+        if (javaClass != null) return javaClass.isInterface();
+        return false;
+    }
+
+    /**
+     * Split a string by a delimiter character, but only at angle-bracket depth 0.
+     * This ensures commas inside nested generics like {@code Map<String, Integer>} are not treated as separators.
+     */
+    private static List<String> splitAtDepthZero(String s, char delimiter) {
+        List<String> result = new ArrayList<>();
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '<') depth++;
+            else if (c == '>') depth--;
+            else if (c == delimiter && depth == 0) {
+                result.add(s.substring(start, i));
+                start = i + 1;
+            }
+        }
+        result.add(s.substring(start));
+        return result;
+    }
+
+    /**
+     * Replace newline characters ({@code \n}, {@code \r}) with spaces when they
+     * occur inside angle brackets (generic type arguments).  This lets patterns
+     * like FIELD_DECL_PATTERN and METHOD_DECL_PATTERN match multi-line generics
+     * (e.g. {@code HashMap<String,\n    Integer>}) without allowing a match to
+     * span across {@code //} comment lines.
+     *
+     * <p>The returned string has the <b>same length</b> as the input (characters
+     * are replaced, never inserted or removed), so all positional indices remain
+     * valid for the original text.
+     */
+    private static String normalizeGenericNewlines(String src) {
+        StringBuilder sb = new StringBuilder(src.length());
+        int depth = 0;
+        for (int i = 0; i < src.length(); i++) {
+            char c = src.charAt(i);
+            if (c == '<')
+                depth++;
+            else if (c == '>') {
+                if (depth > 0)
+                    depth--;
+            }
+            if ((c == '\n' || c == '\r') && depth > 0)
+                sb.append(' ');
+            else
+                sb.append(c);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Find the index of a keyword in a string, but only at angle-bracket depth 0.
+     * The keyword must be preceded and followed by non-identifier characters (word boundary).
+     * Returns -1 if not found at depth 0.
+     */
+    private static int indexOfAtDepthZero(String s, String keyword) {
+        int depth = 0;
+        int keyLen = keyword.length();
+        for (int i = 0; i <= s.length() - keyLen; i++) {
+            char c = s.charAt(i);
+            if (c == '<') { depth++; continue; }
+            if (c == '>') { depth--; continue; }
+            if (depth == 0 && s.regionMatches(i, keyword, 0, keyLen)) {
+                // Check word boundaries
+                boolean startOk = (i == 0 || !Character.isJavaIdentifierPart(s.charAt(i - 1)));
+                boolean endOk = (i + keyLen >= s.length() || !Character.isJavaIdentifierPart(s.charAt(i + keyLen)));
+                if (startOk && endOk) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private TypeInfo parameterizeWithClause(TypeInfo baseType, String typeArgsClause, int position) {
+        return parameterizeWithClause(baseType, typeArgsClause, position, -1);
+    }
+    
+    private TypeInfo parameterizeWithClause(TypeInfo baseType, String typeArgsClause, int position, int clauseTextOffset) {
+        List<String> argSegments = splitAtDepthZero(typeArgsClause, ',');
+        List<TypeInfo> typeArgs = new ArrayList<>();
+        for (String argName : argSegments) {
+            String trimmed = argName.trim();
+            if (trimmed.isEmpty()) continue;
+            // Strip nested generic args for resolution (e.g., "Map<String, Integer>" -> "Map")
+            int ltIdx = trimmed.indexOf('<');
+            String baseName = ltIdx >= 0 ? trimmed.substring(0, ltIdx).trim() : trimmed;
+            TypeInfo argType = resolveType(baseName, position);
+            if (argType == null) {
+                argType = TypeInfo.unresolved(baseName, baseName);
+            }
+            if (ltIdx >= 0 && argType.isResolved() && trimmed.endsWith(">")) {
+                String nestedArgs = trimmed.substring(ltIdx + 1, trimmed.length() - 1).trim();
+                if (!nestedArgs.isEmpty()) {
+                    argType = parameterizeWithClause(argType, nestedArgs, position);
+                }
+            }
+            typeArgs.add(argType);
+        }
+        if (!typeArgs.isEmpty()) {
+            if (clauseTextOffset >= 0) {
+                validateTypeArgBounds(baseType, typeArgs, argSegments, clauseTextOffset);
+            }
+            return baseType.parameterize(typeArgs);
+        }
+        return baseType;
+    }
+    
+    private void validateTypeArgBounds(TypeInfo baseType, List<TypeInfo> typeArgs, 
+                                       List<String> argSegments, int clauseTextOffset) {
+        List<TypeParamInfo> typeParams = baseType.getTypeParams();
+        if (typeParams == null || typeParams.isEmpty()) return;
+        
+        int count = Math.min(typeArgs.size(), typeParams.size());
+        int charPos = 0;
+        int segIdx = 0;
+        for (int i = 0; i < count; i++) {
+            TypeInfo argType = typeArgs.get(i);
+            TypeParamInfo param = typeParams.get(i);
+            
+            String segment = segIdx < argSegments.size() ? argSegments.get(segIdx) : "";
+            String trimmedSeg = segment.trim();
+            int leading = 0;
+            while (leading < segment.length() && Character.isWhitespace(segment.charAt(leading))) leading++;
+            
+            if (argType != null && argType.isResolved() && !trimmedSeg.isEmpty()) {
+                TypeInfo primaryBound = param.getBoundTypeInfo();
+                if (primaryBound != null && primaryBound.isResolved()) {
+                    if (!TypeChecker.isTypeCompatible(primaryBound, argType)) {
+                        int errorStart = clauseTextOffset + charPos + leading;
+                        int errorEnd = errorStart + trimmedSeg.length();
+                        addError(null, errorStart, errorEnd,
+                                "Type argument " + argType.getSimpleName() + " is not within bounds of type parameter " + 
+                                param.getName() + " (expected extends " + primaryBound.getSimpleName() + ")");
+                    }
+                }
+                
+                for (TypeInfo addBound : param.getAdditionalBoundTypes()) {
+                    if (addBound == null || !addBound.isResolved()) continue;
+                    if (!TypeChecker.isTypeCompatible(addBound, argType)) {
+                        int errorStart = clauseTextOffset + charPos + leading;
+                        int errorEnd = errorStart + trimmedSeg.length();
+                        addError(null, errorStart, errorEnd,
+                                "Type argument " + argType.getSimpleName() + " does not implement required interface " + 
+                                addBound.getSimpleName());
+                        break;
+                    }
+                }
+            }
+            
+            charPos += segment.length() + 1;
+            segIdx++;
+        }
+    }
+    
+    private void markTypeParamDeclarations(List<ScriptLine.Mark> marks, int afterNameEnd, ScriptTypeInfo typeInfo) {
+        int ltPos = text.indexOf('<', afterNameEnd);
+        if (ltPos < 0 || ltPos > afterNameEnd + 5) return;
+
+        // Depth-aware matching to find the closing '>' (handles <T extends Comparable<T>>)
+        int depth = 1, i = ltPos + 1;
+        while (i < text.length() && depth > 0) {
+            char c = text.charAt(i++);
+            if (c == '<') depth++;
+            else if (c == '>') depth--;
+        }
+        if (depth != 0) return;
+        int gtPos = i - 1;
+
+        String clause = text.substring(ltPos + 1, gtPos);
+
+        // Split type params by commas at depth 0 to handle bounds with nested generics
+        List<String> paramSegments = splitAtDepthZero(clause, ',');
+        int segmentOffset = ltPos + 1;
+        
+        int paramIndex = 0;
+        List<TypeParamInfo> declaredParams = typeInfo.getDeclaredTypeParams();
+        
+        for (String segment : paramSegments) {
+            if (paramIndex >= declaredParams.size()) break;
+            TypeParamInfo param = declaredParams.get(paramIndex++);
+
+            int paramIdx = segment.indexOf(param.getName());
+            if (paramIdx < 0) continue;
+
+            int paramStart = segmentOffset + paramIdx;
+            int paramEnd = paramStart + param.getName().length();
+            marks.add(new ScriptLine.Mark(paramStart, paramEnd, TokenType.GENERIC_TYPE_PARAM, param));
+
+            int extendsIdx = indexOfAtDepthZero(segment, "extends");
+            if (extendsIdx >= 0) {
+                int extendsStart = segmentOffset + extendsIdx;
+                marks.add(new ScriptLine.Mark(extendsStart, extendsStart + 7, TokenType.KEYWORD));
+
+                TypeInfo boundType = param.getBoundTypeInfo();
+                if (boundType != null) {
+                    String afterExtends = segment.substring(extendsIdx + 7).trim();
+                    if (!afterExtends.isEmpty()) {
+                        // Split on & at depth 0 to handle multiple bounds
+                        List<String> boundSegments = splitAtDepthZero(afterExtends, '&');
+                        int boundScanPos = extendsStart + 7;
+                        while (boundScanPos < gtPos && Character.isWhitespace(text.charAt(boundScanPos))) boundScanPos++;
+                        
+                        for (int bi = 0; bi < boundSegments.size(); bi++) {
+                            String boundSeg = boundSegments.get(bi).trim();
+                            if (boundSeg.isEmpty()) continue;
+                            
+                            // Mark the '&' separator (for bounds after the first)
+                            if (bi > 0) {
+                                int ampSearch = boundScanPos - 1;
+                                while (ampSearch >= 0 && text.charAt(ampSearch) != '&') ampSearch--;
+                                if (ampSearch >= 0) {
+                                    marks.add(new ScriptLine.Mark(ampSearch, ampSearch + 1, TokenType.DEFAULT));
+                                }
+                            }
+                            
+                            // Extract base type name (without generic args) for marking
+                            int nameEnd = 0;
+                            while (nameEnd < boundSeg.length() &&
+                                   (Character.isJavaIdentifierPart(boundSeg.charAt(nameEnd)) || boundSeg.charAt(nameEnd) == '.')) {
+                                nameEnd++;
+                            }
+                            if (nameEnd > 0) {
+                                String bName = boundSeg.substring(0, nameEnd);
+                                TypeInfo bType;
+                                if (bi == 0) {
+                                    bType = boundType;
+                                } else {
+                                    List<TypeInfo> addBounds = param.getAdditionalBoundTypes();
+                                    bType = (bi - 1 < addBounds.size()) ? addBounds.get(bi - 1) : null;
+                                }
+                                if (bType != null) {
+                                    marks.add(new ScriptLine.Mark(boundScanPos, boundScanPos + bName.length(), TokenType.getByType(bType), bType));
+                                }
+                                
+                                if (nameEnd < boundSeg.length() && boundSeg.charAt(nameEnd) == '<') {
+                                    int nestedStart = boundScanPos + nameEnd;
+                                    markNestedTypeParamUsages(marks, nestedStart, gtPos, declaredParams);
+                                }
+                            }
+                            
+                            // Advance past this bound segment + the '&' separator
+                            boundScanPos += boundSeg.length();
+                            // Skip whitespace and '&' to reach the next bound
+                            while (boundScanPos < gtPos && (Character.isWhitespace(text.charAt(boundScanPos)) || text.charAt(boundScanPos) == '&')) {
+                                boundScanPos++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            segmentOffset += segment.length() + 1; // +1 for the comma
+        }
+    }
+
+    private void markNestedTypeParamUsages(List<ScriptLine.Mark> marks, int start, int limit, List<TypeParamInfo> typeParams) {
+        Map<String, TypeParamInfo> paramMap = new HashMap<>();
+        for (TypeParamInfo tp : typeParams) paramMap.put(tp.getName(), tp);
+
+        Pattern ident = Pattern.compile("\\b([A-Za-z_][a-zA-Z0-9_]*)\\b");
+        String region = text.substring(start, Math.min(limit, text.length()));
+        Matcher m = ident.matcher(region);
+        while (m.find()) {
+            TypeParamInfo tp = paramMap.get(m.group(1));
+            if (tp != null) {
+                int absStart = start + m.start(1);
+                marks.add(new ScriptLine.Mark(absStart, absStart + m.group(1).length(), TokenType.GENERIC_TYPE_PARAM, tp));
+            }
+        }
+    }
     /**
      * Parse fields and methods inside a script-defined type.
      */
@@ -1113,13 +1620,19 @@ public class ScriptDocument {
         } else {
             // Java: ReturnType methodName(params) { ... } or { ; }
             Pattern methodWithBody = Pattern.compile(
-                    "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
+                    "\\b([a-zA-Z_][a-zA-Z0-9_.<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
 
-            Matcher m = methodWithBody.matcher(text);
+            Matcher m = methodWithBody.matcher(normalizeGenericNewlines(text));
             while (m.find()) {
                 String methodName = m.group(2);
 
                 if (isExcluded(m.start()) || isKeyword(methodName))
+                    continue;
+
+                if (isExcluded(m.start(2)))
+                    continue;
+
+                if (hasExcludedRange(m.start(1), m.end(1)))
                     continue;
 
                 String returnType = m.group(1);
@@ -1326,18 +1839,64 @@ public class ScriptDocument {
             return params;
         }
 
-        // Pattern: Type varName (with optional spaces)
+        // Collapse all whitespace runs to single spaces, tracking original positions via posMap.
+        // posMap[normalizedIndex] = originalIndex, enabling correct absolute offsets after matching.
+        StringBuilder normalized = new StringBuilder(paramList.length());
+        int[] posMap = new int[paramList.length() + 1];
+        boolean lastWasSpace = false;
+        for (int i = 0; i < paramList.length(); i++) {
+            char c = paramList.charAt(i);
+            if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+                if (!lastWasSpace) {
+                    posMap[normalized.length()] = i;
+                    normalized.append(' ');
+                    lastWasSpace = true;
+                }
+            } else {
+                posMap[normalized.length()] = i;
+                normalized.append(c);
+                lastWasSpace = false;
+            }
+        }
+        posMap[normalized.length()] = paramList.length();
+        String normalizedStr = normalized.toString();
+
+        // Split by top-level commas (not inside < > brackets), then parse each parameter individually
+        List<int[]> paramRanges = new ArrayList<>();
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i < normalizedStr.length(); i++) {
+            char c = normalizedStr.charAt(i);
+            if (c == '<') depth++;
+            else if (c == '>') depth--;
+            else if (c == ',' && depth == 0) {
+                paramRanges.add(new int[]{start, i});
+                start = i + 1;
+            }
+        }
+        paramRanges.add(new int[]{start, normalizedStr.length()});
+
+        // Matches: type (with optional generics, arrays, dots) + optional varargs + whitespace + paramName
         Pattern paramPattern = Pattern.compile(
-                "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*(?:\\.{3})?)\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
-        Matcher m = paramPattern.matcher(paramList);
-        while (m.find()) {
-            String typeName = m.group(1);
+                "\\s*([a-zA-Z_][a-zA-Z0-9_.<>,? \\[\\]]*)(?:\\.{3})?\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*");
+
+        for (int[] range : paramRanges) {
+            String segment = normalizedStr.substring(range[0], range[1]);
+            if (segment.trim().isEmpty()) continue;
+
+            Matcher m = paramPattern.matcher(segment);
+            if (!m.matches()) continue;
+
+            String rawType = m.group(1).replaceAll("\\s+", "");
             String paramName = m.group(2);
-            boolean isVarArg = typeName.endsWith("...");
-            if (isVarArg) typeName = typeName.substring(0, typeName.length() - 3);
-            TypeInfo typeInfo = resolveType(typeName, paramListStart);
-            // Store the absolute position of the parameter name
-            int paramNameStart = paramListStart + m.start(2);
+            String between = segment.substring(m.end(1), m.start(2));
+            boolean isVarArg = between.contains("...");
+
+            TypeInfo typeInfo = resolveType(rawType, paramListStart);
+
+            // m.start(2) is relative to segment; add range[0] to get position in normalizedStr, then posMap to original
+            int normalizedNamePos = range[0] + m.start(2);
+            int paramNameStart = paramListStart + posMap[normalizedNamePos];
             FieldInfo fieldInfo = FieldInfo.parameter(paramName, typeInfo, paramNameStart, null);
             fieldInfo.setVarArg(isVarArg);
             params.add(fieldInfo);
@@ -1579,7 +2138,9 @@ public class ScriptDocument {
      * For JavaScript: Parses "var/let/const varName = expr;" with type inference
      */
     private void parseLocalVariables() {
-        for (MethodInfo method : getAllMethods()) {
+        List<MethodInfo> allMethodsAndConstructors = getAllMethods();
+        allMethodsAndConstructors.addAll(getAllConstructors());
+        for (MethodInfo method : allMethodsAndConstructors) {
             Map<String, List<FieldInfo>> locals = new HashMap<>();
             methodLocals.put(method.getDeclarationOffset(), locals);
 
@@ -1754,7 +2315,7 @@ public class ScriptDocument {
                 }
             } else {
                 // Java: Type varName = expr; or Type varName;
-                Matcher m = FIELD_DECL_PATTERN.matcher(bodyText);
+                Matcher m = FIELD_DECL_PATTERN.matcher(normalizeGenericNewlines(bodyText));
                 while (m.find()) {
                     String typeName = m.group(1);
                     String varName = m.group(2);
@@ -1762,6 +2323,14 @@ public class ScriptDocument {
                     
                     int absPos = bodyStart + m.start(2);
                     if (isExcluded(absPos)) continue;
+                    
+                    // FIELD_DECL_PATTERN's type group allows newlines, so a match can
+                    // start inside a line comment (e.g., "// Integer\nString str =")
+                    // where group(2) lands on the next line outside the comment.
+                    int absTypeStart = bodyStart + m.start(1);
+                    if (isExcluded(absTypeStart)) continue;
+                    if (hasExcludedRange(absTypeStart, bodyStart + m.end(1)))
+                        continue;
 
                     // --- FIX: Detect greedy regex consuming commas into the type name ---
                     // FIELD_DECL_PATTERN allows commas in its type character class (for generics).
@@ -1991,12 +2560,14 @@ public class ScriptDocument {
      */
     private void parseJavaLocalsInRange(int start, int end, InnerCallableScope scope) {
         String rangeText = text.substring(start, Math.min(end, text.length()));
-        
-        Matcher m = FIELD_DECL_PATTERN.matcher(rangeText);
+
+        Matcher m = FIELD_DECL_PATTERN.matcher(normalizeGenericNewlines(rangeText));
         while (m.find()) {
             int declPos = start + m.start();
             if (declPos < start || declPos >= end) continue;
             if (isExcluded(declPos)) continue;
+            if (hasExcludedRange(start + m.start(1), start + m.end(1)))
+                continue;
             
             String typeNameRaw = m.group(1);
             String varName = m.group(2);
@@ -2802,8 +3373,20 @@ public class ScriptDocument {
                     if (param.isEmpty()) continue;
                     
                     // Find position in original text
+                    // Search within a reasonable window to avoid matching shadowed names from outer scopes
                     int paramOffset = text.indexOf(param, offset);
                     if (paramOffset < 0) paramOffset = offset;
+                    // Validate that we found it within expected range (before next comma or closing paren)
+                    int nextComma = text.indexOf(',', offset);
+                    int nextClose = text.indexOf(')', offset);
+                    int endBound = Math.min(
+                            nextComma >= 0 ? nextComma : Integer.MAX_VALUE,
+                            nextClose >= 0 ? nextClose : Integer.MAX_VALUE
+                    );
+                    if (paramOffset >= endBound) {
+                        // Found match is outside the parameter list, use direct offset calculation instead
+                        paramOffset = offset;
+                    }
                     
                     String[] parts = param.split("\\s+");
                     String paramName;
@@ -2816,28 +3399,33 @@ public class ScriptDocument {
                         boolean isVarArg = typeName.endsWith("...");
                         if (isVarArg) typeName = typeName.substring(0, typeName.length() - 3);
                         paramType = resolveType(typeName);
-                        int nameOffset = text.indexOf(paramName, paramOffset);
-                        if (nameOffset < 0) nameOffset = paramOffset;
+                        // For typed params, the name is after the type, so calculate position more carefully
+                        int nameOffset = paramOffset + (param.lastIndexOf(paramName));
+                        if (nameOffset < paramOffset || nameOffset >= endBound)
+                            nameOffset = paramOffset + param.length() - paramName.length();
                         FieldInfo paramInfo = FieldInfo.parameter(paramName, paramType, nameOffset, null);
                         paramInfo.setVarArg(isVarArg);
                         scope.addParameter(paramInfo);
                     } else {
                         // Untyped: just name (type will be inferred from expected FI)
                         paramName = parts[0];
-                        int nameOffset = text.indexOf(paramName, paramOffset);
-                        if (nameOffset < 0) nameOffset = paramOffset;
+                        // For untyped params, the entire param string is the name, so use paramOffset directly
+                        int nameOffset = paramOffset;
                         FieldInfo paramInfo = FieldInfo.parameter(paramName, paramType, nameOffset, null);
                         scope.addParameter(paramInfo);
                     }
-                    
-                    offset = paramOffset + param.length();
+
+                    offset = Math.max(paramOffset + param.length(), offset + 1);
                 }
             }
         } else {
             // Single identifier: x ->
             String paramName = headerText;
             int nameOffset = text.indexOf(paramName, headerStart);
-            if (nameOffset < 0) nameOffset = headerStart;
+            // Validate found position is before the arrow (not a shadowed name after)
+            if (nameOffset < 0 || nameOffset >= arrowPos) {
+                nameOffset = headerStart;
+            }
             
             FieldInfo paramInfo = FieldInfo.parameter(paramName, null, nameOffset, null);
             scope.addParameter(paramInfo);
@@ -3127,6 +3715,14 @@ public class ScriptDocument {
                         break;
                     }
                 }
+                if (!insideMethod) {
+                    for (MethodInfo constructor : getAllConstructors()) {
+                        if (constructor.containsPosition(position)) {
+                            insideMethod = true;
+                            break;
+                        }
+                    }
+                }
                 if (insideMethod) continue;
 
                 boolean insideInner = false;
@@ -3210,6 +3806,11 @@ public class ScriptDocument {
                         for (MethodInfo method : getAllMethods()) {
                             if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
                         }
+                        if (!cInsideMethod) {
+                            for (MethodInfo constructor : getAllConstructors()) {
+                                if (constructor.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                            }
+                        }
                         if (cInsideMethod) return;
                         boolean cInsideInner = false;
                         for (InnerCallableScope sc : innerScopes) {
@@ -3238,7 +3839,7 @@ public class ScriptDocument {
             }
         } else {
             // Java: [modifiers] Type fieldName [= expr];
-            Matcher m = FIELD_DECL_PATTERN.matcher(text);
+            Matcher m = FIELD_DECL_PATTERN.matcher(normalizeGenericNewlines(text));
             while (m.find()) {
                 String typeNameRaw = m.group(1);
                 String fieldName = m.group(2);
@@ -3246,6 +3847,13 @@ public class ScriptDocument {
                 int position = m.start(2);
                 
                 if (isExcluded(position))
+                    continue;
+                
+                // Guard against cross-line matches that start inside a comment
+                if (isExcluded(m.start(1)))
+                    continue;
+
+                if (hasExcludedRange(m.start(1), m.end(1)))
                     continue;
 
                 // --- FIX: Detect greedy regex consuming commas into the type name ---
@@ -3280,6 +3888,11 @@ public class ScriptDocument {
                     else {
                         for (MethodInfo method : getAllMethods()) {
                             if (method.containsPosition(firstVarAbsPos)) { greedyInsideMethod = true; break; }
+                        }
+                        if (!greedyInsideMethod) {
+                            for (MethodInfo constructor : getAllConstructors()) {
+                                if (constructor.containsPosition(firstVarAbsPos)) { greedyInsideMethod = true; break; }
+                            }
                         }
                     }
                     if (greedyInsideMethod) continue;
@@ -3316,6 +3929,11 @@ public class ScriptDocument {
                             else {
                                 for (MethodInfo method : getAllMethods()) {
                                     if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                }
+                                if (!cInsideMethod) {
+                                    for (MethodInfo constructor : getAllConstructors()) {
+                                        if (constructor.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                    }
                                 }
                             }
                             if (cInsideMethod) return;
@@ -3358,6 +3976,14 @@ public class ScriptDocument {
                         if (method.containsPosition(position)) {
                             insideMethod = true;
                             break;
+                        }
+                    }
+                    if (!insideMethod) {
+                        for (MethodInfo constructor : getAllConstructors()) {
+                            if (constructor.containsPosition(position)) {
+                                insideMethod = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -3424,6 +4050,11 @@ public class ScriptDocument {
                             else {
                                 for (MethodInfo method : getAllMethods()) {
                                     if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                }
+                                if (!cInsideMethod) {
+                                    for (MethodInfo constructor : getAllConstructors()) {
+                                        if (constructor.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                    }
                                 }
                             }
                             if (cInsideMethod) return;
@@ -3702,15 +4333,29 @@ public class ScriptDocument {
             return resolved;
         }
 
-        // Positional fallback: only applies to simple names (no dots) that could be
-        // inner classes visible from the current scope. Dot-separated names like
-        // "Outer.Inner" are already handled by scriptTypesByDotName in resolveType().
         if (typeName != null && !typeName.contains(".")) {
-            // Walk the enclosing type hierarchy upward from the innermost type at this position.
-            // At each level, check if there's an inner class matching the name.
-            // This mirrors Java's scoping rules where inner classes shadow outer-scope types.
+            TypeStringNormalizer.ArraySplit arraySplit = TypeStringNormalizer.splitArraySuffixes(typeName);
+            String baseTypeName = arraySplit.base;
+            int arrayDims = arraySplit.dimensions;
+
             ScriptTypeInfo enclosing = findEnclosingScriptType(position);
             while (enclosing != null) {
+                // Check if the name is a declared type parameter on this class (e.g., E in class Box<E>)
+                TypeParamInfo typeParam = enclosing.getDeclaredTypeParam(baseTypeName);
+                if (typeParam != null) {
+                    TypeInfo boundType = typeParam.getBoundTypeInfo();
+                    if (boundType == null) {
+                        typeParam.resolveBoundType();
+                        boundType = typeParam.getBoundTypeInfo();
+                    }
+                    TypeInfo result = (boundType != null && boundType.isResolved())
+                            ? TypeInfo.typeParameter(baseTypeName, boundType)
+                            : TypeInfo.typeParameter(baseTypeName);
+                    for (int i = 0; i < arrayDims; i++) result = TypeInfo.arrayOf(result);
+                    return result;
+                }
+                
+                // Check inner classes
                 ScriptTypeInfo inner = enclosing.getInnerClass(typeName);
                 if (inner != null) {
                     return inner;
@@ -3765,6 +4410,44 @@ public class ScriptDocument {
             // Fully-qualified Java types
             else if (baseName.contains(".")) {
                 resolved = typeResolver.resolveFullName(baseName);
+                // Fallback: "SimpleName.InnerClass" where SimpleName is a known import
+                // e.g., "Map.Entry" when java.util.Map is imported → java.util.Map$Entry
+                if (resolved == null || !resolved.isResolved()) {
+                    int firstDot = baseName.indexOf('.');
+                    String outerSimple = baseName.substring(0, firstDot);
+                    String innerPath = baseName.substring(firstDot + 1);
+                    TypeInfo outerType = typeResolver.resolveSimpleName(outerSimple, importsBySimpleName, wildcardPackages);
+                    if (outerType != null && outerType.isResolved() && outerType.getJavaClass() != null) {
+                        Class<?> currentClass = outerType.getJavaClass();
+                        for (String part : innerPath.split("\\.")) {
+                            Class<?> found = null;
+                            for (Class<?> inner : currentClass.getClasses()) {
+                                if (inner.getSimpleName().equals(part)) {
+                                    found = inner;
+                                    break;
+                                }
+                            }
+                            currentClass = found;
+                            if (currentClass == null) break;
+                        }
+                        if (currentClass != null) {
+                            resolved = TypeInfo.fromClass(currentClass);
+                            // Track import usage for the outer class
+                            ImportData usedImport = importsBySimpleName.get(outerSimple);
+                            if (usedImport != null) {
+                                usedImport.incrementUsage();
+                            } else if (wildcardPackages != null) {
+                                String resultPkg = outerType.getPackageName();
+                                for (ImportData imp : imports) {
+                                    if (imp.isWildcard() && resultPkg != null && resultPkg.equals(imp.getFullPath())) {
+                                        imp.incrementUsage();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             // Imported/simple
             else {
@@ -3957,8 +4640,68 @@ public class ScriptDocument {
         }
     }
 
+    /**
+     * Two-phase object literal parsing.
+     *
+     * <p><b>Phase 1 (structure-only)</b>: parse every object literal with a no-op type
+     * resolver.  This produces {@link ObjectLiteralParser.ObjectLiteralAnalysis} entries
+     * whose property <em>names</em> are correct but whose value types are all {@code ANY}.
+     * The synthetic {@link TypeInfo} shapes built from those names are then attached to
+     * the corresponding {@link InnerCallableScope}s via
+     * {@link ObjectLiteralParser#attachObjectLiteralContext}, so that
+     * {@code resolveThisType()} can return the containing object literal type for
+     * {@code this.property} chains.</p>
+     *
+     * <p><b>Phase 2 (full resolution)</b>: re-parse with the real
+     * {@code this::resolveExpressionType} callback.  Because scopes now have their
+     * {@code containingObjectType} wired, expressions like {@code return this.faah.length}
+     * inside method bodies resolve correctly instead of falling back to {@code ANY}.</p>
+     */
     private void parseObjectLiterals() {
         if (!isJavaScript()) return;
+
+        List<int[]> braceRanges = findObjectLiteralBraces();
+        if (braceRanges.isEmpty())
+            return;
+
+        // Phase 1: structure-only — property names extracted, value types = ANY
+        ObjectLiteralParser.ExpressionTypeResolverFn nullResolver = (expr, pos) -> null;
+        for (int[] range : braceRanges) {
+            String objectLiteral = text.substring(range[0], range[1]);
+            ObjectLiteralParser.ObjectLiteralAnalysis analysis =
+                    ObjectLiteralParser.parse(objectLiteral, range[0], true, true, nullResolver,
+                            this::getScriptMethodInfo);
+            if (analysis != null)
+                objectLiterals.put(range[0], analysis);
+        }
+
+        for (InnerCallableScope scope : innerScopes)
+            ObjectLiteralParser.attachObjectLiteralContext(scope, this);
+
+        // Phase 2: full resolution — accurate value / return types via resolveExpressionType
+        for (int[] range : braceRanges) {
+            String objectLiteral = text.substring(range[0], range[1]);
+            ObjectLiteralParser.ObjectLiteralAnalysis analysis =
+                    ObjectLiteralParser.parse(objectLiteral, range[0], true, true, this::resolveExpressionType,
+                            this::getScriptMethodInfo);
+            if (analysis != null)
+                objectLiterals.put(range[0], analysis);
+        }
+
+        // Re-attach with fully-resolved types (reset so the guard allows re-attachment)
+        for (InnerCallableScope scope : innerScopes) {
+            scope.setContainingObjectType(null);
+            ObjectLiteralParser.attachObjectLiteralContext(scope, this);
+        }
+    }
+
+    /**
+     * Scan the document for opening braces that are likely object-literal starts and
+     * return their {@code [start, end)} ranges.  Shared by both parsing phases to avoid
+     * duplicate scanning.
+     */
+    private List<int[]> findObjectLiteralBraces() {
+        List<int[]> ranges = new ArrayList<>();
         int i = 0;
         while (i < text.length()) {
             int brace = text.indexOf('{', i);
@@ -3972,18 +4715,10 @@ public class ScriptDocument {
                 i = brace + 1;
                 continue;
             }
-            String objectLiteral = text.substring(brace, end);
-            ObjectLiteralParser.ObjectLiteralAnalysis analysis =
-                    ObjectLiteralParser.parse(objectLiteral, brace, true, true, this::resolveExpressionType, this::getScriptMethodInfo);
-            if (analysis != null) 
-                objectLiterals.put(brace, analysis);
-            
+            ranges.add(new int[]{brace, end});
             i = brace + 1;
         }
-        // Wire each object-literal inner scope to its containing object type (needs the cache)
-        for (InnerCallableScope scope : innerScopes) 
-            ObjectLiteralParser.attachObjectLiteralContext(scope, this);
-        
+        return ranges;
     }
 
     private boolean isLikelyObjectLiteralStart(int bracePos) {
@@ -4734,22 +5469,16 @@ public class ScriptDocument {
     }
 
     private void markClassDeclarations(List<ScriptLine.Mark> marks) {
-        // Extended pattern to capture extends and implements clauses
-        // Groups: 1=class|interface|enum, 2=TypeName, 3=extends clause, 4=implements clause
-        Pattern classWithInheritance = Pattern.compile(
-                "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:\\(\\))?\\s*" +
-                        "(?:(extends)\\s+([A-Za-z_][a-zA-Z0-9_.]*))?\\s*" +
-                        "(?:(implements)\\s+([A-Za-z_][a-zA-Z0-9_.,\\s]*))?\\s*(?=\\{)");
+        Pattern classKeyword = Pattern.compile(
+                "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
 
-        Matcher m = classWithInheritance.matcher(text);
+        Matcher m = classKeyword.matcher(text);
         while (m.find()) {
             if (isExcluded(m.start()))
                 continue;
 
-            // Mark the keyword (class/interface/enum)
             marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.CLASS_KEYWORD));
 
-            // Mark the class name
             String kind = m.group(1);
             TokenType nameType;
             if ("interface".equals(kind)) {
@@ -4760,10 +5489,6 @@ public class ScriptDocument {
                 nameType = TokenType.CLASS_DECL;
             }
             String typeName = m.group(2);
-            // Look up the ScriptTypeInfo: try top-level first, then search all types
-            // by simple name + declaration range (declarationOffset..bodyEnd) to handle inner classes.
-            // Cannot use containsPosition() here because the class NAME sits before the opening '{',
-            // i.e., in [declarationOffset, bodyStart) — outside the body range checked by containsPosition.
             ScriptTypeInfo typeInfo = scriptTypes.get(typeName);
             if (typeInfo == null) {
                 for (ScriptTypeInfo candidate : scriptTypesByFullName.values()) {
@@ -4777,19 +5502,103 @@ public class ScriptDocument {
             }
             marks.add(new ScriptLine.Mark(m.start(2), m.end(2), nameType, typeInfo));
 
-            // Mark extends clause
-            if (m.group(3) != null) {
-                //Extends key word
-                marks.add(new ScriptLine.Mark(m.start(3), m.end(3), TokenType.IMPORT_KEYWORD));
-                markExtendsClause(marks, m.start(4), m.group(4));
+            // Skip past type params clause <...> using depth-aware scan
+            int scanPos = m.end(2);
+            while (scanPos < text.length() && Character.isWhitespace(text.charAt(scanPos)))
+                scanPos++;
+
+            if (typeInfo != null && typeInfo.hasDeclaredTypeParams()) {
+                markTypeParamDeclarations(marks, m.end(2), typeInfo);
             }
 
-            // Mark implements clause
-            if (m.group(5) != null) {
-                //Implements key word 
-                marks.add(new ScriptLine.Mark(m.start(5),m.end(5), TokenType.IMPORT_KEYWORD));
-                markImplementsClause(marks, m.start(6), m.group(6));
+            if (scanPos < text.length() && text.charAt(scanPos) == '<') {
+                int depth = 1, i = scanPos + 1;
+                while (i < text.length() && depth > 0) {
+                    char c = text.charAt(i++);
+                    if (c == '<') depth++;
+                    else if (c == '>') depth--;
+                }
+                if (depth == 0) scanPos = i;
             }
+
+            // Skip optional () (for enum constructors etc.)
+            while (scanPos < text.length() && Character.isWhitespace(text.charAt(scanPos)))
+                scanPos++;
+            if (scanPos + 1 < text.length() && text.charAt(scanPos) == '(' && text.charAt(scanPos + 1) == ')') {
+                scanPos += 2;
+            }
+
+            // Find opening brace, scanning for extends/implements keywords
+            int bracePos = scanPos;
+            while (bracePos < text.length() && text.charAt(bracePos) != '{') {
+                bracePos++;
+            }
+            if (bracePos >= text.length()) continue;
+
+            String betweenParamsAndBrace = text.substring(scanPos, bracePos);
+
+            // Find extends keyword at depth 0
+            int extIdx = indexOfAtDepthZero(betweenParamsAndBrace, "extends");
+            if (extIdx >= 0) {
+                int extendsAbsStart = scanPos + extIdx;
+                marks.add(new ScriptLine.Mark(extendsAbsStart, extendsAbsStart + 7, TokenType.IMPORT_KEYWORD));
+
+                // Extract parent name after 'extends '
+                String afterExtends = betweenParamsAndBrace.substring(extIdx + 7).trim();
+                // Stop at 'implements' keyword or end
+                int implIdx = indexOfAtDepthZero(afterExtends, "implements");
+                String parentSection = implIdx >= 0 ? afterExtends.substring(0, implIdx).trim() : afterExtends.trim();
+
+                // Extract just the base name (without generics) for markExtendsClause
+                int nameEnd = 0;
+                while (nameEnd < parentSection.length() &&
+                       (Character.isJavaIdentifierPart(parentSection.charAt(nameEnd)) || parentSection.charAt(nameEnd) == '.')) {
+                    nameEnd++;
+                }
+                if (nameEnd > 0) {
+                    String parentName = parentSection.substring(0, nameEnd);
+                    int parentAbsStart = extendsAbsStart + 7;
+                    while (parentAbsStart < bracePos && Character.isWhitespace(text.charAt(parentAbsStart)))
+                        parentAbsStart++;
+                    markExtendsClause(marks, parentAbsStart, parentName);
+
+                    // Mark generic args on the parent (e.g., <T> in extends Parent<T>)
+                    if (nameEnd < parentSection.length() && parentSection.charAt(nameEnd) == '<') {
+                        int genStart = parentAbsStart + nameEnd;
+                        markGenericArgsInExtendsClause(marks, genStart, typeInfo);
+                    }
+                }
+            }
+
+            // Find implements keyword at depth 0
+            int implIdx = indexOfAtDepthZero(betweenParamsAndBrace, "implements");
+            if (implIdx >= 0) {
+                int implAbsStart = scanPos + implIdx;
+                marks.add(new ScriptLine.Mark(implAbsStart, implAbsStart + 10, TokenType.IMPORT_KEYWORD));
+
+                String afterImpl = betweenParamsAndBrace.substring(implIdx + 10).trim();
+                int implListStart = implAbsStart + 10;
+                while (implListStart < bracePos && Character.isWhitespace(text.charAt(implListStart)))
+                    implListStart++;
+                markImplementsClause(marks, implListStart, afterImpl);
+            }
+        }
+    }
+
+    private void markGenericArgsInExtendsClause(List<ScriptLine.Mark> marks, int ltPos, ScriptTypeInfo childType) {
+        if (ltPos >= text.length() || text.charAt(ltPos) != '<') return;
+        int depth = 1, i = ltPos + 1;
+        while (i < text.length() && depth > 0) {
+            char c = text.charAt(i++);
+            if (c == '<') depth++;
+            else if (c == '>') depth--;
+        }
+        if (depth != 0) return;
+        int gtPos = i - 1;
+
+        if (childType != null && childType.hasDeclaredTypeParams()) {
+            List<TypeParamInfo> typeParams = childType.getDeclaredTypeParams();
+            markNestedTypeParamUsages(marks, ltPos + 1, gtPos, typeParams);
         }
     }
 
@@ -4973,15 +5782,15 @@ public class ScriptDocument {
 
             // Accept as type if: has generics OR followed by variable name
             if (hasGeneric || followedByVarName) {
-                // Resolve the main type
-                TypeInfo info = resolveType(typeName);
+                // Resolve with position context so type params (T, E, etc.) resolve via enclosing class
+                TypeInfo info = resolveType(typeName, typeNameStart);
                 TokenType tokenType = (info != null && info.isResolved()) ? info.getTokenType() : TokenType.UNDEFINED_VAR;
                 marks.add(new ScriptLine.Mark(typeNameStart, typeNameEnd, tokenType, info));
 
                 // Handle generic content recursively
                 if (hasGeneric && genericStart >= 0) {
                     int contentStart = genericStart + 1;
-                    markGenericTypesRecursive(genericContent, contentStart, marks);
+                    markGenericTypesRecursive(genericContent, contentStart, marks, typeNameStart);
                 }
             }
 
@@ -5027,6 +5836,12 @@ public class ScriptDocument {
      * Handles arbitrarily nested generics like Map<String, List<Map<String, String>>>.
      */
     private void markGenericTypesRecursive(String content, int baseOffset, List<ScriptLine.Mark> marks) {
+        markGenericTypesRecursive(content, baseOffset, marks, -1);
+    }
+
+    private static final Set<String> GENERIC_KEYWORDS = new HashSet<>(Arrays.asList("extends", "super"));
+
+    private void markGenericTypesRecursive(String content, int baseOffset, List<ScriptLine.Mark> marks, int positionContext) {
         if (content == null || content.isEmpty())
             return;
 
@@ -5047,16 +5862,21 @@ public class ScriptDocument {
             }
             String typeName = content.substring(start, i);
 
-            // Only process if it's an actual type (check via resolveType)
-            TypeInfo typeCheck = resolveType(typeName);
-            if (typeCheck != null && typeCheck.isResolved()) {
-                int absStart = baseOffset + start;
-                int absEnd = baseOffset + i;
+            // Skip keywords that appear in generic bounds (extends, super)
+            if (GENERIC_KEYWORDS.contains(typeName)) {
+                continue;
+            }
 
+            int absStart = baseOffset + start;
+            int absEnd = baseOffset + i;
+
+            TypeInfo typeCheck = positionContext >= 0
+                    ? resolveType(typeName, positionContext)
+                    : resolveType(typeName);
+            if (typeCheck != null && typeCheck.isResolved()) {
                 if (!isExcluded(absStart)) {
-                    TypeInfo info = resolveType(typeName);
-                    TokenType tokenType = (info != null && info.isResolved()) ? info.getTokenType() : TokenType.UNDEFINED_VAR;
-                    marks.add(new ScriptLine.Mark(absStart, absEnd, tokenType, info));
+                    TokenType tokenType = typeCheck.getTokenType();
+                    marks.add(new ScriptLine.Mark(absStart, absEnd, tokenType, typeCheck));
                 }
             }
 
@@ -5083,7 +5903,7 @@ public class ScriptDocument {
                 // Recursively parse nested content
                 if (nestedStart < i - 1) {
                     String nestedContent = content.substring(nestedStart, i - 1);
-                    markGenericTypesRecursive(nestedContent, baseOffset + nestedStart, marks);
+                    markGenericTypesRecursive(nestedContent, baseOffset + nestedStart, marks, positionContext);
                 }
             }
         }
@@ -5313,9 +6133,15 @@ public class ScriptDocument {
     }
 
     private void markMethodDeclarations(List<ScriptLine.Mark> marks) {
-        Matcher m = METHOD_DECL_PATTERN.matcher(text);
+        Matcher m = METHOD_DECL_PATTERN.matcher(normalizeGenericNewlines(text));
         while (m.find()) {
             if (isExcluded(m.start()))
+                continue;
+
+            if (isExcluded(m.start(2)))
+                continue;
+
+            if (hasExcludedRange(m.start(1), m.end(1)))
                 continue;
 
             // Skip class/interface/enum declarations - these look like method declarations
@@ -5403,7 +6229,7 @@ public class ScriptDocument {
             }
 
             // Parse the arguments (first pass - without expected types for overload resolution)
-            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null);
+            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null, null);
 
             // Check if this is a static access (Class.method() style)
             boolean isStaticAccess = isStaticAccessCall(nameStart);
@@ -5447,8 +6273,9 @@ public class ScriptDocument {
                 }
                 // Regular type - check for method existence using hierarchy search if it's a ScriptTypeInfo
                 boolean hasMethod = false;
-                if (receiverType instanceof ScriptTypeInfo) {
-                    hasMethod = ((ScriptTypeInfo) receiverType).hasMethodInHierarchy(methodName);
+                TypeInfo rawReceiver = receiverType.getRawType();
+                if (rawReceiver instanceof ScriptTypeInfo) {
+                    hasMethod = ((ScriptTypeInfo) rawReceiver).hasMethodInHierarchy(methodName);
                 } else {
                     hasMethod = receiverType.hasMethod(methodName);
                 }
@@ -5468,7 +6295,7 @@ public class ScriptDocument {
                     } else {
                         // Second pass: Re-resolve arguments with expected parameter types if method was found
                         if (resolvedMethod != null && resolvedMethod.getParameters().size() == arguments.size())
-                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod);
+                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod, receiverType);
                         
                         
                         MethodCallInfo callInfo = new MethodCallInfo(methodName, nameStart, nameEnd, openParen,
@@ -5501,7 +6328,7 @@ public class ScriptDocument {
 
                         // Second pass: Re-resolve arguments with expected parameter types if method was found
                         if (resolvedMethod != null && resolvedMethod.getParameters().size() == arguments.size()) {
-                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod);
+                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod, null);
                         }
                         
                         // Check if this is a method from a script type
@@ -5533,7 +6360,7 @@ public class ScriptDocument {
 
                         List<MethodCallInfo.Argument> globalArguments = arguments;
                         if (resolvedGlobal.getParameters().size() == arguments.size()) {
-                            globalArguments = parseMethodArguments(openParen + 1, closeParen, resolvedGlobal);
+                            globalArguments = parseMethodArguments(openParen + 1, closeParen, resolvedGlobal, null);
                         }
 
                         MethodCallInfo callInfo = new MethodCallInfo(
@@ -5557,7 +6384,7 @@ public class ScriptDocument {
                             TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
                             MethodInfo implicitMethod = callerType.getBestMethodOverload(methodName, argTypes);
                             if (implicitMethod != null && implicitMethod.getParameters().size() == arguments.size()) {
-                                arguments = parseMethodArguments(openParen + 1, closeParen, implicitMethod);
+                                arguments = parseMethodArguments(openParen + 1, closeParen, implicitMethod, callerType);
                             }
                             MethodCallInfo callInfo = new MethodCallInfo(
                                 methodName, nameStart, nameEnd, openParen, closeParen,
@@ -5725,9 +6552,10 @@ public class ScriptDocument {
      * @param start Start position of arguments (after opening paren)
      * @param end End position of arguments (at closing paren)
      * @param methodInfo Optional MethodInfo to provide expected parameter types for validation
+     * @param receiverType Optional receiver/containing type for substituting generic type parameters in argument types
      * @return List of parsed arguments with resolved types
      */
-    public List<MethodCallInfo.Argument> parseMethodArguments(int start, int end, MethodInfo methodInfo) {
+    public List<MethodCallInfo.Argument> parseMethodArguments(int start, int end, MethodInfo methodInfo, TypeInfo receiverType) {
         List<MethodCallInfo.Argument> args = new ArrayList<>();
         
         if (start >= end) 
@@ -5767,6 +6595,15 @@ public class ScriptDocument {
 
                     TypeInfo argType = resolveArgumentType(argText, actualStart, expectedParamType);
                     
+                    // Substitute type parameters using receiver's generic context
+                    if (receiverType != null && argType != null && GenericContext.hasGenerics(receiverType)) {
+                        GenericContext ctx = GenericContext.forReceiver(receiverType);
+                        TypeInfo substituted = ctx.substitute(argType);
+                        if (substituted != null && substituted.isResolved()) {
+                            argType = substituted;
+                        }
+                    }
+                    
                     String samConflictError = CURRENT_SAM_CONFLICT_ERROR.get();
                     if (samConflictError != null) {
                         CURRENT_SAM_CONFLICT_ERROR.remove();
@@ -5797,7 +6634,10 @@ public class ScriptDocument {
             if (!inString) {
                 if (c == '(' || c == '[' || c == '{' || c == '<') {
                     depth++;
-                } else if (c == ')' || c == ']' || c == '}' || c == '>') {
+                } else if (c == ')' || c == ']' || c == '}') {
+                    depth--;
+                } else if (c == '>' && prev != '-') {
+                    // Skip '>' when preceded by '-' (lambda arrow '->'), otherwise treat as closing bracket
                     depth--;
                 }
             }
@@ -5820,7 +6660,7 @@ public class ScriptDocument {
         
         // Check if this looks like a parameter declaration: "Type varName"
         // Pattern: identifier followed by whitespace and another identifier
-        if (argText.matches("^[A-Za-z_][a-zA-Z0-9_<>\\[\\],\\s]*\\s+[a-zA-Z_][a-zA-Z0-9_]*$")) {
+        if (argText.matches("^[A-Za-z_][a-zA-Z0-9_<>\\[\\],\\s\\n\\r]*\\s+[a-zA-Z_][a-zA-Z0-9_]*$")) {
             // Split into tokens
             String[] parts = argText.split("\\s+");
             if (parts.length >= 2) {
@@ -5943,6 +6783,11 @@ public class ScriptDocument {
             }
             return analysis.inferredType;
         }
+
+        LambdaCacheEntry cachedLambda = lambdaCache.get(position);
+        if (cachedLambda != null && cachedLambda.expectedType != null) {
+            return cachedLambda.expectedType;
+        }
         
          // Check if expression contains operators - if so, use the full expression resolver
          // Handle cast expressions: (Type)expr, ((Type)expr).method(), etc
@@ -6049,6 +6894,14 @@ public class ScriptDocument {
                 }
                 TypeInfo baseType = resolveType(typeName, position);
                 if (baseType == null) return null;
+                
+                // Parameterize with generic type arguments (e.g., new Box<String>(...))
+                String typeArgsClause = newMatcher.group(2);
+                if (typeArgsClause != null && !typeArgsClause.trim().isEmpty()) {
+                    int typeArgsTextOffset = position + newMatcher.start(2);
+                    baseType = parameterizeWithClause(baseType, typeArgsClause, position, typeArgsTextOffset);
+                }
+                
                 String rest = expr.substring(newMatcher.end());
                 int dims = 0;
                 for (int i = 0; i < rest.length() && rest.charAt(i) != '('; i++) {
@@ -6435,7 +7288,7 @@ public class ScriptDocument {
         String[] lines = expr.split("\n", -1);
         StringBuilder result = new StringBuilder();
         for (String line : lines) {
-            int ci = line.indexOf("//");
+            int ci = findLineCommentStart(line);
             String part = (ci >= 0 ? line.substring(0, ci) : line).trim();
             if (!part.isEmpty()) {
                 if (result.length() > 0) result.append(' ');
@@ -6443,6 +7296,33 @@ public class ScriptDocument {
             }
         }
         return result.toString().trim();
+    }
+
+    private static int findLineCommentStart(String line) {
+        boolean inString = false;
+        char stringChar = 0;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (inString) {
+                if (c == '\\' && i + 1 < line.length()) {
+                    i++;
+                    continue;
+                }
+                if (c == stringChar) {
+                    inString = false;
+                }
+                continue;
+            }
+            if (c == '"' || c == '\'') {
+                inString = true;
+                stringChar = c;
+                continue;
+            }
+            if (c == '/' && i + 1 < line.length() && line.charAt(i + 1) == '/') {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -6510,8 +7390,9 @@ public class ScriptDocument {
             // Method call - get return type with argument-based overload resolution
             // Check for method existence using hierarchy search if it's a ScriptTypeInfo
             boolean hasMethod = false;
-            if (currentType instanceof ScriptTypeInfo) {
-                hasMethod = ((ScriptTypeInfo) currentType).hasMethodInHierarchy(segment.name);
+            TypeInfo rawType = currentType.getRawType();
+            if (rawType instanceof ScriptTypeInfo) {
+                hasMethod = ((ScriptTypeInfo) rawType).hasMethodInHierarchy(segment.name);
             } else {
                 hasMethod = currentType.hasMethod(segment.name);
             }
@@ -6531,10 +7412,11 @@ public class ScriptDocument {
             boolean hasField = false;
             FieldInfo fieldInfo = null;
 
-            if (currentType instanceof ScriptTypeInfo) {
-                hasField = ((ScriptTypeInfo) currentType).hasFieldInHierarchy(segment.name);
+            TypeInfo rawType = currentType.getRawType();
+            if (rawType instanceof ScriptTypeInfo) {
+                hasField = ((ScriptTypeInfo) rawType).hasFieldInHierarchy(segment.name);
                 if (hasField) {
-                    fieldInfo = ((ScriptTypeInfo) currentType).getFieldInfoInHierarchy(segment.name);
+                    fieldInfo = currentType.getFieldInfo(segment.name);
                 }
             } else {
                 hasField = currentType.hasField(segment.name);
@@ -6549,8 +7431,8 @@ public class ScriptDocument {
 
             // Field not found — check if the segment names an inner class.
             // This handles chains like Outer.Inner where Inner is a nested type, not a field.
-            if (currentType instanceof ScriptTypeInfo) {
-                ScriptTypeInfo innerClass = ((ScriptTypeInfo) currentType).getInnerClass(segment.name);
+            if (rawType instanceof ScriptTypeInfo) {
+                ScriptTypeInfo innerClass = ((ScriptTypeInfo) rawType).getInnerClass(segment.name);
                 if (innerClass != null) {
                     return innerClass;
                 }
@@ -6998,7 +7880,15 @@ public class ScriptDocument {
                 }
                 
                 // Otherwise treat it as a type name
-                return resolveType(typeName);
+                TypeInfo baseType = resolveType(typeName);
+                if (baseType != null) {
+                    String typeArgsClause = newMatcher.group(2);
+                    if (typeArgsClause != null && !typeArgsClause.trim().isEmpty()) {
+                        int typeArgsTextOffset = position + newMatcher.start(2);
+                        baseType = parameterizeWithClause(baseType, typeArgsClause, position, typeArgsTextOffset);
+                    }
+                }
+                return baseType;
             }
         }
         
@@ -7278,7 +8168,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         TypeInfo superClass = enclosingType != null ? enclosingType.getSuperClass() : null;
 
         // Parse arguments and find matching parent constructor
-        List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null);
+        List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null, superClass);
         TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
 
         // Find matching constructor in parent class
@@ -8165,6 +9055,18 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
             isFinal = targetField.isFinal();
         }
         
+        // Allow final field initialization inside a constructor of the declaring type.
+        // In Java, final fields can be assigned exactly once in the constructor.
+        if (isFinal && targetField != null) {
+            MethodInfo enclosingCtor = findEnclosingConstructor(stmtStart);
+            if (enclosingCtor != null) {
+                ScriptTypeInfo enclosingType = findEnclosingScriptType(stmtStart);
+                if (enclosingType != null && enclosingType.getFields().containsValue(targetField)) {
+                    isFinal = false;
+                }
+            }
+        }
+        
         // Create the assignment info using the new constructor
         AssignmentInfo info = new AssignmentInfo(
             targetName,
@@ -8573,6 +9475,299 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         }
     }
 
+    /**
+     * Early SAM inference for all lambda/function parameters inside method and constructor calls.
+     * Runs during parseStructure() (before parseAssignments) so that lambda body variable
+     * resolution sees typed parameters.  The mark-phase methods (markMethodCalls,
+     * inferConstructorLambdaTypes) will re-run the same inference harmlessly later.
+     */
+    private void inferLambdaParameterTypes() {
+        inferMethodCallLambdaTypes();
+        inferConstructorLambdaTypes();
+        inferFieldAssignmentLambdaTypes();
+        populateLambdaCache();
+    }
+
+    private void inferMethodCallLambdaTypes() {
+        Matcher m = METHOD_CALL_PATTERN.matcher(text);
+        while (m.find()) {
+            int nameStart = m.start(1);
+            String methodName = m.group(1);
+
+            if (isExcluded(nameStart) || isKeyword(methodName))
+                continue;
+            if (isInImportOrPackage(nameStart))
+                continue;
+
+            boolean isDecl = false;
+            for (MethodInfo decl : methods)
+                if (decl.getNameOffset() == nameStart)
+                    isDecl = true;
+            if (isDecl)
+                continue;
+
+            int openParen = m.end(1);
+            while (openParen < text.length() && Character.isWhitespace(text.charAt(openParen)))
+                openParen++;
+            if (openParen >= text.length() || text.charAt(openParen) != '(')
+                continue;
+
+            int closeParen = findMatchingParen(openParen);
+            if (closeParen < 0)
+                continue;
+
+            String argsText = text.substring(openParen + 1, closeParen);
+            boolean hasLambda = isJavaScript()
+                    ? (argsText.contains("function") || argsText.contains("=>"))
+                    : argsText.contains("->");
+            if (!hasLambda)
+                continue;
+
+            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null, null);
+            TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType)
+                                           .toArray(TypeInfo[]::new);
+
+            TypeInfo receiverType = resolveReceiverChain(nameStart);
+            MethodInfo resolvedMethod = null;
+
+            if (receiverType != null) {
+                if (receiverType.hasMethod(methodName)) {
+                    resolvedMethod = receiverType.getBestMethodOverload(methodName, argTypes);
+                }
+            } else if (!isPrecededByDot(nameStart)) {
+                if (isScriptMethod(methodName)) {
+                    resolvedMethod = getScriptMethodInfo(methodName, argTypes);
+                } else if (isGlobalEngineFunction(methodName)) {
+                    JSMethodInfo jsGlobal = JSTypeRegistry.getInstance().getGlobalEngineFunction(methodName);
+                    if (jsGlobal != null)
+                        resolvedMethod = MethodInfo.fromJSMethod(jsGlobal, null);
+                }
+            }
+
+            if (resolvedMethod != null && resolvedMethod.getParameters().size() == arguments.size()) {
+                parseMethodArguments(openParen + 1, closeParen, resolvedMethod, receiverType);
+            }
+        }
+    }
+
+    /**
+     * Pre-infer lambda parameter types for constructor arguments (new Foo(... lambda ...)).
+     * Constructor SAM inference normally happens in markImportedClassUsages, which runs AFTER
+     * markMethodCalls/markVariables/markChainedFieldAccesses. That ordering means lambda body
+     * resolution (e.g., event.getHookName()) fails because parameter types aren't set yet.
+     * This early pass sets inferredType on lambda parameters so body resolution works correctly.
+     */
+    private void inferConstructorLambdaTypes() {
+        Pattern newExpr = Pattern.compile("\\bnew\\s+([A-Za-z][a-zA-Z0-9_.]*?)\\s*(?:<[^>]*>)?\\s*\\(");
+        Matcher m = newExpr.matcher(text);
+
+        while (m.find()) {
+            if (isExcluded(m.start()))
+                continue;
+            if (isInImportOrPackage(m.start()))
+                continue;
+
+            String className = m.group(1);
+            int openParen = m.end() - 1;
+            int closeParen = findMatchingParen(openParen);
+            if (closeParen < 0)
+                continue;
+
+            String argsText = text.substring(openParen + 1, closeParen);
+            boolean hasLambda = isJavaScript()
+                    ? (argsText.contains("function") || argsText.contains("=>"))
+                    : argsText.contains("->");
+            if (!hasLambda)
+                continue;
+
+            TypeInfo info = resolveType(className, m.start(1));
+            if (info == null || !info.isResolved())
+                continue;
+            if (!info.hasConstructors())
+                continue;
+
+            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null, info);
+            TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType)
+                                           .toArray(TypeInfo[]::new);
+
+            MethodInfo constructor = info.findConstructor(argTypes);
+            if (constructor == null) {
+                constructor = info.findConstructor(arguments.size());
+            }
+
+            if (constructor != null && constructor.getParameters().size() == arguments.size()) {
+                parseMethodArguments(openParen + 1, closeParen, constructor, info);
+            }
+        }
+    }
+
+    private void inferFieldAssignmentLambdaTypes() {
+        if (isJavaScript()) {
+            inferJSFieldAssignmentLambdaTypes();
+        } else {
+            inferJavaFieldAssignmentLambdaTypes();
+        }
+    }
+
+    private void inferJavaFieldAssignmentLambdaTypes() {
+        Matcher m = FIELD_DECL_PATTERN.matcher(normalizeGenericNewlines(text));
+        while (m.find()) {
+            String typeName = m.group(1);
+            String varName = m.group(2);
+            String delimiter = m.group(3);
+
+            if (!"=".equals(delimiter))
+                continue;
+
+            int absTypeStart = m.start(1);
+            int absVarStart = m.start(2);
+            if (isExcluded(absTypeStart) || isExcluded(absVarStart))
+                continue;
+            if (hasExcludedRange(absTypeStart, m.end(1)))
+                continue;
+            if (isInImportOrPackage(absTypeStart))
+                continue;
+
+            if (typeName.equals("return") || typeName.equals("if") || typeName.equals("while") ||
+                    typeName.equals("for") || typeName.equals("switch") || typeName.equals("catch") ||
+                    typeName.equals("new") || typeName.equals("throw"))
+                continue;
+
+            int rhsStart = m.end(3);
+            while (rhsStart < text.length() && Character.isWhitespace(text.charAt(rhsStart)))
+                rhsStart++;
+            if (rhsStart >= text.length())
+                continue;
+
+            int rhsEnd = findStatementEnd(rhsStart);
+            if (rhsEnd <= rhsStart)
+                continue;
+
+            String rhs = text.substring(rhsStart, rhsEnd).trim();
+            if (!rhs.contains("->"))
+                continue;
+
+            TypeInfo declaredType = resolveType(stripModifiers(typeName), absVarStart);
+            if (declaredType == null || !declaredType.isResolved())
+                continue;
+            if (!declaredType.isFunctionalInterface())
+                continue;
+
+            MethodInfo sam = declaredType.getSingleAbstractMethod();
+            if (sam == null)
+                continue;
+
+            List<FieldInfo> samParams = sam.getParameters();
+
+            for (InnerCallableScope scope : innerScopes) {
+                if (scope.getKind() != InnerCallableScope.Kind.JAVA_LAMBDA)
+                    continue;
+                if (scope.getHeaderStart() < rhsStart || scope.getFullEnd() > rhsEnd + 1)
+                    continue;
+                if (scope.getExpectedType() != null)
+                    continue;
+
+                List<FieldInfo> lambdaParams = scope.getParameters();
+                if (samParams.size() != lambdaParams.size())
+                    continue;
+
+                scope.setExpectedType(declaredType);
+                for (int i = 0; i < lambdaParams.size(); i++) {
+                    TypeInfo inferredType = samParams.get(i).getTypeInfo();
+                    if (inferredType != null) {
+                        lambdaParams.get(i).setInferredType(inferredType);
+                    }
+                }
+            }
+        }
+    }
+
+    private void inferJSFieldAssignmentLambdaTypes() {
+        Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*(=))?");
+        Matcher m = varPattern.matcher(text);
+
+        while (m.find()) {
+            if (m.group(2) == null)
+                continue;
+
+            int position = m.start(1);
+            if (isExcluded(position))
+                continue;
+
+            int initializerStart = skipSegmentWhitespace(text, m.end(2));
+            int initializerEnd = findJsInitializerEnd(text, initializerStart, true);
+            if (initializerEnd <= initializerStart)
+                continue;
+
+            String initializer = text.substring(initializerStart, initializerEnd).trim();
+            if (!initializer.contains("function") && !initializer.contains("=>"))
+                continue;
+
+            JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, m.start());
+            if (jsDoc == null || !jsDoc.hasTypeTag())
+                continue;
+
+            TypeInfo declaredType = jsDoc.getDeclaredType();
+            if (declaredType == null || !declaredType.isResolved())
+                continue;
+            if (!declaredType.isFunctionalInterface())
+                continue;
+
+            MethodInfo sam = declaredType.getSingleAbstractMethod();
+            if (sam == null)
+                continue;
+
+            List<FieldInfo> samParams = sam.getParameters();
+
+            for (InnerCallableScope scope : innerScopes) {
+                if (scope.getKind() != InnerCallableScope.Kind.JS_FUNCTION_EXPR &&
+                        scope.getKind() != InnerCallableScope.Kind.JS_ARROW_FUNC)
+                    continue;
+                if (scope.getHeaderStart() < initializerStart || scope.getFullEnd() > initializerEnd + 1)
+                    continue;
+                if (scope.getExpectedType() != null)
+                    continue;
+
+                List<FieldInfo> funcParams = scope.getParameters();
+                if (samParams.size() != funcParams.size())
+                    continue;
+
+                scope.setExpectedType(declaredType);
+                for (int i = 0; i < funcParams.size(); i++) {
+                    TypeInfo inferredType = samParams.get(i).getTypeInfo();
+                    if (inferredType != null) {
+                        funcParams.get(i).setInferredType(inferredType);
+                    }
+                }
+            }
+        }
+    }
+
+    private void populateLambdaCache() {
+        for (InnerCallableScope scope : innerScopes) {
+            if (scope.getExpectedType() != null) {
+                lambdaCache.put(scope.getHeaderStart(), new LambdaCacheEntry(scope, scope.getExpectedType()));
+            }
+        }
+    }
+
+    private int findStatementEnd(int startPos) {
+        int depth = 0;
+        for (int i = startPos; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '(' || c == '{' || c == '[')
+                depth++;
+            else if (c == ')' || c == '}' || c == ']') {
+                depth--;
+                if (depth < 0)
+                    return i;
+            } else if (c == ';' && depth == 0) {
+                return i;
+            }
+        }
+        return text.length();
+    }
+
     private void markImportedClassUsages(List<ScriptLine.Mark> marks) {
         // Find uppercase identifiers followed by dot (static method calls, field access)
         Pattern classUsage = Pattern.compile("\\b([A-Za-z][a-zA-Z0-9_]*)\\s*\\.");
@@ -8699,12 +9894,22 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                     while (searchPos < text.length() && Character.isWhitespace(text.charAt(searchPos)))
                         searchPos++;
                     
-                    if (searchPos < text.length() && text.charAt(searchPos) == '(') {
+                    // Skip generic args or diamond operator (e.g., <Integer> or <>)
+                    if (searchPos < text.length() && text.charAt(searchPos) == '<') {
+                        int closeAngle = text.indexOf('>', searchPos);
+                        if (closeAngle >= 0) {
+                            searchPos = closeAngle + 1;
+                            while (searchPos < text.length() && Character.isWhitespace(text.charAt(searchPos)))
+                                searchPos++;
+                        }
+                    }
+                    
+                    if (searchPos < text.length() && text.charAt(searchPos) == '(') { 
                         int openParen = searchPos;
-                        int closeParen = findMatchingParen(openParen);
+                        int closeParen = findMatchingParen(openParen); 
                         
                         if (closeParen >= 0) {
-                            // For constructor declarations, verify it's followed by opening brace
+                            // For constructor declarations, verify it's followed by opening brace 
                             if (isConstructorDecl && !isNewCreation) {
                                 int braceSearch = closeParen + 1;
                                 while (braceSearch < text.length() && Character.isWhitespace(text.charAt(braceSearch)))
@@ -8719,7 +9924,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                             
                             // Parse arguments to find matching constructor
                             List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen,
-                                    null);
+                                    null, info);
                             int argCount = arguments.size();
                             TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType)
                                                            .toArray(TypeInfo[]::new);
@@ -8735,6 +9940,12 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                                 if (constructor == null) {
                                     constructor = info.findConstructor(argCount);
                                 }
+                            }
+
+                            // Second pass: re-parse arguments with expected parameter types from resolved constructor
+                            // This enables SAM type inference for lambda arguments (e.g., Consumer<T> parameters)
+                            if (constructor != null && constructor.getParameters().size() == arguments.size()) {
+                                arguments = parseMethodArguments(openParen + 1, closeParen, constructor, info);
                             }
                             
                             // Create MethodCallInfo for constructor
@@ -8753,7 +9964,6 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                                 ).setConstructor(true);
                                 ctorCall.isClassTypeAccess = true;
                             } else {
-                                // Use factory method for regular types
                                 ctorCall = MethodCallInfo.constructor(
                                     info, constructor, start, end, openParen, closeParen, arguments
                                 );
@@ -9053,6 +10263,11 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                 return method;
             }
         }
+        for (MethodInfo constructor : getAllConstructors()) {
+            if (constructor.containsPosition(position)) {
+                return constructor;
+            }
+        }
         return null;
     }
 
@@ -9120,6 +10335,10 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
 
     public ObjectLiteralParser.ObjectLiteralAnalysis getObjectLiteral(int braceOffset) {
         return objectLiterals.get(braceOffset);
+    }
+
+    public LambdaCacheEntry getLambdaCacheEntry(int headerOffset) {
+        return lambdaCache.get(headerOffset);
     }
 
     public List<ScriptTypeInfo> getScriptTypes() {
@@ -9345,7 +10564,10 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
     /**
      * Get all errored assignments across all fields (global, local, and external).
      * Used by ScriptLine to draw error underlines.
+     *
+     * @deprecated Use {@link #getErrors()} instead. Errors are now collected in {@link #populateErrors()}.
      */
+    @Deprecated
     public List<AssignmentInfo> getAllErroredAssignments() {
         List<AssignmentInfo> errored = new ArrayList<>();
         
@@ -9381,12 +10603,136 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                 errored.addAll(field.getErroredAssignments());
             }
         }
+
+        for (InnerCallableScope scope : getInnerScopes()) {
+            for (FieldInfo field : scope.getParameters())
+                errored.addAll(field.getErroredAssignments());
+            
+            for (FieldInfo field : scope.getLocals().values())
+                errored.addAll(field.getErroredAssignments());
+        }
         
 
         // Include declaration errors (duplicates, etc.)
         errored.addAll(declarationErrors);
         
         return errored;
+    }
+
+    public void addError(Token token, int startPos, int endPos, String message) {
+        errors.add(new DocumentError(token, startPos, endPos, message));
+    }
+
+    public List<DocumentError> getErrors() {
+        return Collections.unmodifiableList(errors);
+    }
+
+    /**
+     * Collect all validation errors from MethodCallInfo, AssignmentInfo, MethodInfo, and ScriptTypeInfo
+     * into the centralized error list. Called once during analysis (formatCodeText), not during rendering.
+     */
+    private void populateErrors() {
+        // Method call errors
+        List<MethodInfo> allMethods = getAllMethods();
+        for (MethodCallInfo call : getMethodCalls()) {
+            boolean isDeclaration = false;
+            int methodStart = call.getMethodNameStart();
+            for (MethodInfo mi : allMethods) {
+                if (!call.isConstructor() && mi.getDeclarationOffset() <= methodStart && mi.getBodyStart() >= methodStart) {
+                    isDeclaration = true;
+                    break;
+                }
+            }
+            if (isDeclaration)
+                continue;
+
+            if (call.hasArgCountError()) {
+                int methodEnd = methodStart + call.getMethodName().length();
+                addError(null, methodStart, methodEnd, call.getErrorMessage());
+            } else if (call.hasArgTypeError()) {
+                for (MethodCallInfo.ArgumentTypeError error : call.getArgumentTypeErrors()) {
+                    MethodCallInfo.Argument arg = error.getArg();
+                    addError(null, arg.getStartOffset(), arg.getEndOffset(), error.getMessage());
+                }
+            } else if (call.hasError()) {
+                addError(null, call.getMethodNameStart(), call.getCloseParenOffset() + 1, call.getErrorMessage());
+            }
+        }
+
+        // Assignment errors
+        for (AssignmentInfo assign : getAllErroredAssignments()) {
+            int underlineStart, underlineEnd;
+
+            if (assign.isLhsError()) {
+                underlineStart = assign.getLhsStart();
+                underlineEnd = assign.getLhsEnd();
+            } else if (assign.isRhsError()) {
+                underlineStart = assign.getRhsStart();
+                underlineEnd = assign.getRhsEnd();
+            } else if (assign.isFullLineError()) {
+                underlineStart = assign.getStatementStart();
+                underlineEnd = assign.getRhsEnd();
+            } else {
+                continue;
+            }
+
+            addError(null, underlineStart, underlineEnd, assign.getErrorMessage());
+        }
+
+        // Method declaration errors
+        for (MethodInfo method : allMethods) {
+            if (!method.isDeclaration() || !method.hasError())
+                continue;
+
+            if (method.hasReturnStatementErrors()) {
+                for (MethodInfo.ReturnStatementError returnError : method.getReturnStatementErrors()) {
+                    addError(null, returnError.getStartOffset(), returnError.getEndOffset(), returnError.getMessage());
+                }
+            } else if (method.hasMissingReturnError()) {
+                int methodNameStart = method.getNameOffset();
+                int methodNameEnd = methodNameStart + method.getName().length();
+                addError(null, methodNameStart, methodNameEnd, method.getErrorMessage());
+            } else if (method.hasParameterErrors()) {
+                for (MethodInfo.ParameterError paramError : method.getParameterErrors()) {
+                    FieldInfo param = paramError.getParameter();
+                    if (param == null || param.getDeclarationOffset() < 0)
+                        continue;
+
+                    int paramStart = param.getDeclarationOffset();
+                    int paramEnd = paramStart + param.getName().length();
+                    addError(null, paramStart, paramEnd, paramError.getMessage());
+                }
+            } else if (method.hasError()) {
+                addError(null, method.getFullDeclarationOffset(), method.getDeclarationEnd(), method.getErrorMessage());
+            }
+        }
+
+        for (EnumConstantInfo enumConst : getAllEnumConstants()) {
+            if (enumConst != null && enumConst.hasError()) {
+                addError(null, 0, 0, enumConst.getErrorMessage());
+            }
+        }
+
+        // Script type declaration errors
+        for (ScriptTypeInfo type : getScriptTypes()) {
+            if (!type.hasError())
+                continue;
+
+            int typeStart = type.getDeclarationOffset();
+            int typeEnd = type.getBodyStart();
+
+            for (ScriptTypeInfo.MissingMethodError err : type.getMissingMethodErrors())
+                addError(null, typeStart, typeEnd, err.getMessage());
+
+            // Constructor mismatch errors
+            for (ScriptTypeInfo.ConstructorMismatchError err : type.getConstructorMismatchErrors())
+                addError(null, typeStart, typeEnd, err.getMessage());
+
+            // General error message
+            String msg = type.getErrorMessage();
+            if(msg != null && !msg.isEmpty())
+                addError(null, typeStart, typeEnd, type.getErrorMessage());
+        }
     }
 
     public TypeResolver getTypeResolver() {

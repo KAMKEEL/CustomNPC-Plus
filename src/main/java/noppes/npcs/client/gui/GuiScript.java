@@ -2,13 +2,15 @@ package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.packets.request.script.NPCScriptPacket;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiConfirmOpenLink;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.util.SubGuiAPISelect;
+import noppes.npcs.client.gui.util.SubGuiConfirmLink;
+import noppes.npcs.controllers.APIRegistry;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
@@ -107,7 +109,7 @@ public class GuiScript extends GuiScriptInterface {
         top.active = showScript;
         addTopButton(top = new GuiMenuTopButton(14, top, "gui.settings"));
         top.active = !showScript;
-        addTopButton(new GuiMenuTopButton(15, top, "gui.website"));
+        addTopButton(new GuiMenuTopButton(15, top, "gui.api"));
 
         if (showScript) {
             initScriptView();
@@ -285,9 +287,6 @@ public class GuiScript extends GuiScriptInterface {
         NoppesUtil.openGUI(player, this);
         if (!result)
             return;
-        if (id == 0) {
-            openLink("https://kamkeel.github.io/CustomNPC-Plus/");
-        }
         if (id == 101) {
             getTextField(2).setText(NoppesStringUtils.getClipboardContents());
         }
@@ -319,7 +318,12 @@ public class GuiScript extends GuiScriptInterface {
             initGui();
         }
         if (guibutton.id == 15) {
-            displayGuiScreen(new GuiConfirmOpenLink(this, "https://kamkeel.github.io/CustomNPC-Plus/", 0, true));
+            if (APIRegistry.Instance.size() == 1) {
+                String url = APIRegistry.Instance.getEntries().values().iterator().next();
+                setSubGui(new SubGuiConfirmLink(url));
+            } else {
+                setSubGui(new SubGuiAPISelect());
+            }
         }
         if (guibutton.id == 16) {
             close();

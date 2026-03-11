@@ -43,8 +43,8 @@ public class AnimationController implements IAnimationHandler {
 
     // Built-in animations loaded from assets folder (read-only, keyed by name)
     public HashMap<String, BuiltInAnimation> builtInAnimations = new HashMap<>();
-    private static final String BUILTIN_ANIMATIONS_PATH = "/assets/customnpcs/animations";
-    private static final String BUILTIN_ANIMATIONS_RESOURCE = "assets/customnpcs/animations";
+    private static final String BUILTIN_ANIMATIONS_PATH = "/assets/customnpcs/cnpc_animations";
+    private static final String BUILTIN_ANIMATIONS_RESOURCE = "assets/customnpcs/cnpc_animations";
 
     public static AnimationController Instance = new AnimationController();
     private int lastUsedID = 0;
@@ -75,7 +75,7 @@ public class AnimationController implements IAnimationHandler {
     }
 
     /**
-     * Load built-in animations from assets/customnpcs/animations/ folder.
+     * Load built-in animations from assets/customnpcs/cnpc_animations/ folder.
      * These animations are read-only and accessed by name only (no IDs).
      * Scans the folder directly instead of using a manifest.
      */
@@ -309,6 +309,28 @@ public class AnimationController implements IAnimationHandler {
             if (animation.name.equals(newName))
                 return true;
         return false;
+    }
+
+    public Animation cloneAnimation(int originalId) {
+        Animation original = animations.get(originalId);
+        if (original == null || original instanceof BuiltInAnimation) return null;
+
+        int originalCatId = categoryManager.getItemCategory(originalId);
+
+        Animation clone = new Animation();
+        clone.readFromNBT(original.writeToNBT());
+        clone.id = getUnusedId();
+
+        String name = clone.name;
+        while (hasName(name)) name += "_";
+        clone.name = name;
+
+        if (originalCatId > CategoryManager.UNCATEGORIZED_ID) {
+            categoryManager.registerItem(clone.id, originalCatId);
+        }
+
+        saveAnimation(clone);
+        return clone;
     }
 
     public void delete(String name) {

@@ -160,7 +160,8 @@ public class EnumConstantInfo {
         List<MethodCallInfo.Argument> arguments = ScriptDocument.INSTANCE.parseMethodArguments(
                 openParenPos + 1,
                 closeParenPos,
-                null
+                null,
+                enumType
         );
 
         // Find matching constructor

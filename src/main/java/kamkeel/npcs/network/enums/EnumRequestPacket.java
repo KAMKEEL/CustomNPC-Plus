@@ -93,6 +93,7 @@ public enum EnumRequestPacket {
     AnimationGet,
     AnimationRemove,
     AnimationSave,
+    AnimationClone,
     BuiltInAnimationGet,
 
     RemoteNpcsGet,
@@ -226,6 +227,7 @@ public enum EnumRequestPacket {
 
     CustomAbilityClone,
     ChainedAbilityClone,
+    CopyAbilityScripts,
     LinkedItemClone,
     EffectClone,
 }

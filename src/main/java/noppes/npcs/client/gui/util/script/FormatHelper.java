@@ -254,16 +254,25 @@ public class FormatHelper {
     public String format(String text) {
         if (text == null || text.isEmpty()) return text;
 
-        // Process line by line to preserve structure
         String[] lines = text.split("\n", -1);
         StringBuilder result = new StringBuilder();
 
+        List<String> lambdaIndentStack = new ArrayList<>();
+
         for (int i = 0; i < lines.length; i++) {
-            String line = formatLine(lines[i]);
+            String line = lines[i];
+
+            if (!lambdaIndentStack.isEmpty()) {
+                line = fixLambdaBlockIndent(line, lambdaIndentStack);
+            }
+
+            line = formatLine(line);
 
             if (settings.trimTrailingWhitespace) {
                 line = trimTrailing(line);
             }
+
+            updateLambdaBlockStack(line, lambdaIndentStack);
 
             result.append(line);
             if (i < lines.length - 1) {
@@ -272,6 +281,124 @@ public class FormatHelper {
         }
 
         return result.toString();
+    }
+
+    /**
+     * Scan a formatted line for arrow-block patterns ({@code -> &#123;} or {@code => &#123;})
+     * and track open/close braces to maintain a stack of lambda block indent levels.
+     * <p>
+     * When an arrow-block opens, the line's leading indent is pushed onto the stack.
+     * When a closing brace {@code &#125;} is found and the stack is non-empty, the top
+     * entry is popped (the brace closes the innermost lambda block).
+     */
+    private void updateLambdaBlockStack(String line, List<String> stack) {
+        String trimmed = line.trim();
+        if (trimmed.isEmpty()) return;
+
+        String indent = extractIndent(line);
+        String contentNoStrings = stripStringLiterals(trimmed);
+
+        int opens = 0;
+        int closes = 0;
+        for (int i = 0; i < contentNoStrings.length(); i++) {
+            char c = contentNoStrings.charAt(i);
+            if (c == '{') opens++;
+            else if (c == '}') closes++;
+        }
+
+        boolean hasArrowBlock = endsWithArrowBlock(contentNoStrings);
+
+        // Process closes first (a line like "});" closes the current block)
+        int netCloses = closes - opens;
+        if (netCloses > 0) {
+            for (int j = 0; j < netCloses && !stack.isEmpty(); j++) {
+                stack.remove(stack.size() - 1);
+            }
+        }
+
+        if (hasArrowBlock) {
+            stack.add(indent);
+        } else if (opens > closes) {
+            // Non-arrow block opened — only push if inside a lambda context already
+            // to track nested depth correctly
+            int netOpens = opens - closes;
+            if (!stack.isEmpty()) {
+                for (int j = 0; j < netOpens; j++) {
+                    stack.add(indent);
+                }
+            }
+        }
+    }
+
+    /**
+     * Fix indentation for a line that's inside a lambda block body.
+     * Body lines get parent indent + 4 spaces; closing braces get parent indent.
+     */
+    private String fixLambdaBlockIndent(String line, List<String> stack) {
+        if (stack.isEmpty()) return line;
+
+        String trimmed = line.trim();
+        if (trimmed.isEmpty()) return line;
+
+        String currentIndent = extractIndent(line);
+        String parentIndent = stack.get(stack.size() - 1);
+        String bodyIndent = parentIndent + "    ";
+
+        boolean isClosingBrace = trimmed.startsWith("}");
+
+        String requiredIndent = isClosingBrace ? parentIndent : bodyIndent;
+
+        if (getVisualLength(currentIndent) < getVisualLength(requiredIndent)) {
+            return requiredIndent + trimmed;
+        }
+
+        return line;
+    }
+
+    private boolean endsWithArrowBlock(String contentNoStrings) {
+        int lastOpenBrace = contentNoStrings.lastIndexOf('{');
+        if (lastOpenBrace < 0) return false;
+
+        int matchingClose = contentNoStrings.indexOf('}', lastOpenBrace);
+        if (matchingClose >= 0) return false;
+
+        int searchEnd = lastOpenBrace;
+        while (searchEnd > 0 && contentNoStrings.charAt(searchEnd - 1) == ' ') searchEnd--;
+
+        if (searchEnd >= 2) {
+            String beforeBrace = contentNoStrings.substring(searchEnd - 2, searchEnd);
+            return beforeBrace.equals("->") || beforeBrace.equals("=>");
+        }
+
+        return false;
+    }
+
+    private String stripStringLiterals(String content) {
+        StringBuilder sb = new StringBuilder(content.length());
+        boolean inString = false;
+        char stringChar = 0;
+
+        for (int i = 0; i < content.length(); i++) {
+            char c = content.charAt(i);
+            if (!inString) {
+                if (c == '"' || c == '\'') {
+                    inString = true;
+                    stringChar = c;
+                    sb.append(' ');
+                } else {
+                    sb.append(c);
+                }
+            } else {
+                sb.append(' ');
+                if (c == '\\' && i + 1 < content.length()) {
+                    i++;
+                    sb.append(' ');
+                } else if (c == stringChar) {
+                    inString = false;
+                }
+            }
+        }
+        return sb.toString();
     }
 
     /**
@@ -1515,7 +1642,10 @@ public class FormatHelper {
         if (text == null || text.isEmpty()) return text;
 
         int width = maxWidth > 0 ? maxWidth : settings.maxLineLength;
-        String[] lines = text.split("\n", -1);
+
+        String joined = format(joinContinuationLines(text));
+
+        String[] lines = joined.split("\n", -1);
         StringBuilder result = new StringBuilder();
 
         for (int i = 0; i < lines.length; i++) {
@@ -1541,6 +1671,92 @@ public class FormatHelper {
         }
 
         return result.toString();
+    }
+
+    /**
+     * Join continuation lines back onto their parent line so they can be
+     * re-evaluated and re-wrapped at the current target width.
+     * <p>
+     * A "continuation line" is one whose trimmed content starts with an operator,
+     * dot, comma, {@code ?}, or {@code :} — i.e. the wrapping markers used by
+     * {@link #wrapCodeContent}. Only code continuation lines are joined; comment
+     * lines ({@code //}, {@code *}) and lines inside lambda/block bodies (deeper
+     * indent than expected) are left alone.
+     */
+    private String joinContinuationLines(String text) {
+        String[] lines = text.split("\n", -1);
+        List<String> out = new ArrayList<>();
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmed = line.trim();
+
+            if (trimmed.isEmpty()
+                    || trimmed.startsWith("//")
+                    || trimmed.startsWith("/*")
+                    || trimmed.startsWith("*")) {
+                out.add(line);
+                continue;
+            }
+
+            boolean shouldJoin = false;
+            int parentIdx = -1;
+
+            if ((isContinuationLine(trimmed) || startsWithDeclarationKeyword(trimmed))
+                    && !out.isEmpty()) {
+                int idx = out.size() - 1;
+                while (idx >= 0 && out.get(idx).trim().isEmpty()) idx--;
+                if (idx >= 0) {
+                    String parentTrimmed = out.get(idx).trim();
+                    char last = parentTrimmed.isEmpty() ? 0 : parentTrimmed.charAt(parentTrimmed.length() - 1);
+                    if (last != '{' && last != '}' && last != ';') {
+                        shouldJoin = true;
+                        parentIdx = idx;
+                    }
+                }
+            }
+
+            if (!shouldJoin && !out.isEmpty()) {
+                int idx = out.size() - 1;
+                while (idx >= 0 && out.get(idx).trim().isEmpty()) idx--;
+                if (idx >= 0) {
+                    String parentTrimmed = out.get(idx).trim();
+                    if (!parentTrimmed.isEmpty()) {
+                        char last = parentTrimmed.charAt(parentTrimmed.length() - 1);
+                        if (last == '&' || last == '|' || last == '<' || last == '+'
+                                || last == '-' || last == '?' || last == ',' || last == '>') {
+                            shouldJoin = true;
+                            parentIdx = idx;
+                        }
+                    }
+                }
+            }
+
+            if (shouldJoin) {
+                out.set(parentIdx, trimTrailing(out.get(parentIdx)) + " " + trimmed);
+                continue;
+            }
+
+            out.add(line);
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < out.size(); i++) {
+            sb.append(out.get(i));
+            if (i < out.size() - 1) sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private boolean startsWithDeclarationKeyword(String trimmed) {
+        for (String kw : DECLARATION_BREAK_KEYWORDS) {
+            if (trimmed.startsWith(kw)
+                && (trimmed.length() == kw.length()
+                    || !Character.isJavaIdentifierPart(trimmed.charAt(kw.length())))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1860,6 +2076,13 @@ public class FormatHelper {
      * Core code wrapping logic (extracted from old wrapCodeLine, operates on code without comments).
      */
     private String wrapCodeContent(String content, String indent, int maxWidth) {
+        if (settings.wrapMethodArguments) {
+            String argWrapped = tryArgumentAwareWrap(content, indent, maxWidth);
+            if (argWrapped != null) {
+                return argWrapped;
+            }
+        }
+
         String wrapIndent = indent + spaces(settings.wrapIndentSpaces);
         String fullLine = indent + content;
 
@@ -1878,36 +2101,28 @@ public class FormatHelper {
 
         int currentLen = getVisualLength(indent);
         int lastBreak = 0;
-        boolean isFirstLine = true;
 
         for (BreakPoint bp : breakPoints) {
             int segmentEnd = bp.position;
             String segment = content.substring(lastBreak, segmentEnd);
             int segmentLen = getVisualLength(segment);
 
-            if (currentLen + segmentLen > maxWidth && !isFirstLine) {
+            if (currentLen + segmentLen > maxWidth && lastBreak > 0) {
                 result.append("\n").append(wrapIndent);
                 currentLen = getVisualLength(wrapIndent);
-                isFirstLine = false;
-
                 segment = trimLeading(segment);
-            } else if (currentLen + segmentLen > maxWidth && isFirstLine && lastBreak > 0) {
-                result.append("\n").append(wrapIndent);
-                currentLen = getVisualLength(wrapIndent);
-                isFirstLine = false;
             }
 
             result.append(segment);
             currentLen += getVisualLength(segment);
             lastBreak = segmentEnd;
-            isFirstLine = false;
         }
 
         if (lastBreak < content.length()) {
             String remaining = content.substring(lastBreak);
             int remLen = getVisualLength(remaining);
 
-            if (currentLen + remLen > maxWidth && !isFirstLine) {
+            if (currentLen + remLen > maxWidth && lastBreak > 0) {
                 result.append("\n").append(wrapIndent);
                 remaining = trimLeading(remaining);
             }
@@ -1919,8 +2134,188 @@ public class FormatHelper {
     }
 
     /**
-     * Trim leading whitespace (Java 8 compatible).
+     * Try argument-aware wrapping for method/constructor calls.
+     * When a call like {@code new Foo(arg1, arg2, arg3)} exceeds maxWidth,
+     * break after the opening paren, put each argument on its own line,
+     * and close paren on its own line:
+     * <pre>
+     * new Foo(
+     *     arg1,
+     *     arg2,
+     *     arg3
+     * )
+     * </pre>
+     *
+     * @return the wrapped string, or {@code null} if this content doesn't
+     *         qualify for argument-aware wrapping
      */
+    private String tryArgumentAwareWrap(String content, String indent, int maxWidth) {
+        String fullLine = indent + content;
+        if (getVisualLength(fullLine) <= maxWidth) {
+            return null;
+        }
+
+        int callParenIdx = findOutermostCallParen(content);
+        if (callParenIdx < 0) {
+            return null;
+        }
+
+        int matchingClose = findMatchingClose(content, callParenIdx);
+        if (matchingClose < 0 || matchingClose >= content.length()) {
+            return null;
+        }
+
+        String prefix = content.substring(0, callParenIdx + 1);
+        String argsBody = content.substring(callParenIdx + 1, matchingClose);
+        String suffix = content.substring(matchingClose);
+
+        List<String> args = splitArguments(argsBody);
+        if (args.size() < 2) {
+            return null;
+        }
+
+        String argIndent = indent + spaces(settings.wrapIndentSpaces);
+        String closeIndent = indent;
+
+        StringBuilder result = new StringBuilder();
+        result.append(indent).append(prefix).append("\n");
+
+        for (int i = 0; i < args.size(); i++) {
+            String arg = args.get(i).trim();
+            if (arg.isEmpty()) continue;
+
+            result.append(argIndent).append(arg);
+            if (i < args.size() - 1) {
+                result.append(",");
+            }
+            result.append("\n");
+        }
+
+        result.append(closeIndent).append(suffix);
+
+        String wrapped = result.toString();
+        if (getVisualLength(indent + prefix) <= maxWidth) {
+            return wrapped;
+        }
+
+        return wrapped;
+    }
+
+    /**
+     * Find the opening paren of the outermost method/constructor call
+     * that should trigger argument-aware wrapping.
+     * Looks for patterns: {@code identifier(}, {@code new Type(}, {@code .method(}
+     *
+     * @return index of the '(' or -1 if no suitable call found
+     */
+    private int findOutermostCallParen(String content) {
+        int bestIdx = -1;
+        boolean inString = false;
+        char stringChar = 0;
+
+        for (int i = 0; i < content.length(); i++) {
+            char c = content.charAt(i);
+            char prev = i > 0 ? content.charAt(i - 1) : ' ';
+
+            if ((c == '"' || c == '\'') && prev != '\\') {
+                if (!inString) {
+                    inString = true;
+                    stringChar = c;
+                } else if (c == stringChar) {
+                    inString = false;
+                }
+            }
+            if (inString) continue;
+
+            if (c == '(') {
+                if (i > 0 && (Character.isJavaIdentifierPart(content.charAt(i - 1)) ||
+                              content.charAt(i - 1) == '>')) {
+                    bestIdx = i;
+                    break;
+                }
+            }
+        }
+
+        return bestIdx;
+    }
+
+    private int findMatchingClose(String content, int openIdx) {
+        int depth = 1;
+        boolean inString = false;
+        char stringChar = 0;
+
+        for (int i = openIdx + 1; i < content.length(); i++) {
+            char c = content.charAt(i);
+            char prev = i > 0 ? content.charAt(i - 1) : ' ';
+
+            if ((c == '"' || c == '\'') && prev != '\\') {
+                if (!inString) {
+                    inString = true;
+                    stringChar = c;
+                } else if (c == stringChar) {
+                    inString = false;
+                }
+            }
+            if (inString) continue;
+
+            if (c == '(') depth++;
+            else if (c == ')') {
+                depth--;
+                if (depth == 0) return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Split argument body by top-level commas, preserving nested parens,
+     * brackets, braces, strings, and lambda bodies.
+     */
+    private List<String> splitArguments(String argsBody) {
+        List<String> args = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        int depth = 0;
+        boolean inString = false;
+        char stringChar = 0;
+
+        for (int i = 0; i < argsBody.length(); i++) {
+            char c = argsBody.charAt(i);
+            char prev = i > 0 ? argsBody.charAt(i - 1) : ' ';
+
+            if ((c == '"' || c == '\'') && prev != '\\') {
+                if (!inString) {
+                    inString = true;
+                    stringChar = c;
+                } else if (c == stringChar) {
+                    inString = false;
+                }
+            }
+
+            if (inString) {
+                current.append(c);
+                continue;
+            }
+
+            if (c == '(' || c == '[' || c == '{') depth++;
+            else if (c == ')' || c == ']' || c == '}') depth--;
+
+            if (c == ',' && depth == 0) {
+                args.add(current.toString());
+                current = new StringBuilder();
+                continue;
+            }
+
+            current.append(c);
+        }
+
+        if (current.length() > 0) {
+            args.add(current.toString());
+        }
+
+        return args;
+    }
+
     private String trimLeading(String s) {
         int start = 0;
         while (start < s.length() && Character.isWhitespace(s.charAt(start))) {
@@ -1942,6 +2337,10 @@ public class FormatHelper {
             this.priority = prio;
         }
     }
+
+    private static final String[] DECLARATION_BREAK_KEYWORDS = {
+        "extends", "implements", "throws", "permits"
+    };
 
     /**
      * Find good positions to break a line.
@@ -1988,20 +2387,51 @@ public class FormatHelper {
                 points.add(new BreakPoint(i + 1, 1 + depth));
             }
 
+            // Arrow operators (-> and =>) are atomic — never break inside them
+            if ((c == '-' || c == '=') && i + 1 < content.length() && content.charAt(i + 1) == '>') {
+                i++;
+                continue;
+            }
+
             if (settings.wrapAfterOperator) {
-                // After binary operators
                 if ((c == '+' || c == '-') && i > 0 && i < content.length() - 1) {
                     char next = content.charAt(i + 1);
                     if (prev != '(' && prev != '[' && prev != ',' && prev != '=' &&
-                        next != '+' && next != '-' && next != '=') {
+                        next != '+' && next != '-' && next != '=' && next != '>') {
                         points.add(new BreakPoint(i + 1, 3 + depth));
                     }
                 }
                 if (c == '&' && i + 1 < content.length() && content.charAt(i + 1) == '&') {
                     points.add(new BreakPoint(i + 2, 2 + depth));
+                    i++; // skip second &
+                    continue;
                 }
                 if (c == '|' && i + 1 < content.length() && content.charAt(i + 1) == '|') {
                     points.add(new BreakPoint(i + 2, 2 + depth));
+                    i++; // skip second |
+                    continue;
+                }
+                // Single & as type intersection operator (e.g. T extends A & B)
+                if (c == '&' && i > 0 && i < content.length() - 1
+                    && content.charAt(i + 1) != '&' && content.charAt(i + 1) != '=') {
+                    points.add(new BreakPoint(i + 1, 3 + depth));
+                }
+                if (c == '?' && depth == 0 && i > 0 && i < content.length() - 1) {
+                    points.add(new BreakPoint(i, 2));
+                }
+                if (c == ':' && depth == 0 && i > 0 && i < content.length() - 1) {
+                    if (prev != ':' && (i + 1 >= content.length() || content.charAt(i + 1) != ':')) {
+                        points.add(new BreakPoint(i, 2));
+                    }
+                }
+                if (c == '=' && depth == 0 && i > 0 && i < content.length() - 1) {
+                    char next = content.charAt(i + 1);
+                    if (prev != '=' && prev != '!' && prev != '<' && prev != '>' &&
+                        prev != '+' && prev != '-' && prev != '*' && prev != '/' &&
+                        prev != '%' && prev != '&' && prev != '|' && prev != '^' &&
+                        next != '=' && next != '>') {
+                        points.add(new BreakPoint(i + 1, 4 + depth));
+                    }
                 }
             }
 
@@ -2010,9 +2440,28 @@ public class FormatHelper {
                 points.add(new BreakPoint(i, 2 + depth));
             }
 
-            // After opening brace
-            if (c == '{' && i + 1 < content.length()) {
-                points.add(new BreakPoint(i + 1, 1));
+            // After opening brace (even when last char — allows break before {)
+            if (c == '{') {
+                if (i + 1 < content.length()) {
+                    points.add(new BreakPoint(i + 1, 1));
+                }
+                // Break before { so the brace can move to its own line
+                if (i > 0) {
+                    points.add(new BreakPoint(i, 2));
+                }
+            }
+
+            // Break before declaration keywords (extends, implements, throws, permits)
+            if (c == ' ' && i + 1 < content.length() && Character.isLetter(content.charAt(i + 1))) {
+                for (String kw : DECLARATION_BREAK_KEYWORDS) {
+                    if (i + 1 + kw.length() <= content.length()
+                        && content.substring(i + 1, i + 1 + kw.length()).equals(kw)
+                        && (i + 1 + kw.length() >= content.length()
+                            || !Character.isJavaIdentifierPart(content.charAt(i + 1 + kw.length())))) {
+                        points.add(new BreakPoint(i + 1, 2));
+                        break;
+                    }
+                }
             }
         }
 

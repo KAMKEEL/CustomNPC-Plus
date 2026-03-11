@@ -7,6 +7,7 @@ import kamkeel.npcs.controllers.data.ability.AbilityVariant;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.data.entry.ChainedAbilityEntry;
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.ability.CopyAbilityScriptsPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcSavePacket;
@@ -816,6 +817,14 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
      * Adds as an inline slot.
      */
     public void loadAbility(Ability loadedAbility) {
+        loadAbility(loadedAbility, null);
+    }
+
+    /**
+     * Called from SubGuiAbilityLoad when a cloned ability is loaded with a known source.
+     * Copies scripts server-side from source to the new inline ability.
+     */
+    public void loadAbility(Ability loadedAbility, String sourceAbilityName) {
         if (loadedAbility != null) {
             loadedAbility.setId(UUID.randomUUID().toString());
             npcSlots.add(AbilityAction.inline(loadedAbility));
@@ -825,6 +834,10 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             selectAbilityByIndex(selectedAbilityIndex);
             initGui();
             save();
+            // Copy scripts from source ability server-side (scripts are never sent to client)
+            if (sourceAbilityName != null && !sourceAbilityName.isEmpty()) {
+                PacketClient.sendClient(new CopyAbilityScriptsPacket(sourceAbilityName, loadedAbility.getId()));
+            }
         }
     }
 
@@ -981,12 +994,18 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         if (slot.isChain() && selectedEntryIndex == -1) {
             // Chain header (must be CHAIN_REFERENCE)
             if (mode == SubGuiAbilityEditMode.MODE_CLONE_MODIFY) {
+                String sourceChainName = slot.getReferenceId();
                 if (slot.convertToInline()) {
                     ChainedAbility chain = slot.getInlineChain();
                     if (chain != null) {
                         pendingChain = chain;
                         pendingChainSlotIdx = selectedSlotIndex;
                         setSubGui(new SubGuiChainedAbilityConfig(chain, this, true, npcSlots));
+                        // Copy chain scripts server-side (client never has script handlers)
+                        if (sourceChainName != null && !sourceChainName.isEmpty()) {
+                            PacketClient.sendClient(new CopyAbilityScriptsPacket(
+                                CopyAbilityScriptsPacket.MODE_CHAINED, sourceChainName, chain.getId()));
+                        }
                     }
                     updateNpcAbilitiesList();
                     save();
@@ -1015,6 +1034,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 ChainedAbility chain = slot.getInlineChain();
                 if (chain != null && selectedEntryIndex < chain.getEntries().size()) {
                     ChainedAbilityEntry entry = chain.getEntries().get(selectedEntryIndex);
+                    // Capture source ability reference before convertToInline clears it
+                    String sourceAbilityRef = entry.getAbilityReference();
                     if (entry.convertToInline()) {
                         Ability a = entry.getInlineAbility();
                         if (a != null && !a.isBuiltIn()) {
@@ -1023,6 +1044,10 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                             editChainEntryIdx = selectedEntryIndex;
                             a.setNpcInlineEdit(true);
                             setSubGui(a.createConfigGui(this));
+                            // Copy ability scripts server-side (client never has script handlers)
+                            if (sourceAbilityRef != null && !sourceAbilityRef.isEmpty()) {
+                                PacketClient.sendClient(new CopyAbilityScriptsPacket(sourceAbilityRef, a.getId()));
+                            }
                         }
                     }
                 }
@@ -1043,12 +1068,18 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
             // Standalone ability reference → convert to inline
             Ability preCheck = slot.getAbility();
             if (preCheck != null && preCheck.isBuiltIn()) return;
+            // Capture source reference before convertToInline clears it
+            String sourceAbilityRef = slot.getReferenceId();
             if (slot.convertToInline()) {
                 Ability ability = slot.getAbility();
                 if (ability != null && !ability.isBuiltIn()) {
-                    ability.setId(UUID.randomUUID().toString());
+                    // UUID already generated by convertToInline() - don't reassign or script handler is orphaned
                     ability.setNpcInlineEdit(true);
                     setSubGui(ability.createConfigGui(this));
+                    // Copy ability scripts server-side (client never has script handlers)
+                    if (sourceAbilityRef != null && !sourceAbilityRef.isEmpty()) {
+                        PacketClient.sendClient(new CopyAbilityScriptsPacket(sourceAbilityRef, ability.getId()));
+                    }
                 }
                 updateNpcAbilitiesList();
                 save();

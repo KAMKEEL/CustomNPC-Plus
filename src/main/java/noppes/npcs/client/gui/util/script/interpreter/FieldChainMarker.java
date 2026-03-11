@@ -370,8 +370,9 @@ public class FieldChainMarker {
         if (!currentType.hasField(segment)) {
             // Field not found — check if the segment names an inner class.
             // This handles chains like Outer.Inner where Inner is a nested type, not a field.
-            if (currentType instanceof ScriptTypeInfo) {
-                ScriptTypeInfo innerClass = ((ScriptTypeInfo) currentType).getInnerClass(segment);
+            TypeInfo rawType = currentType.getRawType();
+            if (rawType instanceof ScriptTypeInfo) {
+                ScriptTypeInfo innerClass = ((ScriptTypeInfo) rawType).getInnerClass(segment);
                 if (innerClass != null) {
                     return new MarkResult(
                         new ScriptLine.Mark(pos[0], pos[1], innerClass.getTokenType(), innerClass),

@@ -30,9 +30,15 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
     private boolean returning = false;
     private int ticksSinceMiss = 0;
 
-    // Disc shape properties
+    // Disc shape properties (target values)
     private float discRadius = 1.0f; // Width of disc
     private float discThickness = 0.2f; // Height of disc
+
+    // Lerp-smoothed render values
+    private float renderDiscRadius = 1.0f;
+    private float renderDiscThickness = 0.2f;
+    private float prevRenderDiscRadius = 1.0f;
+    private float prevRenderDiscThickness = 0.2f;
 
     // Boomerang owner-gone tracking
     private int returnOwnerNullTicks = 0;
@@ -134,11 +140,22 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
 
     @Override
     protected void updateProjectile() {
+        // Save previous render values for sub-tick interpolation
+        prevRenderDiscRadius = renderDiscRadius;
+        prevRenderDiscThickness = renderDiscThickness;
+
         // Handle charging state (windup phase)
         if (isCharging()) {
+            // During charging, snap render values to target (size grows smoothly already)
+            renderDiscRadius = discRadius;
+            renderDiscThickness = discThickness;
             updateCharging();
             return;
         }
+
+        // Lerp render values toward target (smooth out sync packet jumps)
+        renderDiscRadius += (discRadius - renderDiscRadius) * 0.15f;
+        renderDiscThickness += (discThickness - renderDiscThickness) * 0.15f;
 
         // In preview mode, run movement on client (no server)
         if (previewMode) {
@@ -347,12 +364,20 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         return discRadius;
     }
 
+    public float getInterpolatedDiscRadius(float partialTicks) {
+        return prevRenderDiscRadius + (renderDiscRadius - prevRenderDiscRadius) * partialTicks;
+    }
+
     public void setDiscRadius(float radius) {
         this.discRadius = radius;
     }
 
     public float getDiscThickness() {
         return discThickness;
+    }
+
+    public float getInterpolatedDiscThickness(float partialTicks) {
+        return prevRenderDiscThickness + (renderDiscThickness - prevRenderDiscThickness) * partialTicks;
     }
 
     public void setDiscThickness(float thickness) {
@@ -456,6 +481,10 @@ public class EntityAbilityDisc extends EntityEnergyProjectile {
         this.boomerangDelay = nbt.hasKey("BoomerangDelay") ? nbt.getInteger("BoomerangDelay") : 40;
         this.discRadius = sanitize(nbt.hasKey("DiscRadius") ? nbt.getFloat("DiscRadius") : 1.0f, 1.0f, MAX_ENTITY_SIZE);
         this.discThickness = sanitize(nbt.hasKey("DiscThickness") ? nbt.getFloat("DiscThickness") : 0.2f, 0.2f, MAX_ENTITY_SIZE);
+        this.renderDiscRadius = this.discRadius;
+        this.renderDiscThickness = this.discThickness;
+        this.prevRenderDiscRadius = this.discRadius;
+        this.prevRenderDiscThickness = this.discThickness;
         this.vertical = nbt.hasKey("Vertical") ? nbt.getBoolean("Vertical") : false;
         this.returning = nbt.hasKey("Returning") && nbt.getBoolean("Returning");
         // Charging state (common fields handled by base)

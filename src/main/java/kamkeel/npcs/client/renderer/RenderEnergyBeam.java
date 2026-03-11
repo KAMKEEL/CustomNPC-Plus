@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.entity.EntityAbilityBeam;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.GL11;
@@ -51,21 +52,22 @@ public class RenderEnergyBeam extends RenderEnergy {
             return;
         }
 
-        // Get interpolated head offset
+        // Get interpolated head offset (for head/trail rendering relative to origin)
         double headOffsetX = beam.getInterpolatedHeadOffsetX(partialTicks);
         double headOffsetY = beam.getInterpolatedHeadOffsetY(partialTicks);
         double headOffsetZ = beam.getInterpolatedHeadOffsetZ(partialTicks);
 
-        // The render system passes x,y,z as the position to render the entity at
-        // Entity position = origin + headOffset (in world coords)
-        // So origin render position = x,y,z - headOffset
-        double renderOriginX = x - headOffsetX;
-        double renderOriginY = y - headOffsetY;
-        double renderOriginZ = z - headOffsetZ;
+        // Compute render origin directly from the world origin and camera position.
+        // We can't derive it from MC's x,y,z because syncPositionStateToCurrent() snaps
+        // lastTickPos = posX on every sync packet, killing MC's position interpolation.
+        // The headOffset interpolation then mismatches, causing the origin to wobble.
+        double renderOriginX = beam.getOriginX() - RenderManager.renderPosX;
+        double renderOriginY = beam.getOriginY() - RenderManager.renderPosY;
+        double renderOriginZ = beam.getOriginZ() - RenderManager.renderPosZ;
 
-        // Get beam properties
-        float beamWidth = beam.getBeamWidth();
-        float headSize = beam.getHeadSize();
+        // Get beam properties (lerp-smoothed for smooth size transitions)
+        float beamWidth = beam.getInterpolatedBeamWidth(partialTicks);
+        float headSize = beam.getInterpolatedHeadSize(partialTicks);
         int innerColor = beam.getInnerColor();
         int outerColor = beam.getOuterColor();
         float outerAlpha = beam.getOuterColorAlpha() * proximityAlpha;
@@ -77,19 +79,20 @@ public class RenderEnergyBeam extends RenderEnergy {
         // Calculate head distance from origin (for overlap check)
         double headDistFromOrigin = Math.sqrt(headOffsetX * headOffsetX + headOffsetY * headOffsetY + headOffsetZ * headOffsetZ);
 
-        // Render tail orb at origin (0,0,0) - only in anchored mode
-        // Don't render if head is too close to origin (would cause overlap/extra orb appearance)
-        if (beam.shouldRenderTailOrb() && headDistFromOrigin > headSize * 0.5) {
-            renderTailOrb(headSize * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), outerAlpha, beam.getInnerAlpha() * proximityAlpha);
-        }
-
         float innerAlpha = beam.getInnerAlpha() * proximityAlpha;
 
-        // Render trail segments with smooth connections (with fading for non-anchored)
+        // Render trail segments first (with fading for non-anchored)
         if (beam.hasFadingTrail()) {
             renderFadingTrail(beam, trail, beamWidth, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), innerAlpha);
         } else {
             renderSmoothTrail(trail, beamWidth, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), innerAlpha);
+        }
+
+        // Render tail orb at origin (0,0,0) AFTER trail so it draws on top
+        // Don't render if head is too close to origin (would cause overlap/extra orb appearance)
+        // Use target headSize (not lerped) so the threshold isn't inflated by lerp lag
+        if (beam.shouldRenderTailOrb() && headDistFromOrigin > beam.getHeadSize() * 0.5) {
+            renderTailOrb(beam.getHeadSize() * 0.8f, innerColor, outerColor, beam.isOuterColorEnabled(), beam.getOuterColorWidth(), outerAlpha, innerAlpha);
         }
 
         // Render head at interpolated offset position
@@ -105,7 +108,7 @@ public class RenderEnergyBeam extends RenderEnergy {
      * Grows from 0 to headSize based on charge progress.
      */
     private void renderChargingOrb(EntityAbilityBeam beam, double x, double y, double z, float partialTicks, float proximityAlpha) {
-        float headSize = beam.getHeadSize();
+        float headSize = beam.getInterpolatedHeadSize(partialTicks);
         float chargeProgress = beam.getInterpolatedChargeProgress(partialTicks);
         float size = headSize * chargeProgress;
 

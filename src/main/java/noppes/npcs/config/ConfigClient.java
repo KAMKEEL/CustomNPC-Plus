@@ -87,10 +87,10 @@ public class ConfigClient {
     public static float QuestOverlayX = 0;
 
     public static Property QuestOverlayYProperty;
-    public static float QuestOverlayY = 31;
+    public static float QuestOverlayY = 14;
 
     public static Property QuestOverlayScaleProperty;
-    public static int QuestOverlayScale = 223;
+    public static int QuestOverlayScale = 246;
 
     public static Property QuestOverlayTextAlignProperty;
     public static int QuestOverlayTextAlign = 0; // 0: Left, 1: Center, 2: Right
@@ -99,35 +99,35 @@ public class ConfigClient {
     public static boolean CompassEnabled = true;
 
     public static Property CompassOverlayXProperty;
-    public static float CompassOverlayX = 37;
+    public static float CompassOverlayX = 36;
 
     public static Property CompassOverlayYProperty;
     public static float CompassOverlayY = 0;
 
     public static Property CompassOverlayScaleProperty;
-    public static int CompassOverlayScale = 276;
+    public static int CompassOverlayScale = 344;
 
     public static Property CompassOverlayWidthProperty;
-    public static int CompassOverlayWidth = 200;
+    public static int CompassOverlayWidth = 158;
 
     // Ability Hotbar HUD
     public static Property AbilityHotbarEnabledProperty;
     public static boolean AbilityHotbarEnabled = true;
 
     public static Property AbilityHotbarXProperty;
-    public static float AbilityHotbarX = 3;
+    public static float AbilityHotbarX = 0;
 
     public static Property AbilityHotbarYProperty;
-    public static float AbilityHotbarY = 50;
+    public static float AbilityHotbarY = 43;
 
     public static Property AbilityHotbarScaleProperty;
-    public static int AbilityHotbarScale = 100;
+    public static int AbilityHotbarScale = 227;
 
     public static Property AbilityHotbarHorizontalProperty;
     public static boolean AbilityHotbarHorizontal = false;
 
     public static Property AbilityHotbarAltTextureProperty;
-    public static boolean AbilityHotbarAltTexture = false;
+    public static boolean AbilityHotbarAltTexture = true;
 
     // 1=Above(H)/Left(V), 2=Below(H)/Right(V)
     public static Property AbilityHotbarTextPositionProperty;
@@ -179,11 +179,11 @@ public class ConfigClient {
             QuestOverlayXProperty = config.get(HUD, "Quest Hud X", 0.0, "X position of the quest overlay.");
             QuestOverlayX = (float) QuestOverlayXProperty.getDouble(0);
 
-            QuestOverlayYProperty = config.get(HUD, "Quest Hud Y", 31.0, "Y position of the quest overlay.");
-            QuestOverlayY = (float) QuestOverlayYProperty.getDouble(31);
+            QuestOverlayYProperty = config.get(HUD, "Quest Hud Y", 14.0, "Y position of the quest overlay.");
+            QuestOverlayY = (float) QuestOverlayYProperty.getDouble(14);
 
-            QuestOverlayScaleProperty = config.get(HUD, "Quest Hud Scale", 223, "Scale percentage of the quest overlay.");
-            QuestOverlayScale = QuestOverlayScaleProperty.getInt(223);
+            QuestOverlayScaleProperty = config.get(HUD, "Quest Hud Scale", 246, "Scale percentage of the quest overlay.");
+            QuestOverlayScale = QuestOverlayScaleProperty.getInt(246);
 
             QuestOverlayTextAlignProperty = config.get(HUD, "Quest Hud Text Alignment", 0, "Text alignment in quest overlay (0: Left, 1: Center, 2: Right).");
             QuestOverlayTextAlign = QuestOverlayTextAlignProperty.getInt(0);
@@ -200,7 +200,7 @@ public class ConfigClient {
             CompassOverlayXProperty = config.get(
                 HUD,
                 "Compass Hud X",
-                37.0,
+                36.0,
                 "Horizontal position of compass overlay (0-100 percentage)"
             );
             CompassOverlayX = (float) CompassOverlayXProperty.getDouble();
@@ -216,19 +216,19 @@ public class ConfigClient {
             CompassOverlayScaleProperty = config.get(
                 HUD,
                 "Compass Hud Scale",
-                276,
+                344,
                 "Scale percentage of compass overlay",
                 50,
-                300
+                500
             );
             CompassOverlayScale = CompassOverlayScaleProperty.getInt();
 
             CompassOverlayWidthProperty = config.get(
                 HUD,
                 "Compass Hud Width",
-                200,
+                158,
                 "Base width of compass bar in pixels",
-                100,
+                50,
                 1000
             );
             CompassOverlayWidth = CompassOverlayWidthProperty.getInt();
@@ -237,19 +237,19 @@ public class ConfigClient {
             AbilityHotbarEnabledProperty = config.get(HUD, "Ability Hotbar Enabled", true, "Enable Ability Hotbar HUD Component");
             AbilityHotbarEnabled = AbilityHotbarEnabledProperty.getBoolean();
 
-            AbilityHotbarXProperty = config.get(HUD, "Ability Hotbar X", 3.0, "Horizontal position (0-100 percentage)");
+            AbilityHotbarXProperty = config.get(HUD, "Ability Hotbar X", 0.0, "Horizontal position (0-100 percentage)");
             AbilityHotbarX = (float) AbilityHotbarXProperty.getDouble();
 
-            AbilityHotbarYProperty = config.get(HUD, "Ability Hotbar Y", 50.0, "Vertical position (0-100 percentage)");
+            AbilityHotbarYProperty = config.get(HUD, "Ability Hotbar Y", 43.0, "Vertical position (0-100 percentage)");
             AbilityHotbarY = (float) AbilityHotbarYProperty.getDouble();
 
-            AbilityHotbarScaleProperty = config.get(HUD, "Ability Hotbar Scale", 100, "Scale percentage", 50, 300);
+            AbilityHotbarScaleProperty = config.get(HUD, "Ability Hotbar Scale", 227, "Scale percentage", 50, 500);
             AbilityHotbarScale = AbilityHotbarScaleProperty.getInt();
 
             AbilityHotbarHorizontalProperty = config.get(HUD, "Ability Hotbar Horizontal", false, "Display horizontally instead of vertically");
             AbilityHotbarHorizontal = AbilityHotbarHorizontalProperty.getBoolean();
 
-            AbilityHotbarAltTextureProperty = config.get(HUD, "Ability Hotbar Alt Texture", false, "Use rounded square instead of circle slots");
+            AbilityHotbarAltTextureProperty = config.get(HUD, "Ability Hotbar Alt Texture", true, "Use rounded square instead of circle slots");
             AbilityHotbarAltTexture = AbilityHotbarAltTextureProperty.getBoolean();
 
             AbilityHotbarTextPositionProperty = config.get(HUD, "Ability Hotbar Text Position", 2, "Text label position (1=Above/Left, 2=Below/Right)");

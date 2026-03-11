@@ -14,11 +14,7 @@ import noppes.npcs.client.gui.util.script.interpreter.method.MethodSignature;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -86,6 +82,8 @@ public class TypeInfo {
 
     private boolean isPrimitive;           // Whether this is a primitive type (e.g., int, boolean)
     private boolean isObjectLiteral;
+    private String typeParameterName;      // Non-null if this TypeInfo represents a type parameter (e.g., "T")
+    private TypeInfo boundType;            // For type parameters with bounds, stores the bound for resolution
 
     // JavaScript/TypeScript type info (for types from .d.ts files)
     private final JSTypeInfo jsTypeInfo;   // The JS type info (null if Java type)
@@ -95,11 +93,11 @@ public class TypeInfo {
     
     // Applied type arguments (concrete types provided for generics, e.g., <String, Integer> in Map<String, Integer>)
     // These are TypeInfo instances that can themselves be parameterized for nested generics
-    private final List<TypeInfo> appliedTypeArgs = new ArrayList<>();
+    private List<TypeInfo> appliedTypeArgs = new ArrayList<>();
     
     // For parameterized types, the raw/base type (e.g., List for List<String>)
     // Null for non-parameterized types
-    private final TypeInfo rawType;
+    private TypeInfo rawType;
 
     // For array types, the element type (e.g., IItemStack for IItemStack[])
     // Null for non-array types
@@ -176,6 +174,42 @@ public class TypeInfo {
         int lastDot = fullPath.lastIndexOf('.');
         String pkg = lastDot > 0 ? fullPath.substring(0, lastDot) : "";
         return new TypeInfo(simpleName, fullPath, pkg, Kind.UNKNOWN, null, false, null);
+    }
+
+    /**
+     * Create a TypeInfo representing an unbounded type parameter (e.g., {@code T} in {@code class Box<T>}).
+     * Uses Object.class for member lookup (erasure semantics) but displays as the parameter name.
+     */
+    public static TypeInfo typeParameter(String paramName) {
+        TypeInfo ti = new TypeInfo(paramName, paramName, "", Kind.CLASS, Object.class, true, null);
+        ti.typeParameterName = paramName;
+        return ti;
+    }
+
+    /**
+     * Create a TypeInfo representing a bounded type parameter (e.g., {@code T extends Entity}).
+     * Keeps the type parameter's own identity (paramName as simpleName/fullName) but stores the
+     * bound separately for display. Uses the bound's javaClass/kind for member resolution (erasure semantics).
+     */
+    public static TypeInfo typeParameter(String paramName, TypeInfo boundType) {
+        Class<?> javaClass = (boundType != null && boundType.javaClass != null) ? boundType.javaClass : Object.class;
+        Kind kind = (boundType != null) ? boundType.kind : Kind.CLASS;
+        TypeInfo ti = new TypeInfo(paramName, paramName, "", kind, javaClass, true, null);
+        ti.typeParameterName = paramName;
+        ti.boundType = boundType;
+        return ti;
+    }
+
+    public boolean isTypeParameter() {
+        return typeParameterName != null;
+    }
+
+    public String getTypeParameterName() {
+        return typeParameterName;
+    }
+
+    public TypeInfo getBoundType() {
+        return boundType;
     }
 
     public static TypeInfo fromClass(Class<?> clazz) {
@@ -277,12 +311,14 @@ public class TypeInfo {
         }
         
         if (type instanceof TypeVariable<?>) {
-            // Type variable like T, E, K, V
             TypeVariable<?> typeVar = (TypeVariable<?>) type;
             String varName = typeVar.getName();
-            // Create an unresolved type representing the type variable
-            // The substitution system will handle replacing this with the actual type
-            return TypeInfo.unresolved(varName, varName);
+            // Check for bounds - if bounded, create typeParameter with bound
+            Type[] bounds = typeVar.getBounds();
+            if (bounds != null && bounds.length > 0 && bounds[0] != Object.class) {
+                return TypeInfo.typeParameter(varName, fromGenericType(bounds[0]));
+            }
+            return TypeInfo.typeParameter(varName);
         }
         
         if (type instanceof WildcardType) {
@@ -454,14 +490,18 @@ public class TypeInfo {
                 // Fallback to Object array if we can't create the specific array type
             }
         }
-        
-        TypeInfo arr = new TypeInfo(simpleName, fullName, pkg, elementType.kind, arrayClass, true, null, null, null, null, elementType);
+        TypeInfo arr = new TypeInfo(simpleName, fullName, pkg, elementType.kind, arrayClass, elementType.isResolved(),
+                null, null, null, null, elementType);
         arr.setPrimitive(elementType.isPrimitive());
         arr.syntheticFields.add(FieldInfo.external("length", TypeInfo.fromPrimitive("int"), null,
                 Modifier.PUBLIC | Modifier.FINAL));
         arr.syntheticMethods.add(MethodInfo.external("clone", arr, null,
                 Collections.emptyList(), Modifier.PUBLIC, null));
-        return arr;
+
+        arr.typeParameterName = elementType.typeParameterName;
+        if (elementType.boundType != null)
+            arr.boundType = arrayOf(elementType.boundType);
+        return arr; 
     }
     
     /**
@@ -540,6 +580,14 @@ public class TypeInfo {
      */
     public List<TypeInfo> getAppliedTypeArgs() {
         return appliedTypeArgs;
+    }
+
+    protected void setRawType(TypeInfo rawType) {
+        this.rawType = rawType;
+    }
+
+    protected void setAppliedTypeArgs(List<TypeInfo> args) {
+        this.appliedTypeArgs = new ArrayList<>(args);
     }
     
     /**
@@ -645,6 +693,8 @@ public class TypeInfo {
     public TokenType getTokenType() {
         if (!resolved) 
             return TokenType.UNDEFINED_VAR;
+        if (isTypeParameter())
+            return TokenType.GENERIC_TYPE_PARAM;
         if(isPrimitive())
             return TokenType.KEYWORD;
         
@@ -1215,19 +1265,6 @@ public class TypeInfo {
         return null;
     }
     
-    /**
-     * Resolves a type parameter to its bound TypeInfo.
-     * For example, if this type has "T extends EntityPlayerMP", resolveTypeParamToTypeInfo("T") returns the TypeInfo for EntityPlayerMP.
-     * If no type parameter is found with that name, returns null.
-     */
-    public TypeInfo resolveTypeParamToTypeInfo(String typeName) {
-        TypeParamInfo param = getTypeParam(typeName);
-        if (param != null) {
-            return param.getBoundTypeInfo();
-        }
-        return null;
-    }
-
     @Override
     public String toString() {
         return "TypeInfo{" + fullName + ", " + kind + ", resolved=" + resolved + "}";
@@ -1236,13 +1273,36 @@ public class TypeInfo {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TypeInfo typeInfo = (TypeInfo) o;
-        return fullName.equals(typeInfo.fullName);
+        if (!(o instanceof TypeInfo))
+            return false;
+        TypeInfo other = (TypeInfo) o;
+
+        if (!fullName.equals(other.fullName))
+            return false;
+
+        if (typeParameterName != null || other.typeParameterName != null) {
+            if (!Objects.equals(typeParameterName, other.typeParameterName))
+                return false;
+            if (!Objects.equals(boundType, other.boundType))
+                return false;
+        }
+
+        if(!appliedTypeArgs.equals(other.appliedTypeArgs))
+            return false;
+        
+        if (!Objects.equals(elementType, other.elementType))
+            return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return fullName.hashCode();
+        int result = fullName.hashCode();
+        if (typeParameterName != null)
+            result = 31 * result + typeParameterName.hashCode();
+        if (elementType != null)
+            result = 31 * result + elementType.hashCode();
+        return result;
     }
 }

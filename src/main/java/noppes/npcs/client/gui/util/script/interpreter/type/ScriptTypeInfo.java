@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.type;
 
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.TypeParamInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodSignature;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
@@ -10,8 +11,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a type defined within the script itself (not from Java classpath).
@@ -36,6 +39,14 @@ public class ScriptTypeInfo extends TypeInfo {
     
     // Enum constants (for enum types only) - name -> EnumConstantInfo
     private final Map<String, EnumConstantInfo> enumConstants = new HashMap<>();
+    
+    // Generic type parameters declared on this type (e.g., <E>, <K, V>, <T extends Entity>)
+    private final List<TypeParamInfo> declaredTypeParams = new ArrayList<>();
+
+    // Recursion guard: tracks ScriptTypeInfo instances currently being parameterized on this thread
+    // to break the cycle: parameterize → substitute → parameterize (self-referential types)
+    private static final ThreadLocal<Set<ScriptTypeInfo>> PARAMETERIZING =
+            ThreadLocal.withInitial(HashSet::new);
     
     // Parent class reference (for inner class resolution)
     private ScriptTypeInfo outerClass;
@@ -101,6 +112,111 @@ public class ScriptTypeInfo extends TypeInfo {
     public ScriptTypeInfo getOuterClass() { return outerClass; }
     public List<ScriptTypeInfo> getInnerClasses() { return innerClasses; }
     
+    // ==================== GENERIC TYPE PARAMETERS ====================
+    
+    public void addDeclaredTypeParam(TypeParamInfo param) {
+        declaredTypeParams.add(param);
+    }
+    
+    public List<TypeParamInfo> getDeclaredTypeParams() {
+        return declaredTypeParams;
+    }
+    
+    public TypeParamInfo getDeclaredTypeParam(String name) {
+        for (TypeParamInfo param : declaredTypeParams) {
+            if (param.getName().equals(name)) {
+                return param;
+            }
+        }
+        return null;
+    }
+    
+    public boolean hasDeclaredTypeParams() {
+        return !declaredTypeParams.isEmpty();
+    }
+    
+    @Override
+    public List<TypeParamInfo> getTypeParams() {
+        if (!declaredTypeParams.isEmpty()) {
+            return declaredTypeParams;
+        }
+        return super.getTypeParams();
+    }
+    
+    @Override
+    public TypeParamInfo getTypeParam(String name) {
+        TypeParamInfo param = getDeclaredTypeParam(name);
+        if (param != null) {
+            return param;
+        }
+        return super.getTypeParam(name);
+    }
+
+    private static MethodInfo substituteMethod(MethodInfo m, GenericContext ctx) {
+        TypeInfo retType = m.getReturnType();
+        TypeInfo subRet = ctx.substitute(retType);
+        List<FieldInfo> params = new ArrayList<>(m.getParameters());
+        boolean changed = subRet != retType;
+        for (int i = 0; i < params.size(); i++) {
+            FieldInfo p = params.get(i);
+            TypeInfo subP = ctx.substitute(p.getTypeInfo());
+            if (subP != p.getTypeInfo()) {
+                params.set(i, FieldInfo.reflectionParam(p.getName(), subP));
+                changed = true;
+            }
+        }
+        return changed ? MethodInfo.external(m.getName(), subRet, m.getContainingType(),
+                params, m.getModifiers(), m.getDocumentation()) : m;
+    }
+
+
+    @Override
+    public TypeInfo parameterize(List<TypeInfo> typeArgs) {
+        if (typeArgs == null || typeArgs.isEmpty()) return this;
+
+        Set<ScriptTypeInfo> active = PARAMETERIZING.get();
+        if (!active.add(this)) {
+            // Re-entrant call on the same raw type — fall back to shallow parameterization
+            // (no method/field substitution) to break the infinite recursion.
+            return super.parameterize(typeArgs);
+        }
+
+        try {
+            ScriptTypeInfo result = new ScriptTypeInfo(getSimpleName(), getFullName(), getKind(),
+                    declarationOffset, bodyStart, bodyEnd, modifiers);
+            result.setRawType(this);
+            result.setAppliedTypeArgs(typeArgs);
+            result.superClass = this.superClass;
+            result.superClassName = this.superClassName;
+            result.implementedInterfaces.addAll(this.implementedInterfaces);
+            result.implementedInterfaceNames.addAll(this.implementedInterfaceNames);
+            result.declaredTypeParams.addAll(this.declaredTypeParams);
+            result.outerClass = this.outerClass;
+            // Use fromBindings instead of forReceiver to avoid infinite recursion:
+            // forReceiver(result) → substitute() → parameterize() → forReceiver() → ...
+            GenericContext ctx = GenericContext.fromBindings(this.declaredTypeParams, typeArgs);
+
+            // Parameterize methods, constructors, and fields with the generic context of this type. 
+            for (Map.Entry<String, List<MethodInfo>> entry : this.methods.entrySet()) {
+                List<MethodInfo> substituted = new ArrayList<>();
+                for (MethodInfo m : entry.getValue()) substituted.add(substituteMethod(m, ctx));
+                result.methods.put(entry.getKey(), substituted);
+            }
+            for (MethodInfo ctor : this.constructors) {
+                result.constructors.add(substituteMethod(ctor, ctx));
+            }
+            for (Map.Entry<String, FieldInfo> entry : this.fields.entrySet()) {
+                FieldInfo f = entry.getValue();
+                TypeInfo subType = ctx.substitute(f.getTypeInfo());
+                result.fields.put(entry.getKey(), subType != f.getTypeInfo()
+                        ? FieldInfo.external(f.getName(), subType, null, f.getModifiers()) : f);
+            }
+            return result;
+        } finally {
+            active.remove(this);
+        }
+    }
+
     // ==================== INHERITANCE ====================
     
     /**
@@ -884,20 +1000,18 @@ public class ScriptTypeInfo extends TypeInfo {
         // If no constructors defined in script type, it has an implicit default constructor
         // Check if parent has a no-arg constructor
         if (!hasConstructors()) {
-            boolean parentHasNoArg = false;
-
             if (superClass instanceof ScriptTypeInfo) {
                 ScriptTypeInfo parentScript = (ScriptTypeInfo) superClass;
-                if (!parentScript.hasConstructors() || parentScript.findConstructor(0) != null) {
-                    parentHasNoArg = true;
+                if (!parentScript.isInterface() && (!parentScript.hasConstructors() || parentScript.findConstructor(0) != null)) {
+                    addConstructorMismatchError(superClass, superClass.getSimpleName());
                 }
             } else {
                 Class<?> javaClass = superClass.getJavaClass();
-                if (javaClass != null) {
+                if (javaClass != null && !javaClass.isInterface()) {
                     try {
                         for (java.lang.reflect.Constructor<?> ctor : javaClass.getConstructors()) {
                             if (ctor.getParameterCount() == 0) {
-                                parentHasNoArg = true;
+                                addConstructorMismatchError(superClass, superClass.getSimpleName());
                                 break;
                             }
                         }
@@ -907,9 +1021,6 @@ public class ScriptTypeInfo extends TypeInfo {
                 }
             }
 
-            if (!parentHasNoArg) {
-                addConstructorMismatchError(superClass, superClass.getSimpleName());
-            }
         }
         // If script type has constructors, we'd need to check super() calls - that's more complex
         // For now, we just validate the implicit default constructor case

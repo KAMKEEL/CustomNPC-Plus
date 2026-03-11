@@ -49,9 +49,15 @@ public class EnergyProjectileEvent extends CustomNPCsEvent implements IEnergyPro
      * energyProjectileTick
      */
     public static class UpdateEvent extends EnergyProjectileEvent implements IEnergyProjectileEvent.UpdateEvent {
-        public UpdateEvent(IEnergyProjectile projectile) {
+        private final int tick;
+
+        public UpdateEvent(IEnergyProjectile projectile, int tick) {
             super(projectile);
+            this.tick = tick;
         }
+
+        @Override
+        public int getTick() { return this.tick; }
 
         @Override
         public String getHookName() {

@@ -38,9 +38,15 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         FREE_TRAIL
     }
 
-    // Beam shape properties
+    // Beam shape properties (target values - set by sync packets/scripts)
     private float beamWidth = 0.3f;
     private float headSize = 0.5f;
+
+    // Lerp-smoothed render values (approach target each tick)
+    private float renderBeamWidth = 0.3f;
+    private float renderHeadSize = 0.5f;
+    private float prevRenderBeamWidth = 0.3f;
+    private float prevRenderHeadSize = 0.5f;
 
     // Trail - list of points showing beam path (RELATIVE to origin!)
     private List<Vec3> trailPoints = new ArrayList<>();
@@ -234,13 +240,23 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
 
     @Override
     protected void updateProjectile() {
+        // Save previous render values for sub-tick interpolation
+        prevRenderBeamWidth = renderBeamWidth;
+        prevRenderHeadSize = renderHeadSize;
+
         // Handle charging state (windup phase) - use isCharging() for synced value
         if (isCharging()) {
+            // During charging, snap render values to target (size grows smoothly already)
+            renderBeamWidth = beamWidth;
+            renderHeadSize = headSize;
             updateCharging();
             return;
         }
 
-        // Store previous head offset for interpolation
+        // Lerp render values toward target (smooth out sync packet jumps)
+        renderBeamWidth += (beamWidth - renderBeamWidth) * 0.15f;
+        renderHeadSize += (headSize - renderHeadSize) * 0.15f;
+
         prevHeadOffsetX = headOffsetX;
         prevHeadOffsetY = headOffsetY;
         prevHeadOffsetZ = headOffsetZ;
@@ -580,12 +596,20 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
         return beamWidth;
     }
 
+    public float getInterpolatedBeamWidth(float partialTicks) {
+        return prevRenderBeamWidth + (renderBeamWidth - prevRenderBeamWidth) * partialTicks;
+    }
+
     public void setBeamWidth(float beamWidth) {
         this.beamWidth = beamWidth;
     }
 
     public float getHeadSize() {
         return headSize;
+    }
+
+    public float getInterpolatedHeadSize(float partialTicks) {
+        return prevRenderHeadSize + (renderHeadSize - prevRenderHeadSize) * partialTicks;
     }
 
     public void setHeadSize(float headSize) {
@@ -758,6 +782,10 @@ public class EntityAbilityBeam extends EntityEnergyProjectile {
     protected void readProjectileNBT(NBTTagCompound nbt) {
         this.beamWidth = sanitize(nbt.hasKey("BeamWidth") ? nbt.getFloat("BeamWidth") : 0.3f, 0.3f, MAX_ENTITY_SIZE);
         this.headSize = sanitize(nbt.hasKey("HeadSize") ? nbt.getFloat("HeadSize") : 0.5f, 0.5f, MAX_ENTITY_SIZE);
+        this.renderBeamWidth = this.beamWidth;
+        this.renderHeadSize = this.headSize;
+        this.prevRenderBeamWidth = this.beamWidth;
+        this.prevRenderHeadSize = this.headSize;
         this.headOffsetX = nbt.hasKey("HeadOffsetX") ? nbt.getDouble("HeadOffsetX") : 0;
         this.headOffsetY = nbt.hasKey("HeadOffsetY") ? nbt.getDouble("HeadOffsetY") : 0;
         this.headOffsetZ = nbt.hasKey("HeadOffsetZ") ? nbt.getDouble("HeadOffsetZ") : 0;
