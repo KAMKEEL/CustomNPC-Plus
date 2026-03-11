@@ -4513,6 +4513,10 @@ public class ScriptDocument {
         // Methods/functions - UNIFIED (uses shared 'methods' list)
         markMethodDeclarations(marks);
 
+        // Pre-infer constructor lambda parameter types so body resolution works
+        // Must run before markMethodCalls so lambda body chains/calls see typed parameters
+        inferConstructorLambdaTypes();
+
         // Method calls - UNIFIED (stores in shared 'methodCalls' list)
         markMethodCalls(marks);
 
@@ -9374,6 +9378,57 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    /**
+     * Pre-infer lambda parameter types for constructor arguments (new Foo(... lambda ...)).
+     * Constructor SAM inference normally happens in markImportedClassUsages, which runs AFTER
+     * markMethodCalls/markVariables/markChainedFieldAccesses. That ordering means lambda body
+     * resolution (e.g., event.getHookName()) fails because parameter types aren't set yet.
+     * This early pass sets inferredType on lambda parameters so body resolution works correctly.
+     */
+    private void inferConstructorLambdaTypes() {
+        Pattern newExpr = Pattern.compile("\\bnew\\s+([A-Za-z][a-zA-Z0-9_.]*?)\\s*(?:<[^>]*>)?\\s*\\(");
+        Matcher m = newExpr.matcher(text);
+
+        while (m.find()) {
+            if (isExcluded(m.start()))
+                continue;
+            if (isInImportOrPackage(m.start()))
+                continue;
+
+            String className = m.group(1);
+            int openParen = m.end() - 1;
+            int closeParen = findMatchingParen(openParen);
+            if (closeParen < 0)
+                continue;
+
+            String argsText = text.substring(openParen + 1, closeParen);
+            boolean hasLambda = isJavaScript()
+                    ? (argsText.contains("function") || argsText.contains("=>"))
+                    : argsText.contains("->");
+            if (!hasLambda)
+                continue;
+
+            TypeInfo info = resolveType(className, m.start(1));
+            if (info == null || !info.isResolved())
+                continue;
+            if (!info.hasConstructors())
+                continue;
+
+            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null, info);
+            TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType)
+                                           .toArray(TypeInfo[]::new);
+
+            MethodInfo constructor = info.findConstructor(argTypes);
+            if (constructor == null) {
+                constructor = info.findConstructor(arguments.size());
+            }
+
+            if (constructor != null && constructor.getParameters().size() == arguments.size()) {
+                parseMethodArguments(openParen + 1, closeParen, constructor, info);
+            }
         }
     }
 
