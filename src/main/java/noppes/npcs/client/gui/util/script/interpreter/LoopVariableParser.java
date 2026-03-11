@@ -12,9 +12,9 @@ import java.util.regex.Pattern;
 class LoopVariableParser {
 
     private static final Pattern ENHANCED_FOR = Pattern.compile(
-            "\\bfor\\s*\\(\\s*([A-Za-z_][\\w.<>,\\[\\] \\t]*?(?:\\[\\s*\\])*)\\s+(\\w+)\\s*:\\s*([^)]+)\\)");
+            "\\bfor\\s*\\(\\s*([A-Za-z_][\\w.<>,\\[\\] \\t\\n\\r]*?(?:\\[\\s*\\])*)\\s+(\\w+)\\s*:\\s*([^)]+)\\)");
     private static final Pattern CLASSIC_FOR = Pattern.compile(
-            "\\bfor\\s*\\(\\s*([A-Za-z_][\\w.<>,\\[\\] \\t]*?(?:\\[\\s*\\])*)\\s+(\\w+)\\s*=");
+            "\\bfor\\s*\\(\\s*([A-Za-z_][\\w.<>,\\[\\] \\t\\n\\r]*?(?:\\[\\s*\\])*)\\s+(\\w+)\\s*=");
     private static final Pattern FOR_IN = Pattern.compile(
             "\\bfor\\s*\\(\\s*(?:var|let|const)\\s+(\\w+)\\s+in\\s+([^)]+)\\)");
     private static final Pattern FOR_OF = Pattern.compile(
