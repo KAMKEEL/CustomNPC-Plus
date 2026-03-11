@@ -9,6 +9,7 @@ import kamkeel.npcs.network.packets.request.category.CategorySavePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedGetPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemBuildPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemRemovePacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedItemClonePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.client.gui.GuiScreen;
@@ -17,7 +18,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.CustomNpcResourceListener;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.item.SubGuiLinkedItem;
 import noppes.npcs.client.gui.util.GuiDirectoryCategorized;
@@ -91,10 +91,7 @@ public class GuiLinkedItemDirectory extends GuiDirectoryCategorized {
     @Override
     protected void onCloneItem() {
         if (linkedItem != null && linkedItem.id >= 0) {
-            LinkedItem clone = linkedItem.clone();
-            while (itemData.containsKey(clone.name)) clone.name += "_";
-            clone.id = -1;
-            PacketClient.sendClient(new LinkedItemSavePacket(clone.writeToNBT(false), ""));
+            PacketClient.sendClient(new LinkedItemClonePacket(linkedItem.id));
         }
     }
 
@@ -215,7 +212,7 @@ public class GuiLinkedItemDirectory extends GuiDirectoryCategorized {
     protected void drawItemDetails(int x, int y, int w) {
         if (linkedItem == null || linkedItem.id < 0) return;
 
-        fontRendererObj.drawString(linkedItem.name, x, y, CustomNpcResourceListener.DefaultTextColor, true);
+        fontRendererObj.drawString(linkedItem.name, x, y, 0xFFFFFF, true);
         y += 14;
 
         int labelColor = 0xffae0d;

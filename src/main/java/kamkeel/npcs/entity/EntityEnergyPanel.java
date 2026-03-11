@@ -55,7 +55,7 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
                              EnergyBarrierData barrier, EnergyPanelData panel) {
         this(world);
         this.setPosition(x, y + panel.heightOffset, z);
-        this.ownerEntityId = owner.getEntityId();
+        this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         this.panelYaw = yaw;
         this.prevPanelYaw = yaw;
         this.mode = mode;
@@ -730,15 +730,6 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
 
     // ==================== NBT ====================
 
-    @Override
-    protected void readEntityFromNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
-
-    @Override
-    protected void writeEntityToNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
 
     @Override
     protected void writeSpawnNBT(NBTTagCompound nbt) {

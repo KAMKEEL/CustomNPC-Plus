@@ -11,10 +11,12 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.ability.BuiltInAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilityClonePacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityClonePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.category.AbilityCategoryMovePacket;
@@ -269,7 +271,14 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
 
     @Override
     protected void onCloneItem() {
-        // Abilities don't support cloning through this mechanism
+        if (currentIsBuiltIn) return;
+        if (isChainedMode() && selectedChain != null) {
+            PacketClient.sendClient(new ChainedAbilityClonePacket(selectedChain.getName()));
+            if (selectedCatId >= 0) requestItemsInCategory(selectedCatId);
+        } else if (selectedAbility != null) {
+            PacketClient.sendClient(new CustomAbilityClonePacket(selectedAbility.getName()));
+            if (selectedCatId >= 0 && isCustomMode()) requestItemsInCategory(selectedCatId);
+        }
     }
 
     @Override
@@ -672,10 +681,10 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
 
             if (!isPlaying || isPaused) {
                 String statusKey = isPaused ? "animation.paused" : "animation.stopped";
-                addLabel(new GuiNpcLabel(90, statusKey, btnX, playY + 5));
+                addLabel(new GuiNpcLabel(90, statusKey, btnX, playY + 5, 0xFFFFFF));
                 addButton(new GuiTexturedButton(91, "", btnX + 65, playY, 11, 20, animTexture, 18, 71));
             } else {
-                addLabel(new GuiNpcLabel(90, "animation.playing", btnX, playY + 5));
+                addLabel(new GuiNpcLabel(90, "animation.playing", btnX, playY + 5, 0xFFFFFF));
                 addButton(new GuiTexturedButton(92, "", btnX + 65, playY, 14, 20, animTexture, 0, 71));
             }
             if (isActive) {
@@ -683,13 +692,19 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
             }
         }
 
-        // Edit + Remove at bottom
-        int editY = contentY + contentH - btnH * 2 - gap;
-        GuiNpcButton editBtn = new GuiNpcButton(51, rightX, editY, rightPanelW, btnH, "gui.edit");
+        // Edit + Copy on one row, Remove below
+        int btnY = contentY + contentH - btnH * 2 - gap;
+        int halfW = (rightPanelW - gap) / 2;
+
+        GuiNpcButton editBtn = new GuiNpcButton(51, rightX, btnY, halfW, btnH, "gui.edit");
         editBtn.enabled = hasSelectedItem() && movePhase == 0 && !currentIsBuiltIn;
         addButton(editBtn);
 
-        int removeY = editY + btnH + gap;
+        GuiNpcButton cloneBtn = new GuiNpcButton(52, rightX + halfW + gap, btnY, halfW, btnH, "gui.copy");
+        cloneBtn.enabled = hasSelectedItem() && movePhase == 0 && !currentIsBuiltIn;
+        addButton(cloneBtn);
+
+        int removeY = btnY + btnH + gap;
         GuiNpcButton removeBtn = new GuiNpcButton(53, rightX, removeY, rightPanelW, btnH, "gui.remove");
         removeBtn.enabled = hasSelectedItem() && movePhase == 0 && !currentIsBuiltIn;
         removeBtn.setTextColor(0xFF5555);
@@ -718,6 +733,8 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
      * Matches GuiAbilityInterface's rendering pipeline.
      */
     private void drawAbilityPreview(float partialTicks) {
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
         // Set NPC facing direction
         npc.prevRenderYawOffset = npc.renderYawOffset = NPC_FACING_YAW;
         npc.prevRotationYaw = npc.rotationYaw = NPC_FACING_YAW;
@@ -747,44 +764,47 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         setScissorClip(previewX, previewY, previewW, previewH);
 
-        GL11.glEnable(GL11.GL_COLOR_MATERIAL);
-        GL11.glPushMatrix();
-
-        GL11.glTranslatef(npcScreenX, npcScreenY, 500F);
-        GL11.glScalef(-renderZoom, renderZoom, renderZoom);
-        GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
-        GL11.glRotatef(CAMERA_PITCH, 1.0F, 0.0F, 0.0F);
-        GL11.glRotatef(rotation, 0.0F, 1.0F, 0.0F);
-
-        GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
-        RenderHelper.enableStandardItemLighting();
-        GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
-
-        GL11.glTranslatef(0.0F, npc.yOffset, 0.0F);
-        RenderManager.instance.playerViewY = 180F;
-        ClientEventHandler.renderingEntityInGUI = true;
-
-        // Render NPC at its position delta
         try {
-            RenderManager.instance.renderEntityWithPosYaw(npc, npcDeltaX, npcDeltaY, npcDeltaZ, 0.0F, partialTicks);
-        } catch (Exception ignored) {}
+            GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+            GL11.glPushMatrix();
 
-        // Render preview entities
-        renderPreviewEntities(partialTicks);
+            GL11.glTranslatef(npcScreenX, npcScreenY, 500F);
+            GL11.glScalef(-renderZoom, renderZoom, renderZoom);
+            GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
+            GL11.glRotatef(CAMERA_PITCH, 1.0F, 0.0F, 0.0F);
+            GL11.glRotatef(rotation, 0.0F, 1.0F, 0.0F);
 
-        // Render telegraph
-        renderPreviewTelegraph(partialTicks);
+            GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
+            RenderHelper.enableStandardItemLighting();
+            GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
 
-        ClientEventHandler.renderingEntityInGUI = false;
-        GL11.glPopMatrix();
+            GL11.glTranslatef(0.0F, npc.yOffset, 0.0F);
+            RenderManager.instance.playerViewY = 180F;
+            ClientEventHandler.renderingEntityInGUI = true;
 
-        RenderHelper.disableStandardItemLighting();
-        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-        OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            // Render NPC at its position delta
+            try {
+                RenderManager.instance.renderEntityWithPosYaw(npc, npcDeltaX, npcDeltaY, npcDeltaZ, 0.0F, partialTicks);
+            } catch (Exception ignored) {}
 
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+            // Render preview entities
+            renderPreviewEntities(partialTicks);
+
+            // Render telegraph
+            renderPreviewTelegraph(partialTicks);
+
+            ClientEventHandler.renderingEntityInGUI = false;
+            GL11.glPopMatrix();
+
+            RenderHelper.disableStandardItemLighting();
+            GL11.glDisable(GL12.GL_RESCALE_NORMAL);
+            OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        } finally {
+            ClientEventHandler.renderingEntityInGUI = false;
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        }
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
     }
 
@@ -822,14 +842,17 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
         GL11.glTranslatef(0.0F, entity.yOffset, 1F);
         RenderManager.instance.playerViewY = 180F;
 
+        ClientEventHandler.renderingEntityInGUI = true;
         try {
             RenderManager.instance.renderEntityWithPosYaw(entity, 0.0, 0.0, 0.0, 0.0F, 1.0F);
         } catch (Exception ignored) {}
+        ClientEventHandler.renderingEntityInGUI = false;
 
         entity.prevRenderYawOffset = entity.renderYawOffset = f2;
         entity.prevRotationYaw = entity.rotationYaw = f3;
         entity.rotationPitch = f4;
         entity.prevRotationYawHead = entity.rotationYawHead = f7;
+        GL11.glPopMatrix();
 
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
@@ -837,7 +860,6 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
-        GL11.glPopMatrix();
     }
 
     private void renderPreviewEntities(float partialTicks) {
@@ -959,32 +981,32 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
         if (isChainedMode() && selectedChain != null) {
             fontRendererObj.drawString(selectedChain.getDisplayName(), x, y, 0xFFFFFF, true);
             y += 14;
-            fontRendererObj.drawString("Entries: " + selectedChain.getEntries().size(), x, y, 0xB5B5B5, false);
+            fontRendererObj.drawString(StatCollector.translateToLocal("ability.entries") + ": " + selectedChain.getEntries().size(), x, y, 0xB5B5B5, false);
             y += 12;
-            fontRendererObj.drawString("Cooldown: " + selectedChain.getCooldownTicks() + "t", x, y, 0xB5B5B5, false);
+            fontRendererObj.drawString(StatCollector.translateToLocal("ability.cooldown") + ": " + selectedChain.getCooldownTicks() + "t", x, y, 0xB5B5B5, false);
             y += 12;
             UserType ut = selectedChain.getAllowedBy();
-            fontRendererObj.drawString("Allowed: " + ut.name(), x, y, 0xB5B5B5, false);
+            fontRendererObj.drawString(StatCollector.translateToLocal("ability.allowed") + ": " + ut.name(), x, y, 0xB5B5B5, false);
         } else if (selectedAbility != null) {
             fontRendererObj.drawString(selectedAbility.getDisplayName(), x, y, 0xFFFFFF, true);
             y += 14;
             String typeId = selectedAbility.getTypeId();
             String typeName = StatCollector.translateToLocal(typeId);
-            fontRendererObj.drawString("Type: " + typeName, x, y, 0xFFAE0D, false);
+            fontRendererObj.drawString(StatCollector.translateToLocal("gui.type") + ": " + typeName, x, y, 0xFFAE0D, false);
             y += 12;
-            fontRendererObj.drawString("Cooldown: " + selectedAbility.getCooldownTicks() + "t", x, y, 0xB5B5B5, false);
+            fontRendererObj.drawString(StatCollector.translateToLocal("ability.cooldown") + ": " + selectedAbility.getCooldownTicks() + "t", x, y, 0xB5B5B5, false);
             y += 12;
-            fontRendererObj.drawString("Windup: " + selectedAbility.getWindUpTicks() + "t", x, y, 0xB5B5B5, false);
+            fontRendererObj.drawString(StatCollector.translateToLocal("ability.windup") + ": " + selectedAbility.getWindUpTicks() + "t", x, y, 0xB5B5B5, false);
             y += 12;
             UserType ut = selectedAbility.getAllowedBy();
-            fontRendererObj.drawString("Allowed: " + ut.name(), x, y, 0xB5B5B5, false);
+            fontRendererObj.drawString(StatCollector.translateToLocal("ability.allowed") + ": " + ut.name(), x, y, 0xB5B5B5, false);
             if (selectedAbility.hasDamage()) {
                 y += 12;
-                fontRendererObj.drawString("Damage: " + selectedAbility.getDisplayDamage(), x, y, 0xFF5555, false);
+                fontRendererObj.drawString(StatCollector.translateToLocal("ability.damage") + ": " + selectedAbility.getDisplayDamage(), x, y, 0xFF5555, false);
             }
             if (currentIsBuiltIn) {
                 y += 12;
-                fontRendererObj.drawString("(Built-in)", x, y, 0x55FF55, false);
+                fontRendererObj.drawString(StatCollector.translateToLocal("gui.builtin.tag"), x, y, 0x55FF55, false);
             }
         }
     }

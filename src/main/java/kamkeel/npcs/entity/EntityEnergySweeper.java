@@ -78,7 +78,7 @@ public class EntityEnergySweeper extends EntityEnergyAbility {
                                boolean lockOnTarget) {
         this(world);
 
-        this.ownerEntityId = owner.getEntityId();
+        this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         this.targetEntityId = target != null ? target.getEntityId() : -1;
         this.beamLength = beamLength;
         this.beamWidth = beamWidth;
@@ -95,16 +95,18 @@ public class EntityEnergySweeper extends EntityEnergyAbility {
         this.maxTicks = (int) ((360.0f * numberOfRotations) / sweepSpeed) + 10;
 
         // Calculate base yaw
-        if (lockOnTarget && target != null) {
+        if (lockOnTarget && target != null && owner != null) {
             double dx = target.posX - owner.posX;
             double dz = target.posZ - owner.posZ;
             this.baseYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-        } else {
+        } else if (owner != null) {
             this.baseYaw = owner.rotationYaw;
         }
 
         // Position at beam center (bottom at feet, top at feet + beamHeight)
-        this.setPosition(owner.posX, owner.posY + beamHeight / 2.0, owner.posZ);
+        if (owner != null) {
+            this.setPosition(owner.posX, owner.posY + beamHeight / 2.0, owner.posZ);
+        }
 
         // Ready to deal damage immediately
         this.ticksSinceDamage = damageInterval;
@@ -423,15 +425,6 @@ public class EntityEnergySweeper extends EntityEnergyAbility {
 
     // ==================== NBT ====================
 
-    @Override
-    protected void readEntityFromNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
-
-    @Override
-    protected void writeEntityToNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
 
     @Override
     protected void writeSpawnNBT(NBTTagCompound nbt) {

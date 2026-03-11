@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import kamkeel.npcs.controllers.AbilityController;
 import noppes.npcs.constants.EnumCategoryType;
 import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.CategoryManager;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.LinkedItemController;
 
@@ -64,6 +65,11 @@ public final class CategoryMoveItemPacket extends AbstractPacket {
         int type = in.readInt();
         int item = in.readInt();
         int cat = in.readInt();
+
+        // Validate target category exists (0 = Uncategorized is always valid)
+        CategoryManager cm = CategorySavePacket.getManager(type);
+        if (cm == null) return;
+        if (cat != CategoryManager.UNCATEGORIZED_ID && cm.getCategory(cat) == null) return;
 
         switch (type) {
             case EnumCategoryType.EFFECT: CustomEffectController.getInstance().moveItemToCategory(item, cat); break;

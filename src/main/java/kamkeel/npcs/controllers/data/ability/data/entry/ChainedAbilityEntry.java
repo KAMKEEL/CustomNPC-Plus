@@ -5,6 +5,8 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import net.minecraft.nbt.NBTTagCompound;
 
+import java.util.UUID;
+
 /**
  * A single entry in a {@link ChainedAbility}, representing one ability
  * to execute in sequence along with its delay configuration.
@@ -155,7 +157,9 @@ public class ChainedAbilityEntry {
         Ability resolved = ctrl.resolveAbility(abilityReference);
         if (resolved == null) return false;
 
-        inlineAbility = ctrl.fromNBT(resolved.writeNBT(true));
+        NBTTagCompound nbt = resolved.writeNBT(true);
+        nbt.setString("id", UUID.randomUUID().toString());
+        inlineAbility = ctrl.fromNBT(nbt);
         entryType = EntryType.INLINE;
         abilityReference = "";
         return true;

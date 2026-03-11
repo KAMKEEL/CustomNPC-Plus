@@ -3,6 +3,7 @@ package noppes.npcs.controllers.data;
 import kamkeel.npcs.network.packets.request.script.EffectScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.janino.EventJaninoScript;
 
 /**
  * Script handler for CustomEffect scripts.
@@ -33,6 +34,11 @@ public class EffectScript extends SingleScriptHandler implements IScriptHandlerP
     @Override
     public ScriptContext getContext() {
         return ScriptContext.EFFECT;
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new EventJaninoScript(ScriptContext.EFFECT);
     }
 
     @Override

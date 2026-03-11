@@ -309,6 +309,11 @@ public class TelegraphController implements ITelegraphHandler {
     }
 
     @Override
+    public ITelegraph createSquare(float radius) {
+        return new ScriptTelegraph(Telegraph.square(radius));
+    }
+
+    @Override
     public ITelegraph createPoint() {
         return new ScriptTelegraph(Telegraph.point());
     }
@@ -331,6 +336,9 @@ public class TelegraphController implements ITelegraphHandler {
                     break;
                 case CONE:
                     telegraph = Telegraph.cone(5.0f, 45.0f);
+                    break;
+                case SQUARE:
+                    telegraph = Telegraph.square(3.0f);
                     break;
                 case POINT:
                     telegraph = Telegraph.point();

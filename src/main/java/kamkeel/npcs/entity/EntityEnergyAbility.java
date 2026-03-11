@@ -376,6 +376,22 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         magicData.readToNBT(nbt);
     }
 
+    // ==================== WORLD NBT (INTENTIONALLY EMPTY) ====================
+
+    /**
+     * Ability entities are transient — they must not survive world saves.
+     * If Minecraft deserializes one from a chunk, kill it immediately.
+     */
+    @Override
+    protected void readEntityFromNBT(NBTTagCompound nbt) {
+        this.setDead();
+    }
+
+    @Override
+    protected void writeEntityToNBT(NBTTagCompound nbt) {
+        // Intentionally empty — ability entities are transient (not saved to world)
+    }
+
     // ==================== SPAWN DATA ====================
 
     /**

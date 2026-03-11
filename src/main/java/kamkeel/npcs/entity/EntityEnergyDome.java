@@ -51,7 +51,7 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
         this(world);
         this.noClip = true;
         this.stepHeight = 0.0F;
-        this.ownerEntityId = owner.getEntityId();
+        this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         this.setDomeRadius(domeRadius);
         // Defensive copy: entities must never share data objects with the source ability.
         this.displayData = display != null ? display.copy() : new EnergyDisplayData();
@@ -351,8 +351,10 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
                 double radialVel = ent.motionX * nx + ent.motionY * ny + ent.motionZ * nz;
 
                 if (wasInside != isInside) {
-                    // Entity crossed the boundary this tick — push back to original side
-                    double pushDist = wasInside ? (r - 0.3) : (r + 0.3);
+                    // Entity crossed the boundary this tick — push back to original side.
+                    // Use a larger buffer (1.0) to prevent flying entities from crossing
+                    // again in a single tick (their AI hard-sets motionY every tick).
+                    double pushDist = wasInside ? (r - 1.0) : (r + 0.3);
                     double surfaceX = posX + nx * pushDist;
                     double surfaceY = posY + ny * pushDist - ent.height * 0.5;
                     double surfaceZ = posZ + nz * pushDist;
@@ -366,13 +368,16 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
 
                     teleportEntity(ent, surfaceX, surfaceY, surfaceZ);
 
-                    // Cancel radial velocity and add corrective push
+                    // Cancel radial velocity and add corrective push (all 3 axes).
+                    // The Y component is critical for the dome top where nx/nz ≈ 0:
+                    // without it, flying entities get no inward push at the apex.
                     ent.motionX -= radialVel * nx;
                     ent.motionY -= radialVel * ny;
                     ent.motionZ -= radialVel * nz;
                     double pushForce = wasInside ? -0.15 : 0.15;
-                    if (canPushInDirection(ent, nx * pushForce, 0, nz * pushForce)) {
+                    if (canPushInDirection(ent, nx * pushForce, ny * pushForce, nz * pushForce)) {
                         ent.motionX += nx * pushForce;
+                        ent.motionY += ny * pushForce;
                         ent.motionZ += nz * pushForce;
                     }
                     ent.velocityChanged = true;
@@ -387,8 +392,9 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
                             ent.motionY -= radialVel * ny;
                             ent.motionZ -= radialVel * nz;
                             double pushForce = isInside ? -0.05 : 0.05;
-                            if (canPushInDirection(ent, nx * pushForce, 0, nz * pushForce)) {
+                            if (canPushInDirection(ent, nx * pushForce, ny * pushForce, nz * pushForce)) {
                                 ent.motionX += nx * pushForce;
+                                ent.motionY += ny * pushForce;
                                 ent.motionZ += nz * pushForce;
                             }
                             ent.velocityChanged = true;
@@ -695,15 +701,6 @@ public class EntityEnergyDome extends EntityEnergyBarrier {
 
     // ==================== NBT ====================
 
-    @Override
-    protected void readEntityFromNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
-
-    @Override
-    protected void writeEntityToNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
 
     @Override
     protected void writeSpawnNBT(NBTTagCompound nbt) {

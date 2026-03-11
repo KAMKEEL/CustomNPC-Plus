@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiDirectoryCategorized;
@@ -34,6 +35,7 @@ import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Category;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
+import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
@@ -263,10 +265,13 @@ public class GuiAnimationDirectory extends GuiDirectoryCategorized {
 
     @Override
     protected void initRightPanel(int startY) {
-        // Calculate layout: playback row + edit/copy + remove rows
+        // Calculate layout: playback rows + edit/copy + remove rows
         int bottomRows = 2; // edit+copy, remove
         boolean hasPlayback = animation != null && !animation.frames.isEmpty() && hasSelectedItem();
-        if (hasPlayback) bottomRows++; // playback row
+        if (hasPlayback) {
+            bottomRows++; // playback controls row
+            if (playingAnimation) bottomRows++; // frame info row
+        }
         int bottomH = bottomRows * (btnH + gap) + 14;
 
         previewX = rightX;
@@ -283,15 +288,17 @@ public class GuiAnimationDirectory extends GuiDirectoryCategorized {
 
             if (!playingAnimation || (data.animation != null && data.animation.paused)) {
                 String statusKey = (data.animation != null && data.animation.paused) ? "animation.paused" : "animation.stopped";
-                addLabel(new GuiNpcLabel(90, statusKey, btnX, playY + 5));
+                addLabel(new GuiNpcLabel(90, statusKey, btnX, playY + 5, 0xFFFFFF));
                 addButton(new GuiTexturedButton(91, "", btnX + 65, playY, 11, 20, animTexture, 18, 71));
             } else {
-                addLabel(new GuiNpcLabel(90, "animation.playing", btnX, playY + 5));
-                addLabel(new GuiNpcLabel(94, "", btnX + 60, playY + 5));
+                addLabel(new GuiNpcLabel(90, "animation.playing", btnX, playY + 5, 0xFFFFFF));
                 addButton(new GuiTexturedButton(92, "", btnX + 65, playY, 14, 20, animTexture, 0, 71));
             }
             if (playingAnimation) {
                 addButton(new GuiTexturedButton(93, "", btnX + 85, playY, 14, 20, animTexture, 33, 71));
+                // Frame info on its own line below playback controls
+                int frameInfoY = playY + btnH + gap;
+                addLabel(new GuiNpcLabel(94, "", btnX, frameInfoY + 5, 0xFFFFFF));
             }
         }
 
@@ -472,15 +479,18 @@ public class GuiAnimationDirectory extends GuiDirectoryCategorized {
         GL11.glTranslatef(0.0F, entity.yOffset, 1F);
         RenderManager.instance.playerViewY = 180F;
 
+        ClientEventHandler.renderingEntityInGUI = true;
         try {
             RenderManager.instance.renderEntityWithPosYaw(entity, 0.0, 0.0, 0.0, 0.0F, 1.0F);
         } catch (Exception ignored) {
         }
+        ClientEventHandler.renderingEntityInGUI = false;
 
         entity.prevRenderYawOffset = entity.renderYawOffset = f2;
         entity.prevRotationYaw = entity.rotationYaw = f3;
         entity.rotationPitch = f4;
         entity.prevRotationYawHead = entity.rotationYawHead = f7;
+        GL11.glPopMatrix();
 
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
@@ -488,7 +498,6 @@ public class GuiAnimationDirectory extends GuiDirectoryCategorized {
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
-        GL11.glPopMatrix();
     }
 
     @Override
@@ -498,15 +507,15 @@ public class GuiAnimationDirectory extends GuiDirectoryCategorized {
 
         fontRendererObj.drawString(animation.name, x, y, 0xFFFFFF, true);
         y += 14;
-        fontRendererObj.drawString("Frames: " + animation.frames.size(), x, y, 0xB5B5B5, false);
+        fontRendererObj.drawString(StatCollector.translateToLocal("animation.frames") + ": " + animation.frames.size(), x, y, 0xB5B5B5, false);
         y += 12;
-        fontRendererObj.drawString("Speed: " + animation.speed, x, y, 0xB5B5B5, false);
+        fontRendererObj.drawString(StatCollector.translateToLocal("stats.speed") + ": " + animation.speed, x, y, 0xB5B5B5, false);
         y += 12;
-        String loopStr = animation.loop == 0 ? "None" : animation.loop == 1 ? "Loop" : "Mirror";
-        fontRendererObj.drawString("Loop: " + loopStr, x, y, 0xB5B5B5, false);
+        String loopStr = animation.loop == 0 ? StatCollector.translateToLocal("gui.none") : animation.loop == 1 ? StatCollector.translateToLocal("animation.loop") : StatCollector.translateToLocal("animation.mirror");
+        fontRendererObj.drawString(StatCollector.translateToLocal("animation.loop") + ": " + loopStr, x, y, 0xB5B5B5, false);
         if (currentIsBuiltIn) {
             y += 12;
-            fontRendererObj.drawString("(Built-in)", x, y, 0x55FF55, false);
+            fontRendererObj.drawString(StatCollector.translateToLocal("gui.builtin.tag"), x, y, 0x55FF55, false);
         }
     }
 

@@ -90,6 +90,7 @@ import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
 import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcSavePacket;
 import kamkeel.npcs.network.packets.request.ability.BuiltInAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilitiesGetPacket;
+import kamkeel.npcs.network.packets.request.ability.ChainedAbilityClonePacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.ChainedAbilitySavePacket;
@@ -100,6 +101,7 @@ import kamkeel.npcs.network.packets.request.category.CategoryListRequestPacket;
 import kamkeel.npcs.network.packets.request.category.CategoryMoveItemPacket;
 import kamkeel.npcs.network.packets.request.category.CategoryRemovePacket;
 import kamkeel.npcs.network.packets.request.category.CategorySavePacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityClonePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
@@ -136,6 +138,7 @@ import kamkeel.npcs.network.packets.request.dialog.DialogNpcSetPacket;
 import kamkeel.npcs.network.packets.request.dialog.DialogRemovePacket;
 import kamkeel.npcs.network.packets.request.dialog.DialogSavePacket;
 import kamkeel.npcs.network.packets.request.dialog.DialogsGetPacket;
+import kamkeel.npcs.network.packets.request.effects.EffectClonePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectGetPacket;
 import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
@@ -156,6 +159,7 @@ import kamkeel.npcs.network.packets.request.jobs.JobSpawnerRemovePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedGetAllPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedGetPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemBuildPacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedItemClonePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemRemovePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCAddPacket;
@@ -353,6 +357,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new LinkedItemSavePacket());
         REQUEST_PACKET.registerPacket(new LinkedItemRemovePacket());
         REQUEST_PACKET.registerPacket(new LinkedItemBuildPacket());
+        REQUEST_PACKET.registerPacket(new LinkedItemClonePacket());
 
 
         // Bank Packets
@@ -509,6 +514,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new EffectsGetPacket());
         REQUEST_PACKET.registerPacket(new EffectSavePacket());
         REQUEST_PACKET.registerPacket(new EffectRemovePacket());
+        REQUEST_PACKET.registerPacket(new EffectClonePacket());
 
         // Magic Packets
         REQUEST_PACKET.registerPacket(new MagicCycleRemovePacket());
@@ -533,6 +539,8 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ChainedAbilityGetPacket());
         REQUEST_PACKET.registerPacket(new ChainedAbilitySavePacket());
         REQUEST_PACKET.registerPacket(new ChainedAbilityRemovePacket());
+        REQUEST_PACKET.registerPacket(new CustomAbilityClonePacket());
+        REQUEST_PACKET.registerPacket(new ChainedAbilityClonePacket());
 
         // Category Packets
         REQUEST_PACKET.registerPacket(new CategorySavePacket());

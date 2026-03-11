@@ -6,7 +6,7 @@ plugins {
     id "dts.typescript-generator"
 }
 
-version = "1.11-prerelease1"
+version = "1.11-prerelease3"
 group= "kamkeel.customnpc-plus"
 archivesBaseName = "CustomNPC-Plus"
 
@@ -79,3 +79,14 @@ tasks.named("generateTypeScriptDefinitions").configure {
 }
 processResources.dependsOn generateTypeScriptDefinitions
 sourcesJar.dependsOn generateTypeScriptDefinitions
+
+
+// Register @hookName as a valid Javadoc tag
+tasks.withType(Javadoc) {
+    options.tags = [
+        'hookName:a:Hook Name:'
+    ]
+}
+
+// Modify the existing 'build' task to depend on 'updateAPI'
+//tasks.apiClasses.dependsOn 'updateAPI'

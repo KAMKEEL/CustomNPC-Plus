@@ -63,6 +63,10 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
     // ========== New Item Category ==========
     protected int pendingNewItemCatId = -1;
 
+    // ========== Pending Move Destination ==========
+    private int pendingMoveDestCatId = -1;
+    private String pendingMoveDestName = "";
+
     // ========== Category Data Loaded ==========
     private boolean itemDataLoaded = false;
 
@@ -184,7 +188,7 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
         x += topBtnW + 2;
 
         // MOVE
-        String moveLabel = movePhase > 0 ? "Moving" : "Move";
+        String moveLabel = movePhase > 0 ? "gui.moving" : "gui.move";
         GuiNpcButton moveBtn = new GuiNpcButton(54, x, topBtnY, topBtnW, btnH, moveLabel);
         moveBtn.enabled = selectedCatId >= 0 && !leftCollapsed && hasCategories();
         addButton(moveBtn);
@@ -192,8 +196,9 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
 
         // Confirm (only during move phase 1)
         if (movePhase == 1) {
-            GuiNpcButton confirmBtn = new GuiNpcButton(55, x, topBtnY, topBtnW, btnH, "Confirm");
+            GuiNpcButton confirmBtn = new GuiNpcButton(55, x, topBtnY, topBtnW, btnH, "gui.confirm");
             confirmBtn.enabled = !moveSelection.isEmpty();
+            confirmBtn.setTextColor(0x55FFFF);
             addButton(confirmBtn);
             x += topBtnW + 2;
         }
@@ -230,8 +235,17 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
         catScroll.setSelected(prevCatName);
         catScroll.scrollY = Math.max(0, Math.min(savedCatScrollY, catScroll.maxScrollY));
 
-        // Phase 2: ensure scroll is clickable for destination selection
+        // Phase 1: categories locked (not clickable)
+        if (movePhase == 1) {
+            catScroll.setSelectable(false);
+        }
+        // Phase 2: color nav items orange (selectable) or red (current/source category)
         if (movePhase == 2) {
+            catScroll.setSelectable(true);
+            for (String name : navNames) {
+                catScroll.colors.put(name, name.equals(prevCatName) ? 0xFF5555 : 0xFFAA00);
+            }
+        } else if (movePhase == 0) {
             catScroll.setSelectable(true);
         }
 
@@ -391,19 +405,19 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
 
             // Draw ID (skip if -1, e.g. abilities use names not IDs)
             if (hasSelectedItem() && getSelectedItemId() >= 0) {
-                String idStr = "ID: " + getSelectedItemId();
-                int idY = contentY + contentH - btnH - 14;
+                String idStr = StatCollector.translateToLocal("gui.id") + ": " + getSelectedItemId();
+                int idY = contentY + contentH - btnH * 2 - gap - 12;
                 fontRendererObj.drawString(idStr, previewX + 4, idY, 0xFFFFFF, true);
             }
         }
 
         // Move phase overlay text
         if (movePhase == 1) {
-            String text = "Select Items to Move (max " + MAX_MOVE_ITEMS + ")";
+            String text = String.format(StatCollector.translateToLocal("gui.move.selectItems"), MAX_MOVE_ITEMS);
             int textW = fontRendererObj.getStringWidth(text);
             fontRendererObj.drawStringWithShadow(text, width / 2 - textW / 2, height - pad - 10, 0x55FF55);
         } else if (movePhase == 2) {
-            String text = "Select Destination Category";
+            String text = StatCollector.translateToLocal("gui.move.selectCategory");
             int textW = fontRendererObj.getStringWidth(text);
             fontRendererObj.drawStringWithShadow(text, width / 2 - textW / 2, height - pad - 10, 0xFF5555);
         }
@@ -592,15 +606,20 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
         // Category scroll
         if (guiCustomScroll.id == 2) {
+            // Block category clicks during move phase 1 (selecting items)
+            if (movePhase == 1) return;
+
             String selected = catScroll.getSelected();
             if (selected == null) return;
 
-            // Move phase 2: destination selected
+            // Move phase 2: destination selected — show confirmation
             if (movePhase == 2) {
                 if (!selected.equals(prevCatName)) {
                     Integer destCatId = catData.get(selected);
                     if (destCatId != null) {
-                        executeMoveItems(destCatId);
+                        pendingMoveDestCatId = destCatId;
+                        pendingMoveDestName = selected;
+                        setSubGui(new SubGuiCategoryMoveConfirm(moveSelection.size(), selected));
                     }
                 }
                 return;
@@ -752,7 +771,7 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
         if (subgui instanceof SubGuiEditText) {
             if (!((SubGuiEditText) subgui).cancelled && selectedCatId > 0) {
                 String name = ((SubGuiEditText) subgui).text;
-                if (name != null && !name.isEmpty() && !catData.containsKey(name)) {
+                if (name != null && !name.isEmpty() && !name.equals(prevCatName) && !catData.containsKey(name)) {
                     Category cat = new Category(selectedCatId, name);
                     onSaveCategory(cat);
                     catData.remove(prevCatName);
@@ -760,6 +779,18 @@ public abstract class GuiDirectoryCategorized extends GuiDirectory
                     prevCatName = name;
                 }
             }
+            // Restore category selection to current name (handles validation failure)
+            catScroll.setSelected(prevCatName);
+        }
+        if (subgui instanceof SubGuiCategoryMoveConfirm) {
+            SubGuiCategoryMoveConfirm confirm = (SubGuiCategoryMoveConfirm) subgui;
+            if (confirm.confirmed && !moveSelection.isEmpty() && pendingMoveDestCatId >= 0) {
+                executeMoveItems(pendingMoveDestCatId);
+            } else {
+                // Cancelled — stay in phase 2
+            }
+            pendingMoveDestCatId = -1;
+            pendingMoveDestName = "";
         }
         onSubGuiClosed(subgui);
     }

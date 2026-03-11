@@ -241,6 +241,25 @@ public class LinkedItemController implements ILinkedItemHandler {
         return linkedItems.get(linkedItem.getId());
     }
 
+    public LinkedItem cloneLinkedItem(int originalId) {
+        LinkedItem original = linkedItems.get(originalId);
+        if (original == null) return null;
+
+        NBTTagCompound nbt = original.writeToNBT(true);
+        int newId = getUnusedId();
+        nbt.setInteger("Id", newId);
+
+        LinkedItem clone = new LinkedItem();
+        clone.readFromNBT(nbt);
+
+        String name = clone.getName();
+        while (hasName(name)) name += "_";
+        clone.name = name;
+
+        saveLinkedItem(clone);
+        return clone;
+    }
+
     private boolean hasOther(String name, int id) {
         for (LinkedItem linkedItem : linkedItems.values()) {
             if (linkedItem.getId() != id && linkedItem.getName().equalsIgnoreCase(name))

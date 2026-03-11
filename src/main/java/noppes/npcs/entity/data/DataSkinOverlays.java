@@ -49,6 +49,12 @@ public class DataSkinOverlays implements IOverlayHandler {
         return nbttagcompound;
     }
 
+    public void save() {
+        if (parent instanceof PlayerData) {
+            ((PlayerData) parent).save();
+        }
+    }
+
     public void updateClient() {
         if (parent != null) {
             if (parent instanceof PlayerData && ((PlayerData) parent).player != null) {
@@ -69,6 +75,7 @@ public class DataSkinOverlays implements IOverlayHandler {
         ((SkinOverlay) data).parent = this;
         this.overlayList.put(id, data);
         updateClient();
+        save();
     }
 
     public ISkinOverlay get(int id) {
@@ -82,6 +89,7 @@ public class DataSkinOverlays implements IOverlayHandler {
     public boolean remove(int id) {
         boolean removed = this.overlayList.remove(id) != null;
         updateClient();
+        save();
         return removed;
     }
 
@@ -92,5 +100,6 @@ public class DataSkinOverlays implements IOverlayHandler {
     public void clear() {
         this.overlayList.clear();
         updateClient();
+        save();
     }
 }

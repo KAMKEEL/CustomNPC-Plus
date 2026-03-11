@@ -184,7 +184,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.startY = y;
         this.startZ = z;
 
-        this.ownerEntityId = owner.getEntityId();
+        this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         this.targetEntityId = target != null ? target.getEntityId() : -1;
 
         // Visual
@@ -2413,15 +2413,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     // ==================== NBT ====================
 
-    @Override
-    protected void readEntityFromNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
-
-    @Override
-    protected void writeEntityToNBT(NBTTagCompound nbt) {
-        // Intentionally empty — ability entities are transient (not saved to world)
-    }
 
     @Override
     protected void writeSpawnNBT(NBTTagCompound nbt) {

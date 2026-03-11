@@ -3,6 +3,7 @@ package noppes.npcs.controllers.data;
 import kamkeel.npcs.network.packets.request.script.item.LinkedItemScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.janino.EventJaninoScript;
 
 /**
  * Script handler for LinkedItem scripts.
@@ -33,6 +34,11 @@ public class LinkedItemScript extends SingleScriptHandler implements IScriptHand
     @Override
     public ScriptContext getContext() {
         return ScriptContext.LINKED_ITEM;
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new EventJaninoScript(ScriptContext.LINKED_ITEM);
     }
 
     @Override
