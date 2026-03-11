@@ -10169,7 +10169,10 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
     /**
      * Get all errored assignments across all fields (global, local, and external).
      * Used by ScriptLine to draw error underlines.
+     *
+     * @deprecated Use {@link #getErrors()} instead. Errors are now collected in {@link #populateErrors()}.
      */
+    @Deprecated
     public List<AssignmentInfo> getAllErroredAssignments() {
         List<AssignmentInfo> errored = new ArrayList<>();
         
@@ -10301,6 +10304,12 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
             }
         }
 
+        for (EnumConstantInfo enumConst : getAllEnumConstants()) {
+            if (enumConst != null && enumConst.hasError()) {
+                addError(null, 0, 0, enumConst.getErrorMessage());
+            }
+        }
+
         // Script type declaration errors
         for (ScriptTypeInfo type : getScriptTypes()) {
             if (!type.hasError())
@@ -10308,7 +10317,21 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
 
             int typeStart = type.getDeclarationOffset();
             int typeEnd = type.getBodyStart();
-            addError(null, typeStart, typeEnd, type.getErrorMessage());
+
+            for (ScriptTypeInfo.MissingMethodError err : type.getMissingMethodErrors())
+                addError(null, typeStart, typeEnd, err.getMessage());
+
+            // Constructor mismatch errors
+            for (ScriptTypeInfo.ConstructorMismatchError err : type.getConstructorMismatchErrors())
+                addError(null, typeStart, typeEnd, err.getMessage());
+
+            // General error message
+            if (type.getErrorMessage() != null)
+                addError(null, typeStart, typeEnd, type.getErrorMessage());
+            
+            String msg = type.getErrorMessage();
+            if(msg != null && !msg.isEmpty())
+                addError(null, typeStart, typeEnd, type.getErrorMessage());
         }
     }
 

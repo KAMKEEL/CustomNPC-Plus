@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.hover;
 
 import noppes.npcs.client.gui.util.script.interpreter.*;
-import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
@@ -214,310 +213,32 @@ public class TokenHoverInfo {
     // ==================== EXTRACTION METHODS ====================
 
     private void extractErrors(Token token) {
-        // Check if this token is part of a method call argument (positional lookup)
-        MethodCallInfo containingCall = findMethodCallContainingPosition(token);
-        if (containingCall != null) {
-            MethodCallInfo.Argument containingArg = findArgumentContainingPosition(containingCall, token.getGlobalStart());
-            if (containingArg != null) {
-                // Show only this argument's specific error
-                MethodCallInfo.ArgumentTypeError argError = findArgumentError(containingCall, containingArg);
-                if (argError != null) {
-                    errors.add(argError.getMessage());
-                    return; // Only show argument error, not method-level errors
-                }
-            }
-        }
-        
-        // Show method-level errors if this is the method name itself
-        MethodCallInfo callInfo = token.isEnumConstant()? containingCall : token.getMethodCallInfo();
-        if (callInfo != null) {
-            if (callInfo.hasArgCountError()) {
-                errors.add(callInfo.getErrorMessage());
-            }
-            if (callInfo.hasArgTypeError()) {
-                for (MethodCallInfo.ArgumentTypeError error : callInfo.getArgumentTypeErrors()) {
-                    errors.add(error.getMessage());
-                }
-            }
-            if (callInfo.hasReturnTypeMismatch()) {
-                errors.add(callInfo.getErrorMessage());
-            }
-            if (callInfo.hasStaticAccessError()) {
-                errors.add(callInfo.getErrorMessage());
-            }
-            if (callInfo.getErrorType() == MethodCallInfo.ErrorType.UNRESOLVED_METHOD) {
-                errors.add(callInfo.getErrorMessage());
-            }
-        }
-        
-        // Show field access errors
-        FieldAccessInfo fieldAccessInfo = token.getFieldAccessInfo();
-        if (fieldAccessInfo != null && fieldAccessInfo.hasError()) {
-            errors.add(fieldAccessInfo.getErrorMessage());
-        }
-        
-        // Show assignment errors (type mismatch, final reassignment, etc.)
-        // Search through FieldInfo's assignments by position
-        AssignmentInfo assignmentInfo = findAssignmentContainingPosition(token);
-        if (assignmentInfo != null && assignmentInfo.hasError()) {
-            errors.add(assignmentInfo.getErrorMessage());
-        }
-        
-        // Show unresolved field errors
-        FieldInfo fieldInfo = token.getFieldInfo();
-        if (fieldInfo != null && !fieldInfo.isResolved()) {
-            errors.add("Cannot resolve symbol '" + token.getText() + "'");
-        }
-
-        // Show method declaration errors (missing return, parameter errors, return type errors)
-        MethodInfo methodDecl = findMethodDeclarationContainingPosition(token);
-        if (methodDecl != null && methodDecl.hasError()) {
-            int tokenStart = token.getGlobalStart();
-            int tokenEnd = token.getGlobalEnd();
-            
-            // If hovering over the method name, show missing return error
-            if (methodDecl.hasMissingReturnError()) {
-                int methodNameStart = methodDecl.getNameOffset();
-                int methodNameEnd = methodNameStart + methodDecl.getName().length();
-                
-                if (tokenStart >= methodNameStart && tokenEnd <= methodNameEnd) {
-                    errors.add(methodDecl.getErrorMessage());
-                }
-            }
-            
-            // If hovering over a parameter with an error, show that error
-            else if (methodDecl.hasParameterErrors()) {
-                for (MethodInfo.ParameterError paramError : methodDecl.getParameterErrors()) {
-                    FieldInfo param = paramError.getParameter();
-                    if (param != null && param.getDeclarationOffset() >= 0) {
-                        int paramStart = param.getDeclarationOffset();
-                        int paramEnd = paramStart + param.getName().length();
-                        
-                        if (tokenStart >= paramStart && tokenEnd <= paramEnd) {
-                            errors.add(paramError.getMessage());
-                        }
-                    }
-                }
-            }
-            
-            // If hovering over a return statement with a type error, show that error
-            else if (methodDecl.hasReturnStatementErrors()) {
-                for (MethodInfo.ReturnStatementError returnError : methodDecl.getReturnStatementErrors()) {
-                    int returnStart = returnError.getStartOffset();
-                    int returnEnd = returnError.getEndOffset();
-                    
-                    if (tokenStart >= returnStart && tokenEnd <= returnEnd) {
-                        errors.add(returnError.getMessage());
-                    }
-                }
-            }
-
-
-            // All other errors
-            else if (methodDecl.hasError()) {
-                int declStart = methodDecl.getFullDeclarationOffset();
-                int declEnd = methodDecl.getDeclarationEnd();
-
-                if (tokenStart >= declStart && tokenEnd <= declEnd) {
-                    errors.add(methodDecl.getErrorMessage());
-                }
-            }
-        }
-
-        ScriptTypeInfo scriptType = findScriptTypeContainingPosition(token);
-        if (scriptType != null && scriptType.hasError()) {
-            // Missing interface method errors
-            for (ScriptTypeInfo.MissingMethodError err : scriptType.getMissingMethodErrors()) {
-                errors.add(err.getMessage());
-            }
-            // Constructor mismatch errors
-            for (ScriptTypeInfo.ConstructorMismatchError err : scriptType.getConstructorMismatchErrors()) {
-                errors.add(err.getMessage());
-            }
-            // General error message
-            if (scriptType.getErrorMessage() != null) {
-                errors.add(scriptType.getErrorMessage());
-            }
-        }
-        
-        EnumConstantInfo enumConst = findEnumConstantContainingPosition(token);
-        if (enumConst != null && enumConst.hasError()) {
-            errors.add(enumConst.getErrorMessage());
-        }
-        
-        if(token.getType() == TokenType.UNDEFINED_VAR)
+        if (token.getType() == TokenType.UNDEFINED_VAR)
             errors.add("Cannot resolve symbol '" + token.getText() + "'");
 
         TokenErrorMessage msg = token.getErrorMessage();
         if (msg != null && !msg.getMessage().isEmpty()) {
-            if(msg.clearOtherErrors)
+            if (msg.clearOtherErrors)
                 errors.clear();
-            
+
             errors.add(msg.getMessage());
         }
-    }
-    
-    /**
-     * Find an assignment that contains this token's position.
-     * Searches through all assignments (script fields and external fields).
-     */
-    private AssignmentInfo findAssignmentContainingPosition(Token token) {
-        ScriptLine line = token.getParentLine();
-        if (line == null || line.getParent() == null) {
-            return null;
-        }
-        
-        ScriptDocument doc = line.getParent();
-        int tokenStart = token.getGlobalStart();
-        
-        // Use ScriptDocument's method which handles all prioritization
-        return doc.findAssignmentAtPosition(tokenStart);
-    }
-    
-    /**
-     * Find the method call that contains this token's position within its argument list.
-     */
-    private MethodCallInfo findMethodCallContainingPosition(Token token) {
-        ScriptLine line = token.getParentLine();
-        if (line == null || line.getParent() == null) {
-            return null;
-        }
-        
-        ScriptDocument doc = line.getParent();
-        int tokenStart = token.getGlobalStart();
 
-        for (MethodCallInfo call : doc.getMethodCalls()) {
-            boolean isWithinName = tokenStart >= call.getMethodNameStart() && tokenStart <= call.getMethodNameEnd();
-            
-            // If this is an enum constant, return methodCall on name itself
-            if (token.isEnumConstant() && isWithinName)
-                return call;
-
-            // Check if token is within the argument list
-            if (tokenStart >= call.getOpenParenOffset() && tokenStart <= call.getCloseParenOffset()) {
-                // Make sure it's not the method name itself
-                if (isWithinName) {
-                    continue;
+        // Detailed error detection happens once in ScriptDocument.populateErrors();
+        // hover just looks up by position.
+        ScriptDocument doc = ScriptDocument.INSTANCE;
+        if (doc != null) {
+            int tokenStart = token.getGlobalStart();
+            int tokenEnd = token.getGlobalEnd();
+            for (DocumentError error : doc.getErrors()) {
+                if (tokenStart < error.getEndPos() && tokenEnd > error.getStartPos()) {
+                    errors.add(error.getMessage());
                 }
-                return call;
             }
         }
-        return null;
-    }
-
-    /**
-     * Find the method declaration that contains this token's position.
-     * Returns null if the token is not within a method declaration (header or body).
-     */
-    private MethodInfo findMethodDeclarationContainingPosition(Token token) {
-        ScriptLine line = token.getParentLine();
-        if (line == null || line.getParent() == null) {
-            return null;
-        }
-
-        ScriptDocument doc = line.getParent();
-        int tokenStart = token.getGlobalStart();
-
-        for (MethodInfo method : doc.getAllMethods()) {
-            if (!method.isDeclaration())
-                continue;
-
-            // Check if token is within the method declaration header OR body
-            int methodStart = method.getFullDeclarationOffset();
-            if (methodStart < 0) methodStart = method.getTypeOffset();
-            int bodyEnd = method.getBodyEnd();
-
-            // Token is within the method (header + body)
-            if (tokenStart >= methodStart && tokenStart <= bodyEnd) {
-                return method;
-            }
-        }
-        return null;
-    }
-
-    private ScriptTypeInfo findScriptTypeContainingPosition(Token token) {
-        ScriptLine line = token.getParentLine();
-        if (line == null || line.getParent() == null) {
-            return null;
-        }
-
-        ScriptDocument doc = line.getParent();
-        int tokenStart = token.getGlobalStart();
-
-        for (ScriptTypeInfo scriptType : doc.getScriptTypes()) {
-            int typeStart = scriptType.getDeclarationOffset();
-            int typeEnd = scriptType.getBodyStart();
-
-            // Token is within the type declaration
-            if (tokenStart >= typeStart && tokenStart <= typeEnd) {
-                return scriptType;
-            }
-        }
-        return null;
     }
     
-    private EnumConstantInfo findEnumConstantContainingPosition(Token token) {
-        ScriptLine line = token.getParentLine();
-        if (line == null || line.getParent() == null) {
-            return null;
-        }
-
-        ScriptDocument doc = line.getParent();
-        int tokenStart = token.getGlobalStart();
-
-        for (EnumConstantInfo enumConst : doc.getAllEnumConstants()) {
-            int constStart = enumConst.getDeclarationOffset();
-            int constEnd = constStart + enumConst.getName().length();
-
-            // Token is within the enum constant declaration
-            if (tokenStart >= constStart && tokenStart <= constEnd) {
-                return enumConst;
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Find the argument that contains the given position.
-     */
-    private MethodCallInfo.Argument findArgumentContainingPosition(MethodCallInfo callInfo, int position) {
-        for (MethodCallInfo.Argument arg : callInfo.getArguments()) {
-            if (position >= arg.getStartOffset() && position <= arg.getEndOffset()) {
-                return arg;
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Find the type error for a specific argument.
-     */
-    private MethodCallInfo.ArgumentTypeError findArgumentError(MethodCallInfo callInfo, MethodCallInfo.Argument argument) {
-        if (!callInfo.hasArgTypeError()) {
-            return null;
-        }
-        
-        int argIndex = callInfo.getArguments().indexOf(argument);
-        if (argIndex < 0) {
-            return null;
-        }
-        
-        for (MethodCallInfo.ArgumentTypeError error : callInfo.getArgumentTypeErrors()) {
-            if (error.getArgIndex() == argIndex) {
-                return error;
-            }
-        }
-        return null;
-    }
-    
-    private int getExpectedArgCount(MethodCallInfo callInfo) {
-        MethodInfo method = callInfo.getResolvedMethod();
-        if (method != null) {
-            return method.getParameterCount();
-        }
-        return 0;
-    }
-
+ 
     private void extractClassInfo(Token token) {
         TypeInfo typeInfo = token.getTypeInfo();
         if (typeInfo == null) return;
