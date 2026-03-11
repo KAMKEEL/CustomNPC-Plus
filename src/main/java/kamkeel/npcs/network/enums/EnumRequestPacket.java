@@ -226,6 +226,7 @@ public enum EnumRequestPacket {
 
     CustomAbilityClone,
     ChainedAbilityClone,
+    CopyAbilityScripts,
     LinkedItemClone,
     EffectClone,
 }

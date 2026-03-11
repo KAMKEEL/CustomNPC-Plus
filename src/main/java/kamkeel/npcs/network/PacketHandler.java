@@ -101,6 +101,7 @@ import kamkeel.npcs.network.packets.request.category.CategoryListRequestPacket;
 import kamkeel.npcs.network.packets.request.category.CategoryMoveItemPacket;
 import kamkeel.npcs.network.packets.request.category.CategoryRemovePacket;
 import kamkeel.npcs.network.packets.request.category.CategorySavePacket;
+import kamkeel.npcs.network.packets.request.ability.CopyAbilityScriptsPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityClonePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
@@ -541,6 +542,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ChainedAbilityRemovePacket());
         REQUEST_PACKET.registerPacket(new CustomAbilityClonePacket());
         REQUEST_PACKET.registerPacket(new ChainedAbilityClonePacket());
+        REQUEST_PACKET.registerPacket(new CopyAbilityScriptsPacket());
 
         // Category Packets
         REQUEST_PACKET.registerPacket(new CategorySavePacket());
