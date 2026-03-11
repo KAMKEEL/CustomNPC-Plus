@@ -136,6 +136,7 @@ public class LinkedNpcController {
 
             npc.ais.readToNBT(compound);
             npc.transform.readToNBT(compound);
+            npc.abilities.readFromNBT(compound);
             npc.ais.setMovingPath(points);
             npc.updateClient = true;
         }
@@ -161,6 +162,7 @@ public class LinkedNpcController {
         npc.ais.writeToNBT(compound);
         npc.advanced.writeToNBT(compound);
         npc.transform.writeToNBT(compound);
+        npc.abilities.writeToNBT(compound);
         compound.setTag("ModelData", ((EntityCustomNpc) npc).modelData.writeToNBT());
         return compound;
     }
