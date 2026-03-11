@@ -6,7 +6,7 @@ plugins {
     id "dts.typescript-generator"
 }
 
-version = "1.11"
+version = "1.11-final-pre-release"
 group= "kamkeel.customnpc-plus"
 archivesBaseName = "CustomNPC-Plus"
 
