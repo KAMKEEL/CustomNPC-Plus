@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.common.util.Constants;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.IQuestCategory;
 
@@ -21,8 +22,8 @@ public class QuestCategory implements IQuestCategory {
     public void readNBT(NBTTagCompound nbttagcompound) {
         id = nbttagcompound.getInteger("Slot");
         title = nbttagcompound.getString("Title");
-        NBTTagList questList = nbttagcompound.getTagList("Quests", 10);
-        if (questList != null) {
+        NBTTagList questList = getFirstValidList(nbttagcompound, Constants.NBT.TAG_COMPOUND, "Quests", "Dialogs");
+        if (questList.tagCount() > 0) {
             for (int ii = 0; ii < questList.tagCount(); ii++) {
                 NBTTagCompound nbttagcompound2 = questList.getCompoundTagAt(ii);
                 Quest quest = new Quest();
@@ -31,6 +32,18 @@ public class QuestCategory implements IQuestCategory {
                 quests.put(quest.id, quest);
             }
         }
+    }
+
+    private NBTTagList getFirstValidList(NBTTagCompound nbt, int type, String... keys) {
+        for (String key : keys) {
+            if (nbt.hasKey(key, Constants.NBT.TAG_LIST)) {
+                NBTTagList list = nbt.getTagList(key, type);
+                if (list.tagCount() > 0) {
+                    return list;
+                }
+            }
+        }
+        return new NBTTagList();
     }
 
     public NBTTagCompound writeNBT(NBTTagCompound nbttagcompound) {
