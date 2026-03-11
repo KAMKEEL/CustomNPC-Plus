@@ -101,12 +101,14 @@ import kamkeel.npcs.network.packets.request.category.CategoryListRequestPacket;
 import kamkeel.npcs.network.packets.request.category.CategoryMoveItemPacket;
 import kamkeel.npcs.network.packets.request.category.CategoryRemovePacket;
 import kamkeel.npcs.network.packets.request.category.CategorySavePacket;
+import kamkeel.npcs.network.packets.request.ability.CopyAbilityScriptsPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityClonePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
+import kamkeel.npcs.network.packets.request.animation.AnimationClonePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationsGetPacket;
 import kamkeel.npcs.network.packets.request.animation.BuiltInAnimationGetPacket;
@@ -498,6 +500,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new AnimationGetPacket());
         REQUEST_PACKET.registerPacket(new AnimationRemovePacket());
         REQUEST_PACKET.registerPacket(new AnimationSavePacket());
+        REQUEST_PACKET.registerPacket(new AnimationClonePacket());
         REQUEST_PACKET.registerPacket(new BuiltInAnimationGetPacket());
 
         // Moving Path
@@ -541,6 +544,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ChainedAbilityRemovePacket());
         REQUEST_PACKET.registerPacket(new CustomAbilityClonePacket());
         REQUEST_PACKET.registerPacket(new ChainedAbilityClonePacket());
+        REQUEST_PACKET.registerPacket(new CopyAbilityScriptsPacket());
 
         // Category Packets
         REQUEST_PACKET.registerPacket(new CategorySavePacket());

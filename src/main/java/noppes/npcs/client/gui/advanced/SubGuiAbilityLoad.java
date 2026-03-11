@@ -216,7 +216,7 @@ public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollL
                 if (parentConfig != null) {
                     parentConfig.loadAbility(loaded);
                 } else if (parentAbilities != null) {
-                    parentAbilities.loadAbility(loaded);
+                    parentAbilities.loadAbility(loaded, selectedName);
                 }
             }
             close();

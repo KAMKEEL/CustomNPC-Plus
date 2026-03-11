@@ -311,6 +311,28 @@ public class AnimationController implements IAnimationHandler {
         return false;
     }
 
+    public Animation cloneAnimation(int originalId) {
+        Animation original = animations.get(originalId);
+        if (original == null || original instanceof BuiltInAnimation) return null;
+
+        int originalCatId = categoryManager.getItemCategory(originalId);
+
+        Animation clone = new Animation();
+        clone.readFromNBT(original.writeToNBT());
+        clone.id = getUnusedId();
+
+        String name = clone.name;
+        while (hasName(name)) name += "_";
+        clone.name = name;
+
+        if (originalCatId > CategoryManager.UNCATEGORIZED_ID) {
+            categoryManager.registerItem(clone.id, originalCatId);
+        }
+
+        saveAnimation(clone);
+        return clone;
+    }
+
     public void delete(String name) {
         Animation delete = getAnimationFromName(name);
         if (delete != null) {
