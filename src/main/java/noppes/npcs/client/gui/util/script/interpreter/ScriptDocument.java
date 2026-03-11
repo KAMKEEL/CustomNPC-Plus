@@ -1114,7 +1114,6 @@ public class ScriptDocument {
             paramTextPos += param.length() + 1;
         }
         
-        registerTypeParamInterfaceBounds(scriptType);
     }
     
     private boolean isInterfaceType(TypeInfo typeInfo) {
@@ -1122,20 +1121,6 @@ public class ScriptDocument {
         Class<?> javaClass = typeInfo.getJavaClass();
         if (javaClass != null) return javaClass.isInterface();
         return false;
-    }
-    
-    private void registerTypeParamInterfaceBounds(ScriptTypeInfo scriptType) {
-        for (TypeParamInfo param : scriptType.getDeclaredTypeParams()) {
-            TypeInfo primaryBound = param.getBoundTypeInfo();
-            if (primaryBound != null && isInterfaceType(primaryBound)) {
-                scriptType.addImplementedInterface(primaryBound, primaryBound.getSimpleName());
-            }
-            for (TypeInfo addBound : param.getAdditionalBoundTypes()) {
-                if (isInterfaceType(addBound)) {
-                    scriptType.addImplementedInterface(addBound, addBound.getSimpleName());
-                }
-            }
-        }
     }
 
     /**
@@ -10744,9 +10729,6 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                 addError(null, typeStart, typeEnd, err.getMessage());
 
             // General error message
-            if (type.getErrorMessage() != null)
-                addError(null, typeStart, typeEnd, type.getErrorMessage());
-            
             String msg = type.getErrorMessage();
             if(msg != null && !msg.isEmpty())
                 addError(null, typeStart, typeEnd, type.getErrorMessage());
