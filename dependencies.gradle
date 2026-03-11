@@ -43,8 +43,8 @@ dependencies {
 //    compileOnly(files("./tools/bukkit-api/spigot-api-ONLY.jar"))
 //    compileOnly(files("./tools/bukkit-api/Vault-1.4.1.jar"))
 
-    shadowImplementation(project.files("tools/standalone-JaninoLoader-1.0.1-ALPHA.jar"))
-    annotationProcessor(project.files("tools/standalone-JaninoLoader-1.0.1-ALPHA.jar"))
+    shadowImplementation(project.files("tools/standalone-JaninoLoader-1.0.2.jar"))
+    annotationProcessor(project.files("tools/standalone-JaninoLoader-1.0.2.jar"))
     
     testImplementation("junit:junit:4.13.2")
 

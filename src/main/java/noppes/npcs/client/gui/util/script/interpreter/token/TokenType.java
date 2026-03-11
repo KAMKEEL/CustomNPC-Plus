@@ -30,6 +30,7 @@ public enum TokenType {
     ENUM_CONSTANT(0x55FFFF, 84, true, false),  // enum constant values (blue, bold+italic) - like IntelliJ
     CLASS_DECL(0x00AAAA, 85),          // class names in declarations
     IMPORTED_CLASS(0x00AAAA, 75),      // imported class usages
+    GENERIC_TYPE_PARAM(0x00FA9A, 76), // generic type parameters like T, E, K, V (light green)
     TYPE_DECL(0x00AAAA, 70),           // package paths, type references
 
     // Methods
@@ -127,6 +128,8 @@ public enum TokenType {
             case INTERFACE_DECL:
             case GLOBAL_FIELD:
                 return 'b'; // aqua
+            case GENERIC_TYPE_PARAM:
+                return 'a'; // green (distinct from class types)
             case CLASS_DECL:
             case IMPORTED_CLASS:
             case TYPE_DECL:

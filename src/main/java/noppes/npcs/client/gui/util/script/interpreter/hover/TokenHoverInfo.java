@@ -5,6 +5,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.TypeParamInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParamTag;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocReturnTag;
@@ -153,6 +154,7 @@ public class TokenHoverInfo {
             case INTERFACE_DECL:
             case ENUM_DECL:
             case TYPE_DECL:
+            case GENERIC_TYPE_PARAM:
                 info.extractClassInfo(token);
                 break;
                 
@@ -519,6 +521,11 @@ public class TokenHoverInfo {
     private void extractClassInfo(Token token) {
         TypeInfo typeInfo = token.getTypeInfo();
         if (typeInfo == null) return;
+
+        if (typeInfo.isTypeParameter()) {
+            extractTypeParameterInfo(typeInfo);
+            return;
+        }
         
         packageName = getPackageName(typeInfo);
         
@@ -557,6 +564,7 @@ public class TokenHoverInfo {
                 : TokenType.IMPORTED_CLASS.getHexColor();
             // Render generics with correct segment colors if present
             addTypeSegments(typeInfo);
+            addDeclaredTypeParamSegments(typeInfo);
             
             // Extends
             Class<?> superclass = clazz.getSuperclass();
@@ -616,8 +624,7 @@ public class TokenHoverInfo {
                 : scriptType.getKind() == TypeInfo.Kind.ENUM ? TokenType.ENUM_DECL.getHexColor() 
                 : TokenType.IMPORTED_CLASS.getHexColor();
             addTypeSegments(typeInfo);
-            
-            // Extends clause for ScriptTypeInfo
+            addDeclaredTypeParamSegments(typeInfo);
             if (scriptType.hasSuperClass()) {
                 addSegment(" extends ", TokenType.MODIFIER.getHexColor());
                 TypeInfo superClass = scriptType.getSuperClass();
@@ -688,6 +695,7 @@ public class TokenHoverInfo {
             iconIndicator = "I";
             addSegment("interface ", TokenType.MODIFIER.getHexColor());
             addTypeSegments(typeInfo);
+            addDeclaredTypeParamSegments(typeInfo);
             
             if (jsType.getExtendsType() != null) {
                 addSegment(" extends ", TokenType.MODIFIER.getHexColor());
@@ -716,6 +724,22 @@ public class TokenHoverInfo {
             additionalInfo.add("Constructor");
             buildConstructorDeclaration(constructor, typeInfo);
         }
+    }
+
+    private void extractTypeParameterInfo(TypeInfo typeInfo) {
+        iconIndicator = "T";
+        String paramName = typeInfo.getTypeParameterName();
+
+        addSegment("type parameter ", TokenType.MODIFIER.getHexColor());
+        addSegment("<", TokenType.DEFAULT.getHexColor());
+        addSegment(paramName, TokenType.GENERIC_TYPE_PARAM.getHexColor());
+
+        TypeInfo bound = typeInfo.getBoundType();
+        if (bound != null && bound.getJavaClass() != null && bound.getJavaClass() != Object.class) {
+            addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+            addSegment(bound.getSimpleName(), getColorForTypeInfo(bound));
+        }
+        addSegment(">", TokenType.DEFAULT.getHexColor());
     }
 
     private void extractMethodCallInfo(Token token) {
@@ -769,7 +793,7 @@ public class TokenHoverInfo {
                 buildBasicMethodDeclaration(methodInfo, containingType);
                 return;
             }
-            buildMethodDeclaration(methodInfo.getJavaMethod(), containingType);
+            buildMethodDeclaration(methodInfo, containingType);
             extractJavadoc(methodInfo.getJavaMethod());
             return;
         }
@@ -935,6 +959,9 @@ public class TokenHoverInfo {
         if (type == null)
             return null;
 
+        if (type.isTypeParameter())
+            return null;
+
         TypeInfo base = type.isArray() ? type.getElementType() : type;
         if (base == null) base = type;
 
@@ -1037,6 +1064,29 @@ public class TokenHoverInfo {
         splitAndAddTypeName(typeName, getColorForTypeInfo(typeInfo));
     }
 
+    private void addDeclaredTypeParamSegments(TypeInfo typeInfo) {
+        List<TypeParamInfo> params = typeInfo.getTypeParams();
+        if (params == null || params.isEmpty()) return;
+        if (typeInfo.isParameterized()) return;
+
+        addSegment("<", TokenType.DEFAULT.getHexColor());
+        for (int i = 0; i < params.size(); i++) {
+            if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
+            TypeParamInfo param = params.get(i);
+            addSegment(param.getName(), TokenType.GENERIC_TYPE_PARAM.getHexColor());
+            if (param.getBoundTypeName() != null && !"Object".equals(param.getBoundTypeName())) {
+                addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+                TypeInfo boundType = param.getBoundTypeInfo();
+                if (boundType != null && boundType.isResolved()) {
+                    addTypeSegments(boundType);
+                } else {
+                    addSegment(param.getBoundTypeName(), TokenType.IMPORTED_CLASS.getHexColor());
+                }
+            }
+        }
+        addSegment(">", TokenType.DEFAULT.getHexColor());
+    }
+
     private void splitAndAddTypeName(String typeName, int typeColor) {
         if (typeName == null || !typeName.endsWith("[]")) {
             addSegment(typeName, typeColor);
@@ -1111,7 +1161,8 @@ public class TokenHoverInfo {
         declaration.add(new TextSegment(text, color));
     }
 
-    private void buildMethodDeclaration(Method method, TypeInfo containingType) {
+    private void buildMethodDeclaration(MethodInfo methodInfo, TypeInfo containingType) {
+        Method method = methodInfo.getJavaMethod();
         int mods = method.getModifiers();
         
         // Annotations (show @Contract if present, etc.)
@@ -1128,9 +1179,9 @@ public class TokenHoverInfo {
         if (Modifier.isSynchronized(mods)) addSegment("synchronized ", TokenType.MODIFIER.getHexColor());
         
         // Return type - check for actual type color (handle array suffix coloring)
-        Class<?> returnType = method.getReturnType();
+        TypeInfo returnType = methodInfo.getReturnType();
         String returnTypeName = returnType.getSimpleName();
-        splitAndAddTypeName(returnTypeName, getColorForTypeInfo(containingType));
+        splitAndAddTypeName(returnTypeName, getColorForTypeInfo(methodInfo.getReturnType()));
         addSegment(" ", TokenType.DEFAULT.getHexColor());
         
         // Method name
@@ -1138,20 +1189,19 @@ public class TokenHoverInfo {
         
         // Parameters
         addSegment("(", TokenType.DEFAULT.getHexColor());
-        Class<?>[] paramTypes = method.getParameterTypes();
-        java.lang.reflect.Parameter[] params = method.getParameters();
-        for (int i = 0; i < paramTypes.length; i++) {
+        List<FieldInfo> params = methodInfo.getParameters();
+        for (int i = 0; i < params.size(); i++) {
             if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
-            int paramTypeColor = getColorForClass(paramTypes[i]);
-            String paramTypeName = paramTypes[i].getSimpleName();
-            splitAndAddTypeName(paramTypeName, paramTypeColor);
-            if (method.isVarArgs() && i == paramTypes.length - 1) {
-                addSegment("...", TokenType.DEFAULT.getHexColor());
+            FieldInfo param = params.get(i);
+            TypeInfo paramType = param.getTypeInfo();
+            if (paramType != null) {
+                addTypeSegments(paramType);
+                if (param.isVarArg()) {
+                    addSegment("...", TokenType.DEFAULT.getHexColor());
+                }
+                addSegment(" ", TokenType.DEFAULT.getHexColor());
             }
-            addSegment(" ", TokenType.DEFAULT.getHexColor());
-            // Try to get parameter name if available
-            String paramName = params.length > i ? params[i].getName() : "arg" + i;
-            addSegment(paramName, TokenType.PARAMETER.getHexColor());
+            addSegment(param.getName(), TokenType.PARAMETER.getHexColor());
         }
         addSegment(")", TokenType.DEFAULT.getHexColor());
     }

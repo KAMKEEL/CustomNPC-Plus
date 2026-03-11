@@ -4,6 +4,7 @@ import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.TypeParamInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
@@ -180,6 +181,14 @@ public class ScriptLine {
     public void applyTokenMetadata(Token token, Object metadata) {
         if (metadata instanceof TypeInfo) {
             token.setTypeInfo((TypeInfo) metadata);
+        } else if (metadata instanceof TypeParamInfo) {
+            TypeParamInfo typeParam = (TypeParamInfo) metadata;
+            TypeInfo boundType = typeParam.getBoundTypeInfo();
+            if (boundType != null) {
+                token.setTypeInfo(TypeInfo.typeParameter(typeParam.getName(), boundType));
+            } else {
+                token.setTypeInfo(TypeInfo.typeParameter(typeParam.getName()));
+            }
         } else if (metadata instanceof MethodCallInfo) {
             MethodCallInfo callInfo = (MethodCallInfo) metadata;
             if (callInfo.isConstructor()) {

@@ -204,31 +204,6 @@ public class JSTypeInfo {
         }
     }
     
-    /**
-     * Resolves a type parameter to its bound TypeInfo.
-     * For example, if this type has "T extends EntityPlayerMP", resolveTypeParam("T") returns the TypeInfo for EntityPlayerMP.
-     * If no type parameter is found with that name, returns null.
-     */
-    public TypeInfo resolveTypeParamToTypeInfo(String typeName) {
-        TypeParamInfo param = getTypeParam(typeName);
-        if (param != null) {
-            return param.getBoundTypeInfo();
-        }
-        return null;
-    }
-
-    /**
-     * Resolves a type parameter to its bound type name (for backward compatibility).
-     * @deprecated Use resolveTypeParamToTypeInfo instead
-     */
-    @Deprecated
-    public String resolveTypeParam(String typeName) {
-        TypeParamInfo param = getTypeParam(typeName);
-        if (param != null && param.getBoundTypeInfo() != null) {
-            return param.getBoundTypeInfo().getSimpleName();
-        }
-        return typeName;
-    }
     
     /**
      * Get a method by name, including inherited methods.

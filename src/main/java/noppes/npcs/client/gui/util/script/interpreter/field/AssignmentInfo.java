@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter.field;
 
 import noppes.npcs.client.gui.util.script.ScopeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
@@ -139,8 +140,8 @@ public class AssignmentInfo {
         // Check type compatibility
         if (targetType != null && sourceType != null) {
             if (!TypeChecker.isTypeCompatible(targetType, sourceType)) {
-                this.requiredType = targetType.getSimpleName();
-                this.providedType = sourceType.getSimpleName();
+                this.requiredType = MethodCallInfo.getTypeDisplayName(targetType);
+                this.providedType = MethodCallInfo.getTypeDisplayName(sourceType);
                 setError(ErrorType.TYPE_MISMATCH, buildTypeMismatchMessage());
             }
         }

@@ -11,6 +11,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSScriptAnalyzer;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.TypeParamInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParamTag;
 import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParser;
@@ -87,8 +88,8 @@ public class ScriptDocument {
     // Also matches ',' as a delimiter so that "int x, y, z;" is recognized
     // (the first declarator "int x," is captured; continuations are scanned manually).
     private static final Pattern FIELD_DECL_PATTERN = Pattern.compile(
-            "\\b([A-Za-z_][a-zA-Z0-9_.<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
-    private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");
+            "\\b([A-Za-z_][a-zA-Z0-9_.<>,[ \\t\\n\\r]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
+    private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:<([^>]*)>)?");
     
     // Cast expression pattern: captures type name inside cast parentheses
     // Matches: (Type), (Type[]), (pkg.Type), (Type<Generic>)
@@ -754,18 +755,20 @@ public class ScriptDocument {
         final int bodyStart;
         final int bodyEnd;
         final int modifiers;
+        final String typeParamsClause;
         final String extendsClause;
         final String implementsClause;
         final JSDocInfo jsDoc;
 
         RawTypeDeclaration(String name, TypeInfo.Kind kind, int declOffset, int bodyStart, int bodyEnd,
-                           int modifiers, String extendsClause, String implementsClause, JSDocInfo jsDoc) {
+                           int modifiers, String typeParamsClause, String extendsClause, String implementsClause, JSDocInfo jsDoc) {
             this.name = name;
             this.kind = kind;
             this.declOffset = declOffset;
             this.bodyStart = bodyStart;
             this.bodyEnd = bodyEnd;
             this.modifiers = modifiers;
+            this.typeParamsClause = typeParamsClause;
             this.extendsClause = extendsClause;
             this.implementsClause = implementsClause;
             this.jsDoc = jsDoc;
@@ -782,8 +785,10 @@ public class ScriptDocument {
      */
     private void parseScriptTypes() {
         // ========== PASS 1: Discover all type declarations (flat list) ==========
+        // Regex only anchors on keyword + name — generic clauses are extracted manually
+        // below to correctly handle nested angle brackets like <T extends Comparable<T>>.
         Pattern typeDecl = Pattern.compile(
-                "(?:(?:public|private|protected|static|final|abstract)\\s+)*(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:\\(\\))?\\s*(?:extends\\s+([A-Za-z_][a-zA-Z0-9_.]*))?\\s*(?:implements\\s+([A-Za-z_][a-zA-Z0-9_.,\\s]*))?\\s*\\{");
+                "(?:(?:public|private|protected|static|final|abstract)\\s+)*(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
 
         List<RawTypeDeclaration> rawDeclarations = new ArrayList<>();
         Matcher m = typeDecl.matcher(text);
@@ -793,14 +798,57 @@ public class ScriptDocument {
 
             String kindStr = m.group(1);
             String typeName = m.group(2);
-            String extendsClause = m.group(3);
-            String implementsClause = m.group(4);
 
-            int bodyStart = text.indexOf('{', m.start());
-            int bodyEnd = findMatchingBrace(bodyStart);
-            if (bodyEnd < 0) {
-                bodyEnd = text.length();
+            // Manually extract everything between the type name and the opening '{',
+            // handling nested angle brackets so <T extends Comparable<T>> is captured whole.
+            int scanPos = m.end();
+            while (scanPos < text.length() && Character.isWhitespace(text.charAt(scanPos)))
+                scanPos++;
+
+            // Extract type params clause <...> if present (depth-aware)
+            String typeParamsClause = null;
+            if (scanPos < text.length() && text.charAt(scanPos) == '<') {
+                int depth = 1, i = scanPos + 1;
+                while (i < text.length() && depth > 0) {
+                    char c = text.charAt(i++);
+                    if (c == '<') depth++;
+                    else if (c == '>') depth--;
+                }
+                if (depth == 0) {
+                    typeParamsClause = text.substring(scanPos + 1, i - 1);
+                    scanPos = i;
+                    while (scanPos < text.length() && Character.isWhitespace(text.charAt(scanPos)))
+                        scanPos++;
+                }
             }
+
+            // Find the opening brace, extracting extends/implements from text between here and '{'
+            int bracePos = scanPos;
+            int angleDepth = 0;
+            while (bracePos < text.length()) {
+                char c = text.charAt(bracePos);
+                if (c == '<') angleDepth++;
+                else if (c == '>') angleDepth--;
+                else if (c == '{' && angleDepth == 0) break;
+                bracePos++;
+            }
+            if (bracePos >= text.length()) continue;
+
+            String betweenNameAndBrace = text.substring(scanPos, bracePos).trim();
+
+            // Parse extends/implements from that window
+            String extendsClause = null;
+            String implementsClause = null;
+            java.util.regex.Matcher extM = Pattern.compile(
+                    "extends\\s+([A-Za-z_][a-zA-Z0-9_.]*(?:<[^{]*>)?)").matcher(betweenNameAndBrace);
+            if (extM.find()) extendsClause = extM.group(1).trim();
+            java.util.regex.Matcher implM = Pattern.compile(
+                    "implements\\s+(.+)$").matcher(betweenNameAndBrace);
+            if (implM.find()) implementsClause = implM.group(1).trim();
+
+            int bodyStart = bracePos;
+            int bodyEnd = findMatchingBrace(bodyStart);
+            if (bodyEnd < 0) bodyEnd = text.length();
 
             TypeInfo.Kind kind;
             switch (kindStr) {
@@ -809,13 +857,13 @@ public class ScriptDocument {
                 default: kind = TypeInfo.Kind.CLASS; break;
             }
 
-            String fullMatch = text.substring(m.start(), m.end());
+            String fullMatch = text.substring(m.start(), bodyStart + 1);
             int modifiers = parseModifiers(fullMatch);
             JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, m.start());
 
             rawDeclarations.add(new RawTypeDeclaration(
                     typeName, kind, m.start(), bodyStart, bodyEnd,
-                    modifiers, extendsClause, implementsClause, jsDoc));
+                    modifiers, typeParamsClause, extendsClause, implementsClause, jsDoc));
         }
 
         // ========== PASS 2: Build hierarchy using stack-based containment ==========
@@ -851,6 +899,11 @@ public class ScriptDocument {
                 scriptType.setJSDocInfo(raw.jsDoc);
             }
 
+            // Parse generic type parameters (e.g., <E>, <K, V>, <T extends Entity>)
+            if (raw.typeParamsClause != null && !raw.typeParamsClause.trim().isEmpty()) {
+                parseTypeParamsClause(raw.typeParamsClause, scriptType, raw.declOffset);
+            }
+
             // Register in all lookup maps for O(1) access by any naming convention
             scriptTypesByFullName.put(scriptType.getFullName(), scriptType);
             scriptTypesByDotName.put(scriptType.getDotSeparatedName(), scriptType);
@@ -861,6 +914,11 @@ public class ScriptDocument {
             // Resolve extends clause (parent class inheritance)
             if (raw.extendsClause != null && !raw.extendsClause.trim().isEmpty()) {
                 String parentName = raw.extendsClause.trim();
+                // Strip generic args (e.g., "NumberBox<T>" -> "NumberBox") for type resolution
+                int genIdx = parentName.indexOf('<');
+                if (genIdx >= 0) {
+                    parentName = parentName.substring(0, genIdx);
+                }
                 TypeInfo parentType = resolveType(parentName, raw.declOffset);
                 if (parentType == null) {
                     parentType = TypeInfo.unresolved(parentName, parentName);
@@ -875,6 +933,11 @@ public class ScriptDocument {
                     String trimmedName = ifaceName.trim();
                     if (trimmedName.isEmpty())
                         continue;
+                    // Strip generic args (e.g., "Comparable<T>" -> "Comparable")
+                    int genIdx = trimmedName.indexOf('<');
+                    if (genIdx >= 0) {
+                        trimmedName = trimmedName.substring(0, genIdx);
+                    }
                     TypeInfo ifaceType = resolveType(trimmedName, raw.declOffset);
                     if (ifaceType == null) {
                         ifaceType = TypeInfo.unresolved(trimmedName, trimmedName);
@@ -888,6 +951,138 @@ public class ScriptDocument {
         }
     }
 
+    /**
+     * Parse a generic type parameters clause like "E", "K, V", or "T extends Entity"
+     * into TypeParamInfo objects and add them to the script type.
+     */
+    private void parseTypeParamsClause(String clause, ScriptTypeInfo scriptType, int declOffset) {
+        String[] params = clause.split(",");
+        for (String param : params) {
+            String trimmed = param.trim();
+            if (trimmed.isEmpty()) continue;
+
+            int extendsIdx = trimmed.indexOf("extends");
+            String paramName = extendsIdx >= 0 ? trimmed.substring(0, extendsIdx).trim() : trimmed;
+            
+            int endIdx = 0;
+            while (endIdx < paramName.length() && 
+                   (Character.isJavaIdentifierPart(paramName.charAt(endIdx)) || paramName.charAt(endIdx) == '.')) {
+                endIdx++;
+            }
+            paramName = paramName.substring(0, endIdx);
+            
+            String boundName = null;
+            if (extendsIdx >= 0) {
+                String afterExtends = trimmed.substring(extendsIdx + 7).trim();
+                // Split on & to get the primary bound (first one); additional bounds are interfaces
+                String primaryBound = afterExtends.split("&")[0].trim();
+                if (!primaryBound.isEmpty()) {
+                    int boundEndIdx = 0;
+                    while (boundEndIdx < primaryBound.length() && 
+                           (Character.isJavaIdentifierPart(primaryBound.charAt(boundEndIdx)) || primaryBound.charAt(boundEndIdx) == '.')) {
+                        boundEndIdx++;
+                    }
+                    if (boundEndIdx > 0) {
+                        boundName = primaryBound.substring(0, boundEndIdx);
+                    }
+                }
+            }
+            
+            TypeParamInfo typeParam = new TypeParamInfo(paramName, boundName, null);
+            if (boundName != null) {
+                TypeInfo boundTypeInfo = resolveType(boundName, declOffset);
+                if (boundTypeInfo != null && boundTypeInfo.isResolved()) {
+                    typeParam.setBoundTypeInfo(boundTypeInfo);
+                }
+            }
+            scriptType.addDeclaredTypeParam(typeParam);
+        }
+    } 
+
+    private TypeInfo parameterizeWithClause(TypeInfo baseType, String typeArgsClause, int position) {
+        String[] argNames = typeArgsClause.split(",");
+        List<TypeInfo> typeArgs = new ArrayList<>();
+        for (String argName : argNames) {
+            String trimmed = argName.trim();
+            if (trimmed.isEmpty()) continue;
+            TypeInfo argType = resolveType(trimmed, position);
+            if (argType == null) {
+                argType = TypeInfo.unresolved(trimmed, trimmed);
+            }
+            typeArgs.add(argType);
+        }
+        if (!typeArgs.isEmpty()) {
+            return baseType.parameterize(typeArgs);
+        }
+        return baseType;
+    }
+    
+    private void markTypeParamDeclarations(List<ScriptLine.Mark> marks, int afterNameEnd, ScriptTypeInfo typeInfo) {
+        int ltPos = text.indexOf('<', afterNameEnd);
+        if (ltPos < 0 || ltPos > afterNameEnd + 5) return;
+
+        int depth = 1, i = ltPos + 1;
+        while (i < text.length() && depth > 0) {
+            char c = text.charAt(i++);
+            if (c == '<') depth++;
+            else if (c == '>') depth--;
+        }
+        if (depth != 0) return;
+        int gtPos = i - 1;
+
+        markTypeParamsInClause(marks, ltPos + 1, gtPos - 1, typeInfo.getDeclaredTypeParams());
+    }
+
+    private void markTypeParamsInClause(List<ScriptLine.Mark> marks, int clauseStart, int clauseEnd, List<TypeParamInfo> typeParams) {
+        if (clauseStart >= clauseEnd) return;
+        
+        String clause = text.substring(clauseStart, clauseEnd);
+        Map<String, TypeParamInfo> paramMap = new HashMap<>();
+        for (TypeParamInfo param : typeParams) {
+            paramMap.put(param.getName(), param);
+        }
+        
+        int i = 0;
+        while (i < clause.length()) {
+            char c = clause.charAt(i);
+            
+            if (c == '<') {
+                int innerStart = clauseStart + i + 1;
+                int depth = 1;
+                int j = i + 1;
+                while (j < clause.length() && depth > 0) {
+                    char innerC = clause.charAt(j);
+                    if (innerC == '<') depth++;
+                    else if (innerC == '>') depth--;
+                    j++;
+                }
+                if (depth == 0) {
+                    markTypeParamsInClause(marks, innerStart, clauseStart + j - 1, typeParams);
+                    i = j;
+                } else {
+                    i++;
+                }
+            } else if (c == '&') {
+                i++;
+            } else if (c == ',') {
+                i++;
+            } else if (Character.isJavaIdentifierStart(c)) {
+                int start = i;
+                while (i < clause.length() && Character.isJavaIdentifierPart(clause.charAt(i))) {
+                    i++;
+                }
+                String name = clause.substring(start, i);
+                TypeParamInfo param = paramMap.get(name);
+                if (param != null) {
+                    int absStart = clauseStart + start;
+                    int absEnd = clauseStart + i;
+                    marks.add(new ScriptLine.Mark(absStart, absEnd, TokenType.GENERIC_TYPE_PARAM, param));
+                }
+            } else {
+                i++;
+            }
+        }
+    }
     /**
      * Parse fields and methods inside a script-defined type.
      */
@@ -1326,18 +1521,64 @@ public class ScriptDocument {
             return params;
         }
 
-        // Pattern: Type varName (with optional spaces)
+        // Collapse all whitespace runs to single spaces, tracking original positions via posMap.
+        // posMap[normalizedIndex] = originalIndex, enabling correct absolute offsets after matching.
+        StringBuilder normalized = new StringBuilder(paramList.length());
+        int[] posMap = new int[paramList.length() + 1];
+        boolean lastWasSpace = false;
+        for (int i = 0; i < paramList.length(); i++) {
+            char c = paramList.charAt(i);
+            if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+                if (!lastWasSpace) {
+                    posMap[normalized.length()] = i;
+                    normalized.append(' ');
+                    lastWasSpace = true;
+                }
+            } else {
+                posMap[normalized.length()] = i;
+                normalized.append(c);
+                lastWasSpace = false;
+            }
+        }
+        posMap[normalized.length()] = paramList.length();
+        String normalizedStr = normalized.toString();
+
+        // Split by top-level commas (not inside < > brackets), then parse each parameter individually
+        List<int[]> paramRanges = new ArrayList<>();
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i < normalizedStr.length(); i++) {
+            char c = normalizedStr.charAt(i);
+            if (c == '<') depth++;
+            else if (c == '>') depth--;
+            else if (c == ',' && depth == 0) {
+                paramRanges.add(new int[]{start, i});
+                start = i + 1;
+            }
+        }
+        paramRanges.add(new int[]{start, normalizedStr.length()});
+
+        // Matches: type (with optional generics, arrays, dots) + optional varargs + whitespace + paramName
         Pattern paramPattern = Pattern.compile(
-                "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*(?:\\.{3})?)\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
-        Matcher m = paramPattern.matcher(paramList);
-        while (m.find()) {
-            String typeName = m.group(1);
+                "\\s*([a-zA-Z_][a-zA-Z0-9_.<>,? \\[\\]]*)(?:\\.{3})?\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*");
+
+        for (int[] range : paramRanges) {
+            String segment = normalizedStr.substring(range[0], range[1]);
+            if (segment.trim().isEmpty()) continue;
+
+            Matcher m = paramPattern.matcher(segment);
+            if (!m.matches()) continue;
+
+            String rawType = m.group(1).replaceAll("\\s+", "");
             String paramName = m.group(2);
-            boolean isVarArg = typeName.endsWith("...");
-            if (isVarArg) typeName = typeName.substring(0, typeName.length() - 3);
-            TypeInfo typeInfo = resolveType(typeName, paramListStart);
-            // Store the absolute position of the parameter name
-            int paramNameStart = paramListStart + m.start(2);
+            String between = segment.substring(m.end(1), m.start(2));
+            boolean isVarArg = between.contains("...");
+
+            TypeInfo typeInfo = resolveType(rawType, paramListStart);
+
+            // m.start(2) is relative to segment; add range[0] to get position in normalizedStr, then posMap to original
+            int normalizedNamePos = range[0] + m.start(2);
+            int paramNameStart = paramListStart + posMap[normalizedNamePos];
             FieldInfo fieldInfo = FieldInfo.parameter(paramName, typeInfo, paramNameStart, null);
             fieldInfo.setVarArg(isVarArg);
             params.add(fieldInfo);
@@ -1579,7 +1820,9 @@ public class ScriptDocument {
      * For JavaScript: Parses "var/let/const varName = expr;" with type inference
      */
     private void parseLocalVariables() {
-        for (MethodInfo method : getAllMethods()) {
+        List<MethodInfo> allMethodsAndConstructors = getAllMethods();
+        allMethodsAndConstructors.addAll(getAllConstructors());
+        for (MethodInfo method : allMethodsAndConstructors) {
             Map<String, List<FieldInfo>> locals = new HashMap<>();
             methodLocals.put(method.getDeclarationOffset(), locals);
 
@@ -3127,6 +3370,14 @@ public class ScriptDocument {
                         break;
                     }
                 }
+                if (!insideMethod) {
+                    for (MethodInfo constructor : getAllConstructors()) {
+                        if (constructor.containsPosition(position)) {
+                            insideMethod = true;
+                            break;
+                        }
+                    }
+                }
                 if (insideMethod) continue;
 
                 boolean insideInner = false;
@@ -3210,6 +3461,11 @@ public class ScriptDocument {
                         for (MethodInfo method : getAllMethods()) {
                             if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
                         }
+                        if (!cInsideMethod) {
+                            for (MethodInfo constructor : getAllConstructors()) {
+                                if (constructor.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                            }
+                        }
                         if (cInsideMethod) return;
                         boolean cInsideInner = false;
                         for (InnerCallableScope sc : innerScopes) {
@@ -3281,6 +3537,11 @@ public class ScriptDocument {
                         for (MethodInfo method : getAllMethods()) {
                             if (method.containsPosition(firstVarAbsPos)) { greedyInsideMethod = true; break; }
                         }
+                        if (!greedyInsideMethod) {
+                            for (MethodInfo constructor : getAllConstructors()) {
+                                if (constructor.containsPosition(firstVarAbsPos)) { greedyInsideMethod = true; break; }
+                            }
+                        }
                     }
                     if (greedyInsideMethod) continue;
 
@@ -3316,6 +3577,11 @@ public class ScriptDocument {
                             else {
                                 for (MethodInfo method : getAllMethods()) {
                                     if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                }
+                                if (!cInsideMethod) {
+                                    for (MethodInfo constructor : getAllConstructors()) {
+                                        if (constructor.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                    }
                                 }
                             }
                             if (cInsideMethod) return;
@@ -3358,6 +3624,14 @@ public class ScriptDocument {
                         if (method.containsPosition(position)) {
                             insideMethod = true;
                             break;
+                        }
+                    }
+                    if (!insideMethod) {
+                        for (MethodInfo constructor : getAllConstructors()) {
+                            if (constructor.containsPosition(position)) {
+                                insideMethod = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -3424,6 +3698,11 @@ public class ScriptDocument {
                             else {
                                 for (MethodInfo method : getAllMethods()) {
                                     if (method.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                }
+                                if (!cInsideMethod) {
+                                    for (MethodInfo constructor : getAllConstructors()) {
+                                        if (constructor.containsPosition(cAbsNamePos)) { cInsideMethod = true; break; }
+                                    }
                                 }
                             }
                             if (cInsideMethod) return;
@@ -3702,15 +3981,29 @@ public class ScriptDocument {
             return resolved;
         }
 
-        // Positional fallback: only applies to simple names (no dots) that could be
-        // inner classes visible from the current scope. Dot-separated names like
-        // "Outer.Inner" are already handled by scriptTypesByDotName in resolveType().
         if (typeName != null && !typeName.contains(".")) {
-            // Walk the enclosing type hierarchy upward from the innermost type at this position.
-            // At each level, check if there's an inner class matching the name.
-            // This mirrors Java's scoping rules where inner classes shadow outer-scope types.
+            TypeStringNormalizer.ArraySplit arraySplit = TypeStringNormalizer.splitArraySuffixes(typeName);
+            String baseTypeName = arraySplit.base;
+            int arrayDims = arraySplit.dimensions;
+
             ScriptTypeInfo enclosing = findEnclosingScriptType(position);
             while (enclosing != null) {
+                // Check if the name is a declared type parameter on this class (e.g., E in class Box<E>)
+                TypeParamInfo typeParam = enclosing.getDeclaredTypeParam(baseTypeName);
+                if (typeParam != null) {
+                    TypeInfo boundType = typeParam.getBoundTypeInfo();
+                    if (boundType == null) {
+                        typeParam.resolveBoundType();
+                        boundType = typeParam.getBoundTypeInfo();
+                    }
+                    TypeInfo result = (boundType != null && boundType.isResolved())
+                            ? TypeInfo.typeParameter(baseTypeName, boundType)
+                            : TypeInfo.typeParameter(baseTypeName);
+                    for (int i = 0; i < arrayDims; i++) result = TypeInfo.arrayOf(result);
+                    return result;
+                }
+                
+                // Check inner classes
                 ScriptTypeInfo inner = enclosing.getInnerClass(typeName);
                 if (inner != null) {
                     return inner;
@@ -3765,6 +4058,44 @@ public class ScriptDocument {
             // Fully-qualified Java types
             else if (baseName.contains(".")) {
                 resolved = typeResolver.resolveFullName(baseName);
+                // Fallback: "SimpleName.InnerClass" where SimpleName is a known import
+                // e.g., "Map.Entry" when java.util.Map is imported → java.util.Map$Entry
+                if (resolved == null || !resolved.isResolved()) {
+                    int firstDot = baseName.indexOf('.');
+                    String outerSimple = baseName.substring(0, firstDot);
+                    String innerPath = baseName.substring(firstDot + 1);
+                    TypeInfo outerType = typeResolver.resolveSimpleName(outerSimple, importsBySimpleName, wildcardPackages);
+                    if (outerType != null && outerType.isResolved() && outerType.getJavaClass() != null) {
+                        Class<?> currentClass = outerType.getJavaClass();
+                        for (String part : innerPath.split("\\.")) {
+                            Class<?> found = null;
+                            for (Class<?> inner : currentClass.getClasses()) {
+                                if (inner.getSimpleName().equals(part)) {
+                                    found = inner;
+                                    break;
+                                }
+                            }
+                            currentClass = found;
+                            if (currentClass == null) break;
+                        }
+                        if (currentClass != null) {
+                            resolved = TypeInfo.fromClass(currentClass);
+                            // Track import usage for the outer class
+                            ImportData usedImport = importsBySimpleName.get(outerSimple);
+                            if (usedImport != null) {
+                                usedImport.incrementUsage();
+                            } else if (wildcardPackages != null) {
+                                String resultPkg = outerType.getPackageName();
+                                for (ImportData imp : imports) {
+                                    if (imp.isWildcard() && resultPkg != null && resultPkg.equals(imp.getFullPath())) {
+                                        imp.incrementUsage();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             // Imported/simple
             else {
@@ -3957,8 +4288,68 @@ public class ScriptDocument {
         }
     }
 
+    /**
+     * Two-phase object literal parsing.
+     *
+     * <p><b>Phase 1 (structure-only)</b>: parse every object literal with a no-op type
+     * resolver.  This produces {@link ObjectLiteralParser.ObjectLiteralAnalysis} entries
+     * whose property <em>names</em> are correct but whose value types are all {@code ANY}.
+     * The synthetic {@link TypeInfo} shapes built from those names are then attached to
+     * the corresponding {@link InnerCallableScope}s via
+     * {@link ObjectLiteralParser#attachObjectLiteralContext}, so that
+     * {@code resolveThisType()} can return the containing object literal type for
+     * {@code this.property} chains.</p>
+     *
+     * <p><b>Phase 2 (full resolution)</b>: re-parse with the real
+     * {@code this::resolveExpressionType} callback.  Because scopes now have their
+     * {@code containingObjectType} wired, expressions like {@code return this.faah.length}
+     * inside method bodies resolve correctly instead of falling back to {@code ANY}.</p>
+     */
     private void parseObjectLiterals() {
         if (!isJavaScript()) return;
+
+        List<int[]> braceRanges = findObjectLiteralBraces();
+        if (braceRanges.isEmpty())
+            return;
+
+        // Phase 1: structure-only — property names extracted, value types = ANY
+        ObjectLiteralParser.ExpressionTypeResolverFn nullResolver = (expr, pos) -> null;
+        for (int[] range : braceRanges) {
+            String objectLiteral = text.substring(range[0], range[1]);
+            ObjectLiteralParser.ObjectLiteralAnalysis analysis =
+                    ObjectLiteralParser.parse(objectLiteral, range[0], true, true, nullResolver,
+                            this::getScriptMethodInfo);
+            if (analysis != null)
+                objectLiterals.put(range[0], analysis);
+        }
+
+        for (InnerCallableScope scope : innerScopes)
+            ObjectLiteralParser.attachObjectLiteralContext(scope, this);
+
+        // Phase 2: full resolution — accurate value / return types via resolveExpressionType
+        for (int[] range : braceRanges) {
+            String objectLiteral = text.substring(range[0], range[1]);
+            ObjectLiteralParser.ObjectLiteralAnalysis analysis =
+                    ObjectLiteralParser.parse(objectLiteral, range[0], true, true, this::resolveExpressionType,
+                            this::getScriptMethodInfo);
+            if (analysis != null)
+                objectLiterals.put(range[0], analysis);
+        }
+
+        // Re-attach with fully-resolved types (reset so the guard allows re-attachment)
+        for (InnerCallableScope scope : innerScopes) {
+            scope.setContainingObjectType(null);
+            ObjectLiteralParser.attachObjectLiteralContext(scope, this);
+        }
+    }
+
+    /**
+     * Scan the document for opening braces that are likely object-literal starts and
+     * return their {@code [start, end)} ranges.  Shared by both parsing phases to avoid
+     * duplicate scanning.
+     */
+    private List<int[]> findObjectLiteralBraces() {
+        List<int[]> ranges = new ArrayList<>();
         int i = 0;
         while (i < text.length()) {
             int brace = text.indexOf('{', i);
@@ -3972,18 +4363,10 @@ public class ScriptDocument {
                 i = brace + 1;
                 continue;
             }
-            String objectLiteral = text.substring(brace, end);
-            ObjectLiteralParser.ObjectLiteralAnalysis analysis =
-                    ObjectLiteralParser.parse(objectLiteral, brace, true, true, this::resolveExpressionType, this::getScriptMethodInfo);
-            if (analysis != null) 
-                objectLiterals.put(brace, analysis);
-            
+            ranges.add(new int[]{brace, end});
             i = brace + 1;
         }
-        // Wire each object-literal inner scope to its containing object type (needs the cache)
-        for (InnerCallableScope scope : innerScopes) 
-            ObjectLiteralParser.attachObjectLiteralContext(scope, this);
-        
+        return ranges;
     }
 
     private boolean isLikelyObjectLiteralStart(int bracePos) {
@@ -4737,8 +5120,8 @@ public class ScriptDocument {
         // Extended pattern to capture extends and implements clauses
         // Groups: 1=class|interface|enum, 2=TypeName, 3=extends clause, 4=implements clause
         Pattern classWithInheritance = Pattern.compile(
-                "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:\\(\\))?\\s*" +
-                        "(?:(extends)\\s+([A-Za-z_][a-zA-Z0-9_.]*))?\\s*" +
+                "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:<[^{]*>)?\\s*(?:\\(\\))?\\s*" +
+                        "(?:(extends)\\s+([A-Za-z_][a-zA-Z0-9_.]*)(?:<[^{]*>)?)?\\s*" +
                         "(?:(implements)\\s+([A-Za-z_][a-zA-Z0-9_.,\\s]*))?\\s*(?=\\{)");
 
         Matcher m = classWithInheritance.matcher(text);
@@ -4777,11 +5160,16 @@ public class ScriptDocument {
             }
             marks.add(new ScriptLine.Mark(m.start(2), m.end(2), nameType, typeInfo));
 
+            // Mark generic type parameter declarations (e.g., <E>, <K, V>)
+            if (typeInfo != null && typeInfo.hasDeclaredTypeParams()) {
+                markTypeParamDeclarations(marks, m.end(2), typeInfo);
+            }
+
             // Mark extends clause
             if (m.group(3) != null) {
                 //Extends key word
                 marks.add(new ScriptLine.Mark(m.start(3), m.end(3), TokenType.IMPORT_KEYWORD));
-                markExtendsClause(marks, m.start(4), m.group(4));
+                markExtendsClause(marks, m.start(4), m.group(4), typeInfo);
             }
 
             // Mark implements clause
@@ -4820,36 +5208,50 @@ public class ScriptDocument {
      * Mark the extends clause with proper coloring.
      * The parent class is colored based on its resolved type.
      */
-    private void markExtendsClause(List<ScriptLine.Mark> marks, int clauseStart, String parentName) {
+    private void markExtendsClause(List<ScriptLine.Mark> marks, int clauseStart, String parentName, ScriptTypeInfo typeInfo) {
         String trimmedName = parentName.trim();
         if (trimmedName.isEmpty())
             return;
 
+        int actualStart = clauseStart;
+        while (actualStart < clauseStart + trimmedName.length() &&
+                Character.isWhitespace(text.charAt(actualStart))) {
+            actualStart++;
+        }
 
-        // Resolve the parent type with position context for inner class names
+        int baseNameEnd = actualStart;
+        while (baseNameEnd < text.length() && Character.isJavaIdentifierPart(text.charAt(baseNameEnd))) {
+            baseNameEnd++;
+        }
+        String baseName = text.substring(actualStart, baseNameEnd);
+
         TypeInfo parentType = resolveType(trimmedName, clauseStart);
         TokenType tokenType;
 
         if (parentType != null && parentType.isResolved()) {
-            // Use the type's specific token type (CLASS, INTERFACE, ENUM)
             tokenType = parentType.getTokenType();
         } else {
-            // Unresolved - mark as undefined
             tokenType = TokenType.UNDEFINED_VAR;
             if (parentType == null) {
                 parentType = TypeInfo.unresolved(trimmedName, trimmedName);
             }
         }
 
-        // Find actual position in text (might have leading whitespace in the group)
-        int actualStart = clauseStart;
-        String fullClause = parentName;
-        while (actualStart < clauseStart + fullClause.length() &&
-                Character.isWhitespace(text.charAt(actualStart))) {
-            actualStart++;
-        }
+        marks.add(new ScriptLine.Mark(actualStart, baseNameEnd, tokenType, parentType));
 
-        marks.add(new ScriptLine.Mark(actualStart, actualStart + trimmedName.length(), tokenType, parentType));
+        if (typeInfo != null && typeInfo.hasDeclaredTypeParams() && baseNameEnd < text.length() && text.charAt(baseNameEnd) == '<') {
+            int ltPos = baseNameEnd;
+            int depth = 1;
+            int i = ltPos + 1;
+            while (i < text.length() && depth > 0) {
+                char c = text.charAt(i++);
+                if (c == '<') depth++;
+                else if (c == '>') depth--;
+            }
+            if (depth == 0) {
+                markTypeParamsInClause(marks, ltPos + 1, i - 1, typeInfo.getDeclaredTypeParams());
+            }
+        }
     }
 
     /**
@@ -5403,7 +5805,7 @@ public class ScriptDocument {
             }
 
             // Parse the arguments (first pass - without expected types for overload resolution)
-            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null);
+            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null, null);
 
             // Check if this is a static access (Class.method() style)
             boolean isStaticAccess = isStaticAccessCall(nameStart);
@@ -5447,8 +5849,9 @@ public class ScriptDocument {
                 }
                 // Regular type - check for method existence using hierarchy search if it's a ScriptTypeInfo
                 boolean hasMethod = false;
-                if (receiverType instanceof ScriptTypeInfo) {
-                    hasMethod = ((ScriptTypeInfo) receiverType).hasMethodInHierarchy(methodName);
+                TypeInfo rawReceiver = receiverType.getRawType();
+                if (rawReceiver instanceof ScriptTypeInfo) {
+                    hasMethod = ((ScriptTypeInfo) rawReceiver).hasMethodInHierarchy(methodName);
                 } else {
                     hasMethod = receiverType.hasMethod(methodName);
                 }
@@ -5468,7 +5871,7 @@ public class ScriptDocument {
                     } else {
                         // Second pass: Re-resolve arguments with expected parameter types if method was found
                         if (resolvedMethod != null && resolvedMethod.getParameters().size() == arguments.size())
-                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod);
+                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod, receiverType);
                         
                         
                         MethodCallInfo callInfo = new MethodCallInfo(methodName, nameStart, nameEnd, openParen,
@@ -5501,7 +5904,7 @@ public class ScriptDocument {
 
                         // Second pass: Re-resolve arguments with expected parameter types if method was found
                         if (resolvedMethod != null && resolvedMethod.getParameters().size() == arguments.size()) {
-                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod);
+                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod, null);
                         }
                         
                         // Check if this is a method from a script type
@@ -5533,7 +5936,7 @@ public class ScriptDocument {
 
                         List<MethodCallInfo.Argument> globalArguments = arguments;
                         if (resolvedGlobal.getParameters().size() == arguments.size()) {
-                            globalArguments = parseMethodArguments(openParen + 1, closeParen, resolvedGlobal);
+                            globalArguments = parseMethodArguments(openParen + 1, closeParen, resolvedGlobal, null);
                         }
 
                         MethodCallInfo callInfo = new MethodCallInfo(
@@ -5557,7 +5960,7 @@ public class ScriptDocument {
                             TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
                             MethodInfo implicitMethod = callerType.getBestMethodOverload(methodName, argTypes);
                             if (implicitMethod != null && implicitMethod.getParameters().size() == arguments.size()) {
-                                arguments = parseMethodArguments(openParen + 1, closeParen, implicitMethod);
+                                arguments = parseMethodArguments(openParen + 1, closeParen, implicitMethod, callerType);
                             }
                             MethodCallInfo callInfo = new MethodCallInfo(
                                 methodName, nameStart, nameEnd, openParen, closeParen,
@@ -5725,9 +6128,10 @@ public class ScriptDocument {
      * @param start Start position of arguments (after opening paren)
      * @param end End position of arguments (at closing paren)
      * @param methodInfo Optional MethodInfo to provide expected parameter types for validation
+     * @param receiverType Optional receiver/containing type for substituting generic type parameters in argument types
      * @return List of parsed arguments with resolved types
      */
-    public List<MethodCallInfo.Argument> parseMethodArguments(int start, int end, MethodInfo methodInfo) {
+    public List<MethodCallInfo.Argument> parseMethodArguments(int start, int end, MethodInfo methodInfo, TypeInfo receiverType) {
         List<MethodCallInfo.Argument> args = new ArrayList<>();
         
         if (start >= end) 
@@ -5751,7 +6155,7 @@ public class ScriptDocument {
                     while (actualStart < i && Character.isWhitespace(text.charAt(actualStart))) {
                         actualStart++;
                     }
-                    int actualEnd = i;
+                    int actualEnd = i; 
                     while (actualEnd > actualStart && Character.isWhitespace(text.charAt(actualEnd - 1))) {
                         actualEnd--;
                     }
@@ -5766,6 +6170,15 @@ public class ScriptDocument {
                     }
 
                     TypeInfo argType = resolveArgumentType(argText, actualStart, expectedParamType);
+                    
+                    // Substitute type parameters using receiver's generic context
+                    if (receiverType != null && argType != null && GenericContext.hasGenerics(receiverType)) {
+                        GenericContext ctx = GenericContext.forReceiver(receiverType);
+                        TypeInfo substituted = ctx.substitute(argType);
+                        if (substituted != null && substituted.isResolved()) {
+                            argType = substituted;
+                        }
+                    }
                     
                     String samConflictError = CURRENT_SAM_CONFLICT_ERROR.get();
                     if (samConflictError != null) {
@@ -5820,7 +6233,7 @@ public class ScriptDocument {
         
         // Check if this looks like a parameter declaration: "Type varName"
         // Pattern: identifier followed by whitespace and another identifier
-        if (argText.matches("^[A-Za-z_][a-zA-Z0-9_<>\\[\\],\\s]*\\s+[a-zA-Z_][a-zA-Z0-9_]*$")) {
+        if (argText.matches("^[A-Za-z_][a-zA-Z0-9_<>\\[\\],\\s\\n\\r]*\\s+[a-zA-Z_][a-zA-Z0-9_]*$")) {
             // Split into tokens
             String[] parts = argText.split("\\s+");
             if (parts.length >= 2) {
@@ -6049,6 +6462,13 @@ public class ScriptDocument {
                 }
                 TypeInfo baseType = resolveType(typeName, position);
                 if (baseType == null) return null;
+                
+                // Parameterize with generic type arguments (e.g., new Box<String>(...))
+                String typeArgsClause = newMatcher.group(2);
+                if (typeArgsClause != null && !typeArgsClause.trim().isEmpty()) {
+                    baseType = parameterizeWithClause(baseType, typeArgsClause, position);
+                }
+                
                 String rest = expr.substring(newMatcher.end());
                 int dims = 0;
                 for (int i = 0; i < rest.length() && rest.charAt(i) != '('; i++) {
@@ -6510,8 +6930,9 @@ public class ScriptDocument {
             // Method call - get return type with argument-based overload resolution
             // Check for method existence using hierarchy search if it's a ScriptTypeInfo
             boolean hasMethod = false;
-            if (currentType instanceof ScriptTypeInfo) {
-                hasMethod = ((ScriptTypeInfo) currentType).hasMethodInHierarchy(segment.name);
+            TypeInfo rawType = currentType.getRawType();
+            if (rawType instanceof ScriptTypeInfo) {
+                hasMethod = ((ScriptTypeInfo) rawType).hasMethodInHierarchy(segment.name);
             } else {
                 hasMethod = currentType.hasMethod(segment.name);
             }
@@ -6531,10 +6952,11 @@ public class ScriptDocument {
             boolean hasField = false;
             FieldInfo fieldInfo = null;
 
-            if (currentType instanceof ScriptTypeInfo) {
-                hasField = ((ScriptTypeInfo) currentType).hasFieldInHierarchy(segment.name);
+            TypeInfo rawType = currentType.getRawType();
+            if (rawType instanceof ScriptTypeInfo) {
+                hasField = ((ScriptTypeInfo) rawType).hasFieldInHierarchy(segment.name);
                 if (hasField) {
-                    fieldInfo = ((ScriptTypeInfo) currentType).getFieldInfoInHierarchy(segment.name);
+                    fieldInfo = currentType.getFieldInfo(segment.name);
                 }
             } else {
                 hasField = currentType.hasField(segment.name);
@@ -6549,8 +6971,8 @@ public class ScriptDocument {
 
             // Field not found — check if the segment names an inner class.
             // This handles chains like Outer.Inner where Inner is a nested type, not a field.
-            if (currentType instanceof ScriptTypeInfo) {
-                ScriptTypeInfo innerClass = ((ScriptTypeInfo) currentType).getInnerClass(segment.name);
+            if (rawType instanceof ScriptTypeInfo) {
+                ScriptTypeInfo innerClass = ((ScriptTypeInfo) rawType).getInnerClass(segment.name);
                 if (innerClass != null) {
                     return innerClass;
                 }
@@ -6998,7 +7420,14 @@ public class ScriptDocument {
                 }
                 
                 // Otherwise treat it as a type name
-                return resolveType(typeName);
+                TypeInfo baseType = resolveType(typeName);
+                if (baseType != null) {
+                    String typeArgsClause = newMatcher.group(2);
+                    if (typeArgsClause != null && !typeArgsClause.trim().isEmpty()) {
+                        baseType = parameterizeWithClause(baseType, typeArgsClause, position);
+                    }
+                }
+                return baseType;
             }
         }
         
@@ -7278,7 +7707,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         TypeInfo superClass = enclosingType != null ? enclosingType.getSuperClass() : null;
 
         // Parse arguments and find matching parent constructor
-        List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null);
+        List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null, superClass);
         TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
 
         // Find matching constructor in parent class
@@ -8699,12 +9128,22 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                     while (searchPos < text.length() && Character.isWhitespace(text.charAt(searchPos)))
                         searchPos++;
                     
-                    if (searchPos < text.length() && text.charAt(searchPos) == '(') {
+                    // Skip generic args or diamond operator (e.g., <Integer> or <>)
+                    if (searchPos < text.length() && text.charAt(searchPos) == '<') {
+                        int closeAngle = text.indexOf('>', searchPos);
+                        if (closeAngle >= 0) {
+                            searchPos = closeAngle + 1;
+                            while (searchPos < text.length() && Character.isWhitespace(text.charAt(searchPos)))
+                                searchPos++;
+                        }
+                    }
+                    
+                    if (searchPos < text.length() && text.charAt(searchPos) == '(') { 
                         int openParen = searchPos;
-                        int closeParen = findMatchingParen(openParen);
+                        int closeParen = findMatchingParen(openParen); 
                         
                         if (closeParen >= 0) {
-                            // For constructor declarations, verify it's followed by opening brace
+                            // For constructor declarations, verify it's followed by opening brace 
                             if (isConstructorDecl && !isNewCreation) {
                                 int braceSearch = closeParen + 1;
                                 while (braceSearch < text.length() && Character.isWhitespace(text.charAt(braceSearch)))
@@ -8719,7 +9158,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                             
                             // Parse arguments to find matching constructor
                             List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen,
-                                    null);
+                                    null, info);
                             int argCount = arguments.size();
                             TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType)
                                                            .toArray(TypeInfo[]::new);
@@ -8753,7 +9192,6 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                                 ).setConstructor(true);
                                 ctorCall.isClassTypeAccess = true;
                             } else {
-                                // Use factory method for regular types
                                 ctorCall = MethodCallInfo.constructor(
                                     info, constructor, start, end, openParen, closeParen, arguments
                                 );
@@ -9051,6 +9489,11 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         for (MethodInfo method : getAllMethods()) {
             if (method.containsPosition(position)) {
                 return method;
+            }
+        }
+        for (MethodInfo constructor : getAllConstructors()) {
+            if (constructor.containsPosition(position)) {
+                return constructor;
             }
         }
         return null;

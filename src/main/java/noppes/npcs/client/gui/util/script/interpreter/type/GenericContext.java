@@ -85,9 +85,7 @@ public final class GenericContext {
                 String name = declared.getName();
                 if (name == null || name.isEmpty()) continue;
                 TypeInfo bound = declared.getBoundTypeInfo();
-                if (bound != null && bound.isResolved()) {
-                    bounds.put(name, bound);
-                }
+                bounds.put(name, (bound != null && bound.isResolved()) ? bound : TypeInfo.OBJECT);
             }
         }
 
@@ -150,9 +148,11 @@ public final class GenericContext {
             return null;
         }
 
-        // Direct type variable substitution (unresolved types represent type variables like T).
-        if (!type.isResolved()) {
-            TypeInfo substitution = resolveTypeVariable(type.getSimpleName());
+        // Direct type variable substitution.
+        // Handles unresolved types (Java reflection path) and TypeInfo.typeParameter() (script-defined path).
+        if (!type.isResolved() || type.isTypeParameter()) {
+            String lookupKey = type.isTypeParameter() ? type.getTypeParameterName() : type.getSimpleName();
+            TypeInfo substitution = resolveTypeVariable(lookupKey);
             if (substitution != null) {
                 return substitution;
             }
