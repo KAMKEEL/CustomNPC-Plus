@@ -154,6 +154,11 @@ public class ScriptDocument {
     // Populated once in parseObjectLiterals() and consumed by markObjectLiteralKeys,
     // resolveExpressionType, and attachObjectLiteralContext.
     private final Map<Integer, ObjectLiteralParser.ObjectLiteralAnalysis> objectLiterals = new HashMap<>();
+
+    // Cached lambda metadata, keyed by lambda header-start offset in text.
+    // Populated in inferLambdaParameterTypes() (method calls, constructors, field assignments).
+    // Consumed by resolveExpressionType() to avoid re-inferring lambda context.
+    private final Map<Integer, LambdaCacheEntry> lambdaCache = new HashMap<>();
     
     // Thread-local to communicate SAM conflict errors from resolveIdentifier back to parseMethodArguments
     // Set when injectSamParameterTypes detects a conflict, cleared after argument is created
@@ -381,6 +386,7 @@ public class ScriptDocument {
         declarationErrors.clear();
         scriptMethodSamContexts.clear();
         objectLiterals.clear();
+        lambdaCache.clear();
         
         // Unified pipeline for both languages
         List<ScriptLine.Mark> marks = formatUnified();
@@ -738,6 +744,10 @@ public class ScriptDocument {
 
         // Parse global fields (outside methods) - UNIFIED for both languages
         parseGlobalFields();
+
+        // Must run before parseAssignments: sets inferredType on lambda params so that
+        // body variable resolution (e.g. "act" in "int x = act.getData()") works correctly.
+        inferLambdaParameterTypes();
         
         // Parse and validate assignments (reassignments) - UNIFIED for both languages
         parseAssignments();
@@ -748,6 +758,16 @@ public class ScriptDocument {
         // Detect method overrides and interface implementations for script types - Java only
         if (!isJavaScript()) {
             detectMethodInheritance();
+        }
+    }
+
+    static class LambdaCacheEntry {
+        final InnerCallableScope scope;
+        final TypeInfo expectedType;
+
+        LambdaCacheEntry(InnerCallableScope scope, TypeInfo expectedType) {
+            this.scope = scope;
+            this.expectedType = expectedType;
         }
     }
 
@@ -4518,10 +4538,6 @@ public class ScriptDocument {
         // Methods/functions - UNIFIED (uses shared 'methods' list)
         markMethodDeclarations(marks);
 
-        // Pre-infer constructor lambda parameter types so body resolution works
-        // Must run before markMethodCalls so lambda body chains/calls see typed parameters
-        inferConstructorLambdaTypes();
-
         // Method calls - UNIFIED (stores in shared 'methodCalls' list)
         markMethodCalls(marks);
 
@@ -6553,7 +6569,10 @@ public class ScriptDocument {
             if (!inString) {
                 if (c == '(' || c == '[' || c == '{' || c == '<') {
                     depth++;
-                } else if (c == ')' || c == ']' || c == '}' || c == '>') {
+                } else if (c == ')' || c == ']' || c == '}') {
+                    depth--;
+                } else if (c == '>' && prev != '-') {
+                    // Skip '>' when preceded by '-' (lambda arrow '->'), otherwise treat as closing bracket
                     depth--;
                 }
             }
@@ -6698,6 +6717,11 @@ public class ScriptDocument {
                 return TypeInfo.ANY;
             }
             return analysis.inferredType;
+        }
+
+        LambdaCacheEntry cachedLambda = lambdaCache.get(position);
+        if (cachedLambda != null && cachedLambda.expectedType != null) {
+            return cachedLambda.expectedType;
         }
         
          // Check if expression contains operators - if so, use the full expression resolver
@@ -9387,6 +9411,81 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
     }
 
     /**
+     * Early SAM inference for all lambda/function parameters inside method and constructor calls.
+     * Runs during parseStructure() (before parseAssignments) so that lambda body variable
+     * resolution sees typed parameters.  The mark-phase methods (markMethodCalls,
+     * inferConstructorLambdaTypes) will re-run the same inference harmlessly later.
+     */
+    private void inferLambdaParameterTypes() {
+        inferMethodCallLambdaTypes();
+        inferConstructorLambdaTypes();
+        inferFieldAssignmentLambdaTypes();
+        populateLambdaCache();
+    }
+
+    private void inferMethodCallLambdaTypes() {
+        Matcher m = METHOD_CALL_PATTERN.matcher(text);
+        while (m.find()) {
+            int nameStart = m.start(1);
+            String methodName = m.group(1);
+
+            if (isExcluded(nameStart) || isKeyword(methodName))
+                continue;
+            if (isInImportOrPackage(nameStart))
+                continue;
+
+            boolean isDecl = false;
+            for (MethodInfo decl : methods)
+                if (decl.getNameOffset() == nameStart)
+                    isDecl = true;
+            if (isDecl)
+                continue;
+
+            int openParen = m.end(1);
+            while (openParen < text.length() && Character.isWhitespace(text.charAt(openParen)))
+                openParen++;
+            if (openParen >= text.length() || text.charAt(openParen) != '(')
+                continue;
+
+            int closeParen = findMatchingParen(openParen);
+            if (closeParen < 0)
+                continue;
+
+            String argsText = text.substring(openParen + 1, closeParen);
+            boolean hasLambda = isJavaScript()
+                    ? (argsText.contains("function") || argsText.contains("=>"))
+                    : argsText.contains("->");
+            if (!hasLambda)
+                continue;
+
+            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null, null);
+            TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType)
+                                           .toArray(TypeInfo[]::new);
+
+            TypeInfo receiverType = resolveReceiverChain(nameStart);
+            MethodInfo resolvedMethod = null;
+
+            if (receiverType != null) {
+                if (receiverType.hasMethod(methodName)) {
+                    resolvedMethod = receiverType.getBestMethodOverload(methodName, argTypes);
+                }
+            } else if (!isPrecededByDot(nameStart)) {
+                if (isScriptMethod(methodName)) {
+                    resolvedMethod = getScriptMethodInfo(methodName, argTypes);
+                } else if (isGlobalEngineFunction(methodName)) {
+                    JSMethodInfo jsGlobal = JSTypeRegistry.getInstance().getGlobalEngineFunction(methodName);
+                    if (jsGlobal != null)
+                        resolvedMethod = MethodInfo.fromJSMethod(jsGlobal, null);
+                }
+            }
+
+            if (resolvedMethod != null && resolvedMethod.getParameters().size() == arguments.size()) {
+                parseMethodArguments(openParen + 1, closeParen, resolvedMethod, receiverType);
+            }
+        }
+    }
+
+    /**
      * Pre-infer lambda parameter types for constructor arguments (new Foo(... lambda ...)).
      * Constructor SAM inference normally happens in markImportedClassUsages, which runs AFTER
      * markMethodCalls/markVariables/markChainedFieldAccesses. That ordering means lambda body
@@ -9435,6 +9534,173 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                 parseMethodArguments(openParen + 1, closeParen, constructor, info);
             }
         }
+    }
+
+    private void inferFieldAssignmentLambdaTypes() {
+        if (isJavaScript()) {
+            inferJSFieldAssignmentLambdaTypes();
+        } else {
+            inferJavaFieldAssignmentLambdaTypes();
+        }
+    }
+
+    private void inferJavaFieldAssignmentLambdaTypes() {
+        Matcher m = FIELD_DECL_PATTERN.matcher(normalizeGenericNewlines(text));
+        while (m.find()) {
+            String typeName = m.group(1);
+            String varName = m.group(2);
+            String delimiter = m.group(3);
+
+            if (!"=".equals(delimiter))
+                continue;
+
+            int absTypeStart = m.start(1);
+            int absVarStart = m.start(2);
+            if (isExcluded(absTypeStart) || isExcluded(absVarStart))
+                continue;
+            if (hasExcludedRange(absTypeStart, m.end(1)))
+                continue;
+            if (isInImportOrPackage(absTypeStart))
+                continue;
+
+            if (typeName.equals("return") || typeName.equals("if") || typeName.equals("while") ||
+                    typeName.equals("for") || typeName.equals("switch") || typeName.equals("catch") ||
+                    typeName.equals("new") || typeName.equals("throw"))
+                continue;
+
+            int rhsStart = m.end(3);
+            while (rhsStart < text.length() && Character.isWhitespace(text.charAt(rhsStart)))
+                rhsStart++;
+            if (rhsStart >= text.length())
+                continue;
+
+            int rhsEnd = findStatementEnd(rhsStart);
+            if (rhsEnd <= rhsStart)
+                continue;
+
+            String rhs = text.substring(rhsStart, rhsEnd).trim();
+            if (!rhs.contains("->"))
+                continue;
+
+            TypeInfo declaredType = resolveType(stripModifiers(typeName), absVarStart);
+            if (declaredType == null || !declaredType.isResolved())
+                continue;
+            if (!declaredType.isFunctionalInterface())
+                continue;
+
+            MethodInfo sam = declaredType.getSingleAbstractMethod();
+            if (sam == null)
+                continue;
+
+            List<FieldInfo> samParams = sam.getParameters();
+
+            for (InnerCallableScope scope : innerScopes) {
+                if (scope.getKind() != InnerCallableScope.Kind.JAVA_LAMBDA)
+                    continue;
+                if (scope.getHeaderStart() < rhsStart || scope.getFullEnd() > rhsEnd + 1)
+                    continue;
+                if (scope.getExpectedType() != null)
+                    continue;
+
+                List<FieldInfo> lambdaParams = scope.getParameters();
+                if (samParams.size() != lambdaParams.size())
+                    continue;
+
+                scope.setExpectedType(declaredType);
+                for (int i = 0; i < lambdaParams.size(); i++) {
+                    TypeInfo inferredType = samParams.get(i).getTypeInfo();
+                    if (inferredType != null) {
+                        lambdaParams.get(i).setInferredType(inferredType);
+                    }
+                }
+            }
+        }
+    }
+
+    private void inferJSFieldAssignmentLambdaTypes() {
+        Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*(=))?");
+        Matcher m = varPattern.matcher(text);
+
+        while (m.find()) {
+            if (m.group(2) == null)
+                continue;
+
+            int position = m.start(1);
+            if (isExcluded(position))
+                continue;
+
+            int initializerStart = skipSegmentWhitespace(text, m.end(2));
+            int initializerEnd = findJsInitializerEnd(text, initializerStart, true);
+            if (initializerEnd <= initializerStart)
+                continue;
+
+            String initializer = text.substring(initializerStart, initializerEnd).trim();
+            if (!initializer.contains("function") && !initializer.contains("=>"))
+                continue;
+
+            JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, m.start());
+            if (jsDoc == null || !jsDoc.hasTypeTag())
+                continue;
+
+            TypeInfo declaredType = jsDoc.getDeclaredType();
+            if (declaredType == null || !declaredType.isResolved())
+                continue;
+            if (!declaredType.isFunctionalInterface())
+                continue;
+
+            MethodInfo sam = declaredType.getSingleAbstractMethod();
+            if (sam == null)
+                continue;
+
+            List<FieldInfo> samParams = sam.getParameters();
+
+            for (InnerCallableScope scope : innerScopes) {
+                if (scope.getKind() != InnerCallableScope.Kind.JS_FUNCTION_EXPR &&
+                        scope.getKind() != InnerCallableScope.Kind.JS_ARROW_FUNC)
+                    continue;
+                if (scope.getHeaderStart() < initializerStart || scope.getFullEnd() > initializerEnd + 1)
+                    continue;
+                if (scope.getExpectedType() != null)
+                    continue;
+
+                List<FieldInfo> funcParams = scope.getParameters();
+                if (samParams.size() != funcParams.size())
+                    continue;
+
+                scope.setExpectedType(declaredType);
+                for (int i = 0; i < funcParams.size(); i++) {
+                    TypeInfo inferredType = samParams.get(i).getTypeInfo();
+                    if (inferredType != null) {
+                        funcParams.get(i).setInferredType(inferredType);
+                    }
+                }
+            }
+        }
+    }
+
+    private void populateLambdaCache() {
+        for (InnerCallableScope scope : innerScopes) {
+            if (scope.getExpectedType() != null) {
+                lambdaCache.put(scope.getHeaderStart(), new LambdaCacheEntry(scope, scope.getExpectedType()));
+            }
+        }
+    }
+
+    private int findStatementEnd(int startPos) {
+        int depth = 0;
+        for (int i = startPos; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '(' || c == '{' || c == '[')
+                depth++;
+            else if (c == ')' || c == '}' || c == ']') {
+                depth--;
+                if (depth < 0)
+                    return i;
+            } else if (c == ';' && depth == 0) {
+                return i;
+            }
+        }
+        return text.length();
     }
 
     private void markImportedClassUsages(List<ScriptLine.Mark> marks) {
@@ -10006,6 +10272,10 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         return objectLiterals.get(braceOffset);
     }
 
+    public LambdaCacheEntry getLambdaCacheEntry(int headerOffset) {
+        return lambdaCache.get(headerOffset);
+    }
+
     public List<ScriptTypeInfo> getScriptTypes() {
         // Return all types including inner classes — needed by error underline rendering,
         // validation loops, and mark building so inner classes get full treatment
@@ -10267,6 +10537,14 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
             for (FieldInfo field : scriptType.getFields().values()) {
                 errored.addAll(field.getErroredAssignments());
             }
+        }
+
+        for (InnerCallableScope scope : getInnerScopes()) {
+            for (FieldInfo field : scope.getParameters())
+                errored.addAll(field.getErroredAssignments());
+            
+            for (FieldInfo field : scope.getLocals().values())
+                errored.addAll(field.getErroredAssignments());
         }
         
 
