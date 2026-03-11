@@ -163,10 +163,10 @@ public final class MethodInfo {
                 if (reflectedReturn.isAssignableFrom(overrideClass)) {
                     if (reflectedReturn != overrideClass) {
                         returnType = overrideReturnType;
-                        System.out.println("[DtsJavaBridge] Overrode return type for "
-                                + method.getDeclaringClass().getName() + "." + name
-                                + "(" + method.getParameterCount() + ") from "
-                                + reflectedReturn.getName() + " to " + overrideClass.getName());
+//                        System.out.println("[DtsJavaBridge] Overrode return type for "
+//                                + method.getDeclaringClass().getName() + "." + name
+//                                + "(" + method.getParameterCount() + ") from "
+//                                + reflectedReturn.getName() + " to " + overrideClass.getName());
                     }
                 }
             }

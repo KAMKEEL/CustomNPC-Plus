@@ -88,7 +88,7 @@ public class ScriptDocument {
     // Also matches ',' as a delimiter so that "int x, y, z;" is recognized
     // (the first declarator "int x," is captured; continuations are scanned manually).
     private static final Pattern FIELD_DECL_PATTERN = Pattern.compile(
-            "\\b([A-Za-z_][a-zA-Z0-9_.<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
+            "\\b([A-Za-z_][a-zA-Z0-9_.<>,[ \\t\\n\\r]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
     private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:<([^>]*)>)?");
     
     // Cast expression pattern: captures type name inside cast parentheses
@@ -785,8 +785,10 @@ public class ScriptDocument {
      */
     private void parseScriptTypes() {
         // ========== PASS 1: Discover all type declarations (flat list) ==========
+        // Regex only anchors on keyword + name — generic clauses are extracted manually
+        // below to correctly handle nested angle brackets like <T extends Comparable<T>>.
         Pattern typeDecl = Pattern.compile(
-                "(?:(?:public|private|protected|static|final|abstract)\\s+)*(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:<([^>]*)>)?\\s*(?:\\(\\))?\\s*(?:extends\\s+([A-Za-z_][a-zA-Z0-9_.]*))?\\s*(?:implements\\s+([A-Za-z_][a-zA-Z0-9_.,\\s]*))?\\s*\\{");
+                "(?:(?:public|private|protected|static|final|abstract)\\s+)*(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
 
         List<RawTypeDeclaration> rawDeclarations = new ArrayList<>();
         Matcher m = typeDecl.matcher(text);
@@ -796,15 +798,57 @@ public class ScriptDocument {
 
             String kindStr = m.group(1);
             String typeName = m.group(2);
-            String typeParamsClause = m.group(3);
-            String extendsClause = m.group(4);
-            String implementsClause = m.group(5);
 
-            int bodyStart = text.indexOf('{', m.start());
-            int bodyEnd = findMatchingBrace(bodyStart);
-            if (bodyEnd < 0) {
-                bodyEnd = text.length();
+            // Manually extract everything between the type name and the opening '{',
+            // handling nested angle brackets so <T extends Comparable<T>> is captured whole.
+            int scanPos = m.end();
+            while (scanPos < text.length() && Character.isWhitespace(text.charAt(scanPos)))
+                scanPos++;
+
+            // Extract type params clause <...> if present (depth-aware)
+            String typeParamsClause = null;
+            if (scanPos < text.length() && text.charAt(scanPos) == '<') {
+                int depth = 1, i = scanPos + 1;
+                while (i < text.length() && depth > 0) {
+                    char c = text.charAt(i++);
+                    if (c == '<') depth++;
+                    else if (c == '>') depth--;
+                }
+                if (depth == 0) {
+                    typeParamsClause = text.substring(scanPos + 1, i - 1);
+                    scanPos = i;
+                    while (scanPos < text.length() && Character.isWhitespace(text.charAt(scanPos)))
+                        scanPos++;
+                }
             }
+
+            // Find the opening brace, extracting extends/implements from text between here and '{'
+            int bracePos = scanPos;
+            int angleDepth = 0;
+            while (bracePos < text.length()) {
+                char c = text.charAt(bracePos);
+                if (c == '<') angleDepth++;
+                else if (c == '>') angleDepth--;
+                else if (c == '{' && angleDepth == 0) break;
+                bracePos++;
+            }
+            if (bracePos >= text.length()) continue;
+
+            String betweenNameAndBrace = text.substring(scanPos, bracePos).trim();
+
+            // Parse extends/implements from that window
+            String extendsClause = null;
+            String implementsClause = null;
+            java.util.regex.Matcher extM = Pattern.compile(
+                    "extends\\s+([A-Za-z_][a-zA-Z0-9_.]*(?:<[^{]*>)?)").matcher(betweenNameAndBrace);
+            if (extM.find()) extendsClause = extM.group(1).trim();
+            java.util.regex.Matcher implM = Pattern.compile(
+                    "implements\\s+(.+)$").matcher(betweenNameAndBrace);
+            if (implM.find()) implementsClause = implM.group(1).trim();
+
+            int bodyStart = bracePos;
+            int bodyEnd = findMatchingBrace(bodyStart);
+            if (bodyEnd < 0) bodyEnd = text.length();
 
             TypeInfo.Kind kind;
             switch (kindStr) {
@@ -813,7 +857,7 @@ public class ScriptDocument {
                 default: kind = TypeInfo.Kind.CLASS; break;
             }
 
-            String fullMatch = text.substring(m.start(), m.end());
+            String fullMatch = text.substring(m.start(), bodyStart + 1);
             int modifiers = parseModifiers(fullMatch);
             JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, m.start());
 
@@ -870,6 +914,11 @@ public class ScriptDocument {
             // Resolve extends clause (parent class inheritance)
             if (raw.extendsClause != null && !raw.extendsClause.trim().isEmpty()) {
                 String parentName = raw.extendsClause.trim();
+                // Strip generic args (e.g., "NumberBox<T>" -> "NumberBox") for type resolution
+                int genIdx = parentName.indexOf('<');
+                if (genIdx >= 0) {
+                    parentName = parentName.substring(0, genIdx);
+                }
                 TypeInfo parentType = resolveType(parentName, raw.declOffset);
                 if (parentType == null) {
                     parentType = TypeInfo.unresolved(parentName, parentName);
@@ -884,6 +933,11 @@ public class ScriptDocument {
                     String trimmedName = ifaceName.trim();
                     if (trimmedName.isEmpty())
                         continue;
+                    // Strip generic args (e.g., "Comparable<T>" -> "Comparable")
+                    int genIdx = trimmedName.indexOf('<');
+                    if (genIdx >= 0) {
+                        trimmedName = trimmedName.substring(0, genIdx);
+                    }
                     TypeInfo ifaceType = resolveType(trimmedName, raw.declOffset);
                     if (ifaceType == null) {
                         ifaceType = TypeInfo.unresolved(trimmedName, trimmedName);
@@ -920,14 +974,16 @@ public class ScriptDocument {
             String boundName = null;
             if (extendsIdx >= 0) {
                 String afterExtends = trimmed.substring(extendsIdx + 7).trim();
-                if (!afterExtends.isEmpty()) {
+                // Split on & to get the primary bound (first one); additional bounds are interfaces
+                String primaryBound = afterExtends.split("&")[0].trim();
+                if (!primaryBound.isEmpty()) {
                     int boundEndIdx = 0;
-                    while (boundEndIdx < afterExtends.length() && 
-                           (Character.isJavaIdentifierPart(afterExtends.charAt(boundEndIdx)) || afterExtends.charAt(boundEndIdx) == '.')) {
+                    while (boundEndIdx < primaryBound.length() && 
+                           (Character.isJavaIdentifierPart(primaryBound.charAt(boundEndIdx)) || primaryBound.charAt(boundEndIdx) == '.')) {
                         boundEndIdx++;
                     }
                     if (boundEndIdx > 0) {
-                        boundName = afterExtends.substring(0, boundEndIdx);
+                        boundName = primaryBound.substring(0, boundEndIdx);
                     }
                 }
             }
@@ -941,7 +997,7 @@ public class ScriptDocument {
             }
             scriptType.addDeclaredTypeParam(typeParam);
         }
-    }
+    } 
 
     private TypeInfo parameterizeWithClause(TypeInfo baseType, String typeArgsClause, int position) {
         String[] argNames = typeArgsClause.split(",");
@@ -964,42 +1020,68 @@ public class ScriptDocument {
     private void markTypeParamDeclarations(List<ScriptLine.Mark> marks, int afterNameEnd, ScriptTypeInfo typeInfo) {
         int ltPos = text.indexOf('<', afterNameEnd);
         if (ltPos < 0 || ltPos > afterNameEnd + 5) return;
-        int gtPos = text.indexOf('>', ltPos);
-        if (gtPos < 0) return;
 
-        String clause = text.substring(ltPos + 1, gtPos);
-        int offset = ltPos + 1;
-        for (TypeParamInfo param : typeInfo.getDeclaredTypeParams()) {
-            int paramIdx = clause.indexOf(param.getName(), offset - (ltPos + 1));
-            if (paramIdx >= 0) {
-                int paramStart = ltPos + 1 + paramIdx;
-                int paramLen = param.getName().length();
-                int paramEnd = paramStart + paramLen;
-                marks.add(new ScriptLine.Mark(paramStart, paramEnd, TokenType.GENERIC_TYPE_PARAM, param));
+        int depth = 1, i = ltPos + 1;
+        while (i < text.length() && depth > 0) {
+            char c = text.charAt(i++);
+            if (c == '<') depth++;
+            else if (c == '>') depth--;
+        }
+        if (depth != 0) return;
+        int gtPos = i - 1;
 
-                int searchFrom = paramIdx + param.getName().length();
-                int extendsIdx = clause.indexOf("extends", searchFrom);
-                if (extendsIdx >= 0) {
-                    int extendsStart = ltPos + 1 + extendsIdx;
-                    marks.add(new ScriptLine.Mark(extendsStart, extendsStart + 7, TokenType.KEYWORD));
+        markTypeParamsInClause(marks, ltPos + 1, gtPos - 1, typeInfo.getDeclaredTypeParams());
+    }
 
-                    TypeInfo boundType = param.getBoundTypeInfo();
-                    if (boundType != null) {
-                        String remaining = clause.substring(extendsIdx + 7).trim();
-                        if (!remaining.isEmpty()) {
-                            int boundEnd = remaining.indexOf(',');
-                            if (boundEnd < 0) boundEnd = remaining.indexOf('&');
-                            String boundName = boundEnd < 0 ? remaining : remaining.substring(0, boundEnd).trim();
-                            if (!boundName.isEmpty()) {
-                                int boundStart = extendsStart + 7;
-                                while (boundStart < gtPos && Character.isWhitespace(text.charAt(boundStart))) boundStart++;
-                                marks.add(new ScriptLine.Mark(boundStart, boundStart + boundName.length(), TokenType.getByType(boundType), boundType));
-                            }
-                        }
-                    }
+    private void markTypeParamsInClause(List<ScriptLine.Mark> marks, int clauseStart, int clauseEnd, List<TypeParamInfo> typeParams) {
+        if (clauseStart >= clauseEnd) return;
+        
+        String clause = text.substring(clauseStart, clauseEnd);
+        Map<String, TypeParamInfo> paramMap = new HashMap<>();
+        for (TypeParamInfo param : typeParams) {
+            paramMap.put(param.getName(), param);
+        }
+        
+        int i = 0;
+        while (i < clause.length()) {
+            char c = clause.charAt(i);
+            
+            if (c == '<') {
+                int innerStart = clauseStart + i + 1;
+                int depth = 1;
+                int j = i + 1;
+                while (j < clause.length() && depth > 0) {
+                    char innerC = clause.charAt(j);
+                    if (innerC == '<') depth++;
+                    else if (innerC == '>') depth--;
+                    j++;
                 }
+                if (depth == 0) {
+                    markTypeParamsInClause(marks, innerStart, clauseStart + j - 1, typeParams);
+                    i = j;
+                } else {
+                    i++;
+                }
+            } else if (c == '&') {
+                i++;
+            } else if (c == ',') {
+                i++;
+            } else if (Character.isJavaIdentifierStart(c)) {
+                int start = i;
+                while (i < clause.length() && Character.isJavaIdentifierPart(clause.charAt(i))) {
+                    i++;
+                }
+                String name = clause.substring(start, i);
+                TypeParamInfo param = paramMap.get(name);
+                if (param != null) {
+                    int absStart = clauseStart + start;
+                    int absEnd = clauseStart + i;
+                    marks.add(new ScriptLine.Mark(absStart, absEnd, TokenType.GENERIC_TYPE_PARAM, param));
+                }
+            } else {
+                i++;
             }
-        }  
+        }
     }
     /**
      * Parse fields and methods inside a script-defined type.
@@ -5038,8 +5120,8 @@ public class ScriptDocument {
         // Extended pattern to capture extends and implements clauses
         // Groups: 1=class|interface|enum, 2=TypeName, 3=extends clause, 4=implements clause
         Pattern classWithInheritance = Pattern.compile(
-                "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:<[^>]*>)?\\s*(?:\\(\\))?\\s*" +
-                        "(?:(extends)\\s+([A-Za-z_][a-zA-Z0-9_.]*))?\\s*" +
+                "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:<[^{]*>)?\\s*(?:\\(\\))?\\s*" +
+                        "(?:(extends)\\s+([A-Za-z_][a-zA-Z0-9_.]*)(?:<[^{]*>)?)?\\s*" +
                         "(?:(implements)\\s+([A-Za-z_][a-zA-Z0-9_.,\\s]*))?\\s*(?=\\{)");
 
         Matcher m = classWithInheritance.matcher(text);
@@ -5087,7 +5169,7 @@ public class ScriptDocument {
             if (m.group(3) != null) {
                 //Extends key word
                 marks.add(new ScriptLine.Mark(m.start(3), m.end(3), TokenType.IMPORT_KEYWORD));
-                markExtendsClause(marks, m.start(4), m.group(4));
+                markExtendsClause(marks, m.start(4), m.group(4), typeInfo);
             }
 
             // Mark implements clause
@@ -5126,36 +5208,50 @@ public class ScriptDocument {
      * Mark the extends clause with proper coloring.
      * The parent class is colored based on its resolved type.
      */
-    private void markExtendsClause(List<ScriptLine.Mark> marks, int clauseStart, String parentName) {
+    private void markExtendsClause(List<ScriptLine.Mark> marks, int clauseStart, String parentName, ScriptTypeInfo typeInfo) {
         String trimmedName = parentName.trim();
         if (trimmedName.isEmpty())
             return;
 
+        int actualStart = clauseStart;
+        while (actualStart < clauseStart + trimmedName.length() &&
+                Character.isWhitespace(text.charAt(actualStart))) {
+            actualStart++;
+        }
 
-        // Resolve the parent type with position context for inner class names
+        int baseNameEnd = actualStart;
+        while (baseNameEnd < text.length() && Character.isJavaIdentifierPart(text.charAt(baseNameEnd))) {
+            baseNameEnd++;
+        }
+        String baseName = text.substring(actualStart, baseNameEnd);
+
         TypeInfo parentType = resolveType(trimmedName, clauseStart);
         TokenType tokenType;
 
         if (parentType != null && parentType.isResolved()) {
-            // Use the type's specific token type (CLASS, INTERFACE, ENUM)
             tokenType = parentType.getTokenType();
         } else {
-            // Unresolved - mark as undefined
             tokenType = TokenType.UNDEFINED_VAR;
             if (parentType == null) {
                 parentType = TypeInfo.unresolved(trimmedName, trimmedName);
             }
         }
 
-        // Find actual position in text (might have leading whitespace in the group)
-        int actualStart = clauseStart;
-        String fullClause = parentName;
-        while (actualStart < clauseStart + fullClause.length() &&
-                Character.isWhitespace(text.charAt(actualStart))) {
-            actualStart++;
-        }
+        marks.add(new ScriptLine.Mark(actualStart, baseNameEnd, tokenType, parentType));
 
-        marks.add(new ScriptLine.Mark(actualStart, actualStart + trimmedName.length(), tokenType, parentType));
+        if (typeInfo != null && typeInfo.hasDeclaredTypeParams() && baseNameEnd < text.length() && text.charAt(baseNameEnd) == '<') {
+            int ltPos = baseNameEnd;
+            int depth = 1;
+            int i = ltPos + 1;
+            while (i < text.length() && depth > 0) {
+                char c = text.charAt(i++);
+                if (c == '<') depth++;
+                else if (c == '>') depth--;
+            }
+            if (depth == 0) {
+                markTypeParamsInClause(marks, ltPos + 1, i - 1, typeInfo.getDeclaredTypeParams());
+            }
+        }
     }
 
     /**
@@ -6059,7 +6155,7 @@ public class ScriptDocument {
                     while (actualStart < i && Character.isWhitespace(text.charAt(actualStart))) {
                         actualStart++;
                     }
-                    int actualEnd = i;
+                    int actualEnd = i; 
                     while (actualEnd > actualStart && Character.isWhitespace(text.charAt(actualEnd - 1))) {
                         actualEnd--;
                     }

@@ -93,7 +93,7 @@ public class JSTypeRegistry {
             if (dtsFiles.isEmpty()) {
                 Set<String> fallbackFiles = findAllDtsFilesInResources("assets/customnpcs/api");
 
-                System.out.println("[JSTypeRegistry] Found " + fallbackFiles.size() + " .d.ts files in resources");
+                // System.out.println("[JSTypeRegistry] Found " + fallbackFiles.size() + " .d.ts files in resources");
 
                 if (fallbackFiles.contains("hooks.d.ts")) {
                     loadResourceFile(parser, "hooks.d.ts");
@@ -126,7 +126,7 @@ public class JSTypeRegistry {
             registerES5Builtins();
             
             initialized = true;
-            System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks from resources");
+            // System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks from resources");
         } catch (Exception e) {
             System.err.println("[JSTypeRegistry] Failed to load type definitions from resources: " + e.getMessage());
             e.printStackTrace();
@@ -276,7 +276,7 @@ public class JSTypeRegistry {
             }
         } catch (Exception e) {
             // File might not exist, that's ok
-            System.out.println("[JSTypeRegistry] Could not load " + fileName + ": " + e.getMessage());
+            // System.out.println("[JSTypeRegistry] Could not load " + fileName + ": " + e.getMessage());
         }
     }
     
@@ -294,7 +294,7 @@ public class JSTypeRegistry {
             resolveAllJSDocTypes();
             resolveInheritance();
             initialized = true;
-            System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks");
+            // System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks");
         } catch (IOException e) {
             System.err.println("[JSTypeRegistry] Failed to load type definitions: " + e.getMessage());
             e.printStackTrace();
@@ -315,7 +315,7 @@ public class JSTypeRegistry {
             resolveAllJSDocTypes();
             resolveInheritance();
             initialized = true;
-            System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks from VSIX");
+            // System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks from VSIX");
         } catch (IOException e) {
             System.err.println("[JSTypeRegistry] Failed to load VSIX: " + e.getMessage());
             e.printStackTrace();
@@ -360,7 +360,7 @@ public class JSTypeRegistry {
             if (!typesByJavaFqn.containsKey(javaFqn)) {
                 typesByJavaFqn.put(javaFqn, type);
             } else {
-                System.out.println("[JSTypeRegistry] Duplicate javaFqn " + javaFqn + " from " + getCurrentSource());
+                //  System.out.println("[JSTypeRegistry] Duplicate javaFqn " + javaFqn + " from " + getCurrentSource());
             }
         }
     }
@@ -1048,13 +1048,13 @@ public class JSTypeRegistry {
 
     private void logTypeCollision(String fullName, String incomingSource) {
         String existingSource = typeOrigins.getOrDefault(fullName, "unknown");
-        System.out.println("[JSTypeRegistry] Duplicate type " + fullName + " from " + incomingSource + " (kept " + existingSource + ")");
+        //  System.out.println("[JSTypeRegistry] Duplicate type " + fullName + " from " + incomingSource + " (kept " + existingSource + ")");
     }
 
     private void logAliasCollision(String alias, String existingType, String incomingType, String incomingSource) {
         String existingSource = aliasOrigins.getOrDefault(alias, "unknown");
-        System.out.println("[JSTypeRegistry] Duplicate alias " + alias + " from " + incomingSource + " (kept " + existingSource + ")");
-        System.out.println("[JSTypeRegistry] Alias " + alias + " existing=" + existingType + " incoming=" + incomingType);
+        // System.out.println("[JSTypeRegistry] Duplicate alias " + alias + " from " + incomingSource + " (kept " + existingSource + ")");
+        // System.out.println("[JSTypeRegistry] Alias " + alias + " existing=" + existingType + " incoming=" + incomingType);
     }
 
     /**
@@ -1162,9 +1162,9 @@ public class JSTypeRegistry {
         }
         
         // Log merge details
-        System.out.println("[JSTypeRegistry] Merged type " + existing.getFullName() + 
-                           " with " + methodsMerged + " methods, " + fieldsMerged + 
-                           " fields from " + incomingSource);
+        //        System.out.println("[JSTypeRegistry] Merged type " + existing.getFullName() + 
+        //                           " with " + methodsMerged + " methods, " + fieldsMerged + 
+        //                           " fields from " + incomingSource);
     }
 
     /**
