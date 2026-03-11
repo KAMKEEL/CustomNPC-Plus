@@ -568,19 +568,35 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      */
     protected List<String> getLanguageOptions() {
         List<String> options = new ArrayList<>();
+
+        // Start with languages known from the server
         if (this.languages != null && !this.languages.isEmpty())
             options.addAll(this.languages.keySet());
 
-        if ((options.isEmpty() || !options.contains("Java")) && this.handler != null && this.handler.supportsJanino()) {
-            List<String> scripts = new ArrayList<>();
-            if (ScriptController.Instance != null && ScriptController.Instance.scripts != null) {
-                scripts.addAll(ScriptController.Instance.scripts.keySet());
+        if (this.handler != null) {
+            if (this.handler.supportsJanino()) {
+                // Handler supports Java — ensure it's in the list
+                if (!options.contains("Java")) {
+                    List<String> scripts = new ArrayList<>();
+                    if (ScriptController.Instance != null && ScriptController.Instance.scripts != null) {
+                        scripts.addAll(ScriptController.Instance.scripts.keySet());
+                    }
+                    if (this.languages == null)
+                        this.languages = new HashMap();
+                    if (!this.languages.containsKey("Java"))
+                        this.languages.put("Java", scripts);
+                    options.add("Java");
+                }
+            } else {
+                // Handler does not support Java — remove it
+                options.remove("Java");
             }
-            if (this.languages == null)
-                this.languages = new HashMap();
-            if (!this.languages.containsKey("Java"))
-                this.languages.put("Java", scripts);
-            options.add("Java");
+
+            // Ensure at least the handler's default language is present
+            String defaultLang = this.handler.getLanguage();
+            if (defaultLang != null && !defaultLang.isEmpty() && !options.contains(defaultLang)) {
+                options.add(0, defaultLang);
+            }
         }
 
         return options;
