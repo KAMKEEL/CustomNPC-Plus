@@ -82,13 +82,13 @@ public class ScriptDocument {
     private static final Pattern CLASS_DECL_PATTERN = Pattern.compile(
             "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
     private static final Pattern METHOD_DECL_PATTERN = Pattern.compile(
-            "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
+            "\\b([A-Za-z_][a-zA-Z0-9_.<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
     private static final Pattern METHOD_CALL_PATTERN = Pattern.compile(
             "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
     // Also matches ',' as a delimiter so that "int x, y, z;" is recognized
     // (the first declarator "int x," is captured; continuations are scanned manually).
     private static final Pattern FIELD_DECL_PATTERN = Pattern.compile(
-            "\\b([A-Za-z_][a-zA-Z0-9_.<>,[ \\t\\n\\r]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
+            "\\b([A-Za-z_][a-zA-Z0-9_.<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
     private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:<([^>]*)>)?");
     
     // Cast expression pattern: captures type name inside cast parentheses
@@ -518,6 +518,20 @@ public class ScriptDocument {
     public boolean isExcludedInclusive(int position) {
         for (int[] range : excludedRanges) {
             if (position >= range[0] && position <= range[1]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if any position in [start, end) falls inside an excluded range.
+     * Uses range-overlap logic (O(excludedRanges.size())) instead of per-character checks.
+     * Two ranges [a,b) and [c,d) overlap iff a < d && c < b.
+     */
+    public boolean hasExcludedRange(int start, int end) {
+        for (int[] range : excludedRanges) {
+            if (start < range[1] && range[0] < end) {
                 return true;
             }
         }
@@ -1146,6 +1160,36 @@ public class ScriptDocument {
     }
 
     /**
+     * Replace newline characters ({@code \n}, {@code \r}) with spaces when they
+     * occur inside angle brackets (generic type arguments).  This lets patterns
+     * like FIELD_DECL_PATTERN and METHOD_DECL_PATTERN match multi-line generics
+     * (e.g. {@code HashMap<String,\n    Integer>}) without allowing a match to
+     * span across {@code //} comment lines.
+     *
+     * <p>The returned string has the <b>same length</b> as the input (characters
+     * are replaced, never inserted or removed), so all positional indices remain
+     * valid for the original text.
+     */
+    private static String normalizeGenericNewlines(String src) {
+        StringBuilder sb = new StringBuilder(src.length());
+        int depth = 0;
+        for (int i = 0; i < src.length(); i++) {
+            char c = src.charAt(i);
+            if (c == '<')
+                depth++;
+            else if (c == '>') {
+                if (depth > 0)
+                    depth--;
+            }
+            if ((c == '\n' || c == '\r') && depth > 0)
+                sb.append(' ');
+            else
+                sb.append(c);
+        }
+        return sb.toString();
+    }
+
+    /**
      * Find the index of a keyword in a string, but only at angle-bracket depth 0.
      * The keyword must be preceded and followed by non-identifier characters (word boundary).
      * Returns -1 if not found at depth 0.
@@ -1591,13 +1635,19 @@ public class ScriptDocument {
         } else {
             // Java: ReturnType methodName(params) { ... } or { ; }
             Pattern methodWithBody = Pattern.compile(
-                    "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
+                    "\\b([a-zA-Z_][a-zA-Z0-9_.<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
 
-            Matcher m = methodWithBody.matcher(text);
+            Matcher m = methodWithBody.matcher(normalizeGenericNewlines(text));
             while (m.find()) {
                 String methodName = m.group(2);
 
                 if (isExcluded(m.start()) || isKeyword(methodName))
+                    continue;
+
+                if (isExcluded(m.start(2)))
+                    continue;
+
+                if (hasExcludedRange(m.start(1), m.end(1)))
                     continue;
 
                 String returnType = m.group(1);
@@ -2280,7 +2330,7 @@ public class ScriptDocument {
                 }
             } else {
                 // Java: Type varName = expr; or Type varName;
-                Matcher m = FIELD_DECL_PATTERN.matcher(bodyText);
+                Matcher m = FIELD_DECL_PATTERN.matcher(normalizeGenericNewlines(bodyText));
                 while (m.find()) {
                     String typeName = m.group(1);
                     String varName = m.group(2);
@@ -2294,6 +2344,8 @@ public class ScriptDocument {
                     // where group(2) lands on the next line outside the comment.
                     int absTypeStart = bodyStart + m.start(1);
                     if (isExcluded(absTypeStart)) continue;
+                    if (hasExcludedRange(absTypeStart, bodyStart + m.end(1)))
+                        continue;
 
                     // --- FIX: Detect greedy regex consuming commas into the type name ---
                     // FIELD_DECL_PATTERN allows commas in its type character class (for generics).
@@ -2523,12 +2575,14 @@ public class ScriptDocument {
      */
     private void parseJavaLocalsInRange(int start, int end, InnerCallableScope scope) {
         String rangeText = text.substring(start, Math.min(end, text.length()));
-        
-        Matcher m = FIELD_DECL_PATTERN.matcher(rangeText);
+
+        Matcher m = FIELD_DECL_PATTERN.matcher(normalizeGenericNewlines(rangeText));
         while (m.find()) {
             int declPos = start + m.start();
             if (declPos < start || declPos >= end) continue;
             if (isExcluded(declPos)) continue;
+            if (hasExcludedRange(start + m.start(1), start + m.end(1)))
+                continue;
             
             String typeNameRaw = m.group(1);
             String varName = m.group(2);
@@ -3334,8 +3388,20 @@ public class ScriptDocument {
                     if (param.isEmpty()) continue;
                     
                     // Find position in original text
+                    // Search within a reasonable window to avoid matching shadowed names from outer scopes
                     int paramOffset = text.indexOf(param, offset);
                     if (paramOffset < 0) paramOffset = offset;
+                    // Validate that we found it within expected range (before next comma or closing paren)
+                    int nextComma = text.indexOf(',', offset);
+                    int nextClose = text.indexOf(')', offset);
+                    int endBound = Math.min(
+                            nextComma >= 0 ? nextComma : Integer.MAX_VALUE,
+                            nextClose >= 0 ? nextClose : Integer.MAX_VALUE
+                    );
+                    if (paramOffset >= endBound) {
+                        // Found match is outside the parameter list, use direct offset calculation instead
+                        paramOffset = offset;
+                    }
                     
                     String[] parts = param.split("\\s+");
                     String paramName;
@@ -3348,28 +3414,33 @@ public class ScriptDocument {
                         boolean isVarArg = typeName.endsWith("...");
                         if (isVarArg) typeName = typeName.substring(0, typeName.length() - 3);
                         paramType = resolveType(typeName);
-                        int nameOffset = text.indexOf(paramName, paramOffset);
-                        if (nameOffset < 0) nameOffset = paramOffset;
+                        // For typed params, the name is after the type, so calculate position more carefully
+                        int nameOffset = paramOffset + (param.lastIndexOf(paramName));
+                        if (nameOffset < paramOffset || nameOffset >= endBound)
+                            nameOffset = paramOffset + param.length() - paramName.length();
                         FieldInfo paramInfo = FieldInfo.parameter(paramName, paramType, nameOffset, null);
                         paramInfo.setVarArg(isVarArg);
                         scope.addParameter(paramInfo);
                     } else {
                         // Untyped: just name (type will be inferred from expected FI)
                         paramName = parts[0];
-                        int nameOffset = text.indexOf(paramName, paramOffset);
-                        if (nameOffset < 0) nameOffset = paramOffset;
+                        // For untyped params, the entire param string is the name, so use paramOffset directly
+                        int nameOffset = paramOffset;
                         FieldInfo paramInfo = FieldInfo.parameter(paramName, paramType, nameOffset, null);
                         scope.addParameter(paramInfo);
                     }
-                    
-                    offset = paramOffset + param.length();
+
+                    offset = Math.max(paramOffset + param.length(), offset + 1);
                 }
             }
         } else {
             // Single identifier: x ->
             String paramName = headerText;
             int nameOffset = text.indexOf(paramName, headerStart);
-            if (nameOffset < 0) nameOffset = headerStart;
+            // Validate found position is before the arrow (not a shadowed name after)
+            if (nameOffset < 0 || nameOffset >= arrowPos) {
+                nameOffset = headerStart;
+            }
             
             FieldInfo paramInfo = FieldInfo.parameter(paramName, null, nameOffset, null);
             scope.addParameter(paramInfo);
@@ -3783,7 +3854,7 @@ public class ScriptDocument {
             }
         } else {
             // Java: [modifiers] Type fieldName [= expr];
-            Matcher m = FIELD_DECL_PATTERN.matcher(text);
+            Matcher m = FIELD_DECL_PATTERN.matcher(normalizeGenericNewlines(text));
             while (m.find()) {
                 String typeNameRaw = m.group(1);
                 String fieldName = m.group(2);
@@ -3795,6 +3866,9 @@ public class ScriptDocument {
                 
                 // Guard against cross-line matches that start inside a comment
                 if (isExcluded(m.start(1)))
+                    continue;
+
+                if (hasExcludedRange(m.start(1), m.end(1)))
                     continue;
 
                 // --- FIX: Detect greedy regex consuming commas into the type name ---
@@ -6074,9 +6148,15 @@ public class ScriptDocument {
     }
 
     private void markMethodDeclarations(List<ScriptLine.Mark> marks) {
-        Matcher m = METHOD_DECL_PATTERN.matcher(text);
+        Matcher m = METHOD_DECL_PATTERN.matcher(normalizeGenericNewlines(text));
         while (m.find()) {
             if (isExcluded(m.start()))
+                continue;
+
+            if (isExcluded(m.start(2)))
+                continue;
+
+            if (hasExcludedRange(m.start(1), m.end(1)))
                 continue;
 
             // Skip class/interface/enum declarations - these look like method declarations
