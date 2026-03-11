@@ -1287,6 +1287,9 @@ public class TypeInfo {
                 return false;
         }
 
+        if(!appliedTypeArgs.equals(other.appliedTypeArgs))
+            return false;
+        
         if (!Objects.equals(elementType, other.elementType))
             return false;
 

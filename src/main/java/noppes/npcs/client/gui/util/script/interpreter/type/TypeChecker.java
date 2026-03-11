@@ -100,7 +100,16 @@ public final class TypeChecker {
                 return true;
             }
         }
-        
+
+        // Same-name match: handles ScriptTypeInfo, non-Java types, and same-class Java types.
+        // Must run before isAssignableFrom so type arg checking isn't skipped for same-class pairs.
+        if (expected.getFullName().equals(actual.getFullName())) {
+            if (expected.isParameterized() && actual.isParameterized()) {
+                return areTypeArgumentsCompatible(expected, actual);
+            }
+            return true;
+        }
+
         // Object type compatibility (check inheritance)
         if (expected.getJavaClass() != null && actual.getJavaClass() != null) {
             Class<?> expectedClass = expected.getJavaClass();
@@ -154,6 +163,45 @@ public final class TypeChecker {
         }
 
         return false;
+    }
+
+    private static boolean areTypeArgumentsCompatible(TypeInfo expected, TypeInfo actual) {
+        java.util.List<TypeInfo> expectedArgs = expected.getAppliedTypeArgs();
+        java.util.List<TypeInfo> actualArgs = actual.getAppliedTypeArgs();
+
+        // Actual has no type args — it's a raw type being assigned to a parameterized type.
+        // In Java this is always valid (unchecked warning, not an error).
+        if (actualArgs.isEmpty()) {
+            return true;
+        }
+
+        // If all of actual's type args are unresolved type parameters (e.g., Box<T>
+        // from diamond "new Box<>()"), treat as raw/inferred — always compatible.
+        boolean allActualAreTypeParams = true;
+        for (TypeInfo actualArg : actualArgs) {
+            if (!actualArg.isTypeParameter()) {
+                allActualAreTypeParams = false;
+                break;
+            }
+        }
+        if (allActualAreTypeParams) {
+            return true;
+        }
+
+        for (int i = 0; i < expectedArgs.size(); i++) {
+            TypeInfo expectedArg = expectedArgs.get(i);
+            TypeInfo actualArg = actualArgs.get(i);
+
+            if (expectedArg.isTypeParameter() || actualArg.isTypeParameter()) {
+                continue;
+            }
+
+            if (!isTypeCompatible(expectedArg, actualArg) && !isTypeCompatible(actualArg, expectedArg)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
