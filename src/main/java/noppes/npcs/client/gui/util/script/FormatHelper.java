@@ -254,16 +254,25 @@ public class FormatHelper {
     public String format(String text) {
         if (text == null || text.isEmpty()) return text;
 
-        // Process line by line to preserve structure
         String[] lines = text.split("\n", -1);
         StringBuilder result = new StringBuilder();
 
+        List<String> lambdaIndentStack = new ArrayList<>();
+
         for (int i = 0; i < lines.length; i++) {
-            String line = formatLine(lines[i]);
+            String line = lines[i];
+
+            if (!lambdaIndentStack.isEmpty()) {
+                line = fixLambdaBlockIndent(line, lambdaIndentStack);
+            }
+
+            line = formatLine(line);
 
             if (settings.trimTrailingWhitespace) {
                 line = trimTrailing(line);
             }
+
+            updateLambdaBlockStack(line, lambdaIndentStack);
 
             result.append(line);
             if (i < lines.length - 1) {
@@ -272,6 +281,124 @@ public class FormatHelper {
         }
 
         return result.toString();
+    }
+
+    /**
+     * Scan a formatted line for arrow-block patterns ({@code -> &#123;} or {@code => &#123;})
+     * and track open/close braces to maintain a stack of lambda block indent levels.
+     * <p>
+     * When an arrow-block opens, the line's leading indent is pushed onto the stack.
+     * When a closing brace {@code &#125;} is found and the stack is non-empty, the top
+     * entry is popped (the brace closes the innermost lambda block).
+     */
+    private void updateLambdaBlockStack(String line, List<String> stack) {
+        String trimmed = line.trim();
+        if (trimmed.isEmpty()) return;
+
+        String indent = extractIndent(line);
+        String contentNoStrings = stripStringLiterals(trimmed);
+
+        int opens = 0;
+        int closes = 0;
+        for (int i = 0; i < contentNoStrings.length(); i++) {
+            char c = contentNoStrings.charAt(i);
+            if (c == '{') opens++;
+            else if (c == '}') closes++;
+        }
+
+        boolean hasArrowBlock = endsWithArrowBlock(contentNoStrings);
+
+        // Process closes first (a line like "});" closes the current block)
+        int netCloses = closes - opens;
+        if (netCloses > 0) {
+            for (int j = 0; j < netCloses && !stack.isEmpty(); j++) {
+                stack.remove(stack.size() - 1);
+            }
+        }
+
+        if (hasArrowBlock) {
+            stack.add(indent);
+        } else if (opens > closes) {
+            // Non-arrow block opened — only push if inside a lambda context already
+            // to track nested depth correctly
+            int netOpens = opens - closes;
+            if (!stack.isEmpty()) {
+                for (int j = 0; j < netOpens; j++) {
+                    stack.add(indent);
+                }
+            }
+        }
+    }
+
+    /**
+     * Fix indentation for a line that's inside a lambda block body.
+     * Body lines get parent indent + 4 spaces; closing braces get parent indent.
+     */
+    private String fixLambdaBlockIndent(String line, List<String> stack) {
+        if (stack.isEmpty()) return line;
+
+        String trimmed = line.trim();
+        if (trimmed.isEmpty()) return line;
+
+        String currentIndent = extractIndent(line);
+        String parentIndent = stack.get(stack.size() - 1);
+        String bodyIndent = parentIndent + "    ";
+
+        boolean isClosingBrace = trimmed.startsWith("}");
+
+        String requiredIndent = isClosingBrace ? parentIndent : bodyIndent;
+
+        if (getVisualLength(currentIndent) < getVisualLength(requiredIndent)) {
+            return requiredIndent + trimmed;
+        }
+
+        return line;
+    }
+
+    private boolean endsWithArrowBlock(String contentNoStrings) {
+        int lastOpenBrace = contentNoStrings.lastIndexOf('{');
+        if (lastOpenBrace < 0) return false;
+
+        int matchingClose = contentNoStrings.indexOf('}', lastOpenBrace);
+        if (matchingClose >= 0) return false;
+
+        int searchEnd = lastOpenBrace;
+        while (searchEnd > 0 && contentNoStrings.charAt(searchEnd - 1) == ' ') searchEnd--;
+
+        if (searchEnd >= 2) {
+            String beforeBrace = contentNoStrings.substring(searchEnd - 2, searchEnd);
+            return beforeBrace.equals("->") || beforeBrace.equals("=>");
+        }
+
+        return false;
+    }
+
+    private String stripStringLiterals(String content) {
+        StringBuilder sb = new StringBuilder(content.length());
+        boolean inString = false;
+        char stringChar = 0;
+
+        for (int i = 0; i < content.length(); i++) {
+            char c = content.charAt(i);
+            if (!inString) {
+                if (c == '"' || c == '\'') {
+                    inString = true;
+                    stringChar = c;
+                    sb.append(' ');
+                } else {
+                    sb.append(c);
+                }
+            } else {
+                sb.append(' ');
+                if (c == '\\' && i + 1 < content.length()) {
+                    i++;
+                    sb.append(' ');
+                } else if (c == stringChar) {
+                    inString = false;
+                }
+            }
+        }
+        return sb.toString();
     }
 
     /**
@@ -1988,8 +2115,13 @@ public class FormatHelper {
                 points.add(new BreakPoint(i + 1, 1 + depth));
             }
 
+            // Arrow operators (-> and =>) are atomic — never break inside them
+            if ((c == '-' || c == '=') && i + 1 < content.length() && content.charAt(i + 1) == '>') {
+                i++;
+                continue;
+            }
+
             if (settings.wrapAfterOperator) {
-                // After binary operators
                 if ((c == '+' || c == '-') && i > 0 && i < content.length() - 1) {
                     char next = content.charAt(i + 1);
                     if (prev != '(' && prev != '[' && prev != ',' && prev != '=' &&
