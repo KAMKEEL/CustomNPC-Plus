@@ -67,6 +67,7 @@ import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.LoadConfiguration;
 import noppes.npcs.config.legacy.LegacyConfig;
+import noppes.npcs.controllers.APIRegistry;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.BankController;
@@ -316,6 +317,8 @@ public class CustomNpcs {
         new AddonManager();
         new AttributeController();
         new MagicController();
+
+        APIRegistry.Instance.register("CNPC+ API", "https://kamkeel.github.io/CustomNPC-Plus/");
     }
 
     @EventHandler
