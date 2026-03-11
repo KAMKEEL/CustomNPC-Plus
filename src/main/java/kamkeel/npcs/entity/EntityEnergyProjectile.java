@@ -348,7 +348,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
         // Fire tick event (server-side, non-preview only)
         if (!previewMode && !worldObj.isRemote) {
-            EventHooks.onEnergyProjectileTick(this);
+            EventHooks.onEnergyProjectileTick(this, ticksExisted);
         }
 
         debugLogTick();
