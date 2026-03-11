@@ -2050,15 +2050,30 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 String childIndent = indent + "    ";
                 String after = getSelectionAfterText();
 
-                // If the next non-whitespace char is '}', don't insert another closer.
+                // If the next non-whitespace char is '}', check if it matches OUR indent level.
+                // A '}' that belongs to a parent block (different indent) should NOT suppress
+                // auto-insertion of our closing brace.
                 int nextNonWs = 0;
                 while (nextNonWs < after.length() && Character.isWhitespace(after.charAt(nextNonWs))) {
                     nextNonWs++;
                 }
                 if (nextNonWs < after.length() && after.charAt(nextNonWs) == '}') {
-                    addText("\n" + childIndent);
-                    scrollToCursor();
-                    return true;
+                    // Find the indent of the line containing this '}'
+                    int closeBraceLineStart = after.lastIndexOf('\n', nextNonWs);
+                    closeBraceLineStart = closeBraceLineStart < 0 ? 0 : closeBraceLineStart + 1;
+                    int closeBraceIndent = 0;
+                    for (int ci = closeBraceLineStart; ci < nextNonWs; ci++) {
+                        char cc = after.charAt(ci);
+                        if (cc == ' ' || cc == '\t') closeBraceIndent++;
+                        else break;
+                    }
+                    if (closeBraceIndent == indent.length()) {
+                        // The '}' matches our indent level — it's our matching close
+                        addText("\n" + childIndent);
+                        scrollToCursor();
+                        return true;
+                    }
+                    // Otherwise, the '}' belongs to a parent block — fall through to insert our own
                 }
 
                 int firstNewline = after.indexOf('\n');
@@ -2302,15 +2317,17 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return true;
             }
 
-            // If the current line is whitespace-only, delete the whole line
-            // (including the trailing newline if present). This makes Backspace
-            // intuitive on blank/indented lines outside any recognized scope.
+            // If the current line is whitespace-only, remove it by deleting the
+            // preceding newline and the line's content, but preserve any trailing
+            // newline so the following line (e.g. a closing brace) stays in place.
             LineData currCheck = selection.findCurrentLine(container.lines);
             if (currCheck != null && currCheck.text.trim().length() == 0) {
-                String before = text.substring(0, ValueUtil.clamp(currCheck.start - 1, 0, text.length()));
-                String after = text.substring(Math.min(currCheck.end, text.length()));
-                setText(before + after, true); // Use atomic undo
-                int newCursor = Math.max(0, currCheck.start - 1);
+                int removeStart = ValueUtil.clamp(currCheck.start - 1, 0, text.length());
+                int contentEnd = Math.min(currCheck.start + currCheck.text.length(), text.length());
+                String before = text.substring(0, removeStart);
+                String after = text.substring(contentEnd);
+                setText(before + after, true);
+                int newCursor = Math.max(0, removeStart);
                 selection.reset(newCursor);
                 scrollToCursor();
                 return true;
@@ -2862,41 +2879,22 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             return;
         int tab = getTabSize();
         int indentLen = IndentHelper.getLineIndent(currentLine.text);
-        int textStartPos = currentLine.start + indentLen;
 
-        if (selection.getCursorPosition() <= textStartPos) {
-            // Cursor before any text: reduce leading indent to previous tab stop
-            int targetIndent = Math.max(0, ((indentLen - 1) / tab) * tab);
-            String newIndent = repeatSpace(targetIndent);
-            String rest = currentLine.text.substring(indentLen);
-            String before = text.substring(0, currentLine.start);
-            int contentEnd = Math.min(currentLine.start + currentLine.text.length(), text.length());
-            int sepEnd = Math.min(currentLine.end, text.length());
-            String sep = contentEnd < sepEnd ? text.substring(contentEnd, sepEnd) : "";
-            String after = text.substring(sepEnd);
-            setText(before + newIndent + rest + sep + after);
-            int newCursor = currentLine.start + targetIndent;
-            selection.reset(Math.min(newCursor, this.text.length()));
-        } else {
-            // Cursor after start of text: remove up to previous tab stop worth of spaces immediately before cursor
-            int column = selection.getCursorPosition() - currentLine.start;
-            int mod = column % tab;
-            int toRemove = mod == 0 ? tab : mod;
-            int removed = 0;
-            int pos = selection.getCursorPosition() - 1;
-            while (pos >= currentLine.start && removed < toRemove && text.charAt(pos) == ' ') {
-                pos--;
-                removed++;
-            }
-            if (removed > 0) {
-                int removeStart = pos + 1;
-                String before = text.substring(0, removeStart);
-                String after = text.substring(selection.getCursorPosition());
-                setText(before + after);
-                int newCursor = removeStart;
-                selection.reset(Math.min(newCursor, this.text.length()));
-            }
-        }
+        if (indentLen == 0)
+            return;
+
+        int targetIndent = Math.max(0, ((indentLen - 1) / tab) * tab);
+        int removed = indentLen - targetIndent;
+        String newIndent = repeatSpace(targetIndent);
+        String rest = currentLine.text.substring(indentLen);
+        String before = text.substring(0, currentLine.start);
+        int contentEnd = Math.min(currentLine.start + currentLine.text.length(), text.length());
+        int sepEnd = Math.min(currentLine.end, text.length());
+        String sep = contentEnd < sepEnd ? text.substring(contentEnd, sepEnd) : "";
+        String after = text.substring(sepEnd);
+        setText(before + newIndent + rest + sep + after);
+        int newCursor = Math.max(currentLine.start, selection.getCursorPosition() - removed);
+        selection.reset(Math.min(newCursor, this.text.length()));
     }
     
     // ==================== CURSOR MANAGEMENT ====================
