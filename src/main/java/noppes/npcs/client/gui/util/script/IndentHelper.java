@@ -157,9 +157,9 @@ public class IndentHelper {
      *
      * @param text           The text to format
      * @param cursorPosition Current cursor position
-     * @param viewportWidth  Viewport width for line wrapping (0 = no wrapping)
+     * @param maxLineLength  Maximum line length in characters for wrapping (0 = no wrapping)
      */
-    public static FormatResult formatText(String text, int cursorPosition, int viewportWidth) {
+    public static FormatResult formatText(String text, int cursorPosition, int maxLineLength) {
         // First pass: fix indentation
         String indented = formatIndentation(text, cursorPosition);
 
@@ -167,19 +167,17 @@ public class IndentHelper {
         FormatHelper helper = new FormatHelper();
         FormatHelper.FormatSettings settings = helper.getSettings();
 
-        // Enable wrapping if viewport width is provided
-        if (viewportWidth > 0) {
+        // Enable wrapping if max line length is provided
+        if (maxLineLength > 0) {
             settings.wrapLongLines = true;
             settings.wrapComments = true;
-            // Use 75% of viewport width as max line length for some margin
-            int charWidth = 6; // Approximate character width
-            settings.maxLineLength = Math.max(60, (int) (viewportWidth * 0.8f / charWidth));
+            settings.maxLineLength = maxLineLength;
         }
 
         String formatted = helper.format(indented);
 
         // Apply wrapping if enabled
-        if (viewportWidth > 0 && settings.wrapLongLines) {
+        if (maxLineLength > 0 && settings.wrapLongLines) {
             formatted = helper.wrapLines(formatted, settings.maxLineLength);
         }
 

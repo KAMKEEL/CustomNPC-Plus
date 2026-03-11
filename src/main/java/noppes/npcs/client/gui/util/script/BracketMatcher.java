@@ -326,7 +326,8 @@ public class BracketMatcher {
     }
 
     /**
-     * Check if a brace at given position has a matching close with same indent
+     * Check if a brace at given position has a matching close with compatible indent.
+     * Uses <= to handle multi-line declarations where '{' is on a continuation line.
      */
     public static boolean hasMatchingCloseWithSameIndent(String text, int bracePos, List<LineData> lines, int currentIndent) {
         if (text == null || lines == null || bracePos < 0) return false;
@@ -350,7 +351,7 @@ public class BracketMatcher {
                 if (closeLineIdx < lines.size()) {
                     String closeLine = lines.get(closeLineIdx).text;
                     int closeIndent = getLineIndent(closeLine);
-                    return closeIndent == currentIndent;
+                    return closeIndent <= currentIndent;
                 }
             }
         }

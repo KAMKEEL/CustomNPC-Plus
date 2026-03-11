@@ -2088,7 +2088,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                                 if (closeLineIdx < this.container.lines.size()) {
                                     int closeIndent = IndentHelper.getLineIndent(
                                             this.container.lines.get(closeLineIdx).text);
-                                    if (closeIndent == indent.length()) {
+                                    // <= handles multi-line declarations where '{' sits on a
+                                    // continuation line with higher indent than the closing '}'
+                                    if (closeIndent <= indent.length()) {
                                         hasMatchingClose = true;
                                     }
                                 }
@@ -2940,9 +2942,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
 
     private void formatText() {
-        // Calculate viewport width for line wrapping (account for gutter and scrollbar)
-        int viewportWidth = this.width - LINE_NUMBER_GUTTER_WIDTH - 10;
-        IndentHelper.FormatResult result = IndentHelper.formatText(text, selection.getCursorPosition(), viewportWidth);
+        int viewportPixels = this.width - LINE_NUMBER_GUTTER_WIDTH - 10;
+        int avgCharWidth = Math.max(1, ClientProxy.Font.width("abcdefghijklmnopqrstuvwxyz") / 26);
+        int viewportChars = (int) (viewportPixels * 0.8f / avgCharWidth);
+        int maxLineLength = Math.max(60, Math.min(viewportChars, 120));
+        IndentHelper.FormatResult result = IndentHelper.formatText(text, selection.getCursorPosition(), maxLineLength);
         setText(result.text);
         selection.reset(Math.max(0, Math.min(result.cursorPosition, this.text.length())));
     }
