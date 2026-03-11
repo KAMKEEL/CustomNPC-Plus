@@ -979,20 +979,18 @@ public class ScriptTypeInfo extends TypeInfo {
         // If no constructors defined in script type, it has an implicit default constructor
         // Check if parent has a no-arg constructor
         if (!hasConstructors()) {
-            boolean parentHasNoArg = false;
-
             if (superClass instanceof ScriptTypeInfo) {
                 ScriptTypeInfo parentScript = (ScriptTypeInfo) superClass;
-                if (!parentScript.hasConstructors() || parentScript.findConstructor(0) != null) {
-                    parentHasNoArg = true;
+                if (!parentScript.isInterface() && (!parentScript.hasConstructors() || parentScript.findConstructor(0) != null)) {
+                    addConstructorMismatchError(superClass, superClass.getSimpleName());
                 }
             } else {
                 Class<?> javaClass = superClass.getJavaClass();
-                if (javaClass != null) {
+                if (javaClass != null && !javaClass.isInterface()) {
                     try {
                         for (java.lang.reflect.Constructor<?> ctor : javaClass.getConstructors()) {
                             if (ctor.getParameterCount() == 0) {
-                                parentHasNoArg = true;
+                                addConstructorMismatchError(superClass, superClass.getSimpleName());
                                 break;
                             }
                         }
@@ -1002,9 +1000,6 @@ public class ScriptTypeInfo extends TypeInfo {
                 }
             }
 
-            if (!parentHasNoArg) {
-                addConstructorMismatchError(superClass, superClass.getSimpleName());
-            }
         }
         // If script type has constructors, we'd need to check super() calls - that's more complex
         // For now, we just validate the implicit default constructor case

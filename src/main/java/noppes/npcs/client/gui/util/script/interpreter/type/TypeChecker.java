@@ -2,6 +2,8 @@ package noppes.npcs.client.gui.util.script.interpreter.type;
 
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -110,6 +112,14 @@ public final class TypeChecker {
             return true;
         }
 
+        // ScriptTypeInfo inheritance: actual is a script-defined type that may extend/implement expected.
+        // ScriptTypeInfo.getJavaClass() returns null, so the Java isAssignableFrom gate below won't fire.
+        if (actual instanceof ScriptTypeInfo) {
+            if (isScriptTypeAssignableTo((ScriptTypeInfo) actual, expected)) {
+                return true;
+            }
+        }
+
         // Object type compatibility (check inheritance)
         if (expected.getJavaClass() != null && actual.getJavaClass() != null) {
             Class<?> expectedClass = expected.getJavaClass();
@@ -160,6 +170,46 @@ public final class TypeChecker {
             }
 
             current = current.getResolvedParent();
+        }
+
+        return false;
+    }
+
+    /**
+     * Check assignability for ScriptTypeInfo by iteratively walking the extends/implements chain.
+     * Handles both direct and indirect inheritance (A extends B extends C implements D).
+     */
+    private static boolean isScriptTypeAssignableTo(ScriptTypeInfo actual, TypeInfo expected) {
+        String expectedFull = expected.getFullName();
+        String expectedSimple = expected.getSimpleName();
+
+        Deque<TypeInfo> worklist = new ArrayDeque<>();
+        worklist.add(actual);
+
+        while (!worklist.isEmpty()) {
+            TypeInfo current = worklist.poll();
+            if (current == null || !current.isResolved()) continue;
+
+            String currentFull = current.getFullName();
+            if (currentFull != null) {
+                if (expectedFull != null && expectedFull.equals(currentFull)) return true;
+                if (expectedSimple != null && expectedSimple.equals(current.getSimpleName())) return true;
+            }
+
+            if (current instanceof ScriptTypeInfo) {
+                ScriptTypeInfo scriptCurrent = (ScriptTypeInfo) current;
+                TypeInfo superClass = scriptCurrent.getSuperClass();
+                if (superClass != null) {
+                    worklist.add(superClass);
+                }
+                for (TypeInfo iface : scriptCurrent.getImplementedInterfaces()) {
+                    worklist.add(iface);
+                }
+            } else if (current.getJavaClass() != null && expected.getJavaClass() != null) {
+                if (expected.getJavaClass().isAssignableFrom(current.getJavaClass())) {
+                    return true;
+                }
+            }
         }
 
         return false;
