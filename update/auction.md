@@ -31,7 +31,7 @@ List any item with a **Starting Price** for competitive bidding. Optionally set 
 
 ## Bidding
 
-Compete for items by placing bids. Each bid must be at least **5% higher** than the current bid.
+Compete for items by placing bids. Each bid must meet a **minimum increment** above the current bid (default 5%, configurable by the server).
 
 - **Snipe Protection** - Auctions extend when last-second bids come in, giving everyone a fair shot
 - **Auto Refund** - If you get outbid, your currency is automatically returned
@@ -60,7 +60,7 @@ You can **cancel** your own listings — items are returned as a claim. If there
 
 ## Search & Sorting
 
-Find items with search and sort tools. Search filters by both **item name** and **seller name** at the same time.
+Find items with search and sort tools. Search filters by both **item name** and **seller name** at the same time. Item listings display their **attributes and stats** so you can evaluate items before bidding.
 
 **Sort Options:**
 - Newest
@@ -88,7 +88,7 @@ If you're offline, you'll get a full **claim summary** when you log back in.
 
 Every player gets a limited number of **Trade Slots** (default 8). Slots are shared across Active Listings, Active Bids, **and** Pending Claims — uncollected claims take up space. Pick up your claims to free slots!
 
-> Server owners can grant more slots via permissions (up to 45), or grant **unlimited slots** with `customnpcs.auction.trades.unlimited`.
+> Server owners can grant more slots via permissions (up to 45) using `customnpcs.auction.trades.X` (where X is the number of slots), or grant **unlimited slots** with `customnpcs.auction.trades.*`.
 
 ---
 

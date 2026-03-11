@@ -15,6 +15,7 @@ The script editor has been rebuilt from the ground up into a **full-featured cod
 - **Auto Imports** - Type a class name and the editor suggests the correct import
 - **Error Detection** - Catches mistakes before you run your script. Wrong argument types, missing methods, type mismatches, and unused imports are underlined with detailed error messages on hover
 - **Built-in Globals** - Objects like `Math`, `JSON`, `Date`, and `Number` are recognized automatically in JavaScript mode. Script variables like `npc`, `world`, and `event` are also recognized
+- **JS Language Support** - Arrow functions (`=>`), shorthand methods, object literals, and array expressions are all understood by the highlighter and type resolver
 
 > Hover over any symbol to see its **full type information**, documentation, and declaration. Hover tooltips support JSDoc with markdown formatting, headings, code blocks, and scrolling for long documentation.
 
@@ -57,9 +58,10 @@ The script editor has been rebuilt from the ground up into a **full-featured cod
 
 Write scripts in **real Java** instead of JavaScript. Powered by the **Janino** compiler, your Java code is compiled and runs natively.
 
-- **Full Java Language** - Classes, interfaces, enums, generics, lambdas — everything you know from Java
+- **Full Java Language** - Classes, interfaces, enums, generics, lambdas, and method references — everything you know from Java
 - **Automatic Hook Resolution** - Name your methods after the hook you want (e.g., `init`, `tick`, `interact`) and they're wired up automatically
 - **Language Selector** - Each script tab has a dropdown to choose between JavaScript and Java. Mix and match across tabs
+- **Broad Support** - Java scripting works in NPC, Player, Forge, Recipe, Effect, and Linked Item scripts
 - **External Files** - Write `.java` scripts in an external editor and they load automatically
 
 > Java and JavaScript scripts coexist side by side. Pick whichever language fits your workflow.
@@ -82,9 +84,10 @@ Scripts can now run **on the client** for responsive, visual experiences.
 
 Addon developers can ship **type definitions** alongside their mods, giving scripters full autocomplete and documentation for addon APIs.
 
-- **Automatic Loading** - Any mod can include API definitions and they appear in the script editor automatically
+- **Automatic Loading** - Any mod can include `.d.ts` definition files in their `assets/<modid>/api/` directory and they appear in the script editor automatically
 - **Patch Support** - Addons can extend existing CNPC+ types with new methods (e.g., a DBC addon adding `getDBCPlayer()` to the Player type)
 - **Full Documentation** - Parameter names, return types, and descriptions show up in autocomplete and hover info
+- **Hot Reload** - Definition files are reloaded when Minecraft resources are reloaded
 
 > Scripters get autocomplete for addon APIs with zero setup. Addon developers just include their definitions.
 

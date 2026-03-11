@@ -57,12 +57,14 @@ A full projectile system with deep visual customization. Energy projectiles use 
 
 Every energy projectile shares these configurable properties:
 
-- **Anchor Point** - Where the projectile spawns: Right Hand, Left Hand, Front, Center, Chest, or Above Head. Supports custom offset anchors
+- **Anchor Point** - Where the projectile spawns: Right Hand, Left Hand, Front, Center, Chest, Eye, or Above Head. Supports custom offset anchors
 - **Display** - Core color, edge color, glow effect, transparency, and size
 - **Homing** - Toggle homing, adjust turn rate and max tracking range
 - **Combat** - Damage, knockback, vertical knockback, hit cooldown, and optional AOE splash
-- **Hit Type** - How the projectile interacts: Single (hits one), Pierce (passes through), or Multi (hits multiple)
-- **Lifespan** - Speed, max age, and max travel distance (up to 150 blocks)
+- **Hit Type** - How the projectile interacts: Single (hits one), Pierce (passes through), or Multi (hits multiple). Pierce and Multi support a configurable max hit count
+- **Lifespan** - Speed, max age, and max travel distance (default 150 blocks)
+- **Size Interpolation** - Projectile size can smoothly change during flight
+- **Proximity Alpha** - Projectiles can fade based on distance from the viewer
 - **Explosions** - Detonate on impact with configurable radius. Block damage can be toggled
 
 ---
@@ -79,6 +81,7 @@ Defensive energy constructs that block incoming attacks.
 - HP and durability — barriers break when depleted
 - Configurable melee vulnerability
 - Damage absorption — attacks on the caster can be redirected to the barrier
+- Reflection — barriers can reflect projectiles back at the attacker
 - Ally/target filtering for which projectiles are blocked
 - Custom position offsets
 
@@ -101,7 +104,7 @@ Reactive stances that protect the caster when hit.
 Reposition the caster during combat.
 
 - **Charge** - Rush forward in a line, damaging everything in the path. Configure speed, hit width, and knockback
-- **Dash** - Quick directional movement without dealing damage
+- **Dash** - Quick directional movement without dealing damage. Supports directional key input to control the dash direction
 - **Teleport** - Instantly relocate to the target's position
 
 > Charge locks direction during wind-up, so the telegraph accurately shows the attack path.
