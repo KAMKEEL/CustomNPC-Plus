@@ -108,6 +108,7 @@ import kamkeel.npcs.network.packets.request.ability.CustomAbilityRemovePacket;
 import kamkeel.npcs.network.packets.request.ability.CustomAbilitySavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
+import kamkeel.npcs.network.packets.request.animation.AnimationClonePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationsGetPacket;
 import kamkeel.npcs.network.packets.request.animation.BuiltInAnimationGetPacket;
@@ -499,6 +500,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new AnimationGetPacket());
         REQUEST_PACKET.registerPacket(new AnimationRemovePacket());
         REQUEST_PACKET.registerPacket(new AnimationSavePacket());
+        REQUEST_PACKET.registerPacket(new AnimationClonePacket());
         REQUEST_PACKET.registerPacket(new BuiltInAnimationGetPacket());
 
         // Moving Path

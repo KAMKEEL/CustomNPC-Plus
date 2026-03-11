@@ -93,6 +93,7 @@ public enum EnumRequestPacket {
     AnimationGet,
     AnimationRemove,
     AnimationSave,
+    AnimationClone,
     BuiltInAnimationGet,
 
     RemoteNpcsGet,

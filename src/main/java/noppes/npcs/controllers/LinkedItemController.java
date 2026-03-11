@@ -245,6 +245,8 @@ public class LinkedItemController implements ILinkedItemHandler {
         LinkedItem original = linkedItems.get(originalId);
         if (original == null) return null;
 
+        int originalCatId = categoryManager.getItemCategory(originalId);
+
         NBTTagCompound nbt = original.writeToNBT(true);
         int newId = getUnusedId();
         nbt.setInteger("Id", newId);
@@ -255,6 +257,10 @@ public class LinkedItemController implements ILinkedItemHandler {
         String name = clone.getName();
         while (hasName(name)) name += "_";
         clone.name = name;
+
+        if (originalCatId > CategoryManager.UNCATEGORIZED_ID) {
+            categoryManager.registerItem(newId, originalCatId);
+        }
 
         saveLinkedItem(clone);
         return clone;
