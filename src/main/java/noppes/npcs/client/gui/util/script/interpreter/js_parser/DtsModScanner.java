@@ -47,9 +47,9 @@ final class DtsModScanner {
         for (DtsFileRef ref : dtsFiles) {
             domainCounts.put(ref.getDomain(), domainCounts.getOrDefault(ref.getDomain(), 0) + 1);
         }
-        System.out.println("[JSTypeRegistry] Found " + dtsFiles.size() + " .d.ts files across " + domainCounts.size() + " domains");
+//        System.out.println("[JSTypeRegistry] Found " + dtsFiles.size() + " .d.ts files across " + domainCounts.size() + " domains");
         for (Map.Entry<String, Integer> entry : domainCounts.entrySet()) {
-            System.out.println("[JSTypeRegistry] Domain " + entry.getKey() + ": " + entry.getValue() + " files");
+//            System.out.println("[JSTypeRegistry] Domain " + entry.getKey() + ": " + entry.getValue() + " files");
         }
     }
 
