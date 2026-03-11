@@ -43,7 +43,7 @@ public class RenderEnergyLaser extends RenderEnergy {
         double endX = laser.getInterpolatedEndX(partialTicks);
         double endY = laser.getInterpolatedEndY(partialTicks);
         double endZ = laser.getInterpolatedEndZ(partialTicks);
-        float width = laser.getLaserWidth();
+        float width = laser.getInterpolatedLaserWidth(partialTicks);
         float alpha = 1.0f;
 
         // Calculate render offset (entity position is used as reference)
@@ -156,7 +156,7 @@ public class RenderEnergyLaser extends RenderEnergy {
     }
 
     private void renderChargingOrb(EntityAbilityLaser laser, double x, double y, double z, float partialTicks, float proximityAlpha) {
-        float headSize = laser.getLaserWidth() * 0.5f;
+        float headSize = laser.getInterpolatedLaserWidth(partialTicks) * 0.5f;
         float chargeProgress = laser.getInterpolatedChargeProgress(partialTicks);
         float size = headSize * chargeProgress;
 

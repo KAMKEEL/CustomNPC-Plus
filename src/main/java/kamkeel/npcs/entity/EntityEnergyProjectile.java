@@ -738,8 +738,8 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         motionY = nbt.getDouble("MotionY");
         motionZ = nbt.getDouble("MotionZ");
         syncPositionStateToCurrent(true);
-        // Size & visual
-        setProjectileSize(nbt.getFloat("Size"));
+        // Size & visual (set target only - let the lerp in onUpdate smooth the transition)
+        this.size = nbt.getFloat("Size");
         displayData.setRotationSpeed(nbt.getFloat("RotationSpeed"));
         displayData.setInnerAlpha(nbt.getFloat("InnerAlpha"));
         displayData.setOuterColorEnabled(nbt.getBoolean("OuterColorEnabled"));
