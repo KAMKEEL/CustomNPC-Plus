@@ -459,11 +459,15 @@ public class AutocompleteMenu extends Gui {
 
             TypeInfo type = item.getTypeInfo();
             int col = type != null ? type.getTokenType().getHexColor() : DIM_TEXT_COLOR;
-            drawTypeLabel(typeLabel, typeLabelX, textY, col, type);
+            drawTypeLabel(item, typeLabel, typeLabelX, textY, col, type);
         }
     }
 
     public int getColor(AutocompleteItem item) {
+        int col = item.getColor();
+        if (col != -1)
+            return col;
+        
         if (item.isInheritedObjectMethod() || item.isDeprecated())
             return DIM_TEXT_COLOR;
 
@@ -631,8 +635,8 @@ public class AutocompleteMenu extends Gui {
         return text;
     }
     
-    private void drawTypeLabel(String typeLabel, int x, int y, int typeColor, TypeInfo typeInfo) {
-        if (typeInfo == null) {
+    private void drawTypeLabel(AutocompleteItem item, String typeLabel, int x, int y, int typeColor, TypeInfo typeInfo) {
+        if (typeInfo == null || item.getKind() == AutocompleteItem.Kind.CLASS) { //draw package on right
             drawSimpleTypeWithArraySuffix(typeLabel, x, y, typeColor);
             return;
         }

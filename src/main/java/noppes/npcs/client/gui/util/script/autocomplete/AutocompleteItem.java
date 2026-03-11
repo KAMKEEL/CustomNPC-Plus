@@ -61,7 +61,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     // Match scoring
     private int matchScore = 0;             // How well this matches the query
     private int[] matchIndices;             // Indices of matched characters for highlighting
-    
+
+    private int color = -1;
+
     private AutocompleteItem(String name, String searchName, String insertText, Kind kind, String typeLabel,
                              TypeInfo typeLabelTypeInfo, String signature, String documentation, Object sourceData, 
                              boolean deprecated, boolean requiresImport, String importPath, int inheritanceDepth) {
@@ -597,7 +599,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public String getImportPath() { return importPath; }
     public int getMatchScore() { return matchScore; }
     public int[] getMatchIndices() { return matchIndices; }
-
+    public int getColor() { return color; };
+    public AutocompleteItem setColor(int col){ this.color = col;return this; }
     /**
      * Get the display name for a type, including generic arguments.
      * Uses the unified getDisplayName() method which handles:
@@ -757,12 +760,14 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         private String insertText;
         private Kind kind = Kind.FIELD;
         private String typeLabel = "";
+        private TypeInfo typeInfo;
         private String signature;
         private String documentation;
         private Object sourceData;
         private boolean deprecated = false;
         private boolean requiresImport = false;
         private String importPath = null;
+        private int color = -1;
         
         public Builder name(String name) {
             this.name = name;
@@ -786,6 +791,11 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         
         public Builder typeLabel(String typeLabel) {
             this.typeLabel = typeLabel;
+            return this;
+        }
+
+        public Builder typeInfo(TypeInfo typeInfo) {
+            this.typeInfo = typeInfo;
             return this;
         }
         
@@ -818,13 +828,18 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             this.importPath = importPath;
             return this;
         }
+
+        public Builder color(int color) {
+            this.color = color;
+            return this;
+        }
         
         public AutocompleteItem build() {
             if (insertText == null) {
                 insertText = name;
             }
             return new AutocompleteItem(name, searchName, insertText, kind, typeLabel, 
-                null, signature, documentation, sourceData, deprecated, requiresImport, importPath, -1);
+                typeInfo, signature, documentation, sourceData, deprecated, requiresImport, importPath, -1).setColor(color);
         }
     }
 }

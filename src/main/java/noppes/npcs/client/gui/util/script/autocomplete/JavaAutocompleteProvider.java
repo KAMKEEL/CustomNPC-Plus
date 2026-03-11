@@ -4,6 +4,7 @@ import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
@@ -434,10 +435,12 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                     .kind(type.getKind() == TypeInfo.Kind.ENUM ? 
                           AutocompleteItem.Kind.ENUM : AutocompleteItem.Kind.CLASS)
                     .typeLabel(type.getPackageName())
+                    .typeInfo(type)
                     .signature(type.getFullName())
                     .sourceData(type)
                     .requiresImport(true)
                     .importPath(fullName)
+                    .color(TokenType.UNUSED_IMPORT.getHexColor())
                     .build();
                 items.add(item);
                 existingSimpleNames.add(type.getSimpleName());
