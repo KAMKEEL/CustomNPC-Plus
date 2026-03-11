@@ -2050,32 +2050,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 String childIndent = indent + "    ";
                 String after = getSelectionAfterText();
 
-                // If the next non-whitespace char is '}', check if it matches OUR indent level.
-                // A '}' that belongs to a parent block (different indent) should NOT suppress
-                // auto-insertion of our closing brace.
-                int nextNonWs = 0;
-                while (nextNonWs < after.length() && Character.isWhitespace(after.charAt(nextNonWs))) {
-                    nextNonWs++;
-                }
-                if (nextNonWs < after.length() && after.charAt(nextNonWs) == '}') {
-                    // Find the indent of the line containing this '}'
-                    int closeBraceLineStart = after.lastIndexOf('\n', nextNonWs);
-                    closeBraceLineStart = closeBraceLineStart < 0 ? 0 : closeBraceLineStart + 1;
-                    int closeBraceIndent = 0;
-                    for (int ci = closeBraceLineStart; ci < nextNonWs; ci++) {
-                        char cc = after.charAt(ci);
-                        if (cc == ' ' || cc == '\t') closeBraceIndent++;
-                        else break;
-                    }
-                    if (closeBraceIndent == indent.length()) {
-                        // The '}' matches our indent level — it's our matching close
-                        addText("\n" + childIndent);
-                        scrollToCursor();
-                        return true;
-                    }
-                    // Otherwise, the '}' belongs to a parent block — fall through to insert our own
-                }
-
+                // Check if there's non-whitespace content on the current line after the cursor.
+                // If so, just add a newline + child indent without inserting a closing brace
+                // (the user is typing inside an existing expression).
                 int firstNewline = after.indexOf('\n');
                 String leadingSegment = firstNewline == -1 ? after : after.substring(0, firstNewline);
                 if (leadingSegment.trim().length() > 0) {
@@ -2084,7 +2061,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     return true;
                 }
 
-                boolean hasMatchingCloseSameIndent = false;
+                // Use BracketMatcher to determine if the opening '{' already has a
+                // properly matched closing '}' at the correct indent. Pure indent-based
+                // heuristics (scanning the 'after' substring) are unreliable for lambdas
+                // and nested callbacks; BracketMatcher uses stack-based pairing on the
+                // full text, then we verify the close brace sits at the same indent as
+                // the open brace's line — ensuring parent-scoped braces aren't mistaken
+                // for our own.
+                boolean hasMatchingClose = false;
                 try {
                     int openLineIdx = -1;
                     int bracePos = prevNonWs;
@@ -2099,24 +2083,40 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     if (openLineIdx >= 0) {
                         List<int[]> spans = BracketMatcher.computeBraceSpans(text, this.container.lines);
                         for (int[] span : spans) {
-                            int spanOpen = span[1];
-                            int spanClose = span[2];
-                            if (spanOpen == openLineIdx) {
-                                int closeIndent = IndentHelper.getLineIndent(this.container.lines.get(spanClose).text);
-                                if (closeIndent == indent.length()) {
-                                    hasMatchingCloseSameIndent = true;
+                            if (span[1] == openLineIdx) {
+                                int closeLineIdx = span[2];
+                                if (closeLineIdx < this.container.lines.size()) {
+                                    int closeIndent = IndentHelper.getLineIndent(
+                                            this.container.lines.get(closeLineIdx).text);
+                                    if (closeIndent == indent.length()) {
+                                        hasMatchingClose = true;
+                                    }
                                 }
                                 break;
                             }
                         }
                     }
                 } catch (Exception ex) {
-                    hasMatchingCloseSameIndent = false;
+                    hasMatchingClose = false;
                 }
 
-                if (hasMatchingCloseSameIndent) {
+                if (hasMatchingClose) {
                     addText("\n" + childIndent);
                     scrollToCursor();
+                } else if (isLambdaOpening(prevNonWs, text)) {
+                    int parenPos = findLambdaParentParen(prevNonWs, text);
+                    if (parenPos >= 0) {
+                        String parentIndent = getParentIndentForLambda(parenPos, container.lines);
+                        String insert = "\n" + childIndent + "\n" + parentIndent + "});";
+                        setText(before + insert + after);
+                        selection.reset(before.length() + 1 + childIndent.length());
+                        scrollToCursor();
+                    } else {
+                        String insert = "\n" + childIndent + "\n" + indent + "}";
+                        setText(before + insert + after);
+                        selection.reset(before.length() + 1 + childIndent.length());
+                        scrollToCursor();
+                    }
                 } else {
                     String insert = "\n" + childIndent + "\n" + indent + "}";
                     setText(before + insert + after);
@@ -2724,6 +2724,135 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
         return text.substring(lineStart, p);
+    }
+
+    private boolean isLambdaOpening(int bracePos, String fullText) {
+        if (fullText == null || bracePos <= 1) {
+            return false;
+        }
+        int scan = bracePos - 1;
+        while (scan >= 0 && (fullText.charAt(scan) == ' ' || fullText.charAt(scan) == '\t')) {
+            scan--;
+        }
+        if (scan < 1) {
+            return false;
+        }
+        char c1 = fullText.charAt(scan - 1);
+        char c2 = fullText.charAt(scan);
+        return (c1 == '-' && c2 == '>') || (c1 == '=' && c2 == '>');
+    }
+
+    // Reverse-scans from bracePos to find the unmatched '(' that this lambda is an
+    // argument of. Properly handles nested parens/braces, strings, and comments.
+    // Returns the position of the enclosing '(' or -1 if not found.
+    private int findLambdaParentParen(int bracePos, String fullText) {
+        if (fullText == null || bracePos <= 0) {
+            return -1;
+        }
+
+        int parenDepth = 0;
+        int braceDepth = 0;
+        boolean inString = false;
+        boolean inBlockComment = false;
+        char stringDelim = 0;
+
+        for (int i = bracePos - 1; i >= 0; i--) {
+            char c = fullText.charAt(i);
+            char prev = i > 0 ? fullText.charAt(i - 1) : 0;
+
+            // Reverse block-comment: entered at '*/', exits at '/*'
+            if (inBlockComment) {
+                if (c == '*' && prev == '/') {
+                    inBlockComment = false;
+                    i--;
+                }
+                continue;
+            }
+
+            if (c == '/' && prev == '*') {
+                inBlockComment = true;
+                i--;
+                continue;
+            }
+
+            if (inString) {
+                if (c == stringDelim) {
+                    int bs = 0;
+                    for (int j = i - 1; j >= 0 && fullText.charAt(j) == '\\'; j--) {
+                        bs++;
+                    }
+                    if (bs % 2 == 0) {
+                        inString = false;
+                    }
+                }
+                continue;
+            }
+
+            if (c == '"' || c == '\'' || c == '`') {
+                inString = true;
+                stringDelim = c;
+                continue;
+            }
+
+            // For line comments: when scanning backwards and hitting a newline,
+            // check if the preceding line contains a // comment. If so, skip
+            // backwards past it to avoid counting brackets inside comments.
+            if (c == '\n') {
+                int lineStart = fullText.lastIndexOf('\n', i - 1) + 1;
+                int commentIdx = findLineCommentStart(fullText, lineStart, i);
+                if (commentIdx >= 0) {
+                    i = commentIdx;
+                }
+                continue;
+            }
+
+            if (c == '}') {
+                braceDepth++;
+            } else if (c == '{') {
+                if (braceDepth > 0) {
+                    braceDepth--;
+                }
+                if (braceDepth == 0) {
+                    return -1;
+                }
+            } else if (c == ')') {
+                parenDepth++;
+            } else if (c == '(') {
+                if (parenDepth > 0) {
+                    parenDepth--;
+                } else {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private int findLineCommentStart(String text, int lineStart, int lineEnd) {
+        boolean inStr = false;
+        char strDelim = 0;
+        for (int i = lineStart; i < lineEnd; i++) {
+            char c = text.charAt(i);
+            if (inStr) {
+                if (c == strDelim && (i == 0 || text.charAt(i - 1) != '\\')) {
+                    inStr = false;
+                }
+                continue;
+            }
+            if (c == '"' || c == '\'' || c == '`') {
+                inStr = true;
+                strDelim = c;
+                continue;
+            }
+            if (c == '/' && i + 1 < lineEnd && text.charAt(i + 1) == '/') {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private String getParentIndentForLambda(int parenPos, List<LineData> lines) {
+        return getLogicalLineIndentAt(parenPos);
     }
 
     private boolean isShiftKeyDown() {
