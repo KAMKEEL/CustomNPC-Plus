@@ -405,6 +405,8 @@ public class AbilityController implements IAbilityHandler {
         Ability original = customAbilities.get(originalName);
         if (original == null || original.isBuiltIn()) return null;
 
+        int originalCatId = customAbilityCatMap.getOrDefault(originalName, CategoryManager.UNCATEGORIZED_ID);
+
         NBTTagCompound nbt = original.writeNBT(true);
         nbt.setString("id", UUID.randomUUID().toString());
 
@@ -416,6 +418,11 @@ public class AbilityController implements IAbilityHandler {
         clone.setName(name);
 
         saveCustomAbility(clone);
+
+        if (originalCatId > CategoryManager.UNCATEGORIZED_ID) {
+            customAbilityCatMap.put(clone.getName(), originalCatId);
+        }
+
         return clone;
     }
 
@@ -770,6 +777,8 @@ public class AbilityController implements IAbilityHandler {
         ChainedAbility original = chainedAbilities.get(originalName);
         if (original == null) return null;
 
+        int originalCatId = chainedAbilityCatMap.getOrDefault(originalName, CategoryManager.UNCATEGORIZED_ID);
+
         NBTTagCompound nbt = original.writeNBT(true);
         nbt.setString("Id", UUID.randomUUID().toString());
 
@@ -781,6 +790,11 @@ public class AbilityController implements IAbilityHandler {
         clone.setName(name);
 
         saveChainedAbility(clone);
+
+        if (originalCatId > CategoryManager.UNCATEGORIZED_ID) {
+            chainedAbilityCatMap.put(clone.getName(), originalCatId);
+        }
+
         return clone;
     }
 

@@ -712,6 +712,8 @@ public class CustomEffectController implements ICustomEffectHandler {
         CustomEffect original = getCustomEffects().get(originalId);
         if (original == null) return null;
 
+        int originalCatId = categoryManager.getItemCategory(originalId);
+
         NBTTagCompound nbt = original.writeToNBT(true);
         int newId = getUnusedId();
         nbt.setInteger("ID", newId);
@@ -722,6 +724,10 @@ public class CustomEffectController implements ICustomEffectHandler {
         String name = clone.getName();
         while (has(name)) name += "_";
         clone.name = name;
+
+        if (originalCatId > CategoryManager.UNCATEGORIZED_ID) {
+            categoryManager.registerItem(newId, originalCatId);
+        }
 
         saveEffect(clone);
         return clone;

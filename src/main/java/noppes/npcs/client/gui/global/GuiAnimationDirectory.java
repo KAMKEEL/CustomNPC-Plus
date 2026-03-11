@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.global;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
+import kamkeel.npcs.network.packets.request.animation.AnimationClonePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationsGetPacket;
 import kamkeel.npcs.network.packets.request.animation.BuiltInAnimationGetPacket;
@@ -169,11 +170,7 @@ public class GuiAnimationDirectory extends GuiDirectoryCategorized {
     protected void onCloneItem() {
         if (showingBuiltIn || currentIsBuiltIn) return;
         if (animation != null && animation.id >= 0) {
-            Animation clone = new Animation();
-            clone.readFromNBT(animation.writeToNBT());
-            clone.id = -1;
-            while (itemData.containsKey(clone.name)) clone.name += "_";
-            PacketClient.sendClient(new AnimationSavePacket(clone.writeToNBT()));
+            PacketClient.sendClient(new AnimationClonePacket(animation.id));
         }
     }
 
