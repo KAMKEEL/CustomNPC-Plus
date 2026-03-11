@@ -125,7 +125,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.11-final-pre-release")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.11")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
