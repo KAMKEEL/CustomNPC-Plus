@@ -3,40 +3,39 @@ package noppes.npcs.controllers.data;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.network.packets.request.script.EventScriptPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigDebug;
-import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.janino.EventJaninoScript;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.scripted.constants.RoleType;
 import noppes.npcs.scripted.entity.ScriptNpc;
+import noppes.npcs.api.handler.IHookDefinition;
 
 import javax.script.ScriptEngine;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
-public class DataScript implements INpcScriptHandler {
-    public List<ScriptContainer> eventScripts = new ArrayList<>();
+public class DataScript implements IScriptHandlerPacket {
+    public List<IScriptUnit> eventScripts = new ArrayList<>();
 
     private HashMap<EnumScriptType, ScriptContainer> scripts = new HashMap<>();
     private final static EntityType entities = new EntityType();
@@ -52,6 +51,17 @@ public class DataScript implements INpcScriptHandler {
     public boolean clientNeedsUpdate = false;
     public boolean aiNeedsUpdate = false;
     public boolean hasInited = false;
+
+    // Editor/runtime globals descriptor used for a single source of truth.
+    private static final class GlobalDefinition {
+        private final String typeName;
+        private final Object value;
+
+        private GlobalDefinition(String typeName, Object value) {
+            this.typeName = typeName;
+            this.value = value;
+        }
+    }
 
     public DataScript(EntityNPCInterface npc) {
         for (int i = 0; i < 15; i++) {
@@ -71,7 +81,7 @@ public class DataScript implements INpcScriptHandler {
     public void readFromNBT(NBTTagCompound compound) {
         scripts = readScript(compound.getTagList("ScriptsContainers", 10));
         this.scriptLanguage = compound.getString("ScriptLanguage");
-        if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
+        if (scriptLanguage == null || scriptLanguage.isEmpty()) {
             if (!ScriptController.Instance.languages.isEmpty()) {
                 this.scriptLanguage = (String) ScriptController.Instance.languages.keySet().toArray()[0];
             } else {
@@ -146,13 +156,13 @@ public class DataScript implements INpcScriptHandler {
 
         if (!hasInited && !npc.isRemote() && type != EnumScriptType.INIT) {
             hasInited = true;
-            for (ScriptContainer scriptContainer : this.eventScripts) {
-                scriptContainer.errored = false;
+            for (IScriptUnit scriptUnit : this.eventScripts) {
+                scriptUnit.setErrored(false);
             }
             EventHooks.onNPCInit(this.npc);
         }
 
-        for (ScriptContainer script : this.eventScripts) {
+        for (IScriptUnit script : this.eventScripts) {
             script.run(type, event);
         }
 
@@ -177,21 +187,12 @@ public class DataScript implements INpcScriptHandler {
                 LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s) | Objects: %s", ((String) type.function).toUpperCase(), npc.display.name, (int) npc.posX, (int) npc.posY, (int) npc.posZ, Arrays.toString(obs)));
             }
         }
-        return callScript(script, event);
+        return callScript(script, type.function, event);
     }
 
-    private boolean callScript(ScriptContainer script, Event event) {
+    private boolean callScript(ScriptContainer script, String hookName, Event event) {
         ScriptEngine engine = script.engine;
-        engine.put("npc", dummyNpc);
-        engine.put("world", dummyWorld);
-        engine.put("event", event);
-        engine.put("API", NpcAPI.Instance());
-        engine.put("EntityType", entities);
-        engine.put("RoleType", roles);
-        engine.put("JobType", jobs);
-        for (Map.Entry<String, Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
-            engine.put(engineObjects.getKey(), engineObjects.getValue());
-        }
+        applyGlobalsToEngine(engine, hookName, event);
         script.run(engine);
 
         if (clientNeedsUpdate) {
@@ -206,7 +207,22 @@ public class DataScript implements INpcScriptHandler {
     }
 
     public boolean isEnabled() {
-        return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && ConfigScript.ScriptingEnabled;
+        return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && CustomNpcs.proxy.isScriptingEnabled();
+    }
+
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.NPC;
+    }
+
+    @Override
+    public void requestData() {
+        EventScriptPacket.Get();
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        EventScriptPacket.Save(index, totalCount, nbt);
     }
 
     public Map<Long, String> getOldConsoleText() {
@@ -221,24 +237,6 @@ public class DataScript implements INpcScriptHandler {
         return map;
     }
 
-    public Map<Long, String> getConsoleText() {
-        TreeMap<Long, String> map = new TreeMap<>();
-        int tab = 0;
-        for (ScriptContainer script : this.getScripts()) {
-            ++tab;
-
-            for (Map.Entry<Long, String> longStringEntry : script.console.entrySet()) {
-                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
-            }
-        }
-        return map;
-    }
-
-    public void clearConsole() {
-        for (ScriptContainer script : this.getScripts()) {
-            script.console.clear();
-        }
-    }
 
     @Override
     public void callScript(EnumScriptType type, Event event) {
@@ -252,6 +250,61 @@ public class DataScript implements INpcScriptHandler {
             this.callScript(enumScriptType, event);
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    public Map<String, String> getEditorGlobals(String hookName) {
+        Map<String, GlobalDefinition> definitions = getGlobalDefinitions(hookName, null);
+        Map<String, String> globals = new LinkedHashMap<>();
+        for (Map.Entry<String, GlobalDefinition> entry : definitions.entrySet()) {
+            String typeName = entry.getValue().typeName;
+            if (typeName != null && !typeName.isEmpty()) {
+                globals.put(entry.getKey(), typeName);
+            }
+        }
+        return globals;
+    }
+
+    // Apply runtime globals plus engine-only bindings.
+    private void applyGlobalsToEngine(ScriptEngine engine, String hookName, Event event) {
+        Map<String, GlobalDefinition> definitions = getGlobalDefinitions(hookName, event);
+        for (Map.Entry<String, GlobalDefinition> entry : definitions.entrySet()) {
+            engine.put(entry.getKey(), entry.getValue().value);
+        }
+
+        engine.put("API", NpcAPI.Instance());
+        for (Map.Entry<String, Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
+            engine.put(engineObjects.getKey(), engineObjects.getValue());
+        }
+    }
+
+    // Build shared globals (editor types + runtime values).
+    private Map<String, GlobalDefinition> getGlobalDefinitions(String hookName, Event event) {
+        Map<String, GlobalDefinition> globals = new LinkedHashMap<>();
+        globals.put("npc", new GlobalDefinition("ICustomNpc", dummyNpc));
+        globals.put("world", new GlobalDefinition("IWorld", dummyWorld));
+        globals.put("event", new GlobalDefinition(resolveEditorEventTypeName(hookName), event));
+        globals.put("EntityType", new GlobalDefinition("noppes.npcs.scripted.constants.EntityType", entities));
+        globals.put("RoleType", new GlobalDefinition("noppes.npcs.scripted.constants.RoleType", roles));
+        globals.put("JobType", new GlobalDefinition("noppes.npcs.scripted.constants.JobType", jobs));
+
+        return globals;
+    }
+
+    // Resolve editor-only event type from hook name with a single fallback.
+    private String resolveEditorEventTypeName(String hookName) {
+        final String fallback = "INpcEvent";
+        if (hookName == null || hookName.isEmpty()) 
+            return fallback;
+
+        IHookDefinition definition = ScriptHookController.Instance.getHookDefinition(getContext().hookContext, hookName);
+        if (definition == null) 
+            return fallback;
+        
+        String typeName = definition.getUsableTypeName();
+        if (typeName == null || typeName.isEmpty()) 
+            return fallback;
+        
+        return typeName;
     }
 
     public boolean isClient() {
@@ -274,11 +327,11 @@ public class DataScript implements INpcScriptHandler {
         this.scriptLanguage = lang;
     }
 
-    public void setScripts(List<ScriptContainer> list) {
+    public void setScripts(List<IScriptUnit> list) {
         this.eventScripts = list;
     }
 
-    public List<ScriptContainer> getScripts() {
+    public List<IScriptUnit> getScripts() {
         return this.eventScripts;
     }
 
@@ -311,5 +364,10 @@ public class DataScript implements INpcScriptHandler {
 
     public Collection<ScriptContainer> getNPCScripts() {
         return this.scripts.values();
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new EventJaninoScript(ScriptContext.NPC);
     }
 }

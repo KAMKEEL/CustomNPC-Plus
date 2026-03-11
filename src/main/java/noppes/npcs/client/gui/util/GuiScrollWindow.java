@@ -97,6 +97,11 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
     }
 
     public void mouseClicked(int i, int j, int k) {
+        // Ignore clicks outside the visible scroll window area
+        if (i < xPos || i > xPos + clipWidth || j < yPos || j > yPos + clipHeight) {
+            return;
+        }
+
         i = i - xPos;
         j = (int) (j - yPos + scrollY);
 
@@ -143,6 +148,7 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
             }
         }
     }
+
     public void mouseEvent(int i, int j, int k) {
     }
 
@@ -207,6 +213,8 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
         return scrolls.get(id);
     }
 
+    public int backgroundColor = 0x66000000;
+
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         scrollY = (float) lerp(scrollY, nextScrollY, partialTicks);
@@ -220,7 +228,7 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
 
         this.drawDefaultBackground = false;
         if (drawBackground)
-            this.drawGradientRect(0, 0, this.width, this.height, 0x66000000, 0x88000000);
+            this.drawGradientRect(0, 0, this.width, this.height, backgroundColor, backgroundColor);
 
 
         if (maxScrollY > 0)
@@ -272,8 +280,31 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
             }
         for (GuiNpcButton button : buttons.values()) {
             button.updateSubGUI(subGui);
+        }
+    }
+
+    /**
+     * Draws hover texts for buttons in screen space (called after GL scissor/translate are undone).
+     * Hover state was already computed during drawComponents with scroll-local coords.
+     */
+    public void drawHoverTexts(int mouseX, int mouseY) {
+        boolean subGui = parent.hasSubGui();
+        for (GuiNpcButton button : buttons.values()) {
             if (!button.hoverableText.isEmpty()) {
-                button.drawHover(i, j, subGui);
+                button.drawHover(mouseX, mouseY, subGui);
+            }
+        }
+        int localMouseX = mouseX - xPos;
+        int localMouseY = (int) (mouseY - yPos + scrollY);
+        for (GuiNpcTextField textField : textfields.values()) {
+            if (textField.hasHoverText()) {
+                textField.drawHover(localMouseX, localMouseY, mouseX, mouseY, subGui);
+            }
+        }
+        // Label hover: convert screen mouse to scroll-local coords for hit testing
+        for (GuiNpcLabel label : labels.values()) {
+            if (!label.hoverableText.isEmpty()) {
+                label.drawHover(localMouseX, localMouseY, mouseX, mouseY, subGui, fontRendererObj);
             }
         }
     }

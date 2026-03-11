@@ -17,6 +17,11 @@ public class EntityAIPounceTarget extends EntityAIBase {
 
     @Override
     public boolean shouldExecute() {
+        // Don't pounce if ability is controlling movement
+        if (this.npc.abilities.isAbilityControllingMovement()) {
+            return false;
+        }
+
         if (!this.npc.onGround)
             return false;
 

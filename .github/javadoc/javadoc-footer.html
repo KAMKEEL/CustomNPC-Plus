@@ -1,0 +1,44 @@
+<script>
+    (function() {
+      // Fix uppercase text in table cells
+      // Javadoc 11: method names are in th[scope="row"] a, not td a
+      function fixCase() {
+        document.querySelectorAll("th[scope='row'] a, td a, .memberNameLink a").forEach(function(el) {
+          var t = el.textContent.trim();
+          if (t.length > 2 && t === t.toUpperCase() && t.indexOf(" ") === -1) {
+            el.textContent = t.toLowerCase();
+          }
+        });
+      }
+
+      // Correct navPadding = topNav height + subNav height
+      // Uses !important to override jQuery's inline style
+      function fixPadding() {
+        var topNav = document.querySelector(".topNav");
+        var subNav = document.querySelector(".subNav");
+        var pad = document.querySelector(".navPadding");
+        if (!pad) return;
+        var h = (topNav ? topNav.offsetHeight : 0) + (subNav ? subNav.offsetHeight : 0);
+        if (h > 0) {
+          pad.style.setProperty("padding-top", h + "px", "important");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function() {
+        fixCase();
+        // Run fixPadding after jQuery has had its chance
+        setTimeout(fixPadding, 0);
+        setTimeout(fixPadding, 50);
+        setTimeout(fixPadding, 200);
+
+        // Use MutationObserver to permanently override any further jQuery writes
+        var pad = document.querySelector(".navPadding");
+        if (pad) {
+          var observer = new MutationObserver(function() {
+            fixPadding();
+          });
+          observer.observe(pad, { attributes: true, attributeFilter: ["style"] });
+        }
+      });
+    })();
+</script>

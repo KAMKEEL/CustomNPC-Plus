@@ -1,5 +1,10 @@
 package noppes.npcs.scripted.entity;
 
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -526,6 +531,16 @@ public class ScriptEntity<T extends Entity> implements IEntity {
             cls = EntityMob.class;
         else if (type == EntityType.NPC)
             cls = EntityNPCInterface.class;
+        else if (type == EntityType.ENERGY_PROJECTILE)
+            cls = EntityEnergyProjectile.class;
+        else if (type == EntityType.ENERGY_ORB)
+            cls = EntityAbilityOrb.class;
+        else if (type == EntityType.ENERGY_BEAM)
+            cls = EntityAbilityBeam.class;
+        else if (type == EntityType.ENERGY_DISC)
+            cls = EntityAbilityDisc.class;
+        else if (type == EntityType.ENERGY_LASER)
+            cls = EntityAbilityLaser.class;
 
         List<Entity> entities = entity.worldObj.getEntitiesWithinAABB(cls, entity.boundingBox.expand(range, range, range));
         List<IEntity> list = new ArrayList<IEntity>();

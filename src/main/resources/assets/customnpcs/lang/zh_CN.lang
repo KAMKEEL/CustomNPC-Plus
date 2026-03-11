@@ -641,6 +641,7 @@ script.interact=对话
 script.update=更新
 script.console=控制台
 script.language=语言
+script.default=默认
 script.damaged=伤害
 script.killed=杀死
 script.attack=攻击

@@ -5,10 +5,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.roles.RoleMount;
 
 public final class NPCMountUtil {

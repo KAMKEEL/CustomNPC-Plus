@@ -1,5 +1,9 @@
 package noppes.npcs.scripted;
 
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityOrb;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import net.minecraft.entity.Entity;
@@ -28,6 +32,10 @@ import noppes.npcs.api.IParticle;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ITileEntity;
 import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEnergyBeam;
+import noppes.npcs.api.entity.IEnergyDisc;
+import noppes.npcs.api.entity.IEnergyLaser;
+import noppes.npcs.api.entity.IEnergyOrb;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.ISound;
@@ -1240,6 +1248,48 @@ public class ScriptWorld implements IWorld {
 
     public String toString() {
         return "DIM" + this.getDimensionID();
+    }
+
+    @Override
+    public IEnergyOrb createEnergyOrb(IEntity owner, double x, double y, double z, float size) {
+        EntityAbilityOrb entity = new EntityAbilityOrb(world);
+        entity.setPosition(x, y, z);
+        entity.setStartPosition(x, y, z);
+        entity.setOwnerEntityId(owner.getMCEntity().getEntityId());
+        entity.setProjectileSize(size);
+        return (IEnergyOrb) NpcAPI.Instance().getIEntity(entity);
+    }
+
+    @Override
+    public IEnergyBeam createEnergyBeam(IEntity owner, double x, double y, double z, float beamWidth, float headSize) {
+        EntityAbilityBeam entity = new EntityAbilityBeam(world);
+        entity.setPosition(x, y, z);
+        entity.setStartPosition(x, y, z);
+        entity.setOwnerEntityId(owner.getMCEntity().getEntityId());
+        entity.setBeamWidth(beamWidth);
+        entity.setHeadSize(headSize);
+        return (IEnergyBeam) NpcAPI.Instance().getIEntity(entity);
+    }
+
+    @Override
+    public IEnergyDisc createEnergyDisc(IEntity owner, double x, double y, double z, float radius, float thickness) {
+        EntityAbilityDisc entity = new EntityAbilityDisc(world);
+        entity.setPosition(x, y, z);
+        entity.setStartPosition(x, y, z);
+        entity.setOwnerEntityId(owner.getMCEntity().getEntityId());
+        entity.setDiscRadius(radius);
+        entity.setDiscThickness(thickness);
+        return (IEnergyDisc) NpcAPI.Instance().getIEntity(entity);
+    }
+
+    @Override
+    public IEnergyLaser createEnergyLaser(IEntity owner, double x, double y, double z, float laserWidth) {
+        EntityAbilityLaser entity = new EntityAbilityLaser(world);
+        entity.setPosition(x, y, z);
+        entity.setStartPosition(x, y, z);
+        entity.setOwnerEntityId(owner.getMCEntity().getEntityId());
+        entity.setLaserWidth(laserWidth);
+        return (IEnergyLaser) NpcAPI.Instance().getIEntity(entity);
     }
 
     @Override

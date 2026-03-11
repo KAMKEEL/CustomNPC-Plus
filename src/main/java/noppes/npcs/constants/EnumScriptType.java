@@ -114,13 +114,62 @@ public enum EnumScriptType {
     PROFILE("profile"),
     PROFILE_CHANGE("profileChange"),
     PROFILE_REMOVE("profileRemove"),
-    PROFILE_CREATE("profileCreate");
+    PROFILE_CREATE("profileCreate"),
+
+    ON_EFFECT_ADD("onEffectAdd"),
+    ON_EFFECT_TICK("onEffectTick"),
+    ON_EFFECT_REMOVE("onEffectRemove"),
+
+    ABILITY_START("abilityStart"),
+    ABILITY_EXECUTE("abilityExecute"),
+    ABILITY_INTERRUPT("abilityInterrupt"),
+    ABILITY_COMPLETE("abilityComplete"),
+    ABILITY_HIT("abilityHit"),
+    ABILITY_TICK("abilityTick"),
+    ABILITY_TOGGLE("abilityToggle"),
+    ABILITY_TOGGLE_TICK("abilityToggleTick"),
+
+    CHAIN_START("chainStart"),
+    CHAIN_NEXT("chainNext"),
+    CHAIN_COMPLETE("chainComplete"),
+    CHAIN_INTERRUPT("chainInterrupt"),
+
+    ENERGY_PROJECTILE_FIRED("energyProjectileFired"),
+    ENERGY_PROJECTILE_TICK("energyProjectileTick"),
+    ENERGY_PROJECTILE_ENTITY_IMPACT("energyProjectileEntityImpact"),
+    ENERGY_PROJECTILE_BLOCK_IMPACT("energyProjectileBlockImpact"),
+    ENERGY_PROJECTILE_EXPIRED("energyProjectileExpired"),
+
+    // Energy Barrier Events
+    ENERGY_BARRIER_SPAWNED("energyBarrierSpawned"),
+    ENERGY_BARRIER_TICK("energyBarrierTick"),
+    ENERGY_BARRIER_HIT("energyBarrierHit"),
+    ENERGY_BARRIER_DESTROYED("energyBarrierDestroyed"),
+
+    // Auction Events
+    AUCTION_CREATE("auctionCreate"),
+    AUCTION_BID("auctionBid"),
+    AUCTION_BUYOUT("auctionBuyout"),
+    AUCTION_CANCEL("auctionCancel"),
+    AUCTION_CLAIM("auctionClaim");
 
     public String function;
 
+    private static final java.util.Map<String, EnumScriptType> BY_FUNCTION = new java.util.HashMap<>();
+    static {
+        for (EnumScriptType type : values()) {
+            BY_FUNCTION.put(type.function, type);
+        }
+    }
+
     public static EnumScriptType valueOfIgnoreCase(String channelName) {
-        channelName = channelName.toUpperCase();
-        return valueOf(channelName);
+        // First try by function name (e.g. "abilityStart")
+        EnumScriptType type = BY_FUNCTION.get(channelName);
+        if (type != null) {
+            return type;
+        }
+        // Fallback to enum constant name (e.g. "ABILITY_START")
+        return valueOf(channelName.toUpperCase());
     }
 
     private EnumScriptType(String function) {

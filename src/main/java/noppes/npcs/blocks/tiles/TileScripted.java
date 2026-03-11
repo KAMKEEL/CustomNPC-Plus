@@ -3,6 +3,7 @@ package noppes.npcs.blocks.tiles;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.network.packets.request.script.BlockScriptPacket;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.ITickable;
 import net.minecraft.item.Item;
@@ -25,9 +26,11 @@ import noppes.npcs.api.IBlock;
 import noppes.npcs.api.block.ITextPlane;
 import noppes.npcs.client.renderer.blocks.BlockScriptedRenderer;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptBlockHandler;
+import noppes.npcs.controllers.data.IScriptHandlerPacket;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.scripted.BlockScriptedWrapper;
 import noppes.npcs.util.ValueUtil;
@@ -36,11 +39,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
-public class TileScripted extends TileEntity implements IScriptBlockHandler {
-    public List<ScriptContainer> scripts = new ArrayList<>();
+public class TileScripted extends TileEntity implements IScriptBlockHandler, IScriptHandlerPacket {
+    public List<IScriptUnit> scripts = new ArrayList<>();
 
     public Map<String, Object> tempData = new HashMap<>();
 
@@ -159,6 +160,36 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
             text5.setNBT(compound.getCompoundTag("Text5"));
         if (compound.hasKey("Text6"))
             text6.setNBT(compound.getCompoundTag("Text6"));
+    }
+
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.BLOCK;
+    }
+
+    @Override
+    public void requestData() {
+        BlockScriptPacket.Get(this.xCoord, this.yCoord, this.zCoord);
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, NBTTagCompound nbt) {
+        BlockScriptPacket.Save(this.xCoord, this.yCoord, this.zCoord, nbt);
+    }
+
+    @Override
+    public GuiDataResult setGuiData(NBTTagCompound compound) {
+        if (compound.hasKey("LoadComplete")) {
+            return new GuiDataResult(GuiDataKind.LOAD_COMPLETE, -1);
+        }
+
+        setNBT(compound);
+        return new GuiDataResult(GuiDataKind.METADATA, -1);
+    }
+
+    @Override
+    public void sync() {
+        sendSavePacket(-1, getScripts().size(), getNBT(new NBTTagCompound()));
     }
 
     @Override
@@ -367,7 +398,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
                 EventHooks.onScriptBlockInit(this);
         }
 
-        for (ScriptContainer script : scripts) {
+        for (IScriptUnit script : scripts) {
             script.run(type, event);
         }
     }
@@ -408,34 +439,15 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
     }
 
     @Override
-    public void setScripts(List<ScriptContainer> list) {
+    public void setScripts(List<IScriptUnit> list) {
         scripts = list;
     }
 
     @Override
-    public List<ScriptContainer> getScripts() {
+    public List<IScriptUnit> getScripts() {
         return scripts;
     }
 
-    @Override
-    public Map<Long, String> getConsoleText() {
-        Map<Long, String> map = new TreeMap<>();
-        int tab = 0;
-        for (ScriptContainer script : getScripts()) {
-            tab++;
-            for (Entry<Long, String> entry : script.console.entrySet()) {
-                map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
-            }
-        }
-        return map;
-    }
-
-    @Override
-    public void clearConsole() {
-        for (ScriptContainer script : getScripts()) {
-            script.console.clear();
-        }
-    }
 
     @SideOnly(Side.CLIENT)
     @Override

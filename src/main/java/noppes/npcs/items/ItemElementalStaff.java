@@ -9,13 +9,14 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumNpcToolMaterial;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 
 public class ItemElementalStaff extends ItemStaff {
     public ItemElementalStaff(int par1, EnumNpcToolMaterial material) {
         super(par1, material);
         setHasSubtypes(true);
+        this.color = OrbColor.GENERIC;
     }
 
     @Override

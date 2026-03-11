@@ -92,7 +92,7 @@ public final class EffectScriptPacket extends AbstractPacket {
         } else {
             data.saveScript(in);
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
-                LogWriter.script(String.format("[%s] (Player) %s SAVED EFFECT %s [%s]", "EFFECT SCRIPTS", player.getCommandSenderName(), effect.getName()));
+                LogWriter.script(String.format("[%s] (Player) %s SAVED EFFECT %s [%s]", "EFFECT SCRIPTS", player.getCommandSenderName(), effect.getName(), effect.id));
             }
         }
     }

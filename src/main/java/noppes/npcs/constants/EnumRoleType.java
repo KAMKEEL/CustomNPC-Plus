@@ -2,5 +2,5 @@ package noppes.npcs.constants;
 
 public enum EnumRoleType {
 
-    None, Trader, Follower, Bank, Transporter, Postman, Companion, Mount
+    None, Trader, Follower, Bank, Transporter, Postman, Companion, Mount, Auctioneer
 }

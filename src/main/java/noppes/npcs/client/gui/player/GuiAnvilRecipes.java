@@ -237,7 +237,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
             fontRendererObj.drawString(percentText, percentTextX, percentTextY, CustomNpcResourceListener.DefaultTextColor);
             // Add text overlay for percentage with the full unrounded value.
             if (func_146978_c(percentTextX - guiLeft, percentTextY - guiTop, percentWidth, fontRendererObj.FONT_HEIGHT, mouseX, mouseY)) {
-                textOverlays.add(new TextOverlayData(percentTextX, percentTextY, percentWidth, fontRendererObj.FONT_HEIGHT, String.valueOf(recipe.getRepairPercentage())));
+                textOverlays.add(new TextOverlayData(percentTextX, percentTextY, percentWidth, fontRendererObj.FONT_HEIGHT, "" + recipe.getRepairPercentage()));
             }
 
             if (!recipe.availability.isDefault()) {
@@ -303,7 +303,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
             int xpBoxWidth = scaledTextWidth;
             int xpBoxHeight = fontRendererObj.FONT_HEIGHT;
             if (func_146978_c(xpTextX - guiLeft, xpTextY - guiTop, xpBoxWidth, xpBoxHeight, mouseX, mouseY)) {
-                textOverlays.add(new TextOverlayData(xpTextX, xpTextY, xpBoxWidth, xpBoxHeight, String.valueOf(recipe.getXpCost())));
+                textOverlays.add(new TextOverlayData(xpTextX, xpTextY, xpBoxWidth, xpBoxHeight, "" + recipe.getXpCost()));
             }
         }
 
@@ -326,7 +326,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
 
     private String formatXpCost(int xp) {
         if (xp < 1000) {
-            return String.valueOf(xp);
+            return "" + xp;
         }
         double xpK = xp / 1000.0;
         if (xpK == (int) xpK) {

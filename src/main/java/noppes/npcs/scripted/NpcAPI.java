@@ -3,8 +3,22 @@ package noppes.npcs.scripted;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.EnergyController;
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.TelegraphController;
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityAbilityZone;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityEnergySweeper;
+import kamkeel.npcs.entity.EntityEnergyExplosion;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
+import kamkeel.npcs.entity.EntityEnergySlicer;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.Entity;
@@ -49,30 +63,19 @@ import noppes.npcs.api.IBlock;
 import noppes.npcs.api.ICommand;
 import noppes.npcs.api.IContainer;
 import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.IEnergyHandler;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.api.ITelegraph;
 import noppes.npcs.api.ITileEntity;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.ICustomGui;
-import noppes.npcs.api.handler.IActionManager;
-import noppes.npcs.api.handler.IAnimationHandler;
-import noppes.npcs.api.handler.IAttributeHandler;
-import noppes.npcs.api.handler.ICloneHandler;
-import noppes.npcs.api.handler.ICustomEffectHandler;
-import noppes.npcs.api.handler.IDialogHandler;
-import noppes.npcs.api.handler.IFactionHandler;
-import noppes.npcs.api.handler.IMagicHandler;
-import noppes.npcs.api.handler.INaturalSpawnsHandler;
-import noppes.npcs.api.handler.IPartyHandler;
-import noppes.npcs.api.handler.IProfileHandler;
-import noppes.npcs.api.handler.IQuestHandler;
-import noppes.npcs.api.handler.IRecipeHandler;
-import noppes.npcs.api.handler.ITransportHandler;
+import noppes.npcs.api.handler.*;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.handler.data.IFramePart;
@@ -83,20 +86,7 @@ import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
-import noppes.npcs.controllers.AnimationController;
-import noppes.npcs.controllers.ChunkController;
-import noppes.npcs.controllers.CustomEffectController;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.MagicController;
-import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.ScriptEntityData;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.SpawnController;
-import noppes.npcs.controllers.TransportController;
+import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
@@ -110,6 +100,17 @@ import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.entity.ScriptAnimal;
 import noppes.npcs.scripted.entity.ScriptArrow;
 import noppes.npcs.scripted.entity.ScriptDBCPlayer;
+import noppes.npcs.scripted.entity.ScriptEnergyBeam;
+import noppes.npcs.scripted.entity.ScriptEnergyDisc;
+import noppes.npcs.scripted.entity.ScriptEnergyDome;
+import noppes.npcs.scripted.entity.ScriptEnergyExplosion;
+import noppes.npcs.scripted.entity.ScriptEnergyLaser;
+import noppes.npcs.scripted.entity.ScriptEnergyOrb;
+import noppes.npcs.scripted.entity.ScriptEnergyPanel;
+import noppes.npcs.scripted.entity.ScriptEnergyProjectile;
+import noppes.npcs.scripted.entity.ScriptEnergySlicer;
+import noppes.npcs.scripted.entity.ScriptEnergySweeper;
+import noppes.npcs.scripted.entity.ScriptEnergyZone;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptEntityItem;
 import noppes.npcs.scripted.entity.ScriptFishHook;
@@ -356,6 +357,41 @@ public class NpcAPI extends AbstractNpcAPI {
         return AnimationController.Instance;
     }
 
+    public ILinkedItemHandler getLinkedItems() {
+        return LinkedItemController.getInstance();
+    }
+
+    public IScriptHookHandler getScriptHooks() {
+        return ScriptHookController.Instance;
+    }
+
+    @Override
+    public IAbilityHandler getAbilities() {
+        this.checkWorld();
+        return AbilityController.Instance;
+    }
+
+    @Override
+    public ITelegraphHandler getTelegraphs() {
+        this.checkWorld();
+        return TelegraphController.Instance;
+    }
+
+    @Override
+    public ITelegraph createTelegraph(String type) {
+        this.checkWorld();
+        return TelegraphController.Instance.create(type);
+    }
+
+    @Override
+    public IAuctionHandler getAuctions() {
+        this.checkWorld();
+        if (!noppes.npcs.config.ConfigMarket.AuctionEnabled) {
+            return null;
+        }
+        return AuctionController.getInstance();
+    }
+
     @Override
     public String[] getAllBiomeNames() {
         List<String> biomes = new ArrayList<>();
@@ -414,6 +450,28 @@ public class NpcAPI extends AbstractNpcAPI {
                     data = new ScriptEntityData(new ScriptArrow<>((EntityArrow) entity));
                 else if (entity instanceof EntityFishHook)
                     data = new ScriptEntityData(new ScriptFishHook<>((EntityFishHook) entity));
+                else if (entity instanceof EntityAbilityOrb)
+                    data = new ScriptEntityData(new ScriptEnergyOrb<>((EntityAbilityOrb) entity));
+                else if (entity instanceof EntityAbilityBeam)
+                    data = new ScriptEntityData(new ScriptEnergyBeam<>((EntityAbilityBeam) entity));
+                else if (entity instanceof EntityAbilityDisc)
+                    data = new ScriptEntityData(new ScriptEnergyDisc<>((EntityAbilityDisc) entity));
+                else if (entity instanceof EntityAbilityLaser)
+                    data = new ScriptEntityData(new ScriptEnergyLaser<>((EntityAbilityLaser) entity));
+                else if (entity instanceof EntityEnergySlicer)
+                    data = new ScriptEntityData(new ScriptEnergySlicer<>((EntityEnergySlicer) entity));
+                else if (entity instanceof EntityEnergyProjectile)
+                    data = new ScriptEntityData(new ScriptEnergyProjectile((EntityEnergyProjectile) entity));
+                else if (entity instanceof EntityEnergyDome)
+                    data = new ScriptEntityData(new ScriptEnergyDome<>((EntityEnergyDome) entity));
+                else if (entity instanceof EntityEnergyPanel)
+                    data = new ScriptEntityData(new ScriptEnergyPanel<>((EntityEnergyPanel) entity));
+                else if (entity instanceof EntityEnergySweeper)
+                    data = new ScriptEntityData(new ScriptEnergySweeper<>((EntityEnergySweeper) entity));
+                else if (entity instanceof EntityEnergyExplosion)
+                    data = new ScriptEntityData(new ScriptEnergyExplosion<>((EntityEnergyExplosion) entity));
+                else if (entity instanceof EntityAbilityZone)
+                    data = new ScriptEntityData(new ScriptEnergyZone<>((EntityAbilityZone) entity));
                 else
                     data = new ScriptEntityData(new ScriptEntity<>(entity));
                 entity.registerExtendedProperties("ScriptedObject", data);
@@ -562,6 +620,11 @@ public class NpcAPI extends AbstractNpcAPI {
         }
 
         return instance;
+    }
+
+    @Override
+    public IEnergyHandler getEnergyHandler() {
+        return EnergyController.Instance;
     }
 
     public EventBus events() {

@@ -14,10 +14,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
+import net.minecraft.client.settings.GameSettings;
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.KeyPressHandler;
+import noppes.npcs.client.gui.player.GuiAuctionInterface;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
-import org.lwjgl.input.Keyboard;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -230,14 +232,14 @@ public class AttributeItemUtil {
      * Returns the item tooltip.
      */
     @SideOnly(Side.CLIENT)
-    public static List<String> getToolTip(List<String> original, NBTTagCompound compound) {
+    public static List<String> getToolTip(List<String> original, NBTTagCompound compound, boolean override) {
         List<String> tooltip = new ArrayList<>(original);
         // Get the RPGCore compound and then the Attributes compound.
         NBTTagCompound rpgCore = compound.hasKey(TAG_RPGCORE) ? compound.getCompoundTag(TAG_RPGCORE) : new NBTTagCompound();
         NBTTagCompound attrTag = rpgCore.hasKey(TAG_ATTRIBUTES) ? rpgCore.getCompoundTag(TAG_ATTRIBUTES) : new NBTTagCompound();
-        if (Keyboard.isKeyDown(ClientProxy.NPCButton.getKeyCode())) {
+        if (KeyPressHandler.isKeyBindDown(ClientProxy.NPCButton) || override) {
             List<String> newTooltips = new ArrayList<>();
-            if (!tooltip.isEmpty()) {
+            if (!tooltip.isEmpty() && !override) {
                 newTooltips.add(tooltip.get(0));
             }
 
@@ -325,9 +327,13 @@ public class AttributeItemUtil {
                 newTooltips.addAll(buildSection(reqEntries));
             }
 
-            tooltip = newTooltips;
+            if(override){
+                tooltip.addAll(newTooltips);
+            } else {
+                tooltip = newTooltips;
+            }
         } else {
-            String keyName = Keyboard.getKeyName(ClientProxy.NPCButton.getKeyCode());
+            String keyName = GameSettings.getKeyDisplayString(ClientProxy.NPCButton.getKeyCode());
             tooltip.add(EnumChatFormatting.YELLOW + "" + EnumChatFormatting.ITALIC +
                 StatCollector.translateToLocal("rpgcore:tooltip").replace("%key%", keyName));
         }

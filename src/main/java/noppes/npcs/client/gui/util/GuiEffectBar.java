@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.texture.TextureManager;
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.PlayerEffect;
@@ -80,9 +81,17 @@ public class GuiEffectBar extends GuiScreen {
                 int iconWidth = entry.effect.getWidth();
                 int iconHeight = entry.effect.getHeight();
                 int texWidth = imageData.getTotalWidth();
+                int texHeight = imageData.getTotalHeight();
+
+                // Animation V offset
+                if (imageData.isAnimated()) {
+                    iconV += (int) (imageData.getCurrentFrameVOffset() * texHeight);
+                } else if (entry.effect.animated && entry.effect.frameCount > 1) {
+                    iconV += (int) (AnimationHelper.getFrameVOffset(texHeight, entry.effect.frameCount, entry.effect.frametime) * texHeight);
+                }
 
                 // Use iconYOffset to vertically center the icon
-                func_152125_a(x + 2, drawY + iconYOffset, iconU, iconV, iconWidth, iconHeight, iconRenderSize, iconRenderSize, texWidth, texWidth);
+                func_152125_a(x + 2, drawY + iconYOffset, iconU, iconV, iconWidth, iconHeight, iconRenderSize, iconRenderSize, texWidth, texHeight);
 
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
                 Minecraft.getMinecraft().getTextureManager().bindTexture(specialIcons);
@@ -190,7 +199,14 @@ public class GuiEffectBar extends GuiScreen {
         if (imageData != null && imageData.imageLoaded()) {
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             imageData.bindTexture();
-            func_152125_a(tooltipX + (maxWidth - iconSize) / 2, textY + 4, hoveredEffect.iconX, hoveredEffect.iconY, hoveredEffect.getWidth(), hoveredEffect.getHeight(), iconSize, iconSize, imageData.getTotalWidth(), imageData.getTotalWidth());
+            int tooltipIconV = hoveredEffect.iconY;
+            int tooltipTexH = imageData.getTotalHeight();
+            if (imageData.isAnimated()) {
+                tooltipIconV += (int) (imageData.getCurrentFrameVOffset() * tooltipTexH);
+            } else if (hoveredEffect.animated && hoveredEffect.frameCount > 1) {
+                tooltipIconV += (int) (AnimationHelper.getFrameVOffset(tooltipTexH, hoveredEffect.frameCount, hoveredEffect.frametime) * tooltipTexH);
+            }
+            func_152125_a(tooltipX + (maxWidth - iconSize) / 2, textY + 4, hoveredEffect.iconX, tooltipIconV, hoveredEffect.getWidth(), hoveredEffect.getHeight(), iconSize, iconSize, imageData.getTotalWidth(), tooltipTexH);
         }
 
         textureManager.bindTexture(specialIcons);

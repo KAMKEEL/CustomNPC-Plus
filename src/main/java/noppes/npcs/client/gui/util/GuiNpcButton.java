@@ -2,7 +2,10 @@ package noppes.npcs.client.gui.util;
 
 import kamkeel.npcs.util.TextSplitter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
@@ -80,7 +83,8 @@ public class GuiNpcButton extends GuiButton {
     }
 
     public void setHoverText(String text) {
-        this.hoverableText = StatCollector.translateToLocal(text);
+        String translated = StatCollector.translateToLocal(text);
+        this.hoverableText = translated == null ? "" : translated.replace("\\n", "\n");
     }
 
     public int getValue() {
@@ -126,6 +130,7 @@ public class GuiNpcButton extends GuiButton {
     }
 
     public AtomicBoolean rightClicked = new AtomicBoolean();
+
     @Override
     public boolean mousePressed(Minecraft minecraft, int i, int j) {
         boolean bo = super.mousePressed(minecraft, i, j);
@@ -149,22 +154,83 @@ public class GuiNpcButton extends GuiButton {
     public void drawButton(Minecraft mc, int mouseX, int mouseY) {
         if (!this.visible)
             return;
-        // First, draw the button normally using the superclass method.
-        super.drawButton(mc, mouseX, mouseY);
+        // Auto-truncate display text if wider than button
+        String original = this.displayString;
+        FontRenderer fr = mc.fontRenderer;
+        if (fr != null) {
+            int maxTextWidth = this.width - 6;
+            if (fr.getStringWidth(original) > maxTextWidth) {
+                String ellipsis = "...";
+                int targetWidth = maxTextWidth - fr.getStringWidth(ellipsis);
+                if (targetWidth > 0) {
+                    this.displayString = fr.trimStringToWidth(original, targetWidth) + ellipsis;
+                }
+            }
+        }
+        // Wide buttons (>396px) break the vanilla 200px button texture.
+        // Draw them with a three-patch approach instead.
+        if (this.width > 396) {
+            drawWideButton(mc, mouseX, mouseY);
+        } else {
+            super.drawButton(mc, mouseX, mouseY);
+        }
+        // Restore original display string
+        this.displayString = original;
         // Then, if an icon texture is set, draw it.
         if (iconTexture != null) {
             mc.getTextureManager().bindTexture(iconTexture);
             GL11.glPushMatrix();
             RenderHelper.enableGUIStandardItemLighting();
-            // Calculate the icon position so that it's centered in the button.
-            // (Assumes the button's (xPosition,yPosition) is its top left.)
             int iconX = this.xPosition + (this.width - iconWidth) / 2;
             int iconY = this.yPosition + (this.height - iconHeight) / 2;
-            // Draw the texture; we assume texture coordinates start at (0,0) with the desired size.
             this.drawTexturedModalRect(iconX, iconY, iconPosX, iconPosY, iconWidth, iconHeight);
             RenderHelper.disableStandardItemLighting();
             GL11.glPopMatrix();
         }
+    }
+
+    /**
+     * Draws a button wider than the vanilla 200px texture allows.
+     * Uses three-patch rendering: left cap, tiled center, right cap.
+     */
+    private void drawWideButton(Minecraft mc, int mouseX, int mouseY) {
+        FontRenderer fontrenderer = mc.fontRenderer;
+        mc.getTextureManager().bindTexture(buttonTextures);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        this.field_146123_n = mouseX >= this.xPosition && mouseY >= this.yPosition
+            && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
+        int k = this.getHoverState(this.field_146123_n);
+        GL11.glEnable(GL11.GL_BLEND);
+        OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+
+        int texY = 46 + k * 20;
+        int cap = 100;
+
+        // Left cap (first 100px of texture)
+        this.drawTexturedModalRect(this.xPosition, this.yPosition, 0, texY, cap, this.height);
+        // Right cap (last 100px of texture)
+        this.drawTexturedModalRect(this.xPosition + this.width - cap, this.yPosition, 200 - cap, texY, cap, this.height);
+        // Tile the center column to fill the gap
+        int gapStart = this.xPosition + cap;
+        int gapEnd = this.xPosition + this.width - cap;
+        for (int x = gapStart; x < gapEnd; x += 2) {
+            int drawW = Math.min(2, gapEnd - x);
+            this.drawTexturedModalRect(x, this.yPosition, 99, texY, drawW, this.height);
+        }
+
+        this.mouseDragged(mc, mouseX, mouseY);
+
+        int l = 14737632;
+        if (packedFGColour != 0) {
+            l = packedFGColour;
+        } else if (!this.enabled) {
+            l = 10526880;
+        } else if (this.field_146123_n) {
+            l = 16777120;
+        }
+        this.drawCenteredString(fontrenderer, this.displayString,
+            this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, l);
     }
 
     public void drawHover(int i, int j, boolean hasSubGui) {
@@ -183,11 +249,28 @@ public class GuiNpcButton extends GuiButton {
             Minecraft mc = Minecraft.getMinecraft();
             String displayString = StatCollector.translateToLocal(hoverableText);
             GL11.glColor4f(1, 1, 1, 1);
-            List<String> lines = TextSplitter.splitText(displayString, 30);
+            List<String> lines = splitHoverText(displayString, 30);
             drawHoveringText(lines, i, j, mc);
             GL11.glDisable(GL11.GL_LIGHTING);
             GL11.glPopMatrix();
         }
+    }
+
+    private List<String> splitHoverText(String text, int maxLineLength) {
+        List<String> lines = new ArrayList<String>();
+        if (text == null || text.isEmpty())
+            return lines;
+
+        String normalized = text.replace("\\n", "\n");
+        String[] explicitLines = normalized.split("\\r?\\n", -1);
+        for (String line : explicitLines) {
+            if (line.isEmpty()) {
+                lines.add("");
+                continue;
+            }
+            lines.addAll(TextSplitter.splitText(line, maxLineLength));
+        }
+        return lines;
     }
 
     protected void drawHoveringText(List textLines, int x, int y, Minecraft mc) {
@@ -216,17 +299,27 @@ public class GuiNpcButton extends GuiButton {
             maxHeight += 2 + (textLines.size() - 1) * 10;
         }
 
-        int gameWidth = mc.displayWidth;
-        int maxTooltipX = gameWidth - maxWidth - 4;
+        // Get scaled screen dimensions
+        ScaledResolution scaledRes = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+        int screenWidth = scaledRes.getScaledWidth();
+        int screenHeight = scaledRes.getScaledHeight();
 
-        if (j2 > maxTooltipX) {
-            int diff = j2 - maxTooltipX;
-            j2 -= diff;
-            GL11.glTranslatef(-300, 0, 0);
+        // If tooltip would go off right edge, draw on left side of mouse
+        if (j2 + maxWidth + 6 > screenWidth) {
+            j2 = x - maxWidth - 16;
         }
 
-        if (k2 + maxHeight + 6 > mc.displayHeight) {
-            k2 = mc.displayHeight - maxHeight - 6;
+        // Keep tooltip on screen horizontally
+        if (j2 < 4) {
+            j2 = 4;
+        }
+
+        // Keep tooltip on screen vertically
+        if (k2 + maxHeight + 6 > screenHeight) {
+            k2 = screenHeight - maxHeight - 6;
+        }
+        if (k2 < 4) {
+            k2 = 4;
         }
 
         this.zLevel = 300.0F;

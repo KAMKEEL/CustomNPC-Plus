@@ -17,7 +17,9 @@ public class EntityNpcSlime extends EntityNPCInterface {
 
     @Override
     public void updateHitbox() {
-        setSize(0.8f, 0.8f);
+        this.width = 0.8f;
+        this.height = 0.8f;
+        this.setPosition(posX, posY, posZ);
         if (width / 2 > World.MAX_ENTITY_RADIUS) {
             World.MAX_ENTITY_RADIUS = width / 2;
         }

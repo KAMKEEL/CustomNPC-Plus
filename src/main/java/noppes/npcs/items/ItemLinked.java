@@ -33,7 +33,7 @@ public class ItemLinked extends ItemCustomizable {
         IItemStack itemStack = NpcAPI.Instance().getIItemStack(stack);
         if (itemStack instanceof ScriptLinkedItem) {
             ScriptLinkedItem scriptLinkedItem = (ScriptLinkedItem) itemStack;
-            LinkedItem linkedItem = LinkedItemController.getInstance().get(scriptLinkedItem.linkedItem.getId());
+            LinkedItem linkedItem = (LinkedItem) LinkedItemController.getInstance().get(scriptLinkedItem.linkedItem.getId());
             int prevVersion = scriptLinkedItem.linkedVersion;
             if (linkedItem != null && scriptLinkedItem.linkedVersion != linkedItem.version) {
                 scriptLinkedItem.linkedItem = linkedItem.clone();

@@ -39,7 +39,6 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
     public static HashMap<String, List<String>> cachedDomains = new HashMap<>();
 
     public GuiSoundSelection(String sound) {
-        drawDefaultBackground = false;
         title = "";
         setBackground("menubg.png");
         xSize = 366;
@@ -146,11 +145,12 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
             scrollSounds.resetScroll();
             getTextField(66).setText("");
             soundSearch = "";
+            initGui();
         }
         if (guiCustomScroll.id == 1) {
             selectedResource = new ResourceLocation(selectedDomain, guiCustomScroll.getSelected());
+            getButton(1).enabled = true;
         }
-        initGui();
     }
 
     @Override

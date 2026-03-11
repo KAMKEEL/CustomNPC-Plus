@@ -4,7 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.item.IItemLinked;
 import noppes.npcs.controllers.LinkedItemController;
-import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
 
 public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLinked {
@@ -51,7 +51,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
     }
 
     @Override
-    public INpcScriptHandler getScriptHandler() {
+    public IScriptHandler getScriptHandler() {
         if (this.getLinkedItem() == null)
             return null;
         return this.getLinkedItem().getScriptHandler();
@@ -85,6 +85,11 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
     @Override
     public double getDurabilityValue() {
         return this.durabilityValue;
+    }
+
+    public void setDurabilityValue(float value) {
+        this.durabilityValue = (double) value;
+        saveItemData();
     }
 
     @Override
@@ -217,6 +222,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
         this.itemDisplay.writeToNBT(compound);
         compound.setTag(LinkedItem.LINKED_DATA_NBT_TAG, this.linkedItem.writeToNBT(false));
         compound.setInteger(LinkedItem.LINKED_VERSION_VERSION_TAG, this.linkedVersion);
+        compound.setDouble("DurabilityValue", this.durabilityValue);
         return compound;
     }
 
@@ -224,5 +230,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
         this.itemDisplay.readFromNBT(compound);
         this.linkedItem.readFromNBT(compound.getCompoundTag(LinkedItem.LINKED_DATA_NBT_TAG));
         this.linkedVersion = compound.getInteger(LinkedItem.LINKED_VERSION_VERSION_TAG);
+        if (compound.hasKey("DurabilityValue"))
+            this.durabilityValue = compound.getDouble("DurabilityValue");
     }
 }

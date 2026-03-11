@@ -13,13 +13,19 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.ContainerAnvilRepair;
+import noppes.npcs.containers.ContainerAuctionBidding;
+import noppes.npcs.containers.ContainerAuctionListing;
+import noppes.npcs.containers.ContainerAuctionSell;
+import noppes.npcs.containers.ContainerAuctionTrades;
 import noppes.npcs.containers.ContainerCarpentryBench;
 import noppes.npcs.containers.ContainerCrate;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.containers.ContainerManageBanks;
+import noppes.npcs.containers.ContainerManageAuction;
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.containers.ContainerMerchantAdd;
 import noppes.npcs.containers.ContainerNPCBankLarge;
@@ -92,6 +98,18 @@ public class CommonProxy implements IGuiHandler {
         if (gui == EnumGuiType.PlayerTrader)
             return new ContainerNPCTrader(npc, player);
 
+        if (gui == EnumGuiType.PlayerAuction)
+            return new ContainerAuctionListing(npc, player);
+
+        if (gui == EnumGuiType.PlayerAuctionSell)
+            return new ContainerAuctionSell(npc, player);
+
+        if (gui == EnumGuiType.PlayerAuctionTrades)
+            return new ContainerAuctionTrades(npc, player);
+
+        if (gui == EnumGuiType.PlayerAuctionBidding)
+            return new ContainerAuctionBidding(npc, player);
+
         if (gui == EnumGuiType.PlayerCarpentryBench)
             return new ContainerCarpentryBench(player.inventory, player.worldObj, x, y, z);
 
@@ -118,6 +136,9 @@ public class CommonProxy implements IGuiHandler {
 
         if (gui == EnumGuiType.ManageBanks)
             return new ContainerManageBanks(player);
+
+        if (gui == EnumGuiType.ManageAuction)
+            return new ContainerManageAuction(player);
 
         if (gui == EnumGuiType.MerchantAdd)
             return new ContainerMerchantAdd(player, ServerEventsHandler.Merchant, player.worldObj);
@@ -199,5 +220,28 @@ public class CommonProxy implements IGuiHandler {
 
     public boolean isGUIOpen() {
         return false;
+    }
+
+    public void buildPackageIndex() {
+    }
+
+    public boolean isScriptingEnabled() {
+        return ConfigScript.ScriptingEnabled;
+    }
+
+    public boolean isRunLoadedScriptsFirst() {
+        return ConfigScript.RunLoadedScriptsFirst;
+    }
+
+    public boolean isGlobalPlayerScripts() {
+        return ConfigScript.GlobalPlayerScripts;
+    }
+
+    public boolean isGlobalForgeScripts() {
+        return ConfigScript.GlobalForgeScripts;
+    }
+
+    public boolean isGlobalNPCScripts() {
+        return ConfigScript.GlobalNPCScripts;
     }
 }

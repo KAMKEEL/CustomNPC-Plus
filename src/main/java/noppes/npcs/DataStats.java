@@ -20,6 +20,7 @@ public class DataStats {
     public EnumPotionType potionType = EnumPotionType.None;
     public int potionDuration = 5; //20 = 1 second
     public int potionAmp = 0;
+    public int potionManualId = 0;
 
     public double maxHealth = 20;
     public int respawnTime = 20;
@@ -45,6 +46,7 @@ public class DataStats {
     public boolean pPhysics = true, pXlr8 = false, pGlows = false, pExplode = false;
     public boolean pRender3D = false, pSpin = false, pStick = false, pBurnItem = false;
     public EnumPotionType pEffect = EnumPotionType.None;
+    public int pManualId = 0;
     public EnumParticleType pTrail = EnumParticleType.None;
     public ScriptParticle pCustom = new ScriptParticle("");
     public int pEffAmp = 0;
@@ -88,6 +90,8 @@ public class DataStats {
         compound.setInteger("PotionEffect", potionType.ordinal());
         compound.setInteger("PotionDuration", potionDuration);
         compound.setInteger("PotionAmp", potionAmp);
+        if (potionType == EnumPotionType.Manual)
+            compound.setInteger("PotionManualId", potionManualId);
 
         compound.setInteger("MaxFiringRange", rangedRange);
         compound.setInteger("FireRate", fireRate);
@@ -122,6 +126,8 @@ public class DataStats {
             compound.setTag("pCustom", pCustom.writeToNBT());
         if (pEffect == EnumPotionType.Fire)
             compound.setBoolean("pBurnItem", pBurnItem);
+        if (pEffect == EnumPotionType.Manual)
+            compound.setInteger("pManualId", pManualId);
 
         compound.setBoolean("ImmuneToFire", immuneToFire);
         compound.setBoolean("PotionImmune", potionImmune);
@@ -145,7 +151,7 @@ public class DataStats {
         aggroRange = compound.getInteger("AggroRange");
         respawnTime = compound.getInteger("RespawnTime");
         spawnCycle = compound.getInteger("SpawnCycle");
-        creatureType = EnumCreatureAttribute.values()[compound.getInteger("CreatureType") % EnumPotionType.values().length];
+        creatureType = EnumCreatureAttribute.values()[compound.getInteger("CreatureType") % EnumCreatureAttribute.values().length];
         ignoreCobweb = compound.getBoolean("IgnoreCobweb");
         healthRegen = compound.getFloat("HealthRegen");
         combatRegen = compound.getFloat("CombatRegen");
@@ -155,9 +161,11 @@ public class DataStats {
         swingWarmUp = ValueUtil.clamp(compound.getInteger("SwingWarmup"), 0, 1000);
         attackRange = compound.getInteger("AttackRange");
         knockback = compound.getInteger("KnockBack");
-        potionType = EnumPotionType.values()[compound.getInteger("PotionEffect") % EnumPotionType.values().length];
+        potionType = EnumPotionType.fromOrdinal(compound.getInteger("PotionEffect"));
         potionDuration = compound.getInteger("PotionDuration");
         potionAmp = compound.getInteger("PotionAmp");
+        if (potionType == EnumPotionType.Manual)
+            potionManualId = compound.getInteger("PotionManualId");
 
         rangedRange = compound.getInteger("MaxFiringRange");
         fireRate = compound.getInteger("FireRate");
@@ -180,7 +188,7 @@ public class DataStats {
         pRender3D = compound.getBoolean("pRender3D");
         pSpin = compound.getBoolean("pSpin");
         pStick = compound.getBoolean("pStick");
-        pEffect = EnumPotionType.values()[compound.getInteger("pEffect") % EnumPotionType.values().length];
+        pEffect = EnumPotionType.fromOrdinal(compound.getInteger("pEffect"));
         pTrail = EnumParticleType.values()[compound.getInteger("pTrail") % EnumParticleType.values().length];
         pEffAmp = compound.getInteger("pEffAmp");
         fireSound = compound.getString("FiringSound");
@@ -195,6 +203,8 @@ public class DataStats {
             pCustom = ScriptParticle.fromNBT(compound.getCompoundTag("pCustom"));
         if (pEffect == EnumPotionType.Fire)
             pBurnItem = compound.getBoolean("pBurnItem");
+        if (pEffect == EnumPotionType.Manual)
+            pManualId = compound.getInteger("pManualId");
 
         immuneToFire = compound.getBoolean("ImmuneToFire");
         potionImmune = compound.getBoolean("PotionImmune");

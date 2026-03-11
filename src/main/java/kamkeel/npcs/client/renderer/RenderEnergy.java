@@ -1,0 +1,410 @@
+package kamkeel.npcs.client.renderer;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
+import kamkeel.npcs.entity.EntityEnergyAbility;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
+import noppes.npcs.config.ConfigClient;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+
+/**
+ * Base renderer for ability projectiles.
+ * Provides common GL state setup and rendering utilities.
+ * <p>
+ * Design inspired by LouisXIV's energy rendering system.
+ */
+@SideOnly(Side.CLIENT)
+public abstract class RenderEnergy extends Render {
+
+    protected static final ResourceLocation WHITE_TEXTURE = new ResourceLocation("customnpcs", "textures/entity/white.png");
+    protected static final int HIDE_INITIAL_ACTIVE_TICKS = 1;
+
+    public RenderEnergy() {
+        this.shadowSize = 0.0f;
+    }
+
+    /**
+     * Hide the first active tick to avoid the visible spawn-frame pause at fire time.
+     * Charging previews are never hidden.
+     */
+    protected boolean shouldSkipInitialActiveRender(Entity entity) {
+        if (!(entity instanceof EntityEnergyAbility)) return false;
+        EntityEnergyAbility ability = (EntityEnergyAbility) entity;
+        return !ability.isPreviewMode() && !ability.isCharging() && ability.ticksExisted <= HIDE_INITIAL_ACTIVE_TICKS;
+    }
+
+    /**
+     * Setup GL state for translucent, self-illuminated rendering.
+     * Forces full brightness so world lighting does not affect projectiles.
+     */
+    protected void setupRenderState() {
+        GL11.glPushMatrix();
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
+        GL11.glDisable(GL11.GL_CULL_FACE);
+        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+
+        // Force full brightness - prevents world lighting from darkening projectiles
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f);
+    }
+
+    /**
+     * Restore GL state after rendering.
+     */
+    protected void restoreRenderState() {
+        GL11.glPopAttrib();
+        GL11.glPopMatrix();
+    }
+
+    /**
+     * Extract RGB components from color int.
+     */
+    protected float[] extractRGB(int color) {
+        float r = ((color >> 16) & 0xFF) / 255.0f;
+        float g = ((color >> 8) & 0xFF) / 255.0f;
+        float b = (color & 0xFF) / 255.0f;
+        return new float[]{r, g, b};
+    }
+
+    /**
+     * Render a cube centered at origin with given color and alpha.
+     */
+    protected void renderCube(int color, float alpha, float halfSize) {
+        Tessellator tess = Tessellator.instance;
+        float r = ((color >> 16) & 0xFF) / 255.0f;
+        float g = ((color >> 8) & 0xFF) / 255.0f;
+        float b = (color & 0xFF) / 255.0f;
+
+        tess.startDrawingQuads();
+        tess.setColorRGBA_F(r, g, b, alpha);
+        addCubeVertices(tess, 0, 0, 0, halfSize);
+        tess.draw();
+    }
+
+    // ==================== BATCHED CUBE RENDERING ====================
+
+    /**
+     * Begin a batched cube draw call. All cubes added via {@link #addBatchedCube}
+     * will be drawn in a single tessellator pass when {@link #endCubeBatch} is called.
+     */
+    protected void beginCubeBatch() {
+        Tessellator.instance.startDrawingQuads();
+    }
+
+    /**
+     * Add a cube to the current batch at the given position with per-cube color/alpha.
+     * Must be called between {@link #beginCubeBatch} and {@link #endCubeBatch}.
+     */
+    protected void addBatchedCube(float px, float py, float pz, float halfSize,
+                                   float r, float g, float b, float alpha) {
+        Tessellator tess = Tessellator.instance;
+        tess.setColorRGBA_F(r, g, b, alpha);
+        addCubeVertices(tess, px, py, pz, halfSize);
+    }
+
+    /**
+     * End the batched cube draw call, flushing all queued cubes in one draw.
+     */
+    protected void endCubeBatch() {
+        Tessellator.instance.draw();
+    }
+
+    /**
+     * Add the 24 vertices (6 faces) of a cube centered at (px,py,pz) to the tessellator.
+     * Color must be set before calling. Used by both single and batched cube rendering.
+     */
+    private static void addCubeVertices(Tessellator tess, float px, float py, float pz, float h) {
+        float x0 = px - h, x1 = px + h;
+        float y0 = py - h, y1 = py + h;
+        float z0 = pz - h, z1 = pz + h;
+
+        // Front (z+)
+        tess.setNormal(0, 0, 1);
+        tess.addVertex(x0, y0, z1);
+        tess.addVertex(x1, y0, z1);
+        tess.addVertex(x1, y1, z1);
+        tess.addVertex(x0, y1, z1);
+
+        // Back (z-)
+        tess.setNormal(0, 0, -1);
+        tess.addVertex(x1, y0, z0);
+        tess.addVertex(x0, y0, z0);
+        tess.addVertex(x0, y1, z0);
+        tess.addVertex(x1, y1, z0);
+
+        // Top (y+)
+        tess.setNormal(0, 1, 0);
+        tess.addVertex(x0, y1, z1);
+        tess.addVertex(x1, y1, z1);
+        tess.addVertex(x1, y1, z0);
+        tess.addVertex(x0, y1, z0);
+
+        // Bottom (y-)
+        tess.setNormal(0, -1, 0);
+        tess.addVertex(x0, y0, z0);
+        tess.addVertex(x1, y0, z0);
+        tess.addVertex(x1, y0, z1);
+        tess.addVertex(x0, y0, z1);
+
+        // Right (x+)
+        tess.setNormal(1, 0, 0);
+        tess.addVertex(x1, y0, z1);
+        tess.addVertex(x1, y0, z0);
+        tess.addVertex(x1, y1, z0);
+        tess.addVertex(x1, y1, z1);
+
+        // Left (x-)
+        tess.setNormal(-1, 0, 0);
+        tess.addVertex(x0, y0, z0);
+        tess.addVertex(x0, y0, z1);
+        tess.addVertex(x0, y1, z1);
+        tess.addVertex(x0, y1, z0);
+    }
+
+    /**
+     * Render a flat disc (cylinder with very small height) centered at origin.
+     * The disc lies flat on the XZ plane.
+     */
+    protected void renderDisc(int color, float alpha, float radius, float thickness, int segments) {
+        float[] rgb = extractRGB(color);
+        float r = rgb[0], g = rgb[1], b = rgb[2];
+
+        Tessellator tess = Tessellator.instance;
+        float halfThick = thickness * 0.5f;
+
+        // Top face
+        tess.startDrawingQuads();
+        tess.setColorRGBA_F(r, g, b, alpha);
+        tess.setNormal(0, 1, 0);
+        for (int i = 0; i < segments; i++) {
+            float angle1 = (float) (2 * Math.PI * i / segments);
+            float angle2 = (float) (2 * Math.PI * (i + 1) / segments);
+            float x1 = (float) Math.cos(angle1) * radius;
+            float z1 = (float) Math.sin(angle1) * radius;
+            float x2 = (float) Math.cos(angle2) * radius;
+            float z2 = (float) Math.sin(angle2) * radius;
+
+            tess.addVertex(0, halfThick, 0);
+            tess.addVertex(x1, halfThick, z1);
+            tess.addVertex(x2, halfThick, z2);
+            tess.addVertex(0, halfThick, 0);
+        }
+        tess.draw();
+
+        // Bottom face
+        tess.startDrawingQuads();
+        tess.setColorRGBA_F(r, g, b, alpha);
+        tess.setNormal(0, -1, 0);
+        for (int i = 0; i < segments; i++) {
+            float angle1 = (float) (2 * Math.PI * i / segments);
+            float angle2 = (float) (2 * Math.PI * (i + 1) / segments);
+            float x1 = (float) Math.cos(angle1) * radius;
+            float z1 = (float) Math.sin(angle1) * radius;
+            float x2 = (float) Math.cos(angle2) * radius;
+            float z2 = (float) Math.sin(angle2) * radius;
+
+            tess.addVertex(0, -halfThick, 0);
+            tess.addVertex(x2, -halfThick, z2);
+            tess.addVertex(x1, -halfThick, z1);
+            tess.addVertex(0, -halfThick, 0);
+        }
+        tess.draw();
+
+        // Edge
+        tess.startDrawingQuads();
+        tess.setColorRGBA_F(r, g, b, alpha);
+        for (int i = 0; i < segments; i++) {
+            float angle1 = (float) (2 * Math.PI * i / segments);
+            float angle2 = (float) (2 * Math.PI * (i + 1) / segments);
+            float x1 = (float) Math.cos(angle1) * radius;
+            float z1 = (float) Math.sin(angle1) * radius;
+            float x2 = (float) Math.cos(angle2) * radius;
+            float z2 = (float) Math.sin(angle2) * radius;
+
+            // Normal pointing outward
+            float nx = (float) Math.cos((angle1 + angle2) * 0.5);
+            float nz = (float) Math.sin((angle1 + angle2) * 0.5);
+            tess.setNormal(nx, 0, nz);
+
+            tess.addVertex(x1, -halfThick, z1);
+            tess.addVertex(x2, -halfThick, z2);
+            tess.addVertex(x2, halfThick, z2);
+            tess.addVertex(x1, halfThick, z1);
+        }
+        tess.draw();
+    }
+
+    /**
+     * Render a line segment as a quad billboard facing the camera.
+     */
+    protected void renderLineSegment(double x1, double y1, double z1,
+                                     double x2, double y2, double z2,
+                                     float width, int color, float alpha) {
+        float[] rgb = extractRGB(color);
+        float r = rgb[0], g = rgb[1], b = rgb[2];
+
+        // Calculate direction
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        double dz = z2 - z1;
+        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (len < 0.001) return;
+
+        // Perpendicular vectors for billboard
+        double perpX, perpY, perpZ;
+        if (Math.abs(dy) < 0.9) {
+            // Cross with up vector
+            perpX = -dz;
+            perpY = 0;
+            perpZ = dx;
+        } else {
+            // Cross with right vector
+            perpX = 0;
+            perpY = dz;
+            perpZ = -dy;
+        }
+        double perpLen = Math.sqrt(perpX * perpX + perpY * perpY + perpZ * perpZ);
+        if (perpLen > 0) {
+            perpX = perpX / perpLen * width * 0.5;
+            perpY = perpY / perpLen * width * 0.5;
+            perpZ = perpZ / perpLen * width * 0.5;
+        }
+
+        Tessellator tess = Tessellator.instance;
+        tess.startDrawingQuads();
+        tess.setColorRGBA_F(r, g, b, alpha);
+        tess.addVertex(x1 - perpX, y1 - perpY, z1 - perpZ);
+        tess.addVertex(x2 - perpX, y2 - perpY, z2 - perpZ);
+        tess.addVertex(x2 + perpX, y2 + perpY, z2 + perpZ);
+        tess.addVertex(x1 + perpX, y1 + perpY, z1 + perpZ);
+        tess.draw();
+    }
+
+    // ==================== SHARED LIGHTNING ====================
+
+    /**
+     * Get or create the lightning state for an energy entity.
+     * Uses the lightningState field on EntityEnergyAbility (stored as Object
+     * to avoid client class loading on server).
+     */
+    protected AttachedLightningRenderer.LightningState getLightningState(EntityEnergyAbility entity) {
+        if (entity.lightningState == null) {
+            entity.lightningState = new AttachedLightningRenderer.LightningState();
+        }
+        return (AttachedLightningRenderer.LightningState) entity.lightningState;
+    }
+
+    /**
+     * Render attached lightning arcs around an energy entity.
+     *
+     * @param entity     the energy entity
+     * @param innerScale multiplier for inner radius (e.g. 0.3f for projectiles, 0.95f for dome)
+     * @param baseSize   the entity's current render size/scale
+     */
+    protected void renderAttachedLightning(EntityEnergyAbility entity, float innerScale, float baseSize) {
+        AttachedLightningRenderer.LightningState state = getLightningState(entity);
+
+        float density = entity.getLightningDensity();
+        float innerRadius = innerScale * baseSize;
+        float radius = innerRadius + entity.getLightningRadius() * baseSize;
+        int outerColor = entity.getOuterColor();
+        int innerColor = entity.getInnerColor();
+        int fadeTime = entity.getLightningFadeTime();
+
+        // Barrier impact spark: briefly force brighter white crackles at the contact point.
+        if (entity instanceof EntityEnergyProjectile) {
+            int sparkTicks = ((EntityEnergyProjectile) entity).getBarrierSparkTicks();
+            if (sparkTicks > 0) {
+                density = Math.max(density, 4.0f + sparkTicks * 0.6f);
+                radius = Math.max(radius, innerRadius + Math.max(0.35f, baseSize * 0.65f));
+                outerColor = 0xF0F6FF;
+                innerColor = 0xFFFFFF;
+                fadeTime = Math.max(fadeTime, 6);
+            }
+        }
+
+        state.update(density, radius, outerColor, innerColor, fadeTime);
+        state.render();
+    }
+
+    // ==================== PROXIMITY ALPHA ====================
+
+    /**
+     * Calculate a proximity-based alpha multiplier for owner's energy projectiles.
+     * Returns a factor between ProximityAlphaMin and 1.0 based on:
+     * - Distance from camera (close = faded, far = full)
+     * - Entity age (young = faded, old = full; ignored while charging)
+     * <p>
+     * Only applies to the owning player's client. Non-owners always get 1.0.
+     *
+     * @param entity the energy projectile entity
+     * @param x      camera-relative X (from doRender)
+     * @param y      camera-relative Y (from doRender)
+     * @param z      camera-relative Z (from doRender)
+     * @return alpha multiplier between ProximityAlphaMin and 1.0
+     */
+    protected float getProximityAlphaFactor(EntityEnergyAbility entity, double x, double y, double z) {
+        return getProximityAlphaFactor(entity, x, y, z, false);
+    }
+
+    /**
+     * Overload that allows forcing proximity-only fade (no age fade-out).
+     * Used for attached beams and lasers that stay connected to the owner.
+     *
+     * @param alwaysUseProximity if true, age factor is ignored (proximity fade never expires)
+     */
+    protected float getProximityAlphaFactor(EntityEnergyAbility entity, double x, double y, double z, boolean alwaysUseProximity) {
+        float minAlpha = ConfigClient.ProximityAlphaMin;
+        if (minAlpha >= 1.0f) return 1.0f;
+
+        // Only apply to the owner's client
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        if (player == null || entity.getOwnerEntityId() != player.getEntityId()) {
+            return 1.0f;
+        }
+
+        // Distance factor: ramp from minAlpha at 0 to 1.0 at maxDist
+        float maxDist = ConfigClient.ProximityAlphaDistance;
+        float dist = (float) Math.sqrt(x * x + y * y + z * z);
+        float distFactor = Math.min(1.0f, dist / maxDist);
+
+        // Age factor: ramp from 0 to 1.0 over ageTicks
+        // Charging, attached beams/lasers, and alwaysUseProximity skip age fade
+        float ageFactor;
+        if (entity.isCharging() || alwaysUseProximity) {
+            ageFactor = 0.0f; // Always apply full proximity fade
+        } else {
+            int ageTicks = ConfigClient.ProximityAlphaAgeTicks;
+            if (ageTicks <= 0) {
+                ageFactor = 1.0f; // Age fade disabled
+            } else {
+                ageFactor = Math.min(1.0f, (float) entity.ticksExisted / ageTicks);
+            }
+        }
+
+        // Combined: take the max of both factors (either being far OR being old restores alpha)
+        float combinedFactor = Math.max(distFactor, ageFactor);
+
+        // Lerp between minAlpha and 1.0
+        return minAlpha + (1.0f - minAlpha) * combinedFactor;
+    }
+
+    @Override
+    protected ResourceLocation getEntityTexture(Entity entity) {
+        return WHITE_TEXTURE;
+    }
+}

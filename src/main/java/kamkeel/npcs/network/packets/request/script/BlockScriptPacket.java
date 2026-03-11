@@ -84,6 +84,10 @@ public final class BlockScriptPacket extends AbstractPacket {
             NBTTagCompound compound = ((TileScripted) tile).getNBT(new NBTTagCompound());
             compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
+
+            NBTTagCompound loadComplete = new NBTTagCompound();
+            loadComplete.setInteger("LoadComplete", 1);
+            GuiDataPacket.sendGuiData((EntityPlayerMP) player, loadComplete);
         } else {
             if (!player.capabilities.isCreativeMode) {
                 return;

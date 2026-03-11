@@ -15,6 +15,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.ability.IPlayerAbilityData;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.IPlayerBankData;
 import noppes.npcs.api.handler.IPlayerData;
@@ -23,6 +24,7 @@ import noppes.npcs.api.handler.IPlayerFactionData;
 import noppes.npcs.api.handler.IPlayerItemGiverData;
 import noppes.npcs.api.handler.IPlayerMailData;
 import noppes.npcs.api.handler.IPlayerQuestData;
+import noppes.npcs.api.handler.IPlayerTradeData;
 import noppes.npcs.api.handler.IPlayerTransportData;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumRoleType;
@@ -59,6 +61,11 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
 
+    // Trade data (currency + auction claims) - shared across all profile slots
+    public PlayerTradeData tradeData = new PlayerTradeData(this);
+
+    public PlayerAbilityData abilityData = new PlayerAbilityData(this);
+    public PlayerAbilityHotbarData hotbarData = new PlayerAbilityHotbarData();
     public ActionManager actionManager = new ActionManager();
     public PlayerDataScript scriptData;
 
@@ -87,13 +94,25 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     private boolean specialKeyDown = false;
 
     public void onLogin() {
-        // Continue playing animation for self when re-logging
+        // Clear any stale transient ability state that leaked via the PlayerData cache.
+        // Must happen before the animation check since it may clear ability animation state.
+        abilityData.resetOnLogin();
+
+        // Handle animation state from previous session
         AnimationData animationData = this.animationData;
         if (animationData != null && animationData.isClientAnimating()) {
-            Animation currentAnimation = animationData.currentClientAnimation;
-            NBTTagCompound compound = currentAnimation.writeToNBT();
-            animationData.viewAnimation(currentAnimation, animationData, compound,
-                animationData.isClientAnimating(), currentAnimation.currentFrame, currentAnimation.currentFrameTime);
+            if (abilityData.isPlayingAbilityAnimation()) {
+                // Ability animation was playing when player disconnected.
+                // Ability state is transient (lost on disconnect), so this animation
+                // is orphaned - clear it instead of replaying a stuck animation.
+                abilityData.clearOrphanedAbilityAnimation();
+            } else {
+                // Non-ability animation (e.g. script-driven) - continue playing
+                Animation currentAnimation = animationData.currentClientAnimation;
+                NBTTagCompound compound = currentAnimation.writeToNBT();
+                animationData.viewAnimation(currentAnimation, animationData, compound,
+                    animationData.isClientAnimating(), currentAnimation.currentFrame, currentAnimation.currentFrameTime);
+            }
         }
 
         CustomEffectController controller = CustomEffectController.getInstance();
@@ -105,6 +124,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     }
 
     public void onLogout() {
+        // Interrupt executing ability (fires events, rolls cooldown), then clear
+        // all transient state so nothing leaks via the PlayerData cache.
+        abilityData.resetOnDisconnect();
         this.partyInvites.clear();
         this.actionManager.clear();
     }
@@ -130,6 +152,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         animationData.readFromNBT(data);
         effectData.readFromNBT(data);
         magicData.readToNBT(data);
+        tradeData.readFromNBT(data);
+        abilityData.readFromNBT(data);
+        hotbarData.readFromNBT(data);
 
         if (player != null) {
             playername = player.getCommandSenderName();
@@ -172,6 +197,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         animationData.writeToNBT(compound);
         effectData.writeToNBT(compound);
         magicData.writeToNBT(compound);
+        tradeData.writeToNBT(compound);
+        abilityData.writeToNBT(compound);
+        hotbarData.writeToNBT(compound);
 
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
@@ -224,6 +252,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         transportData.saveNBTData(compound);
         factionData.saveNBTData(compound);
         mailData.saveNBTData(compound);
+        tradeData.writeToNBT(compound);
+        abilityData.writeToNBT(compound);
+        hotbarData.writeToNBT(compound);
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
         DBCAddon.instance.writeToNBT(this, compound);
@@ -237,6 +268,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         transportData.loadNBTData(data);
         factionData.loadNBTData(data);
         mailData.loadNBTData(data);
+        tradeData.readFromNBT(data);
+        abilityData.readFromNBT(data);
+        hotbarData.readFromNBT(data);
         if (player != null) {
             playername = player.getCommandSenderName();
             uuid = player.getPersistentID().toString();
@@ -395,6 +429,14 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
     public IPlayerMailData getMailData() {
         return mailData;
+    }
+
+    public IPlayerTradeData getTradeData() {
+        return tradeData;
+    }
+
+    public IPlayerAbilityData getAbilityData() {
+        return abilityData;
     }
 
     public synchronized void save() {

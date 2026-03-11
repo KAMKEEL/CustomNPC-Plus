@@ -1,6 +1,5 @@
 package kamkeel.npcs.controllers;
 
-import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.controllers.data.profile.EnumProfileOperation;
 import kamkeel.npcs.controllers.data.profile.IProfileData;
@@ -524,6 +523,7 @@ public class ProfileController implements IProfileHandler {
             // overwrite the destination slot with stale data.
             saveSlotData(profile.player, profile, prevSlot);
             loadSlotData(profile.player, profile, newSlotId);
+            syncSharedQuestsToPlayer(profile.player);
 
             EventHooks.onProfileChange(handler, scriptPlayer, profile, newSlotId, prevSlot, true);
         } else {
@@ -861,6 +861,9 @@ public class ProfileController implements IProfileHandler {
             }
         }
 
+        // Update the profile cache
+        profile.sharedQuestTimestamps = universalFinished;
+
         // Push the universal shared completion times into every slot.
         for (ISlot slot : profile.getSlots().values()) {
             IPlayerData data = getSlotPlayerData(player, slot.getId());
@@ -873,21 +876,29 @@ public class ProfileController implements IProfileHandler {
         }
     }
 
+    public void syncSharedQuestsToPlayer(EntityPlayer player) {
+        Profile profile = getProfile(player);
+        if (profile == null || profile.sharedQuestTimestamps.isEmpty()) {
+            return;
+        }
+        PlayerQuestData questData = PlayerData.get(player).questData;
+        for (Map.Entry<Integer, Long> entry : profile.sharedQuestTimestamps.entrySet()) {
+            Long existing = questData.finishedQuests.get(entry.getKey());
+            if (existing == null || entry.getValue() > existing) {
+                questData.finishedQuests.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
     public void shareQuestCompletion(EntityPlayer player, int questId, long completeTime) {
         Profile profile = getProfile(player);
         if (profile == null) {
             return;
         }
-        for (ISlot slot : profile.getSlots().values()) {
-            IPlayerData playerData = getSlotPlayerData(player, slot.getId());
-            if (playerData != null) {
-                PlayerQuestData questData = (PlayerQuestData) playerData.getQuestData();
-                Long existing = questData.finishedQuests.get(questId);
-                if (existing == null || completeTime > existing) {
-                    questData.finishedQuests.put(questId, completeTime);
-                }
-                playerData.save();
-            }
+
+        Long existing = profile.sharedQuestTimestamps.get(questId);
+        if (existing == null || completeTime > existing) {
+            profile.sharedQuestTimestamps.put(questId, completeTime);
         }
         save(player, profile);
     }

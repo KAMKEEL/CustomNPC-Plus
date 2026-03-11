@@ -25,6 +25,7 @@ public final class CloneRemovePacket extends AbstractPacket {
     public static String packetName = "Request|CloneRemove";
 
     private int tab;
+    private String folderName;
     private String name;
 
     public CloneRemovePacket() {
@@ -32,6 +33,13 @@ public final class CloneRemovePacket extends AbstractPacket {
 
     public CloneRemovePacket(int tab, String name) {
         this.tab = tab;
+        this.folderName = null;
+        this.name = name;
+    }
+
+    public CloneRemovePacket(String folderName, String name) {
+        this.tab = -1;
+        this.folderName = folderName;
         this.name = name;
     }
 
@@ -54,6 +62,9 @@ public final class CloneRemovePacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(tab);
+        if (tab == -1) {
+            ByteBufUtils.writeString(out, this.folderName);
+        }
         ByteBufUtils.writeString(out, this.name);
     }
 
@@ -65,16 +76,28 @@ public final class CloneRemovePacket extends AbstractPacket {
             return;
 
         int tab = in.readInt();
-        ServerCloneController.Instance.removeClone(ByteBufUtils.readString(in), tab);
+        String folder = null;
+        if (tab == -1) {
+            folder = ByteBufUtils.readString(in);
+        }
+        String cloneName = ByteBufUtils.readString(in);
 
         NBTTagList list = new NBTTagList();
-
-        for (String name : ServerCloneController.Instance.getClones(tab))
-            list.appendTag(new NBTTagString(name));
-
         NBTTagList listDate = new NBTTagList();
-        for (String name : ServerCloneController.Instance.getClonesDate(tab))
-            listDate.appendTag(new NBTTagString(name));
+
+        if (folder != null) {
+            ServerCloneController.Instance.removeClone(cloneName, folder);
+            for (String name : ServerCloneController.Instance.getClones(folder))
+                list.appendTag(new NBTTagString(name));
+            for (String name : ServerCloneController.Instance.getClonesDate(folder))
+                listDate.appendTag(new NBTTagString(name));
+        } else {
+            ServerCloneController.Instance.removeClone(cloneName, tab);
+            for (String name : ServerCloneController.Instance.getClones(tab))
+                list.appendTag(new NBTTagString(name));
+            for (String name : ServerCloneController.Instance.getClonesDate(tab))
+                listDate.appendTag(new NBTTagString(name));
+        }
 
         NBTTagCompound compound = new NBTTagCompound();
         compound.setTag("List", list);

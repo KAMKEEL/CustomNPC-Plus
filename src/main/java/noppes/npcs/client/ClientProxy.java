@@ -6,6 +6,32 @@ import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import kamkeel.npcs.addon.client.DBCClient;
+import kamkeel.npcs.client.command.CommandCNPCDebugger;
+import kamkeel.npcs.client.renderer.RenderEnergyBeam;
+import kamkeel.npcs.client.renderer.RenderEnergyDisc;
+import kamkeel.npcs.client.renderer.RenderEnergyLaser;
+import kamkeel.npcs.client.renderer.RenderEnergyOrb;
+import kamkeel.npcs.client.renderer.RenderSweeper;
+import kamkeel.npcs.client.renderer.RenderZone;
+import kamkeel.npcs.client.renderer.RenderEnergyDome;
+import kamkeel.npcs.client.renderer.RenderEnergyPanel;
+import kamkeel.npcs.client.renderer.EnergyChargePreviewRenderer;
+import kamkeel.npcs.client.renderer.RenderEnergyExplosion;
+import kamkeel.npcs.client.renderer.RenderEnergySlicer;
+import kamkeel.npcs.client.renderer.TelegraphRenderer;
+import kamkeel.npcs.client.renderer.lightning.LightningHandler;
+import kamkeel.npcs.controllers.data.energycharge.EnergyChargePreviewManager;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphManager;
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityEnergySweeper;
+import kamkeel.npcs.entity.EntityAbilityZone;
+import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityEnergyExplosion;
+import kamkeel.npcs.entity.EntityEnergySlicer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.model.ModelBiped;
@@ -21,11 +47,14 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.stats.Achievement;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
@@ -72,6 +101,7 @@ import noppes.npcs.client.gui.GuiBorderBlock;
 import noppes.npcs.client.gui.GuiMerchantAdd;
 import noppes.npcs.client.gui.GuiNpcDimension;
 import noppes.npcs.client.gui.GuiNpcMobSpawner;
+import noppes.npcs.client.gui.GuiNpcMobSpawnerFullscreen;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerMounter;
 import noppes.npcs.client.gui.GuiNpcPather;
 import noppes.npcs.client.gui.GuiNpcRedstoneBlock;
@@ -88,6 +118,8 @@ import noppes.npcs.client.gui.global.GuiNPCManageLinked;
 import noppes.npcs.client.gui.global.GuiNPCManageQuest;
 import noppes.npcs.client.gui.global.GuiNPCManageTags;
 import noppes.npcs.client.gui.global.GuiNPCManageTransporters;
+import noppes.npcs.client.gui.global.GuiNpcManageAbilities;
+import noppes.npcs.client.gui.global.GuiNpcManageAuction;
 import noppes.npcs.client.gui.global.GuiNpcManageMagic;
 import noppes.npcs.client.gui.global.GuiNpcManageRecipes;
 import noppes.npcs.client.gui.global.GuiNpcQuestReward;
@@ -99,6 +131,10 @@ import noppes.npcs.client.gui.mainmenu.GuiNpcAI;
 import noppes.npcs.client.gui.mainmenu.GuiNpcAdvanced;
 import noppes.npcs.client.gui.mainmenu.GuiNpcDisplay;
 import noppes.npcs.client.gui.mainmenu.GuiNpcStats;
+import noppes.npcs.client.gui.player.GuiAuctionBidding;
+import noppes.npcs.client.gui.player.GuiAuctionListing;
+import noppes.npcs.client.gui.player.GuiAuctionSell;
+import noppes.npcs.client.gui.player.GuiAuctionTrades;
 import noppes.npcs.client.gui.player.GuiBigSign;
 import noppes.npcs.client.gui.player.GuiCrate;
 import noppes.npcs.client.gui.player.GuiMailbox;
@@ -120,9 +156,11 @@ import noppes.npcs.client.gui.roles.GuiNpcFollowerSetup;
 import noppes.npcs.client.gui.roles.GuiNpcItemGiver;
 import noppes.npcs.client.gui.roles.GuiNpcTraderSetup;
 import noppes.npcs.client.gui.roles.GuiNpcTransporter;
-import noppes.npcs.client.gui.script.GuiScriptBlock;
 import noppes.npcs.client.gui.script.GuiScriptGlobal;
-import noppes.npcs.client.gui.script.GuiScriptItem;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
+import noppes.npcs.client.gui.util.script.PackageFinder;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
+import noppes.npcs.client.gui.util.script.interpreter.type.ClassIndex;
 import noppes.npcs.client.model.ModelNPCGolem;
 import noppes.npcs.client.model.ModelNpcCrystal;
 import noppes.npcs.client.model.ModelNpcDragon;
@@ -177,11 +215,16 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.ContainerAnvilRepair;
+import noppes.npcs.containers.ContainerAuctionBidding;
+import noppes.npcs.containers.ContainerAuctionListing;
+import noppes.npcs.containers.ContainerAuctionSell;
+import noppes.npcs.containers.ContainerAuctionTrades;
 import noppes.npcs.containers.ContainerCarpentryBench;
 import noppes.npcs.containers.ContainerCrate;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.containers.ContainerManageBanks;
+import noppes.npcs.containers.ContainerManageAuction;
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.containers.ContainerNPCCompanion;
@@ -209,6 +252,7 @@ import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.items.ItemLinked;
 import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemScripted;
+import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.input.Keyboard;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.InventoryTabVanilla;
@@ -223,6 +267,9 @@ import java.util.Random;
 public class ClientProxy extends CommonProxy {
     public static KeyBinding NPCButton;
     public static KeyBinding SpecialKey;
+    public static KeyBinding AbilityHudKey;
+    public static KeyBinding AbilityNextKey;
+    public static KeyBinding AbilityPrevKey;
     public static final Random RAND = new Random();
     public static FontContainer Font;
 
@@ -237,12 +284,23 @@ public class ClientProxy extends CommonProxy {
         RenderingRegistry.registerEntityRenderingHandler(EntityNpcDragon.class, new RenderNpcDragon(new ModelNpcDragon(0.0F), 0.5F));
         RenderingRegistry.registerEntityRenderingHandler(EntityNpcSlime.class, new RenderNpcSlime(new ModelNpcSlime(16), new ModelNpcSlime(0), 0.25F));
         RenderingRegistry.registerEntityRenderingHandler(EntityProjectile.class, new RenderProjectile());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityOrb.class, new RenderEnergyOrb());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityDisc.class, new RenderEnergyDisc());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityLaser.class, new RenderEnergyLaser());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityBeam.class, new RenderEnergyBeam());
+        RenderingRegistry.registerEntityRenderingHandler(EntityEnergySweeper.class, new RenderSweeper());
+        RenderingRegistry.registerEntityRenderingHandler(EntityAbilityZone.class, new RenderZone());
+        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyDome.class, new RenderEnergyDome());
+        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyPanel.class, new RenderEnergyPanel());
+        RenderingRegistry.registerEntityRenderingHandler(EntityEnergySlicer.class, new RenderEnergySlicer());
+        RenderingRegistry.registerEntityRenderingHandler(EntityEnergyExplosion.class, new RenderEnergyExplosion());
 
         RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
 
         RenderingRegistry.registerEntityRenderingHandler(EntityNPCGolem.class, new RenderNPCHumanMale(
             new ModelNPCGolem(0), new ModelNPCGolem(1F), new ModelNPCGolem(0.5F)));
         FMLCommonHandler.instance().bus().register(new ClientTickHandler());
+        FMLCommonHandler.instance().bus().register(new KeyPressHandler());
 
         ClientRegistry.bindTileEntitySpecialRenderer(TileBlockAnvil.class, new BlockCarpentryBenchRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(TileMailbox.class, new BlockMailboxRenderer());
@@ -289,10 +347,18 @@ public class ClientProxy extends CommonProxy {
         Minecraft mc = Minecraft.getMinecraft();
 
         NPCButton = new KeyBinding("NPC Inventory", Keyboard.KEY_N, "key.categories.customnpc");
-        SpecialKey = new KeyBinding("key.customnpcs.special", Keyboard.KEY_C, "key.categories.customnpc");
+        SpecialKey = new KeyBinding("key.customnpcs.special", Keyboard.KEY_GRAVE, "key.categories.customnpc");
 
         ClientRegistry.registerKeyBinding(NPCButton);
         ClientRegistry.registerKeyBinding(SpecialKey);
+
+        AbilityHudKey = new KeyBinding("key.customnpcs.abilityHudKey", Keyboard.KEY_LMENU, "key.categories.customnpc");
+        ClientRegistry.registerKeyBinding(AbilityHudKey);
+
+        AbilityNextKey = new KeyBinding("key.customnpcs.abilityNext", Keyboard.KEY_NONE, "key.categories.customnpc");
+        AbilityPrevKey = new KeyBinding("key.customnpcs.abilityPrev", Keyboard.KEY_NONE, "key.categories.customnpc");
+        ClientRegistry.registerKeyBinding(AbilityNextKey);
+        ClientRegistry.registerKeyBinding(AbilityPrevKey);
 
         new PresetController(CustomNpcs.Dir);
 
@@ -303,8 +369,21 @@ public class ClientProxy extends CommonProxy {
 
         ClientCloneController.Instance = new ClientCloneController();
         ClientTagMapController.Instance = new ClientTagMapController();
-
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
+
+        // Debug commands
+        ClientCommandHandler.instance.registerCommand(new CommandCNPCDebugger());
+
+        // Telegraph rendering system
+        TelegraphManager.initClient();
+        MinecraftForge.EVENT_BUS.register(new TelegraphRenderer());
+
+        // Energy charge preview rendering system
+        EnergyChargePreviewManager.initClient();
+        MinecraftForge.EVENT_BUS.register(new EnergyChargePreviewRenderer());
+
+        // Lightning effect rendering system
+        MinecraftForge.EVENT_BUS.register(new LightningHandler());
 
         if (ConfigClient.InventoryGuiEnabled) {
             MinecraftForge.EVENT_BUS.register(new TabRegistry());
@@ -352,7 +431,8 @@ public class ClientProxy extends CommonProxy {
 
     @Override
     public PlayerData getPlayerData(EntityPlayer player) {
-        if (player.getUniqueID() == Minecraft.getMinecraft().thePlayer.getUniqueID()) {
+        EntityPlayer local = Minecraft.getMinecraft().thePlayer;
+        if (local != null && player.getUniqueID().equals(local.getUniqueID())) {
             if (ClientCacheHandler.playerData != null) {
                 if (ClientCacheHandler.playerData.player != player) {
                     ClientCacheHandler.playerData.player = player;
@@ -435,7 +515,7 @@ public class ClientProxy extends CommonProxy {
                 animNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
                 save = false;
             }
-            return new GuiNPCManageAnimations(animNpc, save);
+            return new GuiNPCManageAnimations(animNpc, save, npc != null);
         } else if (gui == EnumGuiType.ManageLinked)
             return new GuiNPCManageLinked(npc);
 
@@ -447,6 +527,9 @@ public class ClientProxy extends CommonProxy {
 
         else if (gui == EnumGuiType.ManageRecipes)
             return new GuiNpcManageRecipes(npc, (ContainerManageRecipes) container);
+
+        else if (gui == EnumGuiType.ManageAuction)
+            return new GuiNpcManageAuction(npc, (ContainerManageAuction) container);
 
         else if (gui == EnumGuiType.ManageDialogs)
             return new GuiNPCManageDialogs(npc);
@@ -460,7 +543,21 @@ public class ClientProxy extends CommonProxy {
         else if (gui == EnumGuiType.ManageEffects)
             return new GuiNPCManageEffects(npc);
 
-        else if (gui == EnumGuiType.MainMenuGlobal)
+        else if (gui == EnumGuiType.ManageAbilities) {
+            EntityCustomNpc abilityNpc;
+            if (npc != null) {
+                abilityNpc = new EntityCustomNpc(npc.worldObj);
+                abilityNpc.copyDataFrom(npc, true);
+                abilityNpc.display.showName = 1;
+                abilityNpc.display.showBossBar = 0;
+            } else {
+                abilityNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
+                abilityNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
+                abilityNpc.height = 1.8f;
+                abilityNpc.width = 0.6f;
+            }
+            return new GuiNpcManageAbilities(abilityNpc, npc != null);
+        } else if (gui == EnumGuiType.MainMenuGlobal)
             return new GuiNPCGlobalMainMenu(npc);
 
         else if (gui == EnumGuiType.MainMenuAI)
@@ -475,6 +572,18 @@ public class ClientProxy extends CommonProxy {
         else if (gui == EnumGuiType.PlayerTrader)
             return new GuiNPCTrader(npc, (ContainerNPCTrader) container);
 
+        else if (gui == EnumGuiType.PlayerAuction)
+            return new GuiAuctionListing(npc, (ContainerAuctionListing) container);
+
+        else if (gui == EnumGuiType.PlayerAuctionSell)
+            return new GuiAuctionSell(npc, (ContainerAuctionSell) container);
+
+        else if (gui == EnumGuiType.PlayerAuctionTrades)
+            return new GuiAuctionTrades(npc, (ContainerAuctionTrades) container);
+
+        else if (gui == EnumGuiType.PlayerAuctionBidding)
+            return new GuiAuctionBidding(npc, (ContainerAuctionBidding) container);
+
         else if (gui == EnumGuiType.PlayerBankSmall || gui == EnumGuiType.PlayerBankUnlock || gui == EnumGuiType.PlayerBankUprade || gui == EnumGuiType.PlayerBankLarge)
             return new GuiNPCBankChest(npc, (ContainerNPCBankInterface) container);
 
@@ -485,7 +594,7 @@ public class ClientProxy extends CommonProxy {
             return new GuiScript(npc);
 
         else if (gui == EnumGuiType.ScriptItem)
-            return new GuiScriptItem();
+            return GuiScriptInterface.create(null, new ScriptCustomItem(new ItemStack(CustomItems.scripted_item)));
 
         else if (gui == EnumGuiType.PlayerCarpentryBench)
             return new GuiNpcCarpentryBench((ContainerCarpentryBench) container);
@@ -539,7 +648,9 @@ public class ClientProxy extends CommonProxy {
             return new GuiNpcRedstoneBlock(x, y, z);
 
         else if (gui == EnumGuiType.Cloner)
-            return new GuiNpcMobSpawner(x, y, z);
+            return GuiNpcMobSpawner.isFullscreen
+                ? new GuiNpcMobSpawnerFullscreen(x, y, z)
+                : new GuiNpcMobSpawner(x, y, z);
 
         else if (gui == EnumGuiType.MobSpawnerMounter)
             return new GuiNpcMobSpawnerMounter(x, y, z);
@@ -560,7 +671,7 @@ public class ClientProxy extends CommonProxy {
             return new GuiCustom((ContainerCustomGui) container);
 
         else if (gui == EnumGuiType.ScriptBlock)
-            return new GuiScriptBlock(x, y, z);
+            return getScriptBlockGui(x, y, z);
 
         else if (gui == EnumGuiType.Paintbrush)
             return new GuiNpcPaintbrush();
@@ -612,8 +723,21 @@ public class ClientProxy extends CommonProxy {
         if (guiscreen != null) {
             minecraft.displayGuiScreen((GuiScreen) guiscreen);
         }
-
     }
+
+
+    private GuiScreen getScriptBlockGui(int x, int y, int z) {
+        World world = Minecraft.getMinecraft().theWorld;
+        if (world == null)
+            return null;
+
+        TileEntity tile = world.getTileEntity(x, y, z);
+        if (!(tile instanceof TileScripted))
+            return null;
+
+        return GuiScriptInterface.create(null, (TileScripted) tile);
+    }
+
 
     @Override
     public void spawnParticle(EntityLivingBase player, String string, Object... ob) {
@@ -736,6 +860,40 @@ public class ClientProxy extends CommonProxy {
     @Override
     public boolean isGUIOpen() {
         return Minecraft.getMinecraft().currentScreen != null;
+    }
+
+    public void buildPackageIndex() {
+        try {
+            PackageFinder.init(Thread.currentThread().getContextClassLoader());
+            ClassIndex.init();
+            JSTypeRegistry.getInstance().initializeFromResources();
+        } catch (IOException e) {
+        }
+    }
+
+    @Override
+    public boolean isScriptingEnabled() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isScriptingEnabled();
+    }
+
+    @Override
+    public boolean isRunLoadedScriptsFirst() {
+        return ScriptClientConfig.isRunLoadedScriptsFirst();
+    }
+
+    @Override
+    public boolean isGlobalPlayerScripts() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isGlobalPlayerScripts();
+    }
+
+    @Override
+    public boolean isGlobalForgeScripts() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isGlobalForgeScripts();
+    }
+
+    @Override
+    public boolean isGlobalNPCScripts() {
+        return ConfigClient.AllowClientScripts && ScriptClientConfig.isGlobalNPCScripts();
     }
 
     public static class FontContainer {

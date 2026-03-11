@@ -1,0 +1,223 @@
+package kamkeel.npcs.controllers.data.ability.data.entry;
+
+import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
+import net.minecraft.nbt.NBTTagCompound;
+
+import java.util.UUID;
+
+/**
+ * A single entry in a {@link ChainedAbility}, representing one ability
+ * to execute in sequence along with its delay configuration.
+ * <p>
+ * Entries can be either a <b>reference</b> to a registered ability (by name/key)
+ * or an <b>inline</b> ability that is owned directly by this entry.
+ */
+public class ChainedAbilityEntry {
+
+    public enum EntryType {REFERENCE, INLINE}
+
+    private EntryType entryType = EntryType.REFERENCE;
+
+    /**
+     * Reference key (built-in name or custom ability name). Used when entryType == REFERENCE.
+     */
+    private String abilityReference = "";
+
+    /**
+     * Inline ability data. Used when entryType == INLINE.
+     */
+    private Ability inlineAbility = null;
+
+    /**
+     * Delay in ticks BEFORE this ability starts (after previous entry completes).
+     */
+    private int delayTicks = 0;
+
+    /**
+     * Whether this entry should execute concurrently (alongside the previous ability)
+     * rather than sequentially. Only takes effect if the resolved ability isConcurrentCapable().
+     */
+    private boolean concurrentEnabled = true;
+
+    public ChainedAbilityEntry() {
+    }
+
+    public ChainedAbilityEntry(String abilityReference, int delayTicks) {
+        this.entryType = EntryType.REFERENCE;
+        this.abilityReference = abilityReference != null ? abilityReference : "";
+        this.delayTicks = Math.max(0, delayTicks);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // FACTORY METHODS
+    // ═══════════════════════════════════════════════════════════════════
+
+    public static ChainedAbilityEntry reference(String ref, int delay) {
+        ChainedAbilityEntry entry = new ChainedAbilityEntry();
+        entry.entryType = EntryType.REFERENCE;
+        entry.abilityReference = ref != null ? ref : "";
+        entry.delayTicks = Math.max(0, delay);
+        return entry;
+    }
+
+    public static ChainedAbilityEntry inline(Ability ability, int delay) {
+        ChainedAbilityEntry entry = new ChainedAbilityEntry();
+        entry.entryType = EntryType.INLINE;
+        entry.inlineAbility = ability;
+        entry.delayTicks = Math.max(0, delay);
+        return entry;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // TYPE QUERIES
+    // ═══════════════════════════════════════════════════════════════════
+
+    public EntryType getEntryType() {
+        return entryType;
+    }
+
+    public boolean isInline() {
+        return entryType == EntryType.INLINE;
+    }
+
+    public boolean isReference() {
+        return entryType == EntryType.REFERENCE;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // GETTERS / SETTERS
+    // ═══════════════════════════════════════════════════════════════════
+
+    public String getAbilityReference() {
+        return abilityReference;
+    }
+
+    public void setAbilityReference(String abilityReference) {
+        this.abilityReference = abilityReference != null ? abilityReference : "";
+    }
+
+    public Ability getInlineAbility() {
+        return inlineAbility;
+    }
+
+    public void setInlineAbility(Ability ability) {
+        this.inlineAbility = ability;
+    }
+
+    public int getDelayTicks() {
+        return delayTicks;
+    }
+
+    public void setDelayTicks(int delayTicks) {
+        this.delayTicks = Math.max(0, delayTicks);
+    }
+
+    public boolean isConcurrentEnabled() {
+        return concurrentEnabled;
+    }
+
+    public void setConcurrentEnabled(boolean concurrentEnabled) {
+        this.concurrentEnabled = concurrentEnabled;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // RESOLUTION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Resolve this entry to an Ability instance.
+     * Inline entries return their ability directly.
+     * Reference entries resolve via AbilityController.
+     */
+    public Ability resolve() {
+        if (entryType == EntryType.INLINE) {
+            return inlineAbility;
+        }
+        AbilityController ctrl = AbilityController.Instance;
+        if (ctrl == null) return null;
+        return ctrl.resolveAbility(abilityReference);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CONVERSION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Convert a reference entry to inline by cloning the resolved ability.
+     * Returns false if already inline or the reference cannot be resolved.
+     */
+    public boolean convertToInline() {
+        if (entryType != EntryType.REFERENCE) return false;
+
+        AbilityController ctrl = AbilityController.Instance;
+        if (ctrl == null) return false;
+
+        Ability resolved = ctrl.resolveAbility(abilityReference);
+        if (resolved == null) return false;
+
+        NBTTagCompound nbt = resolved.writeNBT(true);
+        nbt.setString("id", UUID.randomUUID().toString());
+        inlineAbility = ctrl.fromNBT(nbt);
+        entryType = EntryType.INLINE;
+        abilityReference = "";
+        return true;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DEEP COPY
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Create a deep copy of this entry. Inline abilities are copied via NBT round-trip.
+     */
+    public ChainedAbilityEntry deepCopy() {
+        ChainedAbilityEntry copy = new ChainedAbilityEntry();
+        copy.entryType = this.entryType;
+        copy.abilityReference = this.abilityReference;
+        copy.delayTicks = this.delayTicks;
+        copy.concurrentEnabled = this.concurrentEnabled;
+        if (this.inlineAbility != null) {
+            copy.inlineAbility = AbilityController.Instance.fromNBT(this.inlineAbility.writeNBT(true));
+        }
+        return copy;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // NBT
+    // ═══════════════════════════════════════════════════════════════════
+
+    public NBTTagCompound writeNBT(boolean saveScripts) {
+        NBTTagCompound nbt = new NBTTagCompound();
+        nbt.setInteger("Delay", delayTicks);
+        nbt.setBoolean("Concurrent", concurrentEnabled);
+
+        if (entryType == EntryType.INLINE && inlineAbility != null) {
+            nbt.setTag("InlineAbility", inlineAbility.writeNBT(saveScripts));
+        } else {
+            nbt.setString("Reference", abilityReference);
+        }
+        return nbt;
+    }
+
+    public static ChainedAbilityEntry fromNBT(NBTTagCompound nbt) {
+        if (nbt == null) return null;
+
+        ChainedAbilityEntry entry = new ChainedAbilityEntry();
+        entry.delayTicks = Math.max(0, nbt.getInteger("Delay"));
+        entry.concurrentEnabled = nbt.hasKey("Concurrent") ? nbt.getBoolean("Concurrent") : true;
+
+        if (nbt.hasKey("InlineAbility")) {
+            NBTTagCompound abilityNBT = nbt.getCompoundTag("InlineAbility");
+            entry.entryType = EntryType.INLINE;
+            entry.inlineAbility = AbilityController.Instance != null
+                ? AbilityController.Instance.fromNBT(abilityNBT) : null;
+        } else {
+            entry.entryType = EntryType.REFERENCE;
+            entry.abilityReference = nbt.getString("Reference");
+        }
+
+        return entry;
+    }
+}

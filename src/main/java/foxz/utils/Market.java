@@ -31,9 +31,6 @@ public class Market {
         NBTTagCompound roleCompound = r.writeNBT(new NBTTagCompound());
         roleCompound.setString("SaveName", name);
         putMarketCache(name, roleCompound);
-        if (r.recordHistory)
-            return;
-
         saveFile(roleCompound);
     }
 

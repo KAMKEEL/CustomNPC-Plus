@@ -1,6 +1,7 @@
 package noppes.npcs.controllers;
 
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.data.profile.Profile;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import net.minecraft.entity.player.EntityPlayer;
@@ -91,7 +92,9 @@ public class PlayerQuestController {
             questData.finishedQuests.put(quest.id, completeTime);
         }
 
-        if (ConfigMain.ProfilesEnabled && quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared)
+        if (ConfigMain.ProfilesEnabled && quest.profileOptions.enableOptions
+                && (quest.profileOptions.completeControl == EnumProfileSync.Shared
+                    || quest.profileOptions.cooldownControl == EnumProfileSync.Shared))
             ProfileController.Instance.shareQuestCompletion(player, quest.id, completeTime);
     }
 
@@ -125,27 +128,29 @@ public class PlayerQuestController {
         if (data.activeQuests.containsKey(quest.id))
             return false;
 
-        if (!data.finishedQuests.containsKey(quest.id) || quest.repeat == EnumQuestRepeat.REPEATABLE)
+        boolean finishedLocally = data.finishedQuests.containsKey(quest.id);
+        boolean completedShared = false;
+        boolean hasCooldownShared = false;
+        if (ConfigMain.ProfilesEnabled && quest.profileOptions.enableOptions) {
+            Profile profile = ProfileController.Instance.getProfile(player);
+            if (profile != null && profile.sharedQuestTimestamps.containsKey(quest.id)) {
+                if (quest.profileOptions.completeControl == EnumProfileSync.Shared)
+                    completedShared = true;
+                if (quest.profileOptions.cooldownControl == EnumProfileSync.Shared)
+                    hasCooldownShared = true;
+            }
+        }
+
+        boolean isFinished = finishedLocally || completedShared;
+
+        if (!isFinished && !hasCooldownShared)
+            return true;
+        if (quest.repeat == EnumQuestRepeat.REPEATABLE)
             return true;
         if (quest.repeat == EnumQuestRepeat.NONE)
-            return false;
+            return !isFinished;
 
-        long questTime = data.finishedQuests.get(quest.id);
-
-        if (quest.repeat == EnumQuestRepeat.MCDAILY) {
-            return player.worldObj.getTotalWorldTime() - questTime >= 24000;
-        } else if (quest.repeat == EnumQuestRepeat.MCWEEKLY) {
-            return player.worldObj.getTotalWorldTime() - questTime >= 168000;
-        } else if (quest.repeat == EnumQuestRepeat.MCCUSTOM) {
-            return player.worldObj.getTotalWorldTime() - questTime >= quest.customCooldown;
-        } else if (quest.repeat == EnumQuestRepeat.RLDAILY) {
-            return System.currentTimeMillis() - questTime >= 86400000;
-        } else if (quest.repeat == EnumQuestRepeat.RLWEEKLY) {
-            return System.currentTimeMillis() - questTime >= 604800000;
-        } else if (quest.repeat == EnumQuestRepeat.RLCUSTOM) {
-            return System.currentTimeMillis() - questTime >= quest.customCooldown;
-        }
-        return false;
+        return quest.getTimeUntilRepeat(player) <= 0;
     }
 
     public static Vector<Quest> getActiveQuests(EntityPlayer player) {

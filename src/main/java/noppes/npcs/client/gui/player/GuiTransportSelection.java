@@ -20,7 +20,7 @@ import java.util.Vector;
 
 public class GuiTransportSelection extends GuiNPCInterface implements ITopButtonListener, IScrollData {
 
-    private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/smallbg.png");
+    private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/menubg.png");
     protected int xSize;
     protected int guiLeft;
     protected int guiTop;

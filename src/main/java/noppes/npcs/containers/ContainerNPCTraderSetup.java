@@ -13,15 +13,19 @@ public class ContainerNPCTraderSetup extends Container {
     public ContainerNPCTraderSetup(EntityNPCInterface npc, EntityPlayer player) {
         role = (RoleTrader) npc.roleInterface;
 
+        // New layout: $[Currency TextField], Item Cost 1, Item Cost 2, =, Output
+        // Column width: 130px for better spacing
         for (int i = 0; i < 18; i++) {
             int x = 7;
-            x += i % 3 * 94;
+            x += i % 3 * 130;
             int y = 15;
             y += i / 3 * 22;
-            addSlotToContainer(new Slot(role.inventoryCurrency, i + 18, x, y));
-            addSlotToContainer(new Slot(role.inventoryCurrency, i, x + 18, y));
-            addSlotToContainer(new Slot(role.inventorySold, i, x + 43, y));
-
+            // Item Cost 1 (primary currency)
+            addSlotToContainer(new Slot(role.inventoryCurrency, i, x + 51, y));
+            // Item Cost 2 (secondary currency)
+            addSlotToContainer(new Slot(role.inventoryCurrency, i + 18, x + 69, y));
+            // Output (sold item)
+            addSlotToContainer(new Slot(role.inventorySold, i, x + 105, y));
         }
 
         for (int i1 = 0; i1 < 3; i1++) {

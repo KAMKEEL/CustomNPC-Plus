@@ -5,9 +5,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.handler.ILinkedItemHandler;
 import noppes.npcs.api.handler.data.ILinkedItem;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.LinkedItemScript;
 import noppes.npcs.util.NBTJsonUtil;
@@ -19,9 +20,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
-public class LinkedItemController {
+public class LinkedItemController implements ILinkedItemHandler {
     private static LinkedItemController Instance;
     private int lastUsedID = 0;
 
@@ -29,6 +34,7 @@ public class LinkedItemController {
     public HashMap<Integer, LinkedItemScript> linkedItemsScripts = new HashMap<>();
 
     private HashMap<Integer, String> bootOrder;
+    public CategoryManager categoryManager = new CategoryManager();
 
     private LinkedItemController() {
     }
@@ -40,25 +46,28 @@ public class LinkedItemController {
         return Instance;
     }
 
-    public LinkedItem createItem(String name) {
+    @Override
+    public ILinkedItem createItem(String name) {
         return new LinkedItem(name);
     }
 
+    @Override
     public IItemStack createItemStack(int id) {
-        LinkedItem linkedItem = this.get(id);
+        LinkedItem linkedItem = (LinkedItem) this.get(id);
         if (linkedItem != null) {
             return linkedItem.createStack();
         }
         return null;
     }
 
-    public void add(LinkedItem linkedItem) {
+    @Override
+    public void add(ILinkedItem linkedItem) {
         if (linkedItem != null) {
             String name = linkedItem.getName();
             if (name != null && !name.isEmpty()) {
                 int linkedItemId = linkedItem.getId();
                 int id = this.linkedItems.containsKey(linkedItemId) ? linkedItemId : this.getUnusedId();
-                this.linkedItems.put(id, linkedItem);
+                this.linkedItems.put(id, (LinkedItem) linkedItem);
                 linkedItem.setId(id);
                 this.addScript(id);
             }
@@ -69,6 +78,7 @@ public class LinkedItemController {
         this.linkedItemsScripts.put(id, new LinkedItemScript());
     }
 
+    @Override
     public LinkedItem remove(int id) {
         this.removeScript(id);
         return this.linkedItems.remove(id);
@@ -78,24 +88,27 @@ public class LinkedItemController {
         this.linkedItemsScripts.remove(id);
     }
 
+    @Override
     public LinkedItem get(int id) {
-        return this.linkedItems.get(id);
+        return (LinkedItem) this.linkedItems.get(id);
     }
 
+    @Override
     public boolean contains(int id) {
         return this.linkedItems.containsKey(id);
     }
 
-    public boolean contains(LinkedItem linkedItem) {
-        return this.linkedItems.containsValue(linkedItem);
+    @Override
+    public boolean contains(ILinkedItem linkedItem) {
+        return this.linkedItems.containsValue((LinkedItem) linkedItem);
     }
 
-    public INpcScriptHandler getScriptHandler(int id) {
+    public IScriptHandler getScriptHandler(int id) {
         return this.linkedItemsScripts.get(id);
     }
 
-    ////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////
 
     public void load() {
         lastUsedID = 0;
@@ -113,43 +126,60 @@ public class LinkedItemController {
         File dir = getDir();
         if (!dir.exists()) {
             dir.mkdir();
-        } else {
-            for (File file : dir.listFiles()) {
-                if (!file.isFile() || !file.getName().endsWith(".json"))
-                    continue;
-                try {
-                    LinkedItem linkedItem = new LinkedItem();
-                    linkedItem.readFromNBT(NBTJsonUtil.LoadFile(file));
-                    linkedItem.name = file.getName().substring(0, file.getName().length() - 5);
+            return;
+        }
 
-                    if (linkedItem.id == -1) {
-                        linkedItem.id = getUnusedId();
-                    }
+        categoryManager.loadCategories(dir);
 
-                    int originalID = linkedItem.id;
-                    int setID = linkedItem.id;
-                    while (bootOrder.containsKey(setID) || linkedItems.containsKey(setID)) {
-                        if (bootOrder.containsKey(setID))
-                            if (bootOrder.get(setID).equals(linkedItem.name))
-                                break;
+        // Load uncategorized items (root level .json files)
+        loadItemsFromDir(dir, CategoryManager.UNCATEGORIZED_ID);
 
-                        setID++;
-                    }
-
-                    linkedItem.id = setID;
-                    if (originalID != setID) {
-                        LogWriter.info("Found Linked Item ID Mismatch: " + linkedItem.name + ", New ID: " + setID);
-                        linkedItem.save();
-                    }
-
-                    linkedItems.put(linkedItem.id, linkedItem);
-                } catch (Exception e) {
-                    LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-                }
-            }
+        // Load categorized items (subdirectories)
+        for (Map.Entry<Integer, noppes.npcs.controllers.data.Category> entry : categoryManager.getCategories().entrySet()) {
+            File catDir = categoryManager.getCategoryDir(entry.getKey());
+            loadItemsFromDir(catDir, entry.getKey());
         }
 
         saveLinkedItemsMap();
+    }
+
+    private void loadItemsFromDir(File dir, int catId) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (!file.isFile() || !file.getName().endsWith(".json"))
+                continue;
+            try {
+                LinkedItem linkedItem = new LinkedItem();
+                linkedItem.readFromNBT(NBTJsonUtil.LoadFile(file));
+                linkedItem.name = file.getName().substring(0, file.getName().length() - 5);
+
+                if (linkedItem.id == -1) {
+                    linkedItem.id = getUnusedId();
+                }
+
+                int originalID = linkedItem.id;
+                int setID = linkedItem.id;
+                while (bootOrder.containsKey(setID) || linkedItems.containsKey(setID)) {
+                    if (bootOrder.containsKey(setID))
+                        if (bootOrder.get(setID).equals(linkedItem.name))
+                            break;
+
+                    setID++;
+                }
+
+                linkedItem.id = setID;
+                if (originalID != setID) {
+                    LogWriter.info("Found Linked Item ID Mismatch: " + linkedItem.name + ", New ID: " + setID);
+                    linkedItem.save();
+                }
+
+                linkedItems.put(linkedItem.id, linkedItem);
+                categoryManager.registerItem(linkedItem.id, catId);
+            } catch (Exception e) {
+                LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+            }
+        }
     }
 
     private File getDir() {
@@ -187,12 +217,13 @@ public class LinkedItemController {
         while (hasOther(linkedItem.getName(), linkedItem.getId()))
             linkedItem.setName(linkedItem.getName() + "_");
 
+        TagController.validateTagUUIDs(((LinkedItem) linkedItem).tagUUIDs);
         linkedItems.remove(linkedItem.getId());
         linkedItems.put(linkedItem.getId(), (LinkedItem) linkedItem);
         saveLinkedItemsMap();
 
         // Save Linked Item File
-        File dir = this.getDir();
+        File dir = categoryManager.getItemDir(linkedItem.getId());
         if (!dir.exists())
             dir.mkdirs();
 
@@ -210,6 +241,25 @@ public class LinkedItemController {
         return linkedItems.get(linkedItem.getId());
     }
 
+    public LinkedItem cloneLinkedItem(int originalId) {
+        LinkedItem original = linkedItems.get(originalId);
+        if (original == null) return null;
+
+        NBTTagCompound nbt = original.writeToNBT(true);
+        int newId = getUnusedId();
+        nbt.setInteger("Id", newId);
+
+        LinkedItem clone = new LinkedItem();
+        clone.readFromNBT(nbt);
+
+        String name = clone.getName();
+        while (hasName(name)) name += "_";
+        clone.name = name;
+
+        saveLinkedItem(clone);
+        return clone;
+    }
+
     private boolean hasOther(String name, int id) {
         for (LinkedItem linkedItem : linkedItems.values()) {
             if (linkedItem.getId() != id && linkedItem.getName().equalsIgnoreCase(name))
@@ -219,38 +269,29 @@ public class LinkedItemController {
     }
 
     public void delete(int id) {
-        LinkedItem linkedItem = get(id);
+        LinkedItem linkedItem = (LinkedItem) get(id);
         if (linkedItem != null) {
             LinkedItem foundItem = remove(id);
             if (foundItem != null && foundItem.name != null) {
-                File dir = this.getDir();
-                for (File file : dir.listFiles()) {
-                    if (!file.isFile() || !file.getName().endsWith(".json"))
-                        continue;
-                    if (file.getName().equalsIgnoreCase(foundItem.name + ".json")) {
-                        file.delete();
-                        break;
-                    }
+                File dir = categoryManager.getItemDir(id);
+                File file = new File(dir, foundItem.name + ".json");
+                if (file.exists()) {
+                    file.delete();
                 }
+                categoryManager.removeItem(id);
                 saveLinkedItemsMap();
             }
         }
     }
 
     public void deleteLinkedItemFile(String prevName) {
-        File dir = this.getDir();
-        if (!dir.exists())
-            dir.mkdirs();
-        File file2 = new File(dir, prevName + ".json");
-        if (file2.exists())
-            file2.delete();
+        categoryManager.deleteFile(prevName + ".json");
     }
 
 
-    ////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////
     // LINKED ITEMS MAP
-
     public File getMapDir() {
         File dir = CustomNpcs.getWorldSaveDirectory();
         if (!dir.exists())
@@ -343,5 +384,41 @@ public class LinkedItemController {
     }
 
     ////////////////////////////////////////////////////////
+    // CATEGORY HELPERS
     ////////////////////////////////////////////////////////
+
+    public Map<String, Integer> getCategoryScrollData() {
+        return categoryManager.getCategoryScrollData();
+    }
+
+    public void moveItemToCategory(int itemId, int catId) {
+        LinkedItem item = linkedItems.get(itemId);
+        if (item == null) return;
+        categoryManager.moveItem(itemId, item.name + ".json", catId);
+        saveLinkedItemsMap();
+    }
+
+    public Map<String, Integer> getItemsByCategoryScrollData(int catId) {
+        Map<String, Integer> map = new HashMap<>();
+        List<Integer> itemIds = categoryManager.getItemsInCategory(catId, linkedItems.keySet());
+        for (int itemId : itemIds) {
+            LinkedItem item = linkedItems.get(itemId);
+            if (item != null) {
+                map.put(item.name, item.id);
+            }
+        }
+        return map;
+    }
+
+    public HashMap<String, HashSet<UUID>> getItemTagMapForCategory(int catId) {
+        HashMap<String, HashSet<UUID>> tagMap = new HashMap<>();
+        List<Integer> itemIds = categoryManager.getItemsInCategory(catId, linkedItems.keySet());
+        for (int itemId : itemIds) {
+            LinkedItem item = linkedItems.get(itemId);
+            if (item != null && !item.tagUUIDs.isEmpty()) {
+                tagMap.put(item.name, item.tagUUIDs);
+            }
+        }
+        return tagMap;
+    }
 }

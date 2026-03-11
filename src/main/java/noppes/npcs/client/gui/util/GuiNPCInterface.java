@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public abstract class GuiNPCInterface extends GuiScreen {
     public EntityClientPlayerMP player;
@@ -48,13 +50,40 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public String title;
     private ResourceLocation background = null;
     public boolean closeOnEsc = false;
+    public Supplier<Boolean> closeOnEscSupplier = null;
     public int guiLeft, guiTop, xSize, ySize;
     private SubGuiInterface subgui;
+    private Consumer<SubGuiInterface> pendingSubGuiResult;
     public int mouseX, mouseY, mouseScroll;
     public float bgScale = 1;
     public float bgScaleX = 1;
     public float bgScaleY = 1;
     public float bgScaleZ = 1;
+    public int bgTextureHeight = 256;  // Actual content height in texture (for bottom border stitching)
+
+    // ==================== VIEWPORT PANNING ====================
+    /**
+     * If true, this GUI supports viewport panning via click-drag on empty areas.
+     * Subclasses set this to true and call computePanBounds() to enable.
+     */
+    protected boolean isPannableGUI = false;
+    protected boolean isPanning = false;
+    protected double panStartX, panStartY;
+
+    /**
+     * Cumulative pan offset in scaled GUI pixels.
+     * Positive values = viewport shifted right/down (content appears to move left/up).
+     */
+     public double currentPanX, currentPanY;
+
+    public double getPanX() { return currentPanX; }
+    public double getPanY() { return currentPanY; }
+
+    protected double minPanX, maxPanX, minPanY, maxPanY;
+    protected int panViewportX, panViewportY, panViewportWidth, panViewportHeight;
+
+    /** Pan-adjusted mouse coordinates, updated every frame in drawScreen for hit-testing panned components. */
+    protected int panAdjMouseX, panAdjMouseY;
 
     public GuiNPCInterface(EntityNPCInterface npc) {
         this.player = Minecraft.getMinecraft().thePlayer;
@@ -70,6 +99,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
 
     public void setBackground(String texture) {
         background = new ResourceLocation("customnpcs", "textures/gui/" + texture);
+    }
+
+    public void setBackground(String texture, int textureHeight) {
+        background = new ResourceLocation("customnpcs", "textures/gui/" + texture);
+        bgTextureHeight = textureHeight;
     }
 
     public ResourceLocation getResource(String texture) {
@@ -104,6 +138,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
             rotateLeft = new GuiNpcButton(0, guiLeft + 44 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "<");
             rotateRight = new GuiNpcButton(0, guiLeft + 66 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, ">");
         }
+
+        //Important for GuiScriptTextArea
+        for (GuiNpcTextField tf : textfields.values())
+            tf.initGui();
     }
 
     @Override
@@ -147,28 +185,39 @@ public abstract class GuiNPCInterface extends GuiScreen {
         if (subgui != null)
             subgui.mouseClicked(i, j, k);
         else {
-            for (GuiNpcTextField tf : new ArrayList<GuiNpcTextField>(textfields.values()))
-                if (tf.enabled)
-                    tf.mouseClicked(i, j, k);
+            int adjX = isPannableGUI ? panAdjustedX(i) : i;
+            int adjY = isPannableGUI ? panAdjustedY(j) : j;
+
+            if (isPannableGUI && k == 0 && isPannableArea(adjX, adjY)) {
+                isPanning = true;
+                panStartX = i;
+                panStartY = j;
+                return;
+            }
+
+            mouseEvent(adjX, adjY, k);
+            vanillaMouseClicked(adjX, adjY, k);
 
             for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
-                guiScrollableComponent.mouseClicked(i, j, k);
+                guiScrollableComponent.mouseClicked(adjX, adjY, k);
             }
 
             if (k == 0) {
                 for (GuiCustomScroll scroll : new ArrayList<GuiCustomScroll>(scrolls.values())) {
-                    scroll.mouseClicked(i, j, k);
+                    scroll.mouseClicked(adjX, adjY, k);
                 }
             }
-            // Process diagram mouse clicks
             for (GuiDiagram diagram : diagrams.values()) {
-                if (diagram.isWithin(i, j)) {
-                    if (diagram.mouseClicked(i, j, k))
+                if (diagram.isWithin(adjX, adjY)) {
+                    if (diagram.mouseClicked(adjX, adjY, k))
                         return;
                 }
             }
-            mouseEvent(i, j, k);
-            vanillaMouseClicked(i, j, k);
+
+            for (GuiNpcTextField tf : new ArrayList<GuiNpcTextField>(textfields.values()))
+                if (tf.enabled)
+                    tf.mouseClicked(adjX, adjY, k);
+
         }
     }
 
@@ -202,13 +251,19 @@ public abstract class GuiNPCInterface extends GuiScreen {
             }
         }
     }
+
     @Override
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         if (subgui != null) {
             subgui.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
             return;
         }
-        super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+        if (isPannableGUI && isPanning) {
+            return;
+        }
+        int adjX = isPannableGUI ? panAdjustedX(mouseX) : mouseX;
+        int adjY = isPannableGUI ? panAdjustedY(mouseY) : mouseY;
+        super.mouseClickMove(adjX, adjY, clickedMouseButton, timeSinceLastClick);
     }
 
     @Override
@@ -217,10 +272,70 @@ public abstract class GuiNPCInterface extends GuiScreen {
             subgui.mouseMovedOrUp(mouseX, mouseY, state);
             return;
         }
-        super.mouseMovedOrUp(mouseX, mouseY, state);
+        if (isPannableGUI && state == 0 && isPanning) {
+            isPanning = false;
+            panStartX = 0;
+            panStartY = 0;
+            return;
+        }
+        int adjX = isPannableGUI ? panAdjustedX(mouseX) : mouseX;
+        int adjY = isPannableGUI ? panAdjustedY(mouseY) : mouseY;
+        super.mouseMovedOrUp(adjX, adjY, state);
     }
 
     public void mouseEvent(int i, int j, int k) {
+    }
+
+    // ==================== VIEWPORT PANNING METHODS ====================
+
+    protected boolean isPannableArea(int mx, int my) {
+        for (Object obj : this.buttonList) {
+            GuiButton btn = (GuiButton) obj;
+            if (btn.visible && mx >= btn.xPosition && mx < btn.xPosition + btn.width
+                && my >= btn.yPosition && my < btn.yPosition + btn.height) {
+                return false;
+            }
+        }
+
+        for (GuiCustomScroll scroll : scrolls.values()) {
+            if (scroll.visible && scroll.isMouseOver(mx, my)) {
+                return false;
+            }
+        }
+
+        for (GuiNpcTextField tf : textfields.values()) {
+            if (tf.enabled && mx >= tf.xPosition && mx < tf.xPosition + tf.width
+                && my >= tf.yPosition && my < tf.yPosition + tf.height) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected void computePanBounds(int vpX, int vpY, int vpW, int vpH) {
+        this.panViewportX = vpX;
+        this.panViewportY = vpY;
+        this.panViewportWidth = vpW;
+        this.panViewportHeight = vpH;
+
+        int panRange = Math.max(this.width, this.height) / 2;
+        this.minPanX = -panRange;
+        this.maxPanX = panRange;
+        this.minPanY = -panRange;
+        this.maxPanY = panRange;
+    }
+
+    protected int panAdjustedX(int rawMouseX) {
+        return rawMouseX + (int) currentPanX;
+    }
+
+    protected int panAdjustedY(int rawMouseY) {
+        return rawMouseY + (int) currentPanY;
+    }
+
+    public boolean hasPanOffset() {
+        return isPannableGUI && (currentPanX != 0 || currentPanY != 0);
     }
 
     @Override
@@ -237,6 +352,29 @@ public abstract class GuiNPCInterface extends GuiScreen {
 
     @Override
     public void keyTyped(char c, int i) {
+           /*
+         Fixes closing sub with escape closes all of its parents.
+         The outermost GUI (root of all subs) closes the deepest open sub on ESC.
+         */
+        boolean isSub = this instanceof SubGuiInterface;
+
+        boolean shouldClose = closeOnEsc;
+        if (closeOnEscSupplier != null) {
+            try {
+                shouldClose = closeOnEscSupplier.get();
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (shouldClose && !isSub && (i == 1 || (!GuiNpcTextField.isFieldActive() && isInventoryKey(i)))) {
+            SubGuiInterface sub = getSubGui();
+            if (sub != null)
+                sub.close();
+            else
+                close();
+        }
+
+
         if (subgui != null)
             subgui.keyTyped(c, i);
         for (GuiNpcTextField tf : textfields.values())
@@ -246,27 +384,18 @@ public abstract class GuiNPCInterface extends GuiScreen {
             guiScrollableComponent.keyTyped(c, i);
         }
 
-        /*
-         Fixes closing sub with escape closes all of its parents.
-         The outermost GUI (root of all subs) closes the deepest open sub on ESC.
-         */
-        boolean isSub = this instanceof SubGuiInterface;
-
-        if (closeOnEsc && !isSub && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))) {
-            SubGuiInterface sub = getSubGui();
-            if (sub != null)
-                sub.close();
-            else
-                close();
-        }
     }
 
     public void onGuiClosed() {
         GuiNpcTextField.unfocus();
     }
 
+    public void closeOnEsc(Supplier<Boolean> close) {
+        this.closeOnEscSupplier = close;
+    }
+
     public void close() {
-        if(GuiNpcTextField.activeTextfield != null)
+        if (GuiNpcTextField.activeTextfield != null)
             GuiNpcTextField.unfocus();
 
         Keyboard.enableRepeatEvents(false);
@@ -346,8 +475,40 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public void drawScreen(int i, int j, float f) {
         mouseX = i;
         mouseY = j;
+
+        boolean panning = hasPanOffset();
+        int drawX = panning ? panAdjustedX(i) : i;
+        int drawY = panning ? panAdjustedY(j) : j;
+        panAdjMouseX = drawX;
+        panAdjMouseY = drawY;
+
+        // Smooth pan: update pan offset every frame using raw mouse delta
+        if (isPannableGUI && isPanning && Mouse.isButtonDown(0)) {
+            double deltaX = i - panStartX;
+            double deltaY = j - panStartY;
+
+            currentPanX = Math.max(minPanX, Math.min(maxPanX, currentPanX - deltaX));
+            currentPanY = Math.max(minPanY, Math.min(maxPanY, currentPanY - deltaY));
+
+            panStartX = i;
+            panStartY = j;
+
+            panning = hasPanOffset();
+            drawX = panning ? panAdjustedX(i) : i;
+            drawY = panning ? panAdjustedY(j) : j;
+            panAdjMouseX = drawX;
+            panAdjMouseY = drawY;
+        } else if (isPanning && !Mouse.isButtonDown(0)) {
+            isPanning = false;
+        }
+
         if (drawDefaultBackground && subgui == null)
             drawDefaultBackground();
+
+        if (panning) {
+            GL11.glPushMatrix();
+            GL11.glTranslated(-currentPanX, -currentPanY, 0);
+        }
 
         if (background != null && mc.renderEngine != null) {
             drawBackground();
@@ -357,34 +518,45 @@ public abstract class GuiNPCInterface extends GuiScreen {
         drawCenteredString(fontRendererObj, title, width / 2, guiTop + 4, 0xffffff);
         for (GuiNpcLabel label : labels.values())
             label.drawLabel(this, fontRendererObj);
-        for (GuiNpcTextField tf : textfields.values()) {
-            tf.drawTextBox(i, j);
-        }
         for (GuiCustomScroll scroll : scrolls.values()) {
             scroll.updateSubGUI(subGui);
-            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
+            scroll.drawScreen(drawX, drawY, f, !subGui && scroll.isMouseOver(drawX, drawY) ? Mouse.getDWheel() : 0);
         }
-        // Draw scrollable windows.
         for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
-            guiScrollableComponent.drawScreen(i, j, f, !subGui && guiScrollableComponent.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
+            guiScrollableComponent.drawScreen(drawX, drawY, f, !subGui && guiScrollableComponent.isMouseOver(drawX, drawY) ? Mouse.getDWheel() : 0);
         }
         for (GuiDiagram diagram : diagrams.values()) {
-            diagram.drawDiagram(i, j, subGui);
+            diagram.drawDiagram(drawX, drawY, subGui);
         }
-        super.drawScreen(i, j, f);
+        super.drawScreen(drawX, drawY, f);
         for (GuiCustomScroll scroll : scrolls.values())
             if (scroll.hoverableText) {
-                scroll.drawHover(i, j);
+                scroll.drawHover(drawX, drawY);
             }
         for (GuiNpcButton button : buttons.values()) {
             button.updateSubGUI(subGui);
             if (!button.hoverableText.isEmpty()) {
-                button.drawHover(i, j, subGui);
+                button.drawHover(drawX, drawY, subGui);
+            }
+        }
+        for (GuiNpcTextField tf : textfields.values()) {
+            tf.drawTextBox(drawX, drawY);
+            if (tf.hasHoverText())
+                tf.drawHover(drawX, drawY, subGui);
+        }
+
+        for(GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
+            if (guiScrollableComponent.isMouseOver(drawX, drawY)) {
+                guiScrollableComponent.drawHoverTexts(drawX, drawY);
             }
         }
 
         for (GuiScreen gui : extra.values())
-            gui.drawScreen(i, j, f);
+            gui.drawScreen(drawX, drawY, f);
+
+        if (panning) {
+            GL11.glPopMatrix();
+        }
 
         if (subgui != null) {
             subgui.drawScreen(i, j, f);
@@ -400,11 +572,44 @@ public abstract class GuiNPCInterface extends GuiScreen {
         GL11.glTranslatef(guiLeft, guiTop, 0);
         GL11.glScalef(bgScale * bgScaleX, bgScale * bgScaleY, bgScale * bgScaleZ);
         mc.renderEngine.bindTexture(background);
+
+        // Handle Y dimension: if ySize < texture content height, stitch bottom border
+        int topHeight = ySize;
+        int bottomHeight = 0;
+        int bottomTextureV = 0;
+        if (ySize < bgTextureHeight) {
+            bottomHeight = -1;
+            topHeight = ySize - bottomHeight;
+            bottomTextureV = bgTextureHeight - bottomHeight;
+        }
+
         if (xSize > 256) {
-            drawTexturedModalRect(0, 0, 0, 0, 250, ySize);
-            drawTexturedModalRect(250, 0, 256 - (xSize - 250), 0, xSize - 250, ySize);
-        } else
-            drawTexturedModalRect(0, 0, 0, 0, xSize, ySize);
+            // GUI wider than texture: draw left portion, then right portion from texture edge
+            drawTexturedModalRect(0, 0, 0, 0, 250, topHeight);
+            drawTexturedModalRect(250, 0, 256 - (xSize - 250), 0, xSize - 250, topHeight);
+            if (bottomHeight > 0) {
+                drawTexturedModalRect(0, topHeight, 0, bottomTextureV, 250, bottomHeight);
+                drawTexturedModalRect(250, topHeight, 256 - (xSize - 250), bottomTextureV, xSize - 250, bottomHeight);
+            }
+        } else if (xSize < 256) {
+            // GUI narrower than texture: stitch left and right edges together
+            int leftWidth = xSize / 2;
+            int rightWidth = xSize - leftWidth;
+            // Draw top portion
+            drawTexturedModalRect(0, 0, 0, 0, leftWidth, topHeight);
+            drawTexturedModalRect(leftWidth, 0, 256 - rightWidth, 0, rightWidth, topHeight);
+            // Draw bottom border strip
+            if (bottomHeight > 0) {
+                drawTexturedModalRect(0, topHeight, 0, bottomTextureV, leftWidth, bottomHeight);
+                drawTexturedModalRect(leftWidth, topHeight, 256 - rightWidth, bottomTextureV, rightWidth, bottomHeight);
+            }
+        } else {
+            // GUI exactly 256px wide
+            drawTexturedModalRect(0, 0, 0, 0, xSize, topHeight);
+            if (bottomHeight > 0) {
+                drawTexturedModalRect(0, topHeight, 0, bottomTextureV, xSize, bottomHeight);
+            }
+        }
         GL11.glPopMatrix();
     }
 
@@ -453,8 +658,25 @@ public abstract class GuiNPCInterface extends GuiScreen {
         initGui();
     }
 
+    /**
+     * Open a sub-gui with a result handler that will be called when the sub-gui closes.
+     * The handler survives initGui() rebuilds since it lives on the parent, not the builder.
+     */
+    public void setSubGuiWithResult(SubGuiInterface gui, Consumer<SubGuiInterface> resultHandler) {
+        this.pendingSubGuiResult = resultHandler;
+        setSubGui(gui);
+    }
+
     public void closeSubGui(SubGuiInterface gui) {
-        subgui = null;
+        if (pendingSubGuiResult != null) {
+            Consumer<SubGuiInterface> handler = pendingSubGuiResult;
+            pendingSubGuiResult = null;
+            handler.accept(gui);
+        }
+        // Only null out subgui if it wasn't replaced by a new one during subGuiClosed
+        if (subgui == gui) {
+            subgui = null;
+        }
         initGui();
     }
 
@@ -504,6 +726,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public void drawNpcWithExtras(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
         drawNpc(entity, mouseX, mouseY, partialTicks);
     }
+
     public void drawNpc(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
         if (hasSubGui() && !drawNPConSub)
             return;

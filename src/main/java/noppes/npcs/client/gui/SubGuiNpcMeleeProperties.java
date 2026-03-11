@@ -12,7 +12,6 @@ import noppes.npcs.constants.EnumPotionType;
 
 public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfieldListener {
     private DataStats stats;
-    private String[] potionNames = new String[]{"gui.none", "tile.fire.name", "potion.poison", "potion.hunger", "potion.weakness", "potion.moveSlowdown", "potion.confusion", "potion.blindness", "potion.wither"};
 
     public SubGuiNpcMeleeProperties(DataStats stats) {
         this.stats = stats;
@@ -42,18 +41,34 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
         getTextField(4).integersOnly = true;
         getTextField(4).setMinMaxDefault(0, Integer.MAX_VALUE, 0);
         addLabel(new GuiNpcLabel(5, "stats.meleeeffect", guiLeft + 5, guiTop + 135));
-        addButton(new GuiButtonBiDirectional(5, guiLeft + 85, guiTop + 130, 100, 20, potionNames, stats.potionType.ordinal()));
+        addButton(new GuiButtonBiDirectional(5, guiLeft + 85, guiTop + 130, 100, 20, EnumPotionType.getLangKeys(), stats.potionType.ordinal()));
+        if (stats.potionType == EnumPotionType.Manual) {
+            addLabel(new GuiNpcLabel(8, "effect.potionid", guiLeft + 198, guiTop + 119));
+            addTextField(new GuiNpcTextField(8, this, fontRendererObj, guiLeft + 200, guiTop + 132, 40, 18, stats.potionManualId + ""));
+            getTextField(8).integersOnly = true;
+            getTextField(8).setMinMaxDefault(0, Integer.MAX_VALUE, 0);
+        }
+
+        int y = guiTop + 160;
         if (stats.potionType != EnumPotionType.None) {
-            addLabel(new GuiNpcLabel(6, "gui.time", guiLeft + 5, guiTop + 165));
-            addTextField(new GuiNpcTextField(6, this, fontRendererObj, guiLeft + 85, guiTop + 160, 40, 18, stats.potionDuration + ""));
+            addLabel(new GuiNpcLabel(6, "gui.time", guiLeft + 5, y + 5));
+            addTextField(new GuiNpcTextField(6, this, fontRendererObj, guiLeft + 85, y, 40, 18, stats.potionDuration + ""));
             getTextField(6).integersOnly = true;
             getTextField(6).setMinMaxDefault(1, Integer.MAX_VALUE, 5);
             if (stats.potionType != EnumPotionType.Fire) {
-                addLabel(new GuiNpcLabel(7, "stats.amplify", guiLeft + 5, guiTop + 195));
-                addButton(new GuiButtonBiDirectional(7, guiLeft + 85, guiTop + 190, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, stats.potionAmp));
+                y += 30;
+                addLabel(new GuiNpcLabel(7, "stats.amplify", guiLeft + 5, y + 5));
+                if (stats.potionType == EnumPotionType.Manual) {
+                    addTextField(new GuiNpcTextField(7, this, fontRendererObj, guiLeft + 85, y, 52, 18, stats.potionAmp + ""));
+                    getTextField(7).integersOnly = true;
+                    getTextField(7).setMinMaxDefault(0, 255, 0);
+                } else {
+                    addButton(new GuiButtonBiDirectional(7, guiLeft + 85, y, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, stats.potionAmp));
+                }
             }
         }
-        addButton(new GuiNpcButton(66, guiLeft + 190, guiTop + 190, 60, 20, "gui.done"));
+
+        addButton(new GuiNpcButton(66, guiLeft + 190, guiTop + ySize - 26, 60, 20, "gui.done"));
     }
 
     public void unFocused(GuiNpcTextField textfield) {
@@ -67,13 +82,21 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
             stats.knockback = textfield.getInteger();
         } else if (textfield.id == 6) {
             stats.potionDuration = textfield.getInteger();
+        } else if (textfield.id == 7) {
+            stats.potionAmp = textfield.getInteger();
+        } else if (textfield.id == 8) {
+            stats.potionManualId = textfield.getInteger();
         }
     }
 
     protected void actionPerformed(GuiButton guibutton) {
         GuiNpcButton button = (GuiNpcButton) guibutton;
         if (button.id == 5) {
-            stats.potionType = EnumPotionType.values()[button.getValue()];
+            EnumPotionType newType = EnumPotionType.fromOrdinal(button.getValue());
+            if (stats.potionType == EnumPotionType.Manual && newType != EnumPotionType.Manual) {
+                stats.potionAmp = 0;
+            }
+            stats.potionType = newType;
             initGui();
         }
         if (button.id == 7) {

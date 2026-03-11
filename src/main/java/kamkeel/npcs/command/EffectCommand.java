@@ -308,6 +308,7 @@ public class EffectCommand extends CommandKamkeelBase {
 
     // Helper method to find effects by name.
     private List<EffectEntry> findEffectsByName(String name) {
+        String strippedName = stripColorCodes(name);
         List<EffectEntry> matches = new ArrayList<>();
         CustomEffectController controller = CustomEffectController.getInstance();
         for (Map.Entry<Integer, HashMap<Integer, CustomEffect>> entry : controller.indexMapper.entrySet()) {
@@ -317,16 +318,21 @@ public class EffectCommand extends CommandKamkeelBase {
             for (Map.Entry<Integer, CustomEffect> effectEntry : effects.entrySet()) {
                 int id = effectEntry.getKey();
                 CustomEffect effect = effectEntry.getValue();
-                if (effect.getName().equalsIgnoreCase(name)) {
+                String effectName = stripColorCodes(effect.getName());
+                if (effectName.equalsIgnoreCase(strippedName)) {
                     List<EffectEntry> exact = new ArrayList<>();
                     exact.add(new EffectEntry(idx, id, effect));
                     return exact;
-                } else if (effect.getName().toLowerCase().contains(name.toLowerCase())) {
+                } else if (effectName.toLowerCase().contains(strippedName.toLowerCase())) {
                     matches.add(new EffectEntry(idx, id, effect));
                 }
             }
         }
         return matches;
+    }
+
+    private static String stripColorCodes(String s) {
+        return s.replaceAll("\u00A7[0-9a-fk-or]", "");
     }
 
     public static List<String> getSortedEffectNames() {

@@ -1,0 +1,588 @@
+package kamkeel.npcs.controllers.data.ability.type;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetFilter;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
+import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
+import noppes.npcs.api.ability.type.IAbilityTeleport;
+import noppes.npcs.client.gui.builder.FieldDef;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
+/**
+ * Teleport ability: Instant reposition with wall/line-of-sight checks.
+ */
+public class AbilityTeleport extends Ability implements IAbilityTeleport {
+
+    /**
+     * Teleport behavior mode.
+     */
+    public enum TeleportMode {
+        BLINK,
+        BEHIND,
+        SINGLE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case BLINK:
+                    return "ability.teleport.blink";
+                case BEHIND:
+                    return "ability.teleport.behind";
+                case SINGLE:
+                    return "ability.teleport.single";
+                default:
+                    return name();
+            }
+        }
+    }
+
+    private static final Random RANDOM = new Random();
+
+    // Type-specific parameters
+    private TeleportMode mode = TeleportMode.BLINK;
+    private int blinkCount = 3;
+    private int blinkDelayTicks = 10;
+    private float blinkRadius = 8.0f;
+    private float behindDistance = 2.0f;
+    private boolean requireLineOfSight = true;
+    private boolean damageAtStart = false;
+    private boolean damageAtEnd = false;
+    private float damage = 5.0f;
+    private float damageRadius = 2.0f;
+
+    // Runtime state
+    private transient int currentBlink = 0;
+    private transient int ticksSinceLastBlink = 0;
+
+    public AbilityTeleport() {
+        this.typeId = "ability.cnpc.teleport";
+        this.name = "Teleport";
+        this.targetingMode = TargetingMode.AGGRO_TARGET;
+        this.allowedBy = UserType.NPC_ONLY;
+        this.maxRange = 30.0f;
+        this.minRange = 5.0f;
+        this.cooldownTicks = 0;
+        this.windUpTicks = 10;
+        this.lockMovement = LockMode.NO;
+        // No telegraph for teleport - it's instant repositioning
+        this.telegraphType = TelegraphType.NONE;
+        this.showTelegraph = false;
+        this.windUpSound = "mob.endermen.portal";
+        this.activeSound = "mob.endermen.portal";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/teleport.png")
+        };
+    }
+
+    @Override
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
+
+    @Override
+    public TargetingMode[] getAllowedTargetingModes() {
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
+    }
+
+    @Override
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        currentBlink = 0;
+        ticksSinceLastBlink = blinkDelayTicks; // Trigger first blink immediately
+    }
+
+    @Override
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        int blinkLimit = mode == TeleportMode.BLINK ? blinkCount : 1;
+        if (currentBlink >= blinkLimit) {
+            signalCompletion();
+            return;
+        }
+
+        ticksSinceLastBlink++;
+
+        if (ticksSinceLastBlink >= blinkDelayTicks) {
+            performBlink(caster, target, caster.worldObj);
+            currentBlink++;
+            ticksSinceLastBlink = 0;
+
+            // Check if this was the last blink
+            if (currentBlink >= blinkLimit) {
+                signalCompletion();
+            }
+        }
+    }
+
+    private void performBlink(EntityLivingBase caster, EntityLivingBase target, World world) {
+        if (world.isRemote && !isPreview()) return;
+
+        double oldX = caster.posX;
+        double oldY = caster.posY;
+        double oldZ = caster.posZ;
+
+        Vec3 destination = calculateDestination(caster, target, world);
+        if (destination == null) return;
+
+        if (!isPreview()) {
+            boolean mustHaveLOS = mode == TeleportMode.BEHIND || requireLineOfSight;
+            if (mustHaveLOS && !hasLineOfSight(world, oldX, oldY + caster.getEyeHeight(), oldZ,
+                destination.xCoord, destination.yCoord + caster.getEyeHeight(), destination.zCoord)) {
+                destination = findValidPositionAlongLine(world, caster, oldX, oldY, oldZ,
+                    destination.xCoord, destination.yCoord, destination.zCoord);
+                if (destination == null) return;
+            }
+
+            destination = findSafeDestination(world, oldX, oldY, oldZ,
+                destination.xCoord, destination.yCoord, destination.zCoord);
+            if (destination == null) return;
+
+            // Damage at origin
+            if (damageAtStart) {
+                dealDamageAt(caster, world, oldX, oldY, oldZ);
+            }
+
+            // Spawn particles at origin
+            spawnTeleportParticles(world, oldX, oldY, oldZ);
+        }
+
+        // Teleport
+        if (isPreview()) {
+            caster.setPosition(destination.xCoord, destination.yCoord, destination.zCoord);
+            caster.prevPosX = destination.xCoord;
+            caster.prevPosY = destination.yCoord;
+            caster.prevPosZ = destination.zCoord;
+        } else {
+            caster.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
+        }
+        caster.fallDistance = 0;
+
+        if (!isPreview()) {
+            // Spawn particles at destination
+            spawnTeleportParticles(world, destination.xCoord, destination.yCoord, destination.zCoord);
+
+            // Damage at destination
+            if (damageAtEnd) {
+                dealDamageAt(caster, world, destination.xCoord, destination.yCoord, destination.zCoord);
+            }
+        }
+
+        // Face target after teleport
+        if (target != null) {
+            double dx = target.posX - destination.xCoord;
+            double dz = target.posZ - destination.zCoord;
+            float newYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+            caster.rotationYaw = newYaw;
+            caster.rotationYawHead = newYaw;
+        }
+    }
+
+    private void spawnTeleportParticles(World world, double x, double y, double z) {
+        for (int i = 0; i < 20; i++) {
+            world.spawnParticle("portal",
+                x + (RANDOM.nextDouble() - 0.5) * 2,
+                y + RANDOM.nextDouble() * 2,
+                z + (RANDOM.nextDouble() - 0.5) * 2,
+                (RANDOM.nextDouble() - 0.5) * 0.5,
+                RANDOM.nextDouble() * 0.5,
+                (RANDOM.nextDouble() - 0.5) * 0.5);
+        }
+    }
+
+    private Vec3 calculateDestination(EntityLivingBase caster, EntityLivingBase target, World world) {
+        double newX;
+        double newY;
+        double newZ;
+
+        if (target != null) {
+            switch (mode) {
+                case BEHIND:
+                    double yaw = Math.toRadians(target.rotationYaw);
+                    newX = target.posX + Math.sin(yaw) * behindDistance;
+                    newZ = target.posZ - Math.cos(yaw) * behindDistance;
+                    newY = target.posY;
+                    return Vec3.createVectorHelper(newX, newY, newZ);
+                case SINGLE:
+                case BLINK:
+                default:
+                    double angle = RANDOM.nextDouble() * Math.PI * 2;
+                    double dist = Math.min(blinkRadius, maxRange);
+                    double offset = RANDOM.nextDouble() * dist;
+                    newX = target.posX + Math.cos(angle) * offset;
+                    newZ = target.posZ + Math.sin(angle) * offset;
+                    newY = target.posY;
+                    return Vec3.createVectorHelper(newX, newY, newZ);
+            }
+        }
+
+        // NPC-only ability — should not reach here
+        return null;
+    }
+
+    private Vec3 findSafeDestination(World world, double oldX, double oldY, double oldZ,
+                                     double destX, double destY, double destZ) {
+        int oldBlockX = (int) Math.floor(oldX);
+        int oldBlockY = (int) Math.floor(oldY);
+        int oldBlockZ = (int) Math.floor(oldZ);
+        int destBlockX = (int) Math.floor(destX);
+        int destBlockY = (int) Math.floor(destY);
+        int destBlockZ = (int) Math.floor(destZ);
+
+        if (oldBlockX == destBlockX && oldBlockY == destBlockY && oldBlockZ == destBlockZ) {
+            return null;
+        }
+
+        double safeY = findSafeYNear(world, destX, destY, destZ);
+        Vec3 safe = Vec3.createVectorHelper(destX, safeY, destZ);
+
+        if (!isSafeLocation(world, (int) Math.floor(safe.xCoord),
+            (int) Math.floor(safe.yCoord), (int) Math.floor(safe.zCoord))) {
+            return null;
+        }
+
+        return safe;
+    }
+
+    private double findSafeYNear(World world, double x, double baseY, double z) {
+        int[] offsets = new int[]{0, 1, -1, 2, -2};
+        for (int offset : offsets) {
+            double y = baseY + offset;
+            if (isSafeLocation(world, (int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z))) {
+                return y;
+            }
+        }
+        return findSafeY(world, x, baseY, z);
+    }
+
+    private boolean hasLineOfSight(World world, double x1, double y1, double z1,
+                                   double x2, double y2, double z2) {
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        double dz = z2 - z1;
+        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        if (distance < 0.1) return true;
+
+        dx /= distance;
+        dy /= distance;
+        dz /= distance;
+
+        double step = 0.5;
+        for (double d = step; d < distance; d += step) {
+            double checkX = x1 + dx * d;
+            double checkY = y1 + dy * d;
+            double checkZ = z1 + dz * d;
+
+            int blockX = MathHelper.floor_double(checkX);
+            int blockY = MathHelper.floor_double(checkY);
+            int blockZ = MathHelper.floor_double(checkZ);
+
+            // Skip out-of-world coordinates
+            if (blockY < 0 || blockY >= 256) {
+                continue;
+            }
+
+            Block block = world.getBlock(blockX, blockY, blockZ);
+            if (block != null && block.getMaterial().isSolid() && block.isOpaqueCube()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private Vec3 findValidPositionAlongLine(World world, EntityLivingBase caster,
+                                            double x1, double y1, double z1,
+                                            double x2, double y2, double z2) {
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        double dz = z2 - z1;
+        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        if (distance < 1.0) return null;
+
+        dx /= distance;
+        dy /= distance;
+        dz /= distance;
+
+        Vec3 lastValid = null;
+        double step = 0.5;
+
+        for (double d = 1.0; d < distance; d += step) {
+            double checkX = x1 + dx * d;
+            double checkY = y1 + dy * d;
+            double checkZ = z1 + dz * d;
+
+            if (hasLineOfSight(world, x1, y1 + caster.getEyeHeight(), z1,
+                checkX, checkY + caster.getEyeHeight(), checkZ)) {
+                int blockX = MathHelper.floor_double(checkX);
+                int blockY = MathHelper.floor_double(checkY);
+                int blockZ = MathHelper.floor_double(checkZ);
+
+                if (isSafeLocation(world, blockX, blockY, blockZ)) {
+                    lastValid = Vec3.createVectorHelper(checkX, checkY, checkZ);
+                }
+            } else {
+                break;
+            }
+        }
+
+        return lastValid;
+    }
+
+    private double findSafeY(World world, double x, double baseY, double z) {
+        int blockX = MathHelper.floor_double(x);
+        int blockZ = MathHelper.floor_double(z);
+        int blockY = MathHelper.floor_double(baseY);
+
+        for (int offset = 0; offset <= 5; offset++) {
+            if (isSafeLocation(world, blockX, blockY + offset, blockZ)) {
+                return blockY + offset;
+            }
+            if (offset > 0 && isSafeLocation(world, blockX, blockY - offset, blockZ)) {
+                return blockY - offset;
+            }
+        }
+
+        return baseY;
+    }
+
+    private boolean isSafeLocation(World world, int x, int y, int z) {
+        // Bounds check - ensure we're within valid world coordinates
+        if (y < 1 || y >= 255) {
+            return false;
+        }
+
+        Block groundBlock = world.getBlock(x, y - 1, z);
+        Block feetBlock = world.getBlock(x, y, z);
+        Block headBlock = world.getBlock(x, y + 1, z);
+
+        // Defensive null checks (shouldn't happen in MC 1.7.10, but safe)
+        if (groundBlock == null || feetBlock == null || headBlock == null) {
+            return false;
+        }
+
+        return groundBlock.getMaterial().isSolid() &&
+            !feetBlock.getMaterial().isSolid() &&
+            !headBlock.getMaterial().isSolid();
+    }
+
+    private void dealDamageAt(EntityLivingBase caster, World world, double x, double y, double z) {
+        AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(
+            x - damageRadius, y - 1, z - damageRadius,
+            x + damageRadius, y + 2, z + damageRadius
+        );
+
+        @SuppressWarnings("unchecked")
+        List<Entity> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, aabb);
+
+        for (Entity entity : entities) {
+            if (!(entity instanceof EntityLivingBase)) continue;
+            if (entity == caster) continue;
+            if (!AbilityTargetHelper.shouldAffect(caster, entity, TargetFilter.ENEMIES, false)) continue;
+
+            EntityLivingBase living = (EntityLivingBase) entity;
+            double dist = Math.sqrt(Math.pow(living.posX - x, 2) + Math.pow(living.posZ - z, 2));
+            if (dist <= damageRadius) {
+                // Apply damage with scripted event support (no knockback for teleport damage)
+                boolean wasHit = applyAbilityDamage(caster, living, damage, 0);
+                if (wasHit) {
+                    applyEffects(living);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        currentBlink = 0;
+        ticksSinceLastBlink = 0;
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return 0; // No telegraph for teleport
+    }
+
+    @Override
+    public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setString("mode", mode.name());
+        nbt.setInteger("blinkCount", blinkCount);
+        nbt.setInteger("blinkDelayTicks", blinkDelayTicks);
+        nbt.setFloat("blinkRadius", blinkRadius);
+        nbt.setFloat("behindDistance", behindDistance);
+        nbt.setBoolean("requireLineOfSight", requireLineOfSight);
+        nbt.setBoolean("damageAtStart", damageAtStart);
+        nbt.setBoolean("damageAtEnd", damageAtEnd);
+        nbt.setFloat("damage", damage);
+        nbt.setFloat("damageRadius", damageRadius);
+    }
+
+    @Override
+    public void readTypeNBT(NBTTagCompound nbt) {
+        try {
+            this.mode = TeleportMode.valueOf(nbt.getString("mode"));
+        } catch (Exception e) {
+            this.mode = TeleportMode.BLINK;
+        }
+        this.blinkCount = nbt.hasKey("blinkCount") ? nbt.getInteger("blinkCount") : 3;
+        this.blinkDelayTicks = nbt.hasKey("blinkDelayTicks") ? nbt.getInteger("blinkDelayTicks") : 10;
+        this.blinkRadius = nbt.getFloat("blinkRadius");
+        this.behindDistance = nbt.getFloat("behindDistance");
+        this.requireLineOfSight = nbt.getBoolean("requireLineOfSight");
+        this.damageAtStart = nbt.getBoolean("damageAtStart");
+        this.damageAtEnd = nbt.getBoolean("damageAtEnd");
+        this.damage = nbt.getFloat("damage");
+        this.damageRadius = nbt.getFloat("damageRadius");
+    }
+
+    // Getters & Setters
+    public TeleportMode getModeEnum() {
+        return mode;
+    }
+
+    public void setModeEnum(TeleportMode mode) {
+        this.mode = mode;
+    }
+
+    @Override
+    public int getMode() {
+        return mode.ordinal();
+    }
+
+    @Override
+    public void setMode(int mode) {
+        TeleportMode[] values = TeleportMode.values();
+        this.mode = mode >= 0 && mode < values.length ? values[mode] : TeleportMode.BLINK;
+    }
+
+    public int getBlinkCount() {
+        return blinkCount;
+    }
+
+    public void setBlinkCount(int blinkCount) {
+        this.blinkCount = blinkCount;
+    }
+
+    public int getBlinkDelayTicks() {
+        return blinkDelayTicks;
+    }
+
+    public void setBlinkDelayTicks(int blinkDelayTicks) {
+        this.blinkDelayTicks = blinkDelayTicks;
+    }
+
+    public float getBlinkRadius() {
+        return blinkRadius;
+    }
+
+    public void setBlinkRadius(float blinkRadius) {
+        this.blinkRadius = blinkRadius;
+    }
+
+    public float getBehindDistance() {
+        return behindDistance;
+    }
+
+    public void setBehindDistance(float behindDistance) {
+        this.behindDistance = behindDistance;
+    }
+
+    public boolean isRequireLineOfSight() {
+        return requireLineOfSight;
+    }
+
+    public void setRequireLineOfSight(boolean requireLineOfSight) {
+        this.requireLineOfSight = requireLineOfSight;
+    }
+
+    public boolean isDamageAtStart() {
+        return damageAtStart;
+    }
+
+    public void setDamageAtStart(boolean damageAtStart) {
+        this.damageAtStart = damageAtStart;
+    }
+
+    public boolean isDamageAtEnd() {
+        return damageAtEnd;
+    }
+
+    public void setDamageAtEnd(boolean damageAtEnd) {
+        this.damageAtEnd = damageAtEnd;
+    }
+
+    public float getDamage() {
+        return damage;
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    @Override
+    public float getDisplayDamage() { return damage; }
+
+    public float getDamageRadius() {
+        return damageRadius;
+    }
+
+    public void setDamageRadius(float damageRadius) {
+        this.damageRadius = damageRadius;
+    }
+
+    @Override
+    public int getMaxPreviewDuration() {
+        int blinkLimit = mode == TeleportMode.BLINK ? blinkCount : 1;
+        return blinkLimit * blinkDelayTicks + 10;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.enumField("ability.mode", TeleportMode.class, this::getModeEnum, this::setModeEnum),
+            FieldDef.floatField("ability.blinkRadius", this::getBlinkRadius, this::setBlinkRadius)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
+            FieldDef.row(
+                FieldDef.intField("ability.blinkCount", this::getBlinkCount, this::setBlinkCount)
+                    .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK),
+                FieldDef.intField("ability.blinkDelay", this::getBlinkDelayTicks, this::setBlinkDelayTicks)
+                    .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK)
+            ),
+            FieldDef.floatField("ability.behindDistance", this::getBehindDistance, this::setBehindDistance)
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BEHIND),
+            FieldDef.boolField("ability.lineOfSight", this::isRequireLineOfSight, this::setRequireLineOfSight)
+                .hover("ability.hover.lineOfSight")
+                .visibleWhen(() -> this.getModeEnum() == TeleportMode.BLINK || this.getModeEnum() == TeleportMode.SINGLE),
+            FieldDef.section("ability.section.damage"),
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("gui.radius", this::getDamageRadius, this::setDamageRadius)
+            ),
+            FieldDef.row(
+                FieldDef.boolField("ability.damageAtStart", this::isDamageAtStart, this::setDamageAtStart)
+                    .hover("ability.hover.dmgAtStart"),
+                FieldDef.boolField("ability.damageAtEnd", this::isDamageAtEnd, this::setDamageAtEnd)
+                    .hover("ability.hover.dmgAtEnd")
+            ),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        ));
+    }
+}

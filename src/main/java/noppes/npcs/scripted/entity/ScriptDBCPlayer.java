@@ -789,7 +789,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
     }
 
     public void setRace(byte race) {
-        if (race < 0 || race > 1)
+        if (race < 0 || race > 5)
             return;
 
         player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcRace", race);

@@ -11,6 +11,7 @@ public class ConfigMixin {
     public static Configuration config;
 
     public final static String CLIENT = "CLIENT";
+    public final static String SERVER = "SERVER";
     public final static String GENERAL = "GENERAL";
 
     /**
@@ -24,6 +25,9 @@ public class ConfigMixin {
 
     public static Property FirstPersonAnimationMixinProperty;
     public static boolean FirstPersonAnimationMixin = true;
+
+    public static Property EntitySpawnFixMixinProperty;
+    public static boolean EntitySpawnFixMixin = true;
 
     public static void init(File configFile) {
         config = new Configuration(configFile);
@@ -43,6 +47,9 @@ public class ConfigMixin {
             } else {
                 FirstPersonAnimationMixin = false;
             }
+
+            EntitySpawnFixMixinProperty = config.get(SERVER, "Entity Spawn Packet Fix", true, "Fixes a Forge race condition where mod entity spawn packets can be lost or sent to the wrong player. This prevents invisible entities on servers with multiple players.");
+            EntitySpawnFixMixin = EntitySpawnFixMixinProperty.getBoolean(true);
         } catch (Exception e) {
             FMLLog.log(Level.ERROR, e, "CNPC+ has had a problem loading its mixin configuration");
         } finally {

@@ -364,6 +364,17 @@ public class PlayerDataController {
         return data;
     }
 
+    public PlayerData getData(UUID uuid) {
+        EntityPlayer player = getPlayerFromUUID(uuid);
+        PlayerData data;
+        if (player == null) {
+            data = new PlayerData();
+            data.setNBT(PlayerDataController.Instance.loadPlayerData(uuid.toString()));
+        } else
+            data = PlayerData.get(player);
+        return data;
+    }
+
     public void addPlayerMessage(String username, PlayerMail mail) {
         mail.time = System.currentTimeMillis();
 

@@ -1,6 +1,7 @@
 package noppes.npcs.scripted.entity;
 
 import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
@@ -31,6 +32,7 @@ import noppes.npcs.api.IPos;
 import noppes.npcs.api.IScreenSize;
 import noppes.npcs.api.ITimers;
 import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEnergyProjectile;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.ICustomGui;
@@ -39,7 +41,6 @@ import noppes.npcs.api.handler.IOverlayHandler;
 import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.api.handler.data.IMagicData;
-import noppes.npcs.api.handler.data.IParty;
 import noppes.npcs.api.handler.data.IPlayerAttributes;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.ISound;
@@ -882,17 +883,65 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 
     @Override
-    public IPlayer[] getPartyMembers(){
+    public IPlayer[] getPartyMembers() {
         Party party = this.getData().getPlayerParty();
         if (party == null) {
             throw new CustomNPCsException("Player is not in party");
         }
-         List<IPlayer> list = new ArrayList<>();
-        for(int i = 0; i < party.getPlayerNamesList().size();i++){
+        List<IPlayer> list = new ArrayList<>();
+        for (int i = 0; i < party.getPlayerNamesList().size(); i++) {
             IPlayer player = NpcAPI.Instance().getPlayer(party.getPlayerNamesList().get(i));
             if (player == null) continue;
             list.add(player);
         }
         return (IPlayer[]) list.toArray(new IPlayer[list.size()]);
+    }
+
+    // =========================================
+    // Currency Methods
+    // =========================================
+
+    @Override
+    public long getCurrencyBalance() {
+        return getData().tradeData.getBalance();
+    }
+
+    @Override
+    public void setCurrencyBalance(long amount) {
+        getData().tradeData.setBalance(amount);
+    }
+
+    @Override
+    public boolean depositCurrency(long amount) {
+        return getData().tradeData.deposit(amount);
+    }
+
+    @Override
+    public boolean withdrawCurrency(long amount) {
+        return getData().tradeData.withdraw(amount);
+    }
+
+    @Override
+    public boolean canAffordCurrency(long amount) {
+        return getData().tradeData.canAfford(amount);
+    }
+
+    @Override
+    public boolean isUsingVaultCurrency() {
+        return getData().tradeData.isUsingVault();
+    }
+
+    @Override
+    public String getFormattedCurrencyBalance() {
+        return getData().tradeData.formatBalance();
+    }
+
+    public IEnergyProjectile[] getActiveEnergyProjectiles() {
+        List<EntityEnergyProjectile> entities = EntityEnergyProjectile.getActiveProjectiles(player.getEntityId());
+        IEnergyProjectile[] result = new IEnergyProjectile[entities.size()];
+        for (int i = 0; i < entities.size(); i++) {
+            result[i] = (IEnergyProjectile) NpcAPI.Instance().getIEntity(entities.get(i));
+        }
+        return result;
     }
 }

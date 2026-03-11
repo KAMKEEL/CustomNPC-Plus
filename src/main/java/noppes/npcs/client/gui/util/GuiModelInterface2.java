@@ -18,11 +18,11 @@ import org.lwjgl.opengl.GL12;
 public class GuiModelInterface2 extends GuiNPCInterface2 {
     public ModelData playerdata;
 
-    private static float rotation = 0;
+    protected static float rotation = 0;
 
     private GuiNpcButton left, right, zoom, unzoom;
 
-    private static float zoomed = 60;
+    protected static float zoomed = 60;
 
     public int xOffset = 0;
     public int yOffset = 0;
@@ -30,10 +30,18 @@ public class GuiModelInterface2 extends GuiNPCInterface2 {
     public EntityNPCInterface npc;
 
     public GuiModelInterface2(EntityNPCInterface npc) {
-        super(npc);
+        this(npc, true);
+    }
+
+    /**
+     * @param npc        The NPC for preview rendering
+     * @param hasMenuNpc If false, the top menu tabs (Display, Stats, etc.) are hidden.
+     *                   Use false when opened from the global menu without a real NPC.
+     */
+    public GuiModelInterface2(EntityNPCInterface npc, boolean hasMenuNpc) {
+        super(hasMenuNpc ? npc : null);
         this.npc = npc;
         playerdata = ((EntityCustomNpc) npc).modelData;
-        //xSize = 380;
         drawDefaultBackground = false;
     }
 
@@ -143,8 +151,9 @@ public class GuiModelInterface2 extends GuiNPCInterface2 {
 
     @Override
     public void keyTyped(char par1, int par2) {
+        boolean hadSubGui = hasSubGui();
         super.keyTyped(par1, par2);
-        if (par2 == 1) {
+        if (par2 == 1 && !hadSubGui) {
             close();
         }
     }

@@ -24,8 +24,19 @@ public class GuiMenuTopButton extends GuiNpcButton {
         height = 20;
     }
 
+    /**
+     * Place to the RIGHT of the given button.
+     */
     public GuiMenuTopButton(int i, GuiButton parent, String s) {
         this(i, parent.xPosition + parent.width, parent.yPosition, s);
+    }
+
+    /**
+     * Place to the LEFT of the given button.
+     */
+    public GuiMenuTopButton(int i, String s, GuiButton rightNeighbor) {
+        this(i, rightNeighbor.xPosition - (Minecraft.getMinecraft().fontRenderer.getStringWidth(StatCollector.translateToLocal(s)) + 12),
+            rightNeighbor.yPosition, s);
     }
 
     public GuiMenuTopButton(int i, GuiButton parent, String s,
@@ -85,7 +96,10 @@ public class GuiMenuTopButton extends GuiNpcButton {
 
     @Override
     public boolean mousePressed(Minecraft minecraft, int i, int j) {
-        boolean bo = !active && getVisible() && hover;
+        int h = this.height - (active ? 0 : 2);
+        boolean bo = !active && getVisible()
+            && i >= xPosition && j >= yPosition
+            && i < xPosition + getWidth() && j < yPosition + h;
         if (bo && listener != null) {
             listener.actionPerformed(this);
             return false;

@@ -2,6 +2,9 @@ customnpcs.defaultTextColor=404040
 
 key.categories.customnpc=CustomNPC+
 key.customnpcs.special=Special Key
+key.customnpcs.abilityHudKey=HUD Key
+key.customnpcs.abilityNext=Ability Next
+key.customnpcs.abilityPrev=Ability Previous
 key.npcInventory=NPC Inventory
 
 entity.CustomNpc.name=Custom Npc
@@ -115,10 +118,16 @@ gui.play=Play
 gui.selectSound=Select Sound
 gui.selectnpc=Select NPC
 gui.select=Select
+gui.sync=Sync
 gui.range=Range
 gui.partly=Partially
 gui.copy=Copy
 gui.clear=Clear
+gui.builtin=Built-in
+gui.custom=Custom
+gui.chained=Chained
+gui.builtinAnimations=Built-in Animations
+gui.customAnimations=Custom Animations
 gui.done=Done
 gui.paste=Paste
 gui.test=Test
@@ -148,6 +157,9 @@ gui.deselectAll=Deselect All
 gui.loading=Loading
 gui.off=Off
 gui.on=On
+gui.fullscreen=FULL
+gui.fullscreen.tooltip=Designed for Fullscreen Mode
+gui.addCategory=Add Category
 gui.sure=Are you sure?
 gui.available=Requirements Met
 gui.items=Items
@@ -157,6 +169,17 @@ gui.create=Create
 gui.rename=Rename
 gui.playerMap=Regen PlayerMap
 gui.unused=Unused
+gui.apply=Apply
+gui.cancel=Cancel
+gui.continue=Continue
+gui.back=Back
+gui.yes=Yes
+gui.abilities=Abilities
+gui.toggles=Toggles
+gui.toggle=Toggle
+gui.toggle.active=Active
+gui.toggle.inactive=Inactive
+gui.abilityHotbar=Ability Hotbar
 
 gui.lineColor1=Upper line color
 gui.lineColor2=Middle line color
@@ -164,6 +187,10 @@ gui.lineColor3=Lower line color
 gui.slotColour=Slots color
 gui.buttonAcceptColour=Accept button color
 gui.buttonRejectColour=Reject button color
+gui.animated=Animated
+gui.animated.hover=Textures with a .mcmeta file animate automatically.\nEnable this for manual animation of sprite sheet textures.
+gui.frameCount=Frame Count
+gui.frameTime=Frame Time
 questgui.doyouaccept=Do you accept the quest?
 questgui.bringitems=Bring items
 questgui.readdialog=Read dialog
@@ -224,7 +251,7 @@ party.partying=Partying!
 party.messageNoParty=You're not in a party! Either wait for an invite or create one.
 party.partyRequirements=Required by
 party.setQuestConfirm=Setting a Quest to a party will clear its progress!
-party.dropQuestConfirm=Are you sure you want to drop the party quest?`
+party.dropQuestConfirm=Are you sure you want to drop the party quest?
 
 settings.chatBubbles=Chat Bubbles
 settings.trackAlignment=Tracking Alignment
@@ -407,7 +434,37 @@ spawning.liquidSpawning=Spawns in Liquid
 spawning.airSpawning=Spawns in Air
 spawning.minHeight=Minimum Height
 spawning.maxHeight=Maximum Height
+spawning.maxAlive=Max Alive (0 = Unlimited)
+spawning.cooldownTicks=Cooldown (Ticks)
+spawning.attemptsPerCycle=Attempts Per Cycle
+spawning.playerMinDistance=Min Player Distance
+spawning.despawnMode=Despawn Mode
+spawning.despawn.forceNatural=Force Natural
+spawning.despawn.preserve=Preserve Template
+spawning.despawn.forcePersistent=Force Persistent
 spawning.naturalInfo=Add at least one spawn entry and configure spawn options for the NPC to spawn naturally
+spawning.naturalInfoPerformance=Natural Spawn Setup\nBest performance baseline:\n- maxAlive: 20-60\n- cooldownTicks: 200-600\n- attemptsPerCycle: 1-2\n- playerMinDistance: 32-48\n- despawnMode: Force Natural
+tooltip.naturalspawns.main.addProfile=Create a new natural spawn profile.\nBest performance: Keep profile count focused by biome/theme.
+tooltip.naturalspawns.main.removeProfile=Delete the selected natural spawn profile.\nBest performance: Remove unused profiles to reduce selection overhead.
+tooltip.naturalspawns.main.search=Filter spawn profiles by name.\nTip: Use biome/type prefixes for faster maintenance.
+tooltip.naturalspawns.main.biomes=Choose biomes this profile can spawn in.\nBest performance: Use only needed biomes.
+tooltip.naturalspawns.main.dimensions=Choose dimensions this profile can spawn in.\nBest performance: Limit to required dimensions.
+tooltip.naturalspawns.main.options=Open advanced spawn controls.\nBest performance: Configure cap, cooldown, attempts, and despawn mode.
+tooltip.naturalspawns.main.addEntry=Add an entry slot to this profile.\nBest performance: Keep only active entries.
+tooltip.naturalspawns.main.removeEntry=Remove selected entry slot.\nBest performance: Remove empty/duplicate entries.
+tooltip.naturalspawns.main.slot=Entry slot index.\nTip: Keep numbering organized for easier debugging.
+tooltip.naturalspawns.main.selectEntry=Select which clone/NPC this slot spawns.\nBest performance: Avoid very heavy scripted clones in high-frequency profiles.
+tooltip.naturalspawns.options.animal=Spawn Rule: Animal\nUses animal-style spawn checks (surface + creature-valid blocks).\nUse for passive/overworld mobs.\nPerformance: Disable if not needed.
+tooltip.naturalspawns.options.monster=Spawn Rule: Monster\nUses monster-style spawn checks (surface + monster-valid blocks).\nUse for hostile/night/cave mobs.\nPerformance: Disable if not needed.
+tooltip.naturalspawns.options.liquid=Spawn Rule: Liquid\nAllows spawn validation in liquid/water spaces.\nUse only for aquatic entries.\nPerformance: Keep OFF unless required.
+tooltip.naturalspawns.options.air=Spawn Rule: Air\nAllows spawn validation in open-air columns.\nUse only for flying/airborne entries.\nPerformance: Keep OFF unless required.
+tooltip.naturalspawns.options.minHeight=Minimum Spawn Y\nLower vertical bound for this profile.\nUse with Max Height to narrow valid layers.\nPerformance: Tighter ranges = fewer failed checks.
+tooltip.naturalspawns.options.maxHeight=Maximum Spawn Y\nUpper vertical bound for this profile.\nUse with Min Height to target a specific layer.\nPerformance: Tighter ranges = fewer failed checks.
+tooltip.naturalspawns.options.maxAlive=Max Alive (Per Profile)\nCounts loaded entities tagged to this natural spawn profile.\n0 = Unlimited (not recommended).\nPerformance baseline: 20-60.
+tooltip.naturalspawns.options.cooldownTicks=Cooldown (Ticks)\nWait time after a successful spawn before this profile can spawn again.\n20 ticks = 1 second.\nPerformance baseline: 200-600 (10-30 seconds).
+tooltip.naturalspawns.options.attemptsPerCycle=Attempts Per Cycle\nHow many nearby positions this profile tests each cycle.\nHigher values increase spawn pressure and CPU checks.\nPerformance baseline: 1-2.
+tooltip.naturalspawns.options.playerMinDistance=Min Player Distance\nBlocks from nearest player where spawning is blocked.\nHigher values reduce pop-in near players.\nPerformance baseline: 32-48.
+tooltip.naturalspawns.options.despawnMode=Despawn Mode (CNPC entries)\nForce Natural: sets canDespawn=true on spawn. Recommended for natural ecosystems.\nPreserve Template: keeps clone/template despawn setting.\nForce Persistent: sets canDespawn=false (NPC stays loaded longer).\nPerformance recommendation: Force Natural.
 
 role.name=Role
 role.none=No Role
@@ -429,10 +486,68 @@ role.mount.hover=Hover
 role.mount.ascendspeed=Ascend Speed
 role.mount.descendspeed=Descend Speed
 role.mount.walkspeed=Walk Speed: %s
+role.auctioneer=Auctioneer
+role.auctioneer.tabs=Tab Visibility
+role.auctioneer.showBrowse=Show Browse
+role.auctioneer.showMyListings=Show My Listings
+role.auctioneer.showMyBids=Show My Bids
+role.auctioneer.showClaims=Show Claims
+role.auctioneer.actions=Player Actions
+role.auctioneer.allowCreate=Allow Create
+role.auctioneer.allowBid=Allow Bid
+role.auctioneer.allowBuyout=Allow Buyout
+role.auctioneer.messages=Messages
+role.auctioneer.welcome=Welcome Message
+role.auctioneer.noAuction=Auction Disabled Message
 
-trader.insufficient=Insufficient Currency
-trader.sufficient=Sufficient Currency
+trader.unavailable=Unavailable
+trader.insufficient.currency=Insufficient Balance
+trader.available=Available
 trader.slotdisabled=Slot Disabled
+trader.currencycost=Cost
+trader.outofstock=Out of Stock
+trader.instock=in stock
+trader.restock=Restock
+trader.balance=Balance
+trader.reopentrader=Reopen Trader
+
+stock.options=Stock Options
+stock.enable=Enable Stock
+stock.perplayer=Per-Player
+stock.resettype=Reset Type
+stock.customtime=Custom Time
+stock.defaultmax=Default Max
+stock.perslot=Per-Slot Stock
+stock.reset=Reset Stock
+stock.resetcooldown=Reset Cooldown
+stock.perslot.title=Per-Slot Stock Limits
+stock.reset.confirm=Reset all stock?
+stock.reset.warning=This cannot be undone.
+stock.cooldown.confirm=Reset cooldown timer?
+stock.cooldown.warning=Stock will reset on next open.
+
+stock.reset.never=Never
+stock.reset.mcdaily=MC Daily
+stock.reset.mcweekly=MC Weekly
+stock.reset.mccustom=MC Custom
+stock.reset.rldaily=RL Daily
+stock.reset.rlweekly=RL Weekly
+stock.reset.rlcustom=RL Custom
+
+stock.options.hover=Configure stock limits and reset timers
+stock.enable.hover=Enable limited stock for trade slots
+stock.perplayer.hover=Track stock separately for each player
+stock.resettype.hover=When stock automatically replenishes
+stock.customtime.hover=Set a custom reset interval
+stock.defaultmax.hover=Default max stock for all slots (-1 = unlimited)
+stock.perslot.hover=Set max stock for individual slots
+stock.reset.hover=Reset all stock to max values
+stock.resetcooldown.hover=Force stock to reset on next trader open
+
+gui.settings.hover=Configure trading options
+gui.ignoreDamage.hover=Ignore item damage when comparing currency
+gui.ignoreNBT.hover=Ignore NBT data when comparing currency
+gui.recordHistory.hover=Record purchase history for analytics
 
 job.name=Job
 job.none=No Job
@@ -466,7 +581,7 @@ stats.respawn=Respawn
 stats.deadbody=HideDeadBody
 stats.fireimmune=ImmuneToFire
 stats.candrown=Drowns
-stats.firesound:=SoundFX
+stats.firesound=SoundFX
 stats.creaturetype=CreatureType
 stats.normal=Normal
 stats.reverse=Reverse
@@ -572,6 +687,7 @@ faction.friendly=Friendly
 faction.points=Points
 faction.ondeath=On death
 faction.hidden=Hidden
+faction.hidden.hover=Hides this faction from the player's faction standings UI
 faction.default=Default
 faction.attackHostile=Attack hostile factions
 faction.defend=Defence faction members
@@ -580,8 +696,9 @@ faction.options=Faction Options
 faction.increasepoints=Faction %s increased by %s points
 faction.decreasepoints=Faction %s decreased by %s points
 faction.attacked=Attacked by mobs
+faction.attacked.hover=Whether vanilla mobs will target and attack NPCs in this faction
 faction.passive=Is Passive
-faction.passive.hover=Passive factions will not queue any attacking tasks [Good for Performance]
+faction.passive.hover=Passive faction NPCs cannot be damaged and will not queue any attacking tasks [Good for Performance]
 
 menu.inventory=Inventory
 menu.display=Display
@@ -623,6 +740,8 @@ global.naturalspawn=Spawns
 global.linked=Linked
 global.customeffects=Effects
 global.magic=Magic
+global.abilities=Abilities
+global.auction=Auction
 
 bank.slot=Slot
 bank.unlock=Unlock
@@ -747,6 +866,7 @@ script.interact=Interact
 script.update=Update
 script.console=Console
 script.language=Language
+script.default=Default
 script.damaged=Damaged
 script.killed=Killed
 script.attack=Attack
@@ -1437,3 +1557,918 @@ trail.heart=Heart
 trail.angryvillager=AngryVillager
 trail.happyvillager=HappyVillager
 trail.custom=Custom
+
+menu.abilities=Abilities
+
+ability.availableTypes=Available Types
+ability.npcAbilities=NPC Abilities
+ability.globalCooldown=Global Cooldown
+ability.minCooldown=Min CD
+ability.maxCooldown=Max CD
+ability.edit=Edit Ability
+ability.targeting=Targeting
+ability.timing=Timing (ticks)
+ability.cooldown=Cooldown
+ability.windup=Wind Up
+ability.syncOn=Sync: On
+ability.syncOff=Sync: Off
+ability.dazed=Dazed Ticks
+ability.threshold=Threshold
+ability.lockMove=Lock Move
+ability.lockMove.windup=Windup
+ability.lockMove.active=Active
+ability.lockMove.both=Both
+ability.telegraph=Telegraph
+ability.telegraphType=Telegraph Type
+
+ability.target.aggro_target=Target
+ability.target.self=Self
+ability.target.aoe_self=AOE Self
+ability.target.aoe_target=AOE Target
+ability.syncWindup=Sync Windup
+
+# Anchor Point
+ability.anchor.front=Front
+ability.anchor.center=Center
+ability.anchor.rightHand=Right Hand
+ability.anchor.leftHand=Left Hand
+ability.anchor.aboveHead=Above Head
+ability.anchor.chest=Chest
+ability.anchor.eye=Eye
+
+# Sweep Mode
+ability.sweep.swipe=Swipe
+ability.sweep.spin=Spin
+
+# Dash Mode
+ability.dash.aggressive=Aggressive
+ability.dash.defensive=Defensive
+ability.dash.directional=Directional
+
+# Dash Direction
+ability.dash.forward=Forward
+ability.dash.diagonalForwardLeft=Diagonal Forward Left
+ability.dash.diagonalForwardRight=Diagonal Forward Right
+ability.dash.left=Left
+ability.dash.right=Right
+ability.dash.diagonalBackLeft=Diagonal Back Left
+ability.dash.diagonalBackRight=Diagonal Back Right
+ability.dash.back=Back
+ability.dash.custom=Custom
+
+# Counter Type
+ability.counter.flat=Flat
+ability.counter.percent=Percent
+
+# Zone Shape
+ability.shape.circle=Circle
+ability.shape.square=Square
+ability.shape.ring=Ring
+ability.shape.cone=Cone
+ability.zoneShape=Shape
+
+# Zone Presets
+ability.preset.custom=Custom
+ability.preset.default=Default
+ability.preset.toxic=Toxic
+ability.preset.inferno=Inferno
+ability.preset.arcane=Arcane
+ability.preset.electric=Electric
+ability.preset.frost=Frost
+ability.preset.hidden=Hidden
+ability.preset.venom=Venom
+ability.preset.explosive=Explosive
+ability.preset.cursed=Cursed
+ability.preset.shock=Shock
+ability.preset.snare=Snare
+
+# Accent Styles
+ability.accentStyle.static=Static
+ability.accentStyle.swaying=Swaying
+ability.accentStyle.flickering=Flickering
+
+# Particle Motion Styles
+ability.particleMotion.rising=Rising
+ability.particleMotion.drifting=Drifting
+ability.particleMotion.sparks=Sparks
+
+# Zone Settings
+ability.section.zone=Zone Placement
+ability.telegraphSize=Telegraph Size
+ability.coneAngle=Cone Angle
+ability.ignoreIFrames=Ignore I-Frames
+ability.visible=Visible
+
+# Visual Layer Section Headers
+ability.section.ground=Ground Fill
+ability.section.rings=Rings
+ability.section.border=Border
+ability.section.accents=Accents
+ability.section.lightning=Lightning
+ability.section.particles=Particles
+
+# Placement Mode
+ability.placement.atCaster=At Caster
+ability.placement.atTarget=At Target
+ability.placement.followCaster=Follow Caster
+ability.placement.followTarget=Follow Target
+
+# Teleport Mode
+ability.teleport.blink=Blink
+ability.teleport.behind=Behind
+ability.teleport.single=Single
+
+# Trap Placement
+ability.trapPlace.atCaster=At Caster
+ability.trapPlace.atTarget=At Target
+ability.trapPlace.aheadOfCaster=Ahead of Caster
+
+telegraph.circle=Circle
+telegraph.ring=Ring
+telegraph.line=Line
+telegraph.cone=Cone
+telegraph.point=Point
+telegraph.square=Square
+telegraph.none=None
+
+ability.tab.timing=Timing
+ability.tab.effects=Effects
+ability.tab.telegraph=Telegraph
+ability.tab.visual=Visual
+ability.telegraphColor=Color
+ability.telegraphSizeNote=Size is based on ability parameters
+
+# Ability Effects Tab
+
+ability.cnpc.custom=Custom
+ability.telegraphShape=Telegraph Shape
+ability.toggleEnabled=Toggle
+ability.toggleStates=Toggle States
+ability.hasActiveToggle=Active Toggle Tick
+ability.section.toggle=Toggle
+ability.section.execution=Execution
+ability.cnpc.slam=Slam
+ability.cnpc.heavy_hit=Heavy Hit
+ability.cnpc.cutter=Cutter
+ability.cnpc.beam=Beam
+ability.cnpc.projectile=Projectile
+ability.cnpc.orb=Orb
+ability.cnpc.charge=Charge
+ability.cnpc.dash=Dash
+ability.cnpc.teleport=Teleport
+ability.cnpc.vortex=Vortex
+ability.cnpc.shockwave=Shockwave
+ability.cnpc.guard=Guard
+ability.cnpc.counter=Counter
+ability.cnpc.dodge=Dodge
+ability.cnpc.effect=Effect
+ability.cnpc.hazard=Hazard
+ability.cnpc.trap=Trap
+ability.cnpc.disc=Disc
+ability.cnpc.laser_shot=Laser
+ability.cnpc.sweeper=Sweeper
+
+# ═══════════════════════════════════════════════════════════════
+# Ability Config GUI
+# ═══════════════════════════════════════════════════════════════
+
+# General Tab
+ability.weight=Weight
+ability.windUpTicks=Wind Up
+ability.cooldownTicks=Cooldown
+ability.perAbilityCooldown=Per-Ability
+ability.freeOnCast=Free on Cast
+ability.hover.freeOnCast=Ability enters cooldown immediately after entities are spawned, allowing the caster to use other abilities while summoned entities remain active
+ability.freeAim=Free Aim
+ability.hover.freeAim=Players Only. Allows the player to steer the beam direction with their mouse during the active phase. Requires: Lock Movement set to Active or Both, Rotation Mode set to Free, Free on Cast disabled.
+ability.lockMovement=Lock Movement
+ability.rotationMode=Rotation
+ability.rotationPhase=Phase
+ability.rotation.free=Free
+ability.rotation.locked=Locked
+ability.rotation.track=Track
+ability.interruptible=Interruptible
+ability.dazedTicks=Dazed Ticks
+ability.targetingMode=Targeting
+
+# Target Tab
+ability.minRange=Min Range
+ability.maxRange=Max Range
+ability.conditions=Conditions
+
+# Chained Ability
+ability.select=Select Ability
+ability.entries=Entries
+ability.delay=Delay
+ability.windUpAll=Wind Up All
+ability.allowedBy=Allowed By
+
+# Effects Tab
+ability.windUpSound=Wind Up Sound
+ability.activeSound=Active Sound
+ability.counterSound=Counter Sound
+ability.windUpAnimation=Wind Up Animation
+ability.activeAnimation=Active Animation
+ability.dazedAnimation=Dazed Animation
+ability.counterAnimation=Counter Animation
+ability.dodgeAnimation1=Dodge Animation 1
+ability.dodgeAnimation2=Dodge Animation 2
+ability.dodgeAnimation3=Dodge Animation 3
+ability.showTelegraph=Show Telegraph
+ability.windUpColor=Wind Up Color
+ability.activeColor=Active Color
+ability.telegraphHeight=Height Offset
+ability.telegraphRadius=Radius
+ability.telegraphInnerRadius=Inner Radius
+ability.telegraphLength=Length
+ability.telegraphWidth=Width
+ability.telegraphAngle=Angle
+ability.telegraphActiveTicks=Active Ticks
+ability.syncTelegraph=Sync Duration
+
+# Section Headers
+ability.section.timing=Timing
+ability.section.movement=Movement
+ability.section.sounds=Sounds
+ability.section.animations=Animations
+ability.section.animation=Animation
+ability.section.telegraph=Telegraph
+ability.section.beam=Beam
+ability.section.sweep=Sweep
+ability.section.push=Push
+ability.section.leap=Leap
+ability.section.disc=Disc
+ability.section.homing=Homing
+ability.section.boomerang=Boomerang
+ability.section.explosive=Explosive
+ability.section.colors=Colors
+ability.section.effects=Effects
+ability.section.burst=Burst
+ability.section.magic=Magic
+ability.magic.note=Magic Note
+ability.magic.usesCaster=Uses the Caster's Magic Data
+ability.magic.editor=Magic Editor
+ability.preview.damage=Damage
+ability.preview.health=Health
+ability.preview.magic.casters=Magic: Caster's
+ability.section.dodgeAnimations=Dodge Animations
+ability.section.visual=Visual
+ability.section.projectile1=Projectile 1
+ability.section.projectile2=Projectile 2
+ability.section.projectile3=Projectile 3
+ability.section.projectile4=Projectile 4
+ability.section.projectile5=Projectile 5
+ability.section.projectile6=Projectile 6
+ability.section.projectile7=Projectile 7
+ability.section.projectile8=Projectile 8
+ability.section.counter=Counter
+ability.section.area=Area
+ability.section.damage=Damage
+ability.section.debuffs=Debuffs
+ability.section.healing=Healing
+ability.section.trigger=Trigger
+ability.section.aoe=AOE
+ability.section.pullDamage=Pull Damage
+ability.section.hitZone=Hit Zone
+
+# Shared Sub-Section Labels (used under section headers)
+gui.radius=Radius
+gui.thickness=Thickness
+gui.rotationSpeed=Rotation Speed
+gui.strength=Strength
+gui.delay=Delay
+gui.density=Density
+gui.length=Length
+gui.width=Width
+gui.height=Height
+gui.value=Value
+gui.chance=Chance
+gui.sound=Sound
+gui.animation=Animation
+gui.duration=Duration
+gui.amp=Amp
+gui.speed=Speed
+gui.size=Size
+gui.alpha=Alpha
+gui.count=Count
+gui.style=Style
+gui.scale=Scale
+gui.motion=Motion
+gui.glow=Glow
+gui.texture=Texture
+gui.dps=DPS
+gui.interval=Interval
+gui.cooldown=Cooldown
+gui.max=Max
+gui.preset=Preset
+gui.applyPreset=Apply Preset
+
+# Common Type Settings
+ability.radius=Radius
+ability.knockback=Knockback
+ability.knockbackUp=Knockback Up
+ability.hitType=Hit Type
+ability.hitType.single=Single
+ability.hitType.pierce=Pierce
+ability.hitType.multi=Multi
+ability.multiHitDelay=Multi-Hit Delay
+ability.maxHits=Max Hits
+ability.distance=Distance
+ability.maxDistance=Max Distance
+ability.maxLength=Max Length
+ability.lifetime=Lifetime
+ability.stunTicks=Stun Ticks
+ability.hitWidth=Hit Width
+ability.hitLength=Hit Length
+ability.effects=Effects
+ability.effect.burn=Burn
+ability.mode=Mode
+ability.anchorPoint=Anchor Point
+ability.anchor.offsetX=Offset X
+ability.anchor.offsetY=Offset Y
+ability.anchor.offsetZ=Offset Z
+ability.launchFromAnchor=Launch From Anchor
+ability.hover.launchFromAnchor=When enabled, the projectile launches from its anchor position instead of snapping to the default eye/look-vector position.
+ability.vertical=Vertical
+ability.rotationSpeed=Rotation Speed
+
+# Slam
+ability.leapSpeed=Leap Speed
+ability.leapHeight=Leap Height
+
+# Cutter
+ability.range=Range
+ability.sweepMode=Sweep Mode
+ability.spinDuration=Spin Duration
+ability.arcAngle=Arc Angle
+ability.innerRadius=Inner Radius
+
+# Projectile
+ability.projectileType=Projectile Type
+
+# Heavy Hit
+ability.hitDelayTicks=Hit Delay
+ability.activeDisplayTicks=End Delay
+
+# Orb Settings
+ability.homing=Homing
+ability.explosive=Explosive
+ability.firingSpeed=Firing Speed
+ability.amount=Amount
+ability.dualCharge=Dual Charging
+
+# Charge
+ability.chargeSpeed=Charge Speed
+
+# Dash
+ability.dashMode=Dash Mode
+ability.dashDistance=Distance
+ability.dashDirection=Direction
+ability.dashSpeed=Speed
+ability.dashAngle=Angle
+
+# Teleport
+ability.blinkRadius=Blink Radius
+ability.blinkCount=Blink Count
+ability.blinkDelay=Blink Delay
+ability.behindDistance=Behind Distance
+ability.lineOfSight=Line of Sight
+ability.damageAtStart=Damage At Start
+ability.damageAtEnd=Damage At End
+
+# Vortex
+ability.pullRadius=Pull Radius
+ability.pullStrength=Pull Strength
+ability.maxTargets=Max Targets
+
+# Shockwave
+ability.pushStrength=Push Strength
+
+# Defend (Guard / Counter / Dodge)
+ability.maxHitAmount=Max Hit Amount
+ability.damageReduction=Damage Reduction
+
+# Effect
+ability.instantHeal=Instant
+ability.healAmount=Heal Amount
+ability.healPercent=Heal Percent
+ability.targetFilter=Target Filter
+ability.targetFilter.allies=Allies
+ability.targetFilter.enemies=Enemies
+ability.targetFilter.all=All
+ability.includeSelf=Include Self
+ability.section.targeting=Targeting
+ability.concurrent=Concurrent
+ability.customScriptInfo=This ability is for scripting purposes
+ability.concurrentInfo=This ability allows Concurrency in Chains
+ability.hover.concurrent=When enabled, this ability fires at the same time as the ability above it in the chain
+ability.customEffects=Custom Effects
+ability.effectActions=Effect Actions
+ability.noCustomEffects=No custom effects defined
+ability.variant.selfHeal=Self Heal
+ability.variant.healingAura=Healing Aura
+ability.variant.poisonDebuff=Poison Debuff
+
+# Hazard
+ability.shape=Shape
+ability.placement=Placement
+ability.damageInterval=Damage Interval
+ability.slownessLevel=Slowness Level
+ability.debuffDuration=Debuff Duration
+ability.poisonLevel=Poison Level
+ability.affectsCaster=Affects Caster
+
+# Trap
+ability.armTime=Arm Time
+
+# Sweeper
+ability.sweepSpeed=Sweep Speed
+ability.rotations=Rotations
+ability.piercing=Piercing
+ability.lockTarget=Lock Target
+
+# Beam / Laser
+ability.beamWidth=Beam Width
+ability.headSize=Head Size
+ability.attachedToOwner=Attached to Owner
+ability.laserWidth=Laser Width
+ability.expansionSpeed=Expansion Speed
+ability.lingerTicks=Linger Ticks
+
+# Visual Settings
+ability.innerColor=Inner Color
+ability.outerColor=Outer Color
+ability.outerEnabled=Outer Glow
+ability.outerWidth=Outer Width
+ability.outerAlpha=Outer Alpha
+ability.lightning=Lightning
+ability.lightningRadius=Radius
+
+# Projectile Count / Settings
+ability.projectileCount=Count
+ability.fireDelay=Fire Delay
+ability.colorOverride=Color Override
+
+# Burst System
+ability.burstEnabled=Burst
+ability.burstAmount=Amount
+ability.burstDelay=Delay
+ability.burstReplayAnimations=Replay Animations
+ability.burstOverlap=Overlap
+ability.hover.burstOverlap=When enabled, projectiles from previous bursts keep flying while new ones fire
+ability.hover.burstReplay=Replay windup and active animations for each burst iteration
+
+# Ability Save/Load
+ability.save.confirm=Save ability preset
+ability.save.overwrite=Overwrite existing preset
+ability.duplicate.name=A preset with this name already exists
+ability.invulnerable=Invulnerable
+ability.invulnerable.none=None
+ability.invulnerable.windup=Windup
+ability.invulnerable.active=Active
+ability.invulnerable.both=Both
+ability.hover.invulnerable=Ignores all incoming damage and hit reactions during selected phases. Windup/Both also disable interrupts.
+ability.load.select=Select ability to load:
+ability.load.mode=How should this ability be loaded?
+ability.clone=Clone
+ability.reference=Reference
+ability.delete.confirm=Delete ability preset
+gui.load=Load
+
+# Ability Edit Mode
+ability.edit.mode=How should this ability be edited?
+ability.cloneModify=Clone & Edit
+ability.modifyParent=Edit Parent
+
+# Ability Variant Selection
+ability.selectVariant=Select Variant
+ability.variant.base=Base
+ability.variant.single=Single
+ability.variant.dual=Dual
+ability.variant.barrage=Barrage
+
+# Ability Type Selection
+ability.selectType=Select Ability Type:
+
+# Global Abilities Manager
+ability.manager.title=Ability Manager
+
+# Explosive Hover Text
+ability.explosive.noBlockDamage=Explosions do not destroy blocks
+
+# Shockwave Settings (dev)
+ability.shockwaveFalloff=Damage/knockback drop off with distance
+
+# Ability Config GUI (dev)
+ability.typeId=Type ID
+ability.noTypeSettings=No type-specific settings
+
+# ═══════════════════════════════════════════════════════════════
+# Ability Hover Tooltips
+# ═══════════════════════════════════════════════════════════════
+
+ability.hover.weight=Higher weight = more likely to be chosen when multiple abilities available
+ability.hover.lockMovement=Prevents NPC pathfinding during the selected phases (Windup, Active, or Both)
+ability.hover.rotationMode=Free: normal AI rotation. Locked: freeze facing direction. Track: force face target for precise aiming.
+ability.hover.rotationPhase=When the rotation mode applies (Windup, Active, or Both)
+ability.trackSpeed=Track Speed
+ability.hover.trackSpeed=Tracking speed in blocks/sec. 0 = instant. Sprint speed is ~5.6. Default 4 for lasers (dodgeable while sprinting).
+ability.hover.interruptible=If enabled, ability can be interrupted by taking damage
+ability.hover.ignoreIFrames=Temporarily clears target hurt resistance before applying ability damage, then restores it.
+ability.hover.dazed=Stun duration in ticks if ability is interrupted (20 ticks = 1 second)
+ability.hover.windup=Charge-up time before ability activates (20 ticks = 1 second)
+ability.hover.cooldown=Time before ability can be used again (20 ticks = 1 second)
+ability.hover.sync=Set windup ticks to match animation duration
+ability.hover.minRange=Target must be at least this far away
+ability.hover.maxRange=Target must be within this distance
+ability.hover.targeting=How the ability selects its target
+ability.hover.conditions=Requirements that must be met for ability to activate
+ability.hover.showTelegraph=Show visual warning indicator during windup
+ability.hover.windUpColor=Color of telegraph during charge-up phase
+ability.hover.activeColor=Color of telegraph when ability is active
+ability.hover.homing=Projectile tracks toward target
+ability.hover.homingStr=How aggressively the projectile tracks (higher = tighter turns)
+ability.hover.hitType=Single: stops on first hit. Pierce: can hit each entity once. Multi: can re-hit entities using the delay below. Pierce/Multi both respect Max Hits.
+ability.hover.multiHitDelay=Ticks between repeat hits on the same entity when Hit Type is Multi (20 ticks = 1 second)
+ability.hover.maxHits=Maximum total hits before projectile ends in Pierce/Multi modes. Lower values reduce repeated hit spam and improve performance.
+ability.hover.explosive=Creates explosion on impact
+ability.hover.explosionRad=Size of explosion radius
+ability.hover.maxHitAmount=Maximum hits absorbed before defend ability ends (0 = unlimited)
+ability.hover.counterType=Flat: fixed damage counter-attack. Percent: counter-attack deals a percentage of the absorbed damage.
+ability.hover.piercing=Hits multiple targets instead of stopping on first hit
+ability.hover.lightning=Add electrical effect to visuals
+ability.hover.outerGlow=Enable outer glow layer around projectile
+ability.hover.anchorPoint=Where on the NPC the ability spawns from
+ability.hover.vertical=Disc flies standing up with thin edge facing target (like a saw blade)
+ability.hover.dualCharge=Whether or not should create two anchor points
+ability.hover.damage=Base damage dealt to targets
+ability.hover.speed=Movement speed of projectile
+ability.hover.lifetime=Maximum ticks before despawning
+ability.hover.knockback=Push force applied to targets
+ability.hover.boomerang=Projectile returns to caster after reaching max distance
+ability.hover.dashMode=Aggressive dashes toward target, Defensive dashes away, Directional dashes in looking direction
+ability.hover.aoe=Affects all valid targets in range instead of just one
+ability.hover.dmgOnPull=Deal damage continuously while pulling targets
+ability.hover.lineOfSight=Requires clear line of sight to the target
+ability.hover.dmgAtStart=Deal damage at the teleport origin location
+ability.hover.dmgAtEnd=Deal damage at the teleport destination
+ability.hover.instant=Heals instantly instead of over time
+ability.hover.healSelf=Ability can heal the casting NPC
+ability.hover.healAllies=Ability can heal nearby allied NPCs
+ability.hover.placement=Where the ability effect is placed (Caster, Target, etc.)
+ability.hover.lockTarget=Sweeper beam tracks the target's position
+ability.hover.canCounter=Enable counterattack when blocking damage
+ability.hover.counterType=Flat = fixed damage, Percent = % of blocked damage
+ability.hover.affectsCaster=Hazard can damage the NPC that created it
+ability.hover.sweepMode=Swipe = single arc attack, Spin = continuous rotation
+ability.hover.innerRadius=Minimum distance from caster. Entities closer than this are not hit. Creates a donut-shaped dead zone. Also shown on the telegraph.
+ability.hover.telegraphShape=Shape of the telegraph warning indicator. Different shapes use different size parameters.
+ability.hover.telegraphHeight=Vertical offset from the ground for telegraph rendering
+ability.hover.telegraphRadius=Radius of the telegraph shape (used by Circle, Ring, Square)
+ability.hover.telegraphInnerRadius=Inner radius creating a hollow center. Used by Ring (donut) and Cone (truncated wedge).
+ability.hover.telegraphLength=Forward distance of the telegraph shape (used by Line, Cone)
+ability.hover.telegraphWidth=Side-to-side width of the telegraph (used by Line)
+ability.hover.telegraphAngle=Spread angle in degrees (used by Cone)
+ability.hover.telegraphActiveTicks=How long the telegraph stays visible during the active phase (20 ticks = 1 second). Set to 0 for windup-only telegraph.
+ability.hover.syncTelegraph=When enabled, telegraph active duration automatically matches the ability duration
+ability.hover.launching=When enabled, wall launches forward dealing damage and knockback
+
+# Energy Barrier Abilities
+ability.cnpc.dome=Dome
+ability.cnpc.wall=Wall
+ability.cnpc.shield=Shield
+ability.cnpc.slicer=Slicer
+
+ability.section.barrier=Barrier
+ability.section.properties=Properties
+ability.section.panel=Panel
+ability.section.launch=Launch
+ability.section.slicer=Slicer
+ability.section.icon=Icon
+ability.hasIcon=Custom Icon
+ability.icon.tint=Tint Color
+
+ability.domeRadius=Dome Radius
+ability.useHealth=Use Health
+ability.maxHealth=Max Health
+ability.useDuration=Use Duration
+ability.duration=Duration
+ability.defaultMultiplier=Default Multiplier
+ability.innerAlpha=Inner Alpha
+ability.heightOffset=Height Offset
+ability.section.offset=Offset
+ability.offsetX=X Offset
+ability.offsetY=Y Offset
+ability.offsetZ=Z Offset
+
+ability.solid=Solid
+ability.knockbackEnabled=Knockback
+ability.knockbackStrength=Knockback Strength
+ability.absorbing=Absorbing
+ability.absorbRadius=Absorb Radius
+ability.reflect=Reflect
+ability.reflectStrength=Strength (%)
+ability.meleeEnabled=Allows Melee
+ability.meleeDamageMultiplier=Melee Multiplier
+
+ability.followCaster=Follow Caster
+ability.hover.followCaster=Dome stays centered on the caster as they move
+ability.hover.solid=Entities cannot pass through the barrier boundary
+ability.hover.knockbackEnabled=Repulsion field pushing entities away from barrier surface
+ability.hover.absorbing=Damage dealt to the caster is redirected to the barrier's health
+ability.hover.absorbRadius=Max distance from the barrier for absorption to work. -1 = unlimited, 0 = barrier extent (dome radius or panel size x3), positive = block radius
+ability.hover.reflect=Rebounds non-breaking projectiles and reduces their damage by Strength
+ability.targetOwner=Target Owner
+ability.hover.targetOwner=Sets the reflected projectile's target to the original caster. With homing enabled, the projectile will home toward its former caster.
+ability.hover.meleeEnabled=Barrier can be hit and damaged by melee attacks
+
+
+ability.variant.small=Small
+ability.variant.large=Large
+ability.variant.static=Static
+ability.variant.launched=Launched
+
+ability.addChain=Chain
+ability.entrySource=Add Entry Source
+ability.fromNpc=From NPC
+ability.byReference=By Reference
+ability.createNew=Create New
+ability.selectSlot=Select NPC Ability
+ability.loadType=Load Type
+ability.loadAbility=Load Ability
+ability.loadChain=Load Chain
+ability.validFor=Valid For
+ability.userType.NPC_ONLY=NPCs
+ability.userType.PLAYER_ONLY=Players
+ability.userType.BOTH=Both
+ability.userType.NONE=NO ONE!
+ability.icon.section.uv=UV Coordinates
+ability.icon.x=Icon X
+ability.icon.y=Icon Y
+ability.icon.layers=Layers
+ability.icon.layer=Layer
+
+gui.both=Both
+gui.players=Players
+gui.tags=Tags
+
+# Conditions
+condition.edit=Edit Condition
+condition.filter=Filter Type
+condition.filter.target=Target
+condition.filter.caster=Caster
+condition.filter.both=Both
+
+# Condition HP Threshold
+condition.hp_threshold=HP Threshold
+condition.hp_above=HP Above
+condition.hp_below=HP Below
+condition.hp_equal=HP Equal
+condition.threshold=Threshold
+condition.percent=Use Percent
+condition.threshold_type=Threshold Type
+
+# Condition Hit Count
+condition.hit_count=Hit Count
+condition.required_hits=Required Hits
+condition.within_ticks=Within (ticks)
+
+# Condition Item
+condition.item=Has Item
+condition.usage_type=Usage Type
+condition.armor_slot=Armor Slot
+condition.full_armor=Full Armor
+condition.item_count=Item Count
+condition.item_name=Item Name
+
+# Condition Threshold
+condition.above=Above
+condition.below=Below
+condition.equal=Equal
+condition.threshold_flat=Threshold
+condition.threshold_percent=Threshold %
+
+# Condition Quest Completed
+condition.quest_completed=Quest Completed
+condition.select_quest=Select Quest
+
+# Condition Has Effect
+condition.has_effect=Has Effect
+condition.select_effect=Select Effect
+
+# Condition Hover Tooltips
+condition.hover.type=Condition type that must be met for ability to activate
+condition.hover.hpAbove=Activates when NPC health is above this percentage
+condition.hover.hpBelow=Activates when NPC health is below this percentage
+condition.hover.targetHpAbove=Activates when target's health is above this percentage
+condition.hover.targetHpBelow=Activates when target's health is below this percentage
+condition.hover.hitCount=Activates after receiving X hits within the time window
+condition.hover.hits=Number of hits required to trigger condition
+condition.hover.within=Time window in ticks (20 ticks = 1 second)
+condition.hover.threshold=Health percentage threshold (1-99%)
+condition.hover.armor_slots=Equipment in specific armor slots
+condition.hover.item_name=Filter by item name or identifier
+condition.hover.required_count=Number of matching items required
+
+# Effect Hover Tooltips
+effect.hover.type=Potion effect type to apply to targets
+effect.hover.duration=Effect duration in ticks (20 ticks = 1 second)
+effect.hover.amplifier=Effect strength level (higher = stronger)
+effect.manual=Manual
+effect.potionid=Potion ID
+
+# =========================================
+# Auction House
+# =========================================
+
+# Auction Status
+auction.status.active=Active
+auction.status.ended=Ended
+auction.status.cancelled=Cancelled
+auction.status.claimed=Claimed
+
+# Auction Sort
+auction.sort.newest=Newest
+auction.sort.endingSoon=Ending Soon
+auction.sort.priceLow=Price: Low to High
+auction.sort.priceHigh=Price: High to Low
+auction.sort.mostBids=Most Bids
+
+# Claim Types
+auction.claim.item=Item
+auction.claim.currency=Sale Proceeds
+auction.claim.refund=Bid Refund
+
+# Notifications
+auction.notify.won=You won an auction!
+auction.notify.outbid=You were outbid!
+auction.notify.sold=Your item sold!
+auction.notify.expired=Your auction expired.
+auction.notify.claim=You have items to claim.
+
+# Main GUI
+auction.title=Auction House
+
+# Listing Display
+auction.seller=Seller: %s
+auction.currentBid=Current Bid: %s
+auction.buyout=Buyout: %s
+auction.timeLeft=Time Left: %s
+auction.bids=%d bids
+auction.noBids=No bids
+auction.startingPrice=Starting: %s
+
+# Sell Page
+auction.sell.startingPrice=Starting Price
+auction.sell.buyoutPrice=Buyout Price
+auction.sell.fee=Listing Fee: %s
+auction.sell.noItem=Place an item to sell
+
+# Filter
+auction.filter.search=Search
+
+# Bid Dialog
+auction.bid.minimum=Minimum Bid: %s
+auction.bid.yourBid=Your Bid:
+auction.bid.place=Place Bid
+auction.bid.buyout=Buyout Now
+
+# Errors
+auction.error.notEnoughCurrency=Not enough currency!
+auction.error.bidTooLow=Bid must be at least %s.
+auction.error.blacklisted=This item cannot be listed on the Auction House.
+auction.error.boundItem=Bound items cannot be listed on the Auction House.
+auction.error.bidExceedsBuyout=Bid meets or exceeds buyout price. Use Buy Now instead.
+
+# Navigation
+auction.nav.listings=Browse Auctions
+auction.nav.sell=Sell Item
+auction.nav.trades=My Trades
+auction.nav.filter=Filter
+
+# Claim Details
+auction.claim.amount=Amount: %s
+auction.claim.expires=Expires in %s days
+auction.claim.expiresSoon=Expires soon!
+auction.claim.clickToClaim=Click to claim
+
+# Filter
+auction.filter.sort=Sort By
+auction.filter.none=(none)
+auction.filter.leftClick=Left-click: Search
+auction.filter.rightClick=Right-click: Cycle Sort
+
+# Pagination
+auction.page.prev=Previous Page
+auction.page.next=Next Page
+
+# Sell Page
+auction.sell.confirm=Confirm Listing
+auction.sell.invalidPrice=Enter a valid starting price
+auction.sell.buyoutTooLow=Buyout must be higher than starting price
+auction.sell.placeItem=Place item here
+auction.sell.slotTitle=Item to Sell
+auction.sell.leftClear=Left-click to clear
+auction.sell.rightRemove=Right-click to remove 1
+auction.sell.leftAdd=Left-click to add stack
+auction.sell.rightAddOne=Right-click to add 1
+
+# Trades Page
+auction.trades.activeListing=Active Listing
+auction.trades.activeBid=Active Bid
+auction.trades.unavailable=Slot Unavailable
+auction.trades.rightClickToCancel=Right-click to cancel
+auction.trades.leftClickToClaim=Left-click to claim
+auction.trades.leftClickToIncrease=Left-click to increase bid
+auction.trades.winningBid=You are the highest bidder
+auction.trades.soldClaim=Item Sold!
+auction.trades.wonClaim=Auction Won!
+auction.trades.expiredClaim=Auction Expired
+auction.trades.refundClaim=Outbid - Refund Available
+auction.trades.confirmCancel=Cancel Listing?
+auction.trades.confirmClaim=Claim Item?
+auction.trades.rightClickConfirm=Right-click again to confirm
+auction.trades.leftClickConfirm=Left-click again to confirm
+auction.trades.otherClickCancel=Any other click to cancel
+auction.trades.buyer=Buyer
+auction.trades.outbidBy=Outbid by
+auction.trades.selling=Selling
+auction.trades.bidding=Bidding
+auction.trades.sold=Sold
+auction.trades.won=Won
+auction.trades.expired=Expired
+auction.trades.outbid=Outbid
+auction.trades.clickToRebid=Click to increase bid
+auction.trades.leftClickRebid=Left-click to rebid
+auction.trades.rightClickRefund=Right-click to claim refund
+auction.claim.soldItem=Item: %s
+auction.claim.buyer=Buyer: %s
+auction.claim.outbidBy=Outbid by: %s
+
+# Sell Page - Buyout Toggle
+auction.sell.allowBuyout=Allow Buy Now
+auction.sell.buyoutEnabled=Enabled
+auction.sell.buyoutEnabledDesc=Buyers can purchase immediately
+auction.sell.buyoutEnabledDesc2=at the buyout price
+auction.sell.buyoutDisabled=Disabled
+auction.sell.buyoutDisabledDesc=Auction only - no instant buy
+auction.sell.clickToToggle=Click to toggle
+auction.sell.notEnoughItems=Not enough items in inventory
+
+# Auction Bidding Info
+auction.info.currentBid=Current Bid
+auction.info.highBidder=High Bidder
+auction.info.startingPrice=Starting Price
+auction.info.buyoutPrice=Buyout Price
+auction.info.timeLeft=Time Left
+auction.info.bidCount=Total Bids
+
+# Auction Bid SubGui
+auction.bid.yourBalance=Your Balance: %s
+
+# Auction Buyout SubGui
+auction.buyout.title=Buy Now
+auction.buyout.confirm=Purchase this item for:
+
+# Global Auction Management GUI
+global.auction.manage.title=Global Auction Management
+global.auction.manage.listings=Listings
+global.auction.manage.create=Create
+global.auction.manage.claims=Claims
+global.auction.manage.sort=Sort
+global.auction.manage.search=Search
+global.auction.manage.page=Page
+global.auction.manage.hint.listings=Left-click: open listing details
+global.auction.manage.hint.listings2=Right-click: stop player | Shift-right: cancel to global
+global.auction.manage.hint.stop=Right-click: stop player
+global.auction.manage.hint.cancel=Shift-right-click: cancel to global
+global.auction.manage.hint.claims=Left-click twice to claim global entries
+global.auction.manage.details=Listing Details
+global.auction.manage.selectListing=Left-click a listing to view details
+global.auction.manage.seller=Seller Name
+global.auction.manage.startPrice=Start Price
+global.auction.manage.buyoutPrice=Buyout Price
+global.auction.manage.durationHours=Duration Hours
+global.auction.manage.stagedItem=Staged Item
+global.auction.manage.create.submit=Create Fake Auction
+global.auction.manage.hint.create=Use right-panel inventory to stage items
+global.auction.manage.confirm=Click again to confirm
+global.auction.manage.confirm.stop=Right-click again to confirm stop player
+global.auction.manage.confirm.cancel=Shift-right-click again to confirm cancel to global
+global.auction.manage.confirm.claim=Left-click again to confirm claim
+global.auction.manage.error.noItem=Stage an item first
+global.auction.manage.error.invalidStart=Enter a valid starting price
+global.auction.manage.error.invalidBuyout=Buyout must be zero or >= start
+
+# Directory Fullscreen
+gui.move=Move
+gui.moving=Moving
+gui.confirm=Confirm
+gui.move.selectItems=Select Items to Move (max %d) Press Confirm when Ready
+gui.move.selectCategory=Select Destination Category
+animation.mirror=Mirror
+gui.builtin.tag=(Built-in)
+ability.damage=Damage
+ability.allowed=Allowed
+gui.move.confirmLine=Move %d item(s) to:
+gui.category=Category

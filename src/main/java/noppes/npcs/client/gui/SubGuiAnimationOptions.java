@@ -11,7 +11,7 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
 
     public SubGuiAnimationOptions(Animation animation) {
         this.animation = animation;
-        setBackground("smallbg.png");
+        setBackground("menubg.png");
     }
 
     @Override

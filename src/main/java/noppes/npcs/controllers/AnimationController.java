@@ -1,5 +1,6 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.util.Register;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -8,31 +9,53 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAnimationHandler;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.BuiltInAnimation;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 public class AnimationController implements IAnimationHandler {
     public HashMap<Integer, Animation> animations;
     private HashMap<Integer, String> bootOrder;
 
-    public static AnimationController Instance;
+    // Built-in animations loaded from assets folder (read-only, keyed by name)
+    public HashMap<String, BuiltInAnimation> builtInAnimations = new HashMap<>();
+    private static final String BUILTIN_ANIMATIONS_PATH = "/assets/customnpcs/animations";
+    private static final String BUILTIN_ANIMATIONS_RESOURCE = "assets/customnpcs/animations";
+
+    public static AnimationController Instance = new AnimationController();
     private int lastUsedID = 0;
+    public CategoryManager categoryManager = new CategoryManager();
+
+    public LinkedHashMap<String, Register.Animations> registeredAnimations = new LinkedHashMap<>();
 
     public AnimationController() {
         Instance = this;
         bootOrder = new HashMap<>();
         animations = new HashMap<>();
-        load();
     }
 
     public static AnimationController getInstance() {
@@ -42,10 +65,99 @@ public class AnimationController implements IAnimationHandler {
     public void load() {
         bootOrder = new HashMap<>();
         animations = new HashMap<>();
+        builtInAnimations = new HashMap<>();
         LogWriter.info("Loading animations...");
+        loadBuiltInAnimations();
+        loadRegisteredBuiltIns();
         readAnimationMap();
         loadAnimations();
         LogWriter.info("Done loading animations.");
+    }
+
+    /**
+     * Load built-in animations from assets/customnpcs/animations/ folder.
+     * These animations are read-only and accessed by name only (no IDs).
+     * Scans the folder directly instead of using a manifest.
+     */
+    private void loadBuiltInAnimations() {
+        try {
+            URL resourceUrl = CustomNpcs.class.getResource(BUILTIN_ANIMATIONS_PATH);
+            if (resourceUrl == null) {
+                LogWriter.info("Built-in animations folder not found: " + BUILTIN_ANIMATIONS_PATH);
+                return;
+            }
+
+            URI uri = resourceUrl.toURI();
+            Path animationsPath;
+
+            if (uri.getScheme().equals("jar")) {
+                // Running from JAR - need to create a FileSystem to access it
+                FileSystem fileSystem = null;
+                try {
+                    fileSystem = FileSystems.getFileSystem(uri);
+                } catch (Exception e) {
+                    fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
+                }
+                animationsPath = fileSystem.getPath(BUILTIN_ANIMATIONS_PATH);
+            } else {
+                // Running from file system (dev environment)
+                animationsPath = Paths.get(uri);
+            }
+
+            // Scan the directory for .json files
+            try (Stream<Path> paths = Files.walk(animationsPath, 1)) {
+                paths.filter(path -> path.toString().endsWith(".json"))
+                    .forEach(path -> {
+                        String fileName = path.getFileName().toString();
+                        String animName = fileName.substring(0, fileName.length() - 5); // Remove .json
+                        try {
+                            loadBuiltInAnimation(animName);
+                        } catch (Exception e) {
+                            LogWriter.error("Error loading built-in animation: " + animName, e);
+                        }
+                    });
+            }
+
+            LogWriter.info("Loaded " + builtInAnimations.size() + " built-in animations.");
+        } catch (Exception e) {
+            LogWriter.error("Error scanning built-in animations folder", e);
+        }
+    }
+
+    public void loadBuiltInAnimation(Class<?> modClass, String path, String animName) throws Exception {
+        String resourcePath = path + "/" + animName + ".json";
+        try (InputStream stream = modClass.getResourceAsStream(resourcePath)) {
+            if (stream == null) {
+                LogWriter.error("Animation not found: " + animName.toLowerCase());
+                return;
+            }
+
+            // Read JSON content
+            StringBuilder content = new StringBuilder();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line);
+            }
+            reader.close();
+
+            // Parse NBT from JSON
+            NBTTagCompound nbt = NBTJsonUtil.Convert(content.toString());
+
+            BuiltInAnimation animation = new BuiltInAnimation(animName);
+            animation.readFromNBT(nbt);
+
+            // Store with lowercase key for case-insensitive lookup
+            builtInAnimations.put(animName.toLowerCase(), animation);
+            LogWriter.info("Registered animation: " + animName.toLowerCase());
+        }
+    }
+
+    /**
+     * Load a single built-in animation by name from assets folder.
+     */
+    private void loadBuiltInAnimation(String animName) throws Exception {
+        loadBuiltInAnimation(CustomNpcs.class, BUILTIN_ANIMATIONS_PATH, animName);
     }
 
     private void loadAnimations() {
@@ -54,43 +166,82 @@ public class AnimationController implements IAnimationHandler {
         File dir = getDir();
         if (!dir.exists()) {
             dir.mkdir();
-        } else {
-            for (File file : dir.listFiles()) {
-                if (!file.isFile() || !file.getName().endsWith(".json"))
-                    continue;
-                try {
-                    Animation animation = new Animation();
-                    animation.readFromNBT(NBTJsonUtil.LoadFile(file));
-                    animation.name = file.getName().substring(0, file.getName().length() - 5);
+            return;
+        }
 
-                    if (animation.id == -1) {
-                        animation.id = getUnusedId();
-                    }
+        categoryManager.loadCategories(dir);
 
-                    int originalID = animation.id;
-                    int setID = animation.id;
-                    while (bootOrder.containsKey(setID) || animations.containsKey(setID)) {
-                        if (bootOrder.containsKey(setID))
-                            if (bootOrder.get(setID).equals(animation.name))
-                                break;
+        // Load uncategorized animations (root level .json files)
+        loadAnimationsFromDir(dir, CategoryManager.UNCATEGORIZED_ID);
 
-                        setID++;
-                    }
-
-                    animation.id = setID;
-                    if (originalID != setID) {
-                        LogWriter.info("Found Animation ID Mismatch: " + animation.name + ", New ID: " + setID);
-                        animation.save();
-                    }
-
-                    animations.put(animation.id, animation);
-                } catch (Exception e) {
-                    LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-                }
-            }
+        // Load categorized animations (subdirectories)
+        for (Map.Entry<Integer, noppes.npcs.controllers.data.Category> entry : categoryManager.getCategories().entrySet()) {
+            File catDir = categoryManager.getCategoryDir(entry.getKey());
+            loadAnimationsFromDir(catDir, entry.getKey());
         }
 
         saveAnimationMap();
+    }
+
+    private void loadAnimationsFromDir(File dir, int catId) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (!file.isFile() || !file.getName().endsWith(".json"))
+                continue;
+            try {
+                Animation animation = new Animation();
+                animation.readFromNBT(NBTJsonUtil.LoadFile(file));
+                animation.name = file.getName().substring(0, file.getName().length() - 5);
+
+                if (animation.id == -1) {
+                    animation.id = getUnusedId();
+                }
+
+                int originalID = animation.id;
+                int setID = animation.id;
+                while (bootOrder.containsKey(setID) || animations.containsKey(setID)) {
+                    if (bootOrder.containsKey(setID))
+                        if (bootOrder.get(setID).equals(animation.name))
+                            break;
+
+                    setID++;
+                }
+
+                animation.id = setID;
+                if (originalID != setID) {
+                    LogWriter.info("Found Animation ID Mismatch: " + animation.name + ", New ID: " + setID);
+                    animation.save();
+                }
+
+                animations.put(animation.id, animation);
+                categoryManager.registerItem(animation.id, catId);
+            } catch (Exception e) {
+                LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+            }
+        }
+    }
+
+    public void addAnimationRegister(String namespace, Register.Animations register) {
+        registeredAnimations.put(namespace, register);
+    }
+
+    private void loadRegisteredBuiltIns() {
+        for (Register.Animations register : registeredAnimations.values()) {
+            register.register();
+        }
+    }
+
+    /**
+     * Loads built-in animations for client-side usage.
+     * On dedicated servers, AnimationController.load() never runs on the client JVM,
+     * so built-in animations would be missing for client-only systems like ability preview.
+     * This method loads just the built-in animations (from assets and registered addons)
+     * without touching user animations or world save data.
+     */
+    public void loadClientBuiltIns() {
+        loadBuiltInAnimations();
+        loadRegisteredBuiltIns();
     }
 
     private File getDir() {
@@ -110,6 +261,12 @@ public class AnimationController implements IAnimationHandler {
     }
 
     public IAnimation saveAnimation(IAnimation animation) {
+        // Reject saving built-in animations
+        if (animation instanceof BuiltInAnimation) {
+            LogWriter.info("Cannot save built-in animation: " + animation.getName());
+            return animation;
+        }
+
         if (animation.getID() < 0) {
             animation.setID(getUnusedId());
             while (hasName(animation.getName()))
@@ -127,7 +284,7 @@ public class AnimationController implements IAnimationHandler {
         saveAnimationMap();
 
         // Save Animation File
-        File dir = this.getDir();
+        File dir = categoryManager.getItemDir(animation.getID());
         if (!dir.exists())
             dir.mkdirs();
 
@@ -157,39 +314,29 @@ public class AnimationController implements IAnimationHandler {
     public void delete(String name) {
         Animation delete = getAnimationFromName(name);
         if (delete != null) {
-            Animation foundAnimation = this.animations.remove(delete.getID());
-            if (foundAnimation != null && foundAnimation.name != null) {
-                File dir = this.getDir();
-                for (File file : dir.listFiles()) {
-                    if (!file.isFile() || !file.getName().endsWith(".json"))
-                        continue;
-                    if (file.getName().equals(foundAnimation.name + ".json")) {
-                        file.delete();
-                        break;
-                    }
-                }
-
-                saveAnimationMap();
-            }
+            delete(delete.getID());
         }
     }
 
     public void delete(int id) {
-        if (!this.animations.containsKey(id))
+        if (id < 0 || !this.animations.containsKey(id))
             return;
+
+        // Reject deleting built-in animations
+        Animation anim = this.animations.get(id);
+        if (anim instanceof BuiltInAnimation) {
+            LogWriter.info("Cannot delete built-in animation: " + anim.name);
+            return;
+        }
 
         Animation foundAnimation = this.animations.remove(id);
         if (foundAnimation != null && foundAnimation.name != null) {
-            File dir = this.getDir();
-            for (File file : dir.listFiles()) {
-                if (!file.isFile() || !file.getName().endsWith(".json"))
-                    continue;
-                if (file.getName().equals(foundAnimation.name + ".json")) {
-                    file.delete();
-                    break;
-                }
+            File dir = categoryManager.getItemDir(id);
+            File file = new File(dir, foundAnimation.name + ".json");
+            if (file.exists()) {
+                file.delete();
             }
-
+            categoryManager.removeItem(id);
             saveAnimationMap();
         }
     }
@@ -199,11 +346,47 @@ public class AnimationController implements IAnimationHandler {
     }
 
     public IAnimation get(String name) {
-        return getAnimationFromName(name);
+        return get(name, false);
     }
 
+    public IAnimation get(String name, boolean builtIn) {
+        // Check user/custom animations first (allows overriding built-in)
+        for (Map.Entry<Integer, Animation> entry : animations.entrySet()) {
+            if (entry.getValue().name.equalsIgnoreCase(name)) {
+                return entry.getValue();
+            }
+        }
+        // Then check built-in animations
+        if (builtIn) {
+            BuiltInAnimation builtInAnim = builtInAnimations.get(name.toLowerCase());
+            if (builtInAnim != null) {
+                return builtInAnim;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get a user animation by ID.
+     * Built-in animations have no IDs and cannot be retrieved this way.
+     */
     public IAnimation get(int id) {
+        // Only user animations have valid IDs
+        if (id < 0) {
+            return null;
+        }
         return this.animations.get(id);
+    }
+
+    /**
+     * Get a built-in animation by name.
+     *
+     * @param name The animation name (case-insensitive)
+     * @return The built-in animation, or null if not found
+     */
+    public BuiltInAnimation getBuiltInAnimation(String name) {
+        return builtInAnimations.get(name.toLowerCase());
     }
 
     public IAnimation[] getAnimations() {
@@ -211,13 +394,61 @@ public class AnimationController implements IAnimationHandler {
         return animations.toArray(new IAnimation[0]);
     }
 
+    /**
+     * Get all built-in animations.
+     */
+    public IAnimation[] getBuiltInAnimations() {
+        return builtInAnimations.values().toArray(new IAnimation[0]);
+    }
+
+    /**
+     * Get all animations (both built-in and user-created).
+     */
+    public IAnimation[] getAllAnimations() {
+        ArrayList<IAnimation> all = new ArrayList<>();
+        all.addAll(builtInAnimations.values());
+        all.addAll(animations.values());
+        return all.toArray(new IAnimation[0]);
+    }
+
+    /**
+     * Check if an animation name is a built-in animation.
+     *
+     * @param name The animation name to check
+     * @return true if this is a built-in animation
+     */
+    public boolean isBuiltIn(String name) {
+        return builtInAnimations.containsKey(name.toLowerCase());
+    }
+
+    /**
+     * @deprecated Built-in animations no longer use IDs. Use isBuiltIn(String name) instead.
+     */
+    @Deprecated
+    public boolean isBuiltIn(int id) {
+        return false; // Built-in animations have no IDs
+    }
+
     public Animation getAnimationFromName(String animation) {
-        for (Map.Entry<Integer, Animation> entryAnimation : AnimationController.getInstance().animations.entrySet()) {
+        // Check user/custom animations first (allows overriding built-in)
+        for (Map.Entry<Integer, Animation> entryAnimation : animations.entrySet()) {
             if (entryAnimation.getValue().name.equalsIgnoreCase(animation)) {
                 return entryAnimation.getValue();
             }
         }
+        // Then check built-in animations
+        BuiltInAnimation builtIn = builtInAnimations.get(animation.toLowerCase());
+        if (builtIn != null) {
+            return builtIn;
+        }
         return null;
+    }
+
+    /**
+     * Get names of all built-in animations.
+     */
+    public String[] getBuiltInAnimationNames() {
+        return builtInAnimations.keySet().toArray(new String[0]);
     }
 
     public String[] getNames() {
@@ -231,10 +462,9 @@ public class AnimationController implements IAnimationHandler {
     }
 
 
-    ////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////
     // ANIMATION MAP
-
     public File getMapDir() {
         File dir = CustomNpcs.getWorldSaveDirectory();
         if (!dir.exists())
@@ -325,5 +555,29 @@ public class AnimationController implements IAnimationHandler {
     }
 
     ////////////////////////////////////////////////////////
+    // CATEGORY HELPERS
     ////////////////////////////////////////////////////////
+
+    public Map<String, Integer> getCategoryScrollData() {
+        return categoryManager.getCategoryScrollData();
+    }
+
+    public void moveItemToCategory(int itemId, int catId) {
+        Animation animation = animations.get(itemId);
+        if (animation == null) return;
+        categoryManager.moveItem(itemId, animation.name + ".json", catId);
+        saveAnimationMap();
+    }
+
+    public Map<String, Integer> getItemsByCategoryScrollData(int catId) {
+        Map<String, Integer> map = new HashMap<>();
+        List<Integer> itemIds = categoryManager.getItemsInCategory(catId, animations.keySet());
+        for (int itemId : itemIds) {
+            Animation animation = animations.get(itemId);
+            if (animation != null) {
+                map.put(animation.name, animation.id);
+            }
+        }
+        return map;
+    }
 }

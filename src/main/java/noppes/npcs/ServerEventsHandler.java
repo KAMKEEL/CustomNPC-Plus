@@ -4,6 +4,9 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.data.energycharge.EnergyChargeTracker;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyDome;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.enums.EnumSyncAction;
@@ -51,7 +54,6 @@ import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Line;
-import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.MarkData;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -60,7 +62,6 @@ import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemExcalibur;
-import noppes.npcs.items.ItemLinked;
 import noppes.npcs.items.ItemShield;
 import noppes.npcs.items.ItemSoulstoneEmpty;
 import noppes.npcs.quests.QuestKill;
@@ -149,6 +150,52 @@ public class ServerEventsHandler {
                 if (merchantrecipelist != null) {
                     PacketHandler.Instance.sendToPlayer(new VillagerListPacket(merchantrecipelist), player);
                 }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void barrierAbsorbDamage(LivingAttackEvent event) {
+        if (event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving.worldObj.isRemote)
+            return;
+
+        EntityEnergyBarrier barrier = EntityEnergyBarrier.getAbsorbingBarrier(event.entityLiving);
+        if (barrier != null) {
+            // Redirect the caster's damage to their barrier
+            barrier.absorbDamage(event.ammount);
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void domeItemBlacklist(PlayerInteractEvent event) {
+        if (event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) return;
+        EntityPlayer player = event.entityPlayer;
+        if (player == null || player.worldObj == null || player.worldObj.isRemote) return;
+
+        ItemStack held = player.getHeldItem();
+        if (held == null) return;
+
+        String itemId = net.minecraft.item.Item.itemRegistry.getNameForObject(held.getItem());
+        if (itemId == null) return;
+
+        String[] blacklist = noppes.npcs.config.ConfigEnergy.DomeItemBlacklist;
+        if (blacklist == null) return;
+
+        boolean blacklisted = false;
+        for (String banned : blacklist) {
+            if (banned.equals(itemId)) {
+                blacklisted = true;
+                break;
+            }
+        }
+        if (!blacklisted) return;
+
+        List<EntityEnergyBarrier> barriers = EntityEnergyBarrier.getActiveBarriers(player.worldObj);
+        for (EntityEnergyBarrier barrier : barriers) {
+            if (barrier instanceof EntityEnergyDome && barrier.isEntityInside(player)) {
+                event.setCanceled(true);
+                return;
             }
         }
     }
@@ -254,6 +301,7 @@ public class ServerEventsHandler {
     public void invoke(LivingDeathEvent event) {
         if (event.entityLiving.worldObj.isRemote)
             return;
+        EnergyChargeTracker.Instance.removeAllForCaster(event.entityLiving.getEntityId());
         if (event.source.getEntity() != null) {
             if (event.source.getEntity() instanceof EntityPlayer) {
                 doExcalibur((EntityPlayer) event.source.getEntity(), event.entityLiving);
@@ -484,12 +532,24 @@ public class ServerEventsHandler {
 
     @SubscribeEvent
     public void populateChunk(PopulateChunkEvent.Post event) {
-        NPCSpawning.performWorldGenSpawning(event.world, event.chunkX, event.chunkZ, event.rand);
+        NPCSpawning.performWorldGenSpawning(event.world, event.chunkX << 4, event.chunkZ << 4, event.rand);
     }
 
     @SubscribeEvent
     public void playerTracking(PlayerEvent.StartTracking event) {
-        if (!(event.target instanceof EntityPlayerMP || event.target instanceof EntityNPCInterface) || event.target.worldObj.isRemote)
+        if (event.target.worldObj.isRemote) return;
+
+        // Energy charge visuals: send active charges for newly tracked entity
+        if (event.target instanceof EntityLivingBase
+                && event.entityPlayer instanceof EntityPlayerMP) {
+            EnergyChargeTracker.Instance.sendToPlayer(
+                event.target.getEntityId(),
+                (EntityPlayerMP) event.entityPlayer,
+                (int) event.target.worldObj.getTotalWorldTime()
+            );
+        }
+
+        if (!(event.target instanceof EntityPlayerMP || event.target instanceof EntityNPCInterface))
             return;
 
         AnimationData animationData = AnimationData.getData(event.target);

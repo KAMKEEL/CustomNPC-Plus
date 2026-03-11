@@ -1,7 +1,9 @@
 package noppes.npcs;
 
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.ParticlePacket;
 import kamkeel.npcs.network.packets.data.PlayerDataInfoPacket;
@@ -163,7 +165,16 @@ public class NoppesUtilServer {
         for (Animation animation : AnimationController.getInstance().animations.values()) {
             map.put(animation.name, animation.id);
         }
-        sendScrollData(player, map, EnumScrollData.OPTIONAL);
+        sendScrollData(player, map, EnumScrollData.ANIMATIONS);
+    }
+
+    public static void sendBuiltInAnimationData(EntityPlayerMP player) {
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        for (String name : AnimationController.getInstance().builtInAnimations.keySet()) {
+            // Use -1 as a marker for built-in animations (they have no ID)
+            map.put(AnimationController.getInstance().builtInAnimations.get(name).getName(), -1);
+        }
+        sendScrollData(player, map, EnumScrollData.BUILTIN_ANIMATIONS);
     }
 
     public static void sendTagDataAll(EntityPlayerMP player) {
@@ -241,7 +252,7 @@ public class NoppesUtilServer {
             if (EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog)) {
                 return;
             }
-            if (EventHooks.onDialogOpen(player, new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog))) {
+            if (EventHooks.onDialogOpen(player, new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog.id, optionId, dialog))) {
                 return;
             }
         }
@@ -384,6 +395,7 @@ public class NoppesUtilServer {
         if (gui == EnumGuiType.PlayerFollower || gui == EnumGuiType.PlayerFollowerHire || gui == EnumGuiType.PlayerTrader || gui == EnumGuiType.PlayerTransporter) {
             sendRoleData(player, npc);
         }
+        // Note: Trader-specific data (balance, stock, costs) is requested by client via GetTraderData packet
     }
 
     private static ArrayList<String> getScrollData(EntityPlayer player, EnumGuiType gui, EntityNPCInterface npc) {
@@ -761,6 +773,57 @@ public class NoppesUtilServer {
             }
             sendScrollData(player, map, EnumScrollData.MAGIC);
         }
+    }
+
+    public static void sendAbilityTypesInfo(EntityPlayerMP player) {
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        AbilityController controller = AbilityController.Instance;
+        if (controller != null) {
+            int index = 0;
+            for (String typeId : controller.getTypes()) {
+                if (!controller.isAllowedByNPC(typeId) && !controller.isAllowedByBoth(typeId))
+                    continue;
+
+                map.put(typeId, index++);
+            }
+        }
+        sendScrollData(player, map, EnumScrollData.ABILITY_TYPES);
+    }
+
+    public static void sendBuiltInAbilitiesData(EntityPlayerMP player) {
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        AbilityController controller = AbilityController.Instance;
+        if (controller != null) {
+            for (String name : controller.getAbilityNames()) {
+                Ability ability = controller.getAbility(name);
+                if (ability != null) {
+                    map.put(ability.getName(), ability.getAllowedBy().ordinal());
+                }
+            }
+        }
+        sendScrollData(player, map, EnumScrollData.BUILTIN_ABILITIES);
+    }
+
+    public static void sendCustomAbilitiesData(EntityPlayerMP player) {
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        AbilityController controller = AbilityController.Instance;
+        if (controller != null) {
+            for (String name : controller.getCustomAbilityNames()) {
+                Ability ability = controller.getCustomAbility(name);
+                if (ability == null) continue;
+                map.put(name, ability.getAllowedBy().ordinal());
+            }
+        }
+        sendScrollData(player, map, EnumScrollData.CUSTOM_ABILITIES);
+    }
+
+    public static void sendChainedAbilitiesData(EntityPlayerMP player) {
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        int index = 0;
+        for (String name : AbilityController.Instance.getChainedAbilityNamesSet()) {
+            map.put(name, index++);
+        }
+        sendScrollData(player, map, EnumScrollData.CHAINED_ABILITIES);
     }
 
     public static DialogOption setNpcDialog(int slot, int dialogId, EntityPlayer player) throws IOException {

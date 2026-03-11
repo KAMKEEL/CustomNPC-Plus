@@ -37,6 +37,15 @@ public class DBCAddon {
     public void doDBCDamage(EntityNPCInterface npc, float attackStrength, Entity receiver) {
     }
 
+    /**
+     * Returns the pre-calculated DBC attack damage of the current attacker,
+     * or the vanilla damage if DBC damage was not calculated.
+     * Used by Counter (PERCENT mode) to base counter damage on the full DBC attack, not vanilla base.
+     */
+    public float getAttackerDBCDamage(float vanillaDamage) {
+        return vanillaDamage;
+    }
+
     public boolean isKO(EntityNPCInterface npc, EntityPlayer player) {
         return false;
     }

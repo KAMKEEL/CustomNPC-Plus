@@ -6,10 +6,20 @@ import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.data.attribute.tracker.PlayerAttributeTracker;
 import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.type.AbilityCounter;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDefend;
+import kamkeel.npcs.controllers.data.ability.type.AbilityDodge;
+import kamkeel.npcs.controllers.data.ability.type.AbilityGuard;
+import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
+import kamkeel.npcs.controllers.data.ability.enums.AbilityPhase;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ContainerPlayer;
@@ -62,7 +72,6 @@ import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptCustomizableItem;
-import noppes.npcs.scripted.item.ScriptItemStack;
 
 import static noppes.npcs.config.ConfigMain.TrackedQuestUpdateFrequency;
 
@@ -98,6 +107,38 @@ public class ScriptPlayerEventHandler {
             if (PlayerDataController.Instance != null) {
                 PlayerData playerData = PlayerData.get(player);
                 playerData.actionManager.tick();
+                playerData.abilityData.tick(player);
+
+                // Lock player movement during ability phases that require it
+                // Skip zeroing if the ability has its own movement (Charge/Dash/Slam)
+                if (playerData.abilityData.isMovementLocked()) {
+                    Ability current = playerData.abilityData.getCurrentAbility();
+                    if (current == null || !current.hasAbilityMovement()
+                        || current.getPhase() != AbilityPhase.ACTIVE) {
+                        boolean sFlying = playerData.abilityData.wasFlyingAtLock()
+                            || AbilityController.Instance.isPlayerFlying(player);
+
+                        player.motionX = 0;
+                        if (!sFlying) {
+                            player.motionY = Math.min(player.motionY, 0);
+                        } else {
+                            player.motionY = 0;
+                        }
+                        player.motionZ = 0;
+                        player.velocityChanged = true;
+                    }
+                }
+
+                // Zero WASD input during ability-controlled movement to prevent
+                // moveEntityWithHeading from interfering with ability velocity
+                {
+                    Ability current = playerData.abilityData.getCurrentAbility();
+                    if (current != null && current.hasAbilityMovement()
+                        && current.getPhase() == AbilityPhase.ACTIVE) {
+                        player.moveForward = 0;
+                        player.moveStrafing = 0;
+                    }
+                }
 
                 if (playerData.updateClient) {
                     SyncController.syncPlayerData((EntityPlayerMP) player, true);
@@ -108,8 +149,13 @@ public class ScriptPlayerEventHandler {
                     playerData.timers.update();
                 }
 
-                if (player.ticksExisted % 10 == 0)
-                    SyncController.syncEffects((EntityPlayerMP) player);
+                if (player.ticksExisted % 10 == 0) {
+                    EntityPlayerMP mp = (EntityPlayerMP) player;
+                    SyncController.syncEffects(mp);
+                    SyncController.syncAbilityCooldowns(mp);
+                    PlayerAbilitySyncPacket.sendToPlayer(mp);
+                    playerData.abilityData.ensureLockStateClear();
+                }
 
                 if (player.ticksExisted % 10 == 0)
                     CustomEffectController.Instance.runEffects(player);
@@ -316,6 +362,12 @@ public class ScriptPlayerEventHandler {
             return;
 
         if (event.player.worldObj instanceof WorldServer && event.player instanceof EntityPlayerMP) {
+            // Fully reset ability state on dimension change (no cooldown rollover)
+            PlayerData playerData = PlayerData.get(event.player);
+            if (playerData != null) {
+                playerData.abilityData.resetOnDimensionChange();
+            }
+
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerChangeDim(handler, scriptPlayer, event.fromDim, event.toDim);
@@ -466,6 +518,13 @@ public class ScriptPlayerEventHandler {
 
         if (event.entityLiving.worldObj instanceof WorldServer) {
             if (event.entityLiving instanceof EntityPlayerMP) {
+                // Cancel jump if movement is locked by an ability
+                PlayerData playerData = PlayerData.get((EntityPlayer) event.entityLiving);
+                if (playerData != null && playerData.abilityData.isMovementLocked()) {
+                    event.entityLiving.motionY = 0;
+                    event.entityLiving.velocityChanged = true;
+                }
+
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.entityLiving);
                 IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityLiving);
                 EventHooks.onPlayerJump(handler, scriptPlayer);
@@ -520,6 +579,8 @@ public class ScriptPlayerEventHandler {
 
                 EntityPlayer player = (EntityPlayer) event.entityLiving;
                 PlayerData playerData = PlayerData.get(player);
+                // Cancel any executing ability on death
+                playerData.abilityData.interruptCurrentAbility();
                 if (ConfigScript.ClearActionsOnDeath)
                     playerData.actionManager.clear();
             }
@@ -541,6 +602,7 @@ public class ScriptPlayerEventHandler {
         if (event.entityLiving.worldObj instanceof WorldServer) {
             boolean cancel = event.isCanceled();
             Entity source = NoppesUtilServer.GetDamageSource(event.source);
+
             if (event.entityLiving instanceof EntityPlayerMP) {
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.entityLiving);
                 noppes.npcs.scripted.event.player.PlayerEvent.AttackedEvent pevent = new noppes.npcs.scripted.event.player.PlayerEvent.AttackedEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.entityLiving), source, event.ammount, event.source);
@@ -549,7 +611,7 @@ public class ScriptPlayerEventHandler {
 
             if (event.source.getEntity() instanceof EntityPlayerMP) {
                 EntityPlayerMP playerMP = (EntityPlayerMP) event.source.getEntity();
-                if(playerMP.getHeldItem() != null) {
+                if (playerMP.getHeldItem() != null) {
                     IItemStack itemStack = NpcAPI.Instance().getIItemStack(playerMP.getHeldItem());
                     if (itemStack instanceof ScriptCustomizableItem) {
                         ScriptCustomizableItem sci = (ScriptCustomizableItem) itemStack;
@@ -562,12 +624,41 @@ public class ScriptPlayerEventHandler {
 
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.source.getEntity());
                 float attackAmount = event.ammount;
-                if (ConfigMain.AttributesEnabled && !DBCAddon.IsAvailable())
-                    attackAmount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) event.source.getEntity(), attackAmount);
+                AttributeAttackUtil.lastAttackCritted = null;
+                if (ConfigMain.AttributesEnabled && !DBCAddon.IsAvailable()) {
+                    EntityPlayer attackPlayer = (EntityPlayer) event.source.getEntity();
+                    attackAmount = AttributeAttackUtil.calculateOutgoing(attackPlayer, attackAmount);
+                    // For vanilla/modded mob targets, roll crit once and store for LivingHurtEvent
+                    if (!(event.entityLiving instanceof EntityPlayerMP) && !(event.entityLiving instanceof EntityNPCInterface)) {
+                        PlayerAttributeTracker tracker = AttributeController.getTracker(attackPlayer);
+                        if (AttributeAttackUtil.rollCrit(tracker)) {
+                            AttributeAttackUtil.lastAttackCritted = true;
+                            attackAmount = AttributeAttackUtil.applyCritDamage(attackAmount, tracker);
+                        } else {
+                            AttributeAttackUtil.lastAttackCritted = false;
+                        }
+                    }
+                }
 
                 noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.source.getEntity()), event.entityLiving, attackAmount, event.source);
                 cancel = cancel || EventHooks.onPlayerAttack(handler, pevent1);
             }
+
+            // Dodge & Counter: cancel attack entirely
+            if (!cancel && event.entityLiving instanceof EntityPlayerMP) {
+                PlayerData pData = PlayerData.get((EntityPlayer) event.entityLiving);
+                if (pData != null && pData.abilityData != null) {
+                    AbilityDefend defend = pData.abilityData.getActiveDefend();
+                    if (defend instanceof AbilityDodge || defend instanceof AbilityCounter) {
+                        EntityLivingBase attacker = source instanceof EntityLivingBase ? (EntityLivingBase) source : null;
+                        float result = defend.onDefend(attacker, event.source, event.ammount);
+                        if (result != event.ammount) {
+                            cancel = true;
+                        }
+                    }
+                }
+            }
+
             event.setCanceled(cancel);
         }
     }
@@ -586,13 +677,41 @@ public class ScriptPlayerEventHandler {
                     event.ammount = AttributeAttackUtil.calculateDamagePlayerToPlayer((EntityPlayer) source, (EntityPlayer) event.entityLiving, event.ammount);
                 } else if (!(event.entityLiving instanceof EntityNPCInterface) && source instanceof EntityPlayer) {
                     event.ammount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) source, event.ammount);
+                    if (AttributeAttackUtil.lastAttackCritted != null) {
+                        // Use the crit decision from LivingAttackEvent
+                        if (AttributeAttackUtil.lastAttackCritted)
+                            event.ammount = AttributeAttackUtil.applyCritDamage(event.ammount, AttributeController.getTracker((EntityPlayer) source));
+                        AttributeAttackUtil.lastAttackCritted = null;
+                    } else {
+                        // Fallback: roll independently (no preceding LivingAttackEvent)
+                        event.ammount = AttributeAttackUtil.applyCrit(event.ammount, AttributeController.getTracker((EntityPlayer) source));
+                    }
                 }
             }
 
             if (event.entityLiving instanceof EntityPlayerMP) {
+                // Handle ability damage interactions
+                PlayerData pData = PlayerData.get((EntityPlayer) event.entityLiving);
+                if (pData != null && pData.abilityData != null && pData.abilityData.isExecutingAbility()) {
+                    if (pData.abilityData.isCurrentAbilityInvulnerable()) {
+                        event.ammount = 0;
+                        cancel = true;
+                    } else {
+                        // Guard: reduce damage
+                        AbilityDefend defend = pData.abilityData.getActiveDefend();
+                        if (defend instanceof AbilityGuard) {
+                            EntityLivingBase attacker = source instanceof EntityLivingBase ? (EntityLivingBase) source : null;
+                            event.ammount = defend.onDefend(attacker, event.source, event.ammount);
+                        }
+
+                        float modified = pData.abilityData.onDamage(event.source, event.ammount);
+                        event.ammount = modified;
+                    }
+                }
+
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.entityLiving);
                 noppes.npcs.scripted.event.player.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.player.PlayerEvent.DamagedEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.entityLiving), source, event.ammount, event.source);
-                cancel = EventHooks.onPlayerDamaged(handler, pevent);
+                cancel = cancel || EventHooks.onPlayerDamaged(handler, pevent);
                 event.ammount = pevent.damage;
             }
 
@@ -613,6 +732,14 @@ public class ScriptPlayerEventHandler {
             return;
 
         if (event.player.worldObj instanceof WorldServer && event.player instanceof EntityPlayerMP) {
+            // Reset ability state for reconstructed entity and re-sync to client.
+            // The death handler already interrupted the ability (with events/cooldowns),
+            // so this just cleans up transient state and syncs the new entity.
+            PlayerData playerData = PlayerData.get(event.player);
+            if (playerData != null) {
+                playerData.abilityData.resetOnRespawn();
+            }
+
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerRespawn(handler, scriptPlayer);

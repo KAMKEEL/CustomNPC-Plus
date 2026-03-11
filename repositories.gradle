@@ -5,4 +5,7 @@ repositories {
         name = "sponge"
         url = "https://repo.spongepowered.org/maven/"
     }
+    flatDir {
+        dirs 'lib'
+    }
 }

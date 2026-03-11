@@ -9,6 +9,7 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -73,5 +74,6 @@ public final class LinkedItemSavePacket extends AbstractPacket {
         }
 
         NoppesUtilServer.sendLinkedItemDataAll((EntityPlayerMP) player);
+        GuiDataPacket.sendGuiData((EntityPlayerMP) player, linkedItem.writeToNBT(false));
     }
 }

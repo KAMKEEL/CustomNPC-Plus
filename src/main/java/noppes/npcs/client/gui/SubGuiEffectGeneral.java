@@ -6,17 +6,21 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.gui.global.GuiNPCManageEffects;
-import noppes.npcs.client.gui.script.GuiScriptEffect;
+import net.minecraft.client.gui.GuiScreen;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
+import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButtonYesNo;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiScrollWindow;
 import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.SubGuiTagSelect;
+import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.CustomEffect;
+import noppes.npcs.controllers.data.EffectScript;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -25,13 +29,13 @@ import java.util.List;
 import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
 
 public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldListener {
-    private final GuiNPCManageEffects parent;
+    private final GuiScreen parent;
     public CustomEffect effect;
     private final String originalName;
 
     private final List<GuiMenuTopButton> topButtons = new ArrayList<>();
 
-    public SubGuiEffectGeneral(GuiNPCManageEffects parent, CustomEffect effect) {
+    public SubGuiEffectGeneral(GuiScreen parent, CustomEffect effect) {
         this.effect = effect;
         this.parent = parent;
         this.originalName = effect.name;
@@ -61,12 +65,14 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
         guiTop += 7;
         int y = guiTop + 7;
         int x = guiLeft + 4 + 4;
-        addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, x + 36, y, 280, 20, effect.name));
+        addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, x + 36, y, 210, 20, effect.name));
         getTextField(1).setMaxStringLength(40);
         addLabel(new GuiNpcLabel(1, "gui.name", x, y + 5));
 
-        addLabel(new GuiNpcLabel(-1, "ID", x + 320, y + 1));
-        addLabel(new GuiNpcLabel(-2, effect.id + "", x + 320, y + 11));
+        addLabel(new GuiNpcLabel(-1, "ID", x + 250, y + 1));
+        addLabel(new GuiNpcLabel(-2, effect.id + "", x + 250, y + 11));
+
+        addButton(new GuiNpcButton(40, getTextField(1).xPosition + getTextField(1).width + 30, y, 70, 20, "gui.tags"));
 
         y += 23;
 
@@ -107,7 +113,8 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
 
         x = oldX - 4;
         y += 23;
-        GuiScrollWindow scrollWindow = new GuiScrollWindow(this, x + 5, y, xSize - 20, ySize - 10 - (y - guiTop), 0) {
+        int scrollClipHeight = ySize - 10 - (y - guiTop);
+        GuiScrollWindow scrollWindow = new GuiScrollWindow(this, x + 5, y, xSize - 20, scrollClipHeight, 0) {
             @Override
             public void drawComponents(int mouseX, int mouseY, float partialTicks) {
                 super.drawComponents(mouseX, mouseY, partialTicks);
@@ -126,8 +133,14 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
                     int iconWidth = effect.getWidth();
                     int iconHeight = effect.getHeight();
                     int width = data.getTotalWidth();
-                    int height = data.getTotalWidth();
+                    int height = data.getTotalHeight();
 
+                    // Animation V offset for preview
+                    if (data.isAnimated()) {
+                        iconY += (int) (data.getCurrentFrameVOffset() * height);
+                    } else if (effect.animated && effect.frameCount > 1) {
+                        iconY += (int) (AnimationHelper.getFrameVOffset(height, effect.frameCount, effect.frametime) * height);
+                    }
 
                     func_152125_a(x, y, iconX, iconY, iconWidth, iconHeight, iconRenderSize, iconRenderSize, width, height);
 
@@ -182,6 +195,36 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
             effect.height
         ));
         scrollWindow.addLabel(new GuiNpcLabel(9, "effect.editor.height", scrollWindow.getTextField(9).xPosition - 43, y + 6, 0xFFFFFF));
+        y += 25;
+
+        // Animation controls
+        scrollWindow.addLabel(new GuiNpcLabel(11, "gui.animated", x, y + 5, 0xFFFFFF));
+        GuiNpcButtonYesNo animBtn = new GuiNpcButtonYesNo(11, x + 70, y, 50, 20, effect.animated);
+        animBtn.setHoverText("gui.animated.hover");
+        scrollWindow.addButton(animBtn);
+
+        if (effect.animated) {
+            y += 23;
+            scrollWindow.addLabel(new GuiNpcLabel(12, "gui.frameCount", x, y + 6, 0xFFFFFF));
+            scrollWindow.addTextField(setIntegerOnly(
+                new GuiNpcTextField(12, this, x + 80, y, 60, 20, "" + effect.frameCount),
+                1,
+                256,
+                effect.frameCount
+            ));
+
+            y += 23;
+            scrollWindow.addLabel(new GuiNpcLabel(13, "gui.frameTime", x, y + 6, 0xFFFFFF));
+            scrollWindow.addTextField(setIntegerOnly(
+                new GuiNpcTextField(13, this, x + 80, y, 60, 20, "" + effect.frametime),
+                1,
+                100,
+                effect.frametime
+            ));
+        }
+
+        int contentBottom = y + 20 + 5;
+        scrollWindow.maxScrollY = Math.max(0, contentBottom - scrollClipHeight);
 
     }
 
@@ -202,14 +245,20 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
         }
         if (id == -2) {
             PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), originalName));
-            GuiScriptEffect scriptGUI = new GuiScriptEffect(parent, effect);
-            scriptGUI.setWorldAndResolution(mc, width, height);
-            scriptGUI.initGui();
-            mc.currentScreen = scriptGUI;
+            GuiScriptInterface.open(parent, new EffectScript(effect.id));
+        }
+        if (id == 40) {
+            setSubGui(new SubGuiTagSelect(effect.tagUUIDs));
+            return;
         }
         if (id == 10) {
             GuiNpcButtonYesNo button = (GuiNpcButtonYesNo) guibutton;
             effect.lossOnDeath = button.getBoolean();
+        }
+        if (id == 11) {
+            GuiNpcButtonYesNo button = (GuiNpcButtonYesNo) guibutton;
+            effect.animated = button.getBoolean();
+            initGui();
         }
     }
 
@@ -249,6 +298,12 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
                 break;
             case 9:
                 effect.height = guiNpcTextField.getInteger();
+                break;
+            case 12:
+                effect.frameCount = Math.max(1, guiNpcTextField.getInteger());
+                break;
+            case 13:
+                effect.frametime = Math.max(1, guiNpcTextField.getInteger());
                 break;
         }
     }

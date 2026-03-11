@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.global;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.effects.EffectGetPacket;
 import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
+import kamkeel.npcs.network.packets.request.effects.EffectClonePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectsGetPacket;
 import net.minecraft.client.gui.GuiButton;
@@ -57,15 +58,21 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
 
     public void initGui() {
         super.initGui();
-        addButton(new GuiNpcButton(0, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
+        // Fullscreen button - FIRST
+        GuiNpcButton fullBtn = new GuiNpcButton(66, guiLeft + 368, guiTop + 8, 45, 20, "gui.fullscreen");
+        fullBtn.setTextColor(0x55FF55);
+        fullBtn.setHoverText("gui.fullscreen.tooltip");
+        addButton(fullBtn);
 
-        addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
+        addButton(new GuiNpcButton(0, guiLeft + 368, guiTop + 36, 45, 20, "gui.add"));
+
+        addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 60, 45, 20, "gui.remove"));
         getButton(1).enabled = effect != null && effect.id != -1;
 
-        addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 56, 45, 20, "gui.copy"));
+        addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 84, 45, 20, "gui.copy"));
         getButton(2).enabled = effect != null && effect.id != -1;
 
-        addButton(new GuiNpcButton(3, guiLeft + 368, guiTop + 80, 45, 20, "gui.edit"));
+        addButton(new GuiNpcButton(3, guiLeft + 368, guiTop + 108, 45, 20, "gui.edit"));
         getButton(3).enabled = effect != null && effect.id != -1;
 
         if (scrollEffects == null) {
@@ -100,10 +107,14 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
                 displayGuiScreen(guiyesno);
             }
         } else if (button.id == 2) {
-            CustomEffect effect = this.effect.cloneEffect();
-            while (data.containsKey(effect.name))
-                effect.name += "_";
-            PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), ""));
+            if (effect != null && effect.id >= 0) {
+                PacketClient.sendClient(new EffectClonePacket(effect.id));
+            }
+        }
+
+        if (button.id == 66) {
+            mc.displayGuiScreen(new GuiEffectDirectory(npc));
+            return;
         }
 
         if (effect == null)
@@ -173,7 +184,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
             int iconWidth = effect.getWidth();
             int iconHeight = effect.getHeight();
             int width = data.getTotalWidth();
-            int height = data.getTotalWidth();
+            int height = data.getTotalHeight();
 
 
             func_152125_a(x, y, iconX, iconY, iconWidth, iconHeight, iconRenderSize, iconRenderSize, width, height);

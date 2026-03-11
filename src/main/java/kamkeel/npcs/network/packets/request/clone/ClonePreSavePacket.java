@@ -24,6 +24,7 @@ public final class ClonePreSavePacket extends AbstractPacket {
 
     private String name;
     private int tab;
+    private String folderName;
 
     public ClonePreSavePacket() {
     }
@@ -31,6 +32,13 @@ public final class ClonePreSavePacket extends AbstractPacket {
     public ClonePreSavePacket(String name, int tab) {
         this.name = name;
         this.tab = tab;
+        this.folderName = null;
+    }
+
+    public ClonePreSavePacket(String name, String folderName) {
+        this.name = name;
+        this.tab = -1;
+        this.folderName = folderName;
     }
 
     @Override
@@ -53,6 +61,9 @@ public final class ClonePreSavePacket extends AbstractPacket {
     public void sendData(ByteBuf out) throws IOException {
         ByteBufUtils.writeString(out, this.name);
         out.writeInt(tab);
+        if (tab == -1) {
+            ByteBufUtils.writeString(out, this.folderName);
+        }
     }
 
     @Override
@@ -62,7 +73,15 @@ public final class ClonePreSavePacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.CLONER))
             return;
 
-        boolean bo = ServerCloneController.Instance.getCloneData(null, ByteBufUtils.readString(in), in.readInt()) != null;
+        String name = ByteBufUtils.readString(in);
+        int tab = in.readInt();
+        boolean bo;
+        if (tab == -1) {
+            String folder = ByteBufUtils.readString(in);
+            bo = ServerCloneController.Instance.getCloneData(null, name, folder) != null;
+        } else {
+            bo = ServerCloneController.Instance.getCloneData(null, name, tab) != null;
+        }
         NBTTagCompound compound = new NBTTagCompound();
         compound.setBoolean("NameExists", bo);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);

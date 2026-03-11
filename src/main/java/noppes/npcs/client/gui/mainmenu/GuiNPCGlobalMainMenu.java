@@ -38,6 +38,8 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
     private GuiNpcSquareButton tagButton;
     private GuiNpcSquareButton effectsButton;
     private GuiNpcSquareButton magicsButton;
+    private GuiNpcSquareButton abilitiesButton;
+    private GuiNpcSquareButton auctionsButton;
 
     public GuiNPCGlobalMainMenu(EntityNPCInterface npc) {
         super(npc, 5);
@@ -94,6 +96,11 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
         registerButton(magicsButton = new GuiNpcSquareButton(20, 0, 0, 20, "global.magic", 0xFF333333));
         magicsButton.setIconPos(24, 24, 48, 56).setIconTexture(specialIcons);
 
+        registerButton(abilitiesButton = new GuiNpcSquareButton(21, 0, 0, 20, "global.abilities", 0xFF333333));
+        abilitiesButton.setIconPos(24, 24, 72, 56).setIconTexture(specialIcons);
+
+        registerButton(auctionsButton = new GuiNpcSquareButton(22, 0, 0, 20, "global.auction", 0xFF333333));
+        auctionsButton.setIconPos(24, 24, 96, 56).setIconTexture(specialIcons);
 
         // Layout composite buttons optimally.
         layoutButtons();
@@ -235,6 +242,12 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
         }
         if (id == 19) {
             NoppesUtil.requestOpenGUI(EnumGuiType.ManageEffects);
+        }
+        if (id == 21) {
+            NoppesUtil.requestOpenGUI(EnumGuiType.ManageAbilities);
+        }
+        if (id == 22) {
+            NoppesUtil.requestOpenGUI(EnumGuiType.ManageAuction);
         }
     }
 

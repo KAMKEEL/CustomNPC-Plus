@@ -17,11 +17,15 @@ public class ConfigClient {
     public final static String MODEL = "Model";
     public final static String TEXTURE = "Texture";
     public final static String HUD = "Hud";
+    public final static String RENDERING = "Rendering";
 
 
     /**
      * General Properties
      **/
+    public static Property AllowClientScriptsProperty;
+    public static boolean AllowClientScripts = true;
+
     public static Property CacheLifeProperty;
     public static int CacheLife = 10;
 
@@ -49,6 +53,20 @@ public class ConfigClient {
     public static Property HideEffectsBarProperty;
     public static boolean HideEffectsBar = false;
 
+    // Rendering Properties
+    public static Property LowResExplosionProperty;
+    public static boolean LowResExplosion = false;
+
+    // Proximity Alpha (owner-only fade for energy projectiles near camera)
+    public static Property ProximityAlphaMinProperty;
+    public static float ProximityAlphaMin = 0.15f;
+
+    public static Property ProximityAlphaDistanceProperty;
+    public static float ProximityAlphaDistance = 10.0f;
+
+    public static Property ProximityAlphaAgeTicksProperty;
+    public static int ProximityAlphaAgeTicks = 60;
+
     /**
      * Questing Properties
      **/
@@ -66,10 +84,10 @@ public class ConfigClient {
 
     // HUD PROPERTIES
     public static Property QuestOverlayXProperty;
-    public static int QuestOverlayX = 0;
+    public static float QuestOverlayX = 0;
 
     public static Property QuestOverlayYProperty;
-    public static int QuestOverlayY = 31;
+    public static float QuestOverlayY = 31;
 
     public static Property QuestOverlayScaleProperty;
     public static int QuestOverlayScale = 223;
@@ -81,16 +99,51 @@ public class ConfigClient {
     public static boolean CompassEnabled = true;
 
     public static Property CompassOverlayXProperty;
-    public static int CompassOverlayX = 37;
+    public static float CompassOverlayX = 37;
 
     public static Property CompassOverlayYProperty;
-    public static int CompassOverlayY = 0;
+    public static float CompassOverlayY = 0;
 
     public static Property CompassOverlayScaleProperty;
     public static int CompassOverlayScale = 276;
 
     public static Property CompassOverlayWidthProperty;
     public static int CompassOverlayWidth = 200;
+
+    // Ability Hotbar HUD
+    public static Property AbilityHotbarEnabledProperty;
+    public static boolean AbilityHotbarEnabled = true;
+
+    public static Property AbilityHotbarXProperty;
+    public static float AbilityHotbarX = 3;
+
+    public static Property AbilityHotbarYProperty;
+    public static float AbilityHotbarY = 50;
+
+    public static Property AbilityHotbarScaleProperty;
+    public static int AbilityHotbarScale = 100;
+
+    public static Property AbilityHotbarHorizontalProperty;
+    public static boolean AbilityHotbarHorizontal = false;
+
+    public static Property AbilityHotbarAltTextureProperty;
+    public static boolean AbilityHotbarAltTexture = false;
+
+    // 1=Above(H)/Left(V), 2=Below(H)/Right(V)
+    public static Property AbilityHotbarTextPositionProperty;
+    public static int AbilityHotbarTextPosition = 2;
+
+    // Max visible slots: 3, 5, or 7
+    public static Property AbilityHotbarVisibleSlotsProperty;
+    public static int AbilityHotbarVisibleSlots = 5;
+
+    // Show Always: true = always visible, false = only visible while HUD key held
+    public static Property AbilityHotbarShowAlwaysProperty;
+    public static boolean AbilityHotbarShowAlways = true;
+
+    // Text Visibility: 0=Shown, 1=Hidden, 2=Held (only while HUD key held)
+    public static Property AbilityHotbarTextVisibilityProperty;
+    public static int AbilityHotbarTextVisibility = 0;
 
     /**
      * Texture Properties
@@ -114,6 +167,7 @@ public class ConfigClient {
     public static boolean LegacyTallLamp = false;
     public static boolean LegacyPedestal = false;
     public static boolean LegacyMailbox = false;
+    public static boolean ImprovedImageDownloadConnection = true;
 
     public static void init(File configFile) {
         config = new Configuration(configFile);
@@ -122,11 +176,11 @@ public class ConfigClient {
             config.load();
 
             // Hud Quest Overlay settings
-            QuestOverlayXProperty = config.get(HUD, "Quest Hud X", 0, "X position of the quest overlay.");
-            QuestOverlayX = QuestOverlayXProperty.getInt(0);
+            QuestOverlayXProperty = config.get(HUD, "Quest Hud X", 0.0, "X position of the quest overlay.");
+            QuestOverlayX = (float) QuestOverlayXProperty.getDouble(0);
 
-            QuestOverlayYProperty = config.get(HUD, "Quest Hud Y", 31, "Y position of the quest overlay.");
-            QuestOverlayY = QuestOverlayYProperty.getInt(31);
+            QuestOverlayYProperty = config.get(HUD, "Quest Hud Y", 31.0, "Y position of the quest overlay.");
+            QuestOverlayY = (float) QuestOverlayYProperty.getDouble(31);
 
             QuestOverlayScaleProperty = config.get(HUD, "Quest Hud Scale", 223, "Scale percentage of the quest overlay.");
             QuestOverlayScale = QuestOverlayScaleProperty.getInt(223);
@@ -146,22 +200,18 @@ public class ConfigClient {
             CompassOverlayXProperty = config.get(
                 HUD,
                 "Compass Hud X",
-                37,
-                "Horizontal position of compass overlay (0-100 percentage)",
-                0,
-                100
+                37.0,
+                "Horizontal position of compass overlay (0-100 percentage)"
             );
-            CompassOverlayX = CompassOverlayXProperty.getInt();
+            CompassOverlayX = (float) CompassOverlayXProperty.getDouble();
 
             CompassOverlayYProperty = config.get(
                 HUD,
                 "Compass Hud Y",
-                0,
-                "Vertical position of compass overlay (0-100 percentage)",
-                0,
-                100
+                0.0,
+                "Vertical position of compass overlay (0-100 percentage)"
             );
-            CompassOverlayY = CompassOverlayYProperty.getInt();
+            CompassOverlayY = (float) CompassOverlayYProperty.getDouble();
 
             CompassOverlayScaleProperty = config.get(
                 HUD,
@@ -183,8 +233,41 @@ public class ConfigClient {
             );
             CompassOverlayWidth = CompassOverlayWidthProperty.getInt();
 
+            // Ability Hotbar HUD Configs
+            AbilityHotbarEnabledProperty = config.get(HUD, "Ability Hotbar Enabled", true, "Enable Ability Hotbar HUD Component");
+            AbilityHotbarEnabled = AbilityHotbarEnabledProperty.getBoolean();
+
+            AbilityHotbarXProperty = config.get(HUD, "Ability Hotbar X", 3.0, "Horizontal position (0-100 percentage)");
+            AbilityHotbarX = (float) AbilityHotbarXProperty.getDouble();
+
+            AbilityHotbarYProperty = config.get(HUD, "Ability Hotbar Y", 50.0, "Vertical position (0-100 percentage)");
+            AbilityHotbarY = (float) AbilityHotbarYProperty.getDouble();
+
+            AbilityHotbarScaleProperty = config.get(HUD, "Ability Hotbar Scale", 100, "Scale percentage", 50, 300);
+            AbilityHotbarScale = AbilityHotbarScaleProperty.getInt();
+
+            AbilityHotbarHorizontalProperty = config.get(HUD, "Ability Hotbar Horizontal", false, "Display horizontally instead of vertically");
+            AbilityHotbarHorizontal = AbilityHotbarHorizontalProperty.getBoolean();
+
+            AbilityHotbarAltTextureProperty = config.get(HUD, "Ability Hotbar Alt Texture", false, "Use rounded square instead of circle slots");
+            AbilityHotbarAltTexture = AbilityHotbarAltTextureProperty.getBoolean();
+
+            AbilityHotbarTextPositionProperty = config.get(HUD, "Ability Hotbar Text Position", 2, "Text label position (1=Above/Left, 2=Below/Right)");
+            AbilityHotbarTextPosition = AbilityHotbarTextPositionProperty.getInt(2);
+
+            AbilityHotbarVisibleSlotsProperty = config.get(HUD, "Ability Hotbar Visible Slots", 5, "Max visible slots in hotbar (3, 5, or 7)");
+            AbilityHotbarVisibleSlots = AbilityHotbarVisibleSlotsProperty.getInt(5);
+
+            AbilityHotbarShowAlwaysProperty = config.get(HUD, "Ability Hotbar Show Always", true, "Always show hotbar (false = only while HUD key is held)");
+            AbilityHotbarShowAlways = AbilityHotbarShowAlwaysProperty.getBoolean(true);
+
+            AbilityHotbarTextVisibilityProperty = config.get(HUD, "Ability Hotbar Text Visibility", 0, "Text visibility (0=Shown, 1=Hidden, 2=Held)");
+            AbilityHotbarTextVisibility = AbilityHotbarTextVisibilityProperty.getInt(0);
 
             // General
+            AllowClientScriptsProperty = config.get(GENERAL, "Allow Client Scripts", true, "Allow the server to run scripts on the client. If disabled, no server scripts will execute client-side.");
+            AllowClientScripts = AllowClientScriptsProperty.getBoolean(true);
+
             CacheLifeProperty = config.get(GENERAL, "Cache Life", 10, "How long should downloaded imagery data be saved client side? (In minutes)");
             CacheLife = CacheLifeProperty.getInt(10);
 
@@ -210,6 +293,38 @@ public class ConfigClient {
             HideEffectsBarProperty = config.get(VISUAL, "Hide Effects Bar", false, "Hides CNPC+ Inventory Effects Bar");
             HideEffectsBar = HideEffectsBarProperty.getBoolean(false);
 
+            LowResExplosionProperty = config.get(
+                RENDERING,
+                "Low Res Explosion",
+                false,
+                "Disables most Energy Explosion voxel rendering and keeps particle effects only."
+            );
+            LowResExplosion = LowResExplosionProperty.getBoolean(false);
+
+            ProximityAlphaMinProperty = config.get(
+                RENDERING,
+                "Proximity Alpha Min",
+                0.15,
+                "Minimum alpha for owner's energy projectiles when very close to camera. Set to 1.0 to disable proximity fade."
+            );
+            ProximityAlphaMin = (float) Math.max(0.0, Math.min(1.0, ProximityAlphaMinProperty.getDouble(0.15)));
+
+            ProximityAlphaDistanceProperty = config.get(
+                RENDERING,
+                "Proximity Alpha Distance",
+                7.0,
+                "Distance in blocks at which owner's energy projectiles reach full alpha."
+            );
+            ProximityAlphaDistance = (float) Math.max(1.0, ProximityAlphaDistanceProperty.getDouble(10.0));
+
+            ProximityAlphaAgeTicksProperty = config.get(
+                RENDERING,
+                "Proximity Alpha Age Ticks",
+                60,
+                "After this many ticks alive, proximity alpha fade is disabled (projectile always renders at full alpha). Does not apply while charging or to attached beams/lasers."
+            );
+            ProximityAlphaAgeTicks = Math.max(0, ProximityAlphaAgeTicksProperty.getInt(60));
+
             DialogSpeedProperty = config.get(VISUAL, "Dialog Speed", true, "Only set for gradual dialogs");
             DialogSpeed = DialogSpeedProperty.getInt(10);
 
@@ -223,6 +338,7 @@ public class ConfigClient {
             BannerAlerts = BannerAlertsProperty.getBoolean(true);
 
             WoodTextures = config.get(TEXTURE, "Wood Textures", false, "Models like Chairs and Stools will use default MC Wood Textures").getBoolean(false);
+            ImprovedImageDownloadConnection = config.get(TEXTURE, "DEBUG: Better handling of image downloads: ", true).getBoolean(true);
 
             LegacyCampfire = config.get(MODEL, "Legacy Campfire Model", false).getBoolean(false);
             LegacyBanner = config.get(MODEL, "Legacy Banner Model", false).getBoolean(false);
@@ -253,6 +369,7 @@ public class ConfigClient {
                 FontSize = LegacyConfig.FontSize;
                 FontSizeProperty.set(FontSize);
             }
+
         } catch (Exception e) {
             FMLLog.log(Level.ERROR, e, "CNPC+ has had a problem loading its client configuration");
         } finally {

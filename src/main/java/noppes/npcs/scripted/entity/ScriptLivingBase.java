@@ -6,6 +6,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import noppes.npcs.api.IBlock;
 import noppes.npcs.api.IDamageSource;
@@ -379,5 +380,54 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
     public void setHurtTime(int time) {
         this.entity.hurtResistantTime = time;
         this.entity.hurtTime = time;
+    }
+
+    public void applyKnockback(float strength, IEntity source) {
+        double dirX = entity.posX - source.getX();
+        double dirZ = entity.posZ - source.getZ();
+        applyKnockbackInternal(strength, dirX, dirZ, false);
+    }
+
+    public void applyKnockback(float strength, double dirX, double dirZ) {
+        applyKnockbackInternal(strength, dirX, dirZ, false);
+    }
+
+    public void forceKnockback(float strength, IEntity source) {
+        double dirX = entity.posX - source.getX();
+        double dirZ = entity.posZ - source.getZ();
+        applyKnockbackInternal(strength, dirX, dirZ, true);
+    }
+
+    public void forceKnockback(float strength, double dirX, double dirZ) {
+        applyKnockbackInternal(strength, dirX, dirZ, true);
+    }
+
+    private void applyKnockbackInternal(float strength, double dirX, double dirZ, boolean ignoreResistance) {
+        if (!ignoreResistance) {
+            double resistance = entity.getEntityAttribute(SharedMonsterAttributes.knockbackResistance).getAttributeValue();
+            if (entity.worldObj.rand.nextDouble() < resistance) {
+                return;
+            }
+        }
+
+        double len = MathHelper.sqrt_double(dirX * dirX + dirZ * dirZ);
+        if (len <= 0.0D) {
+            return;
+        }
+
+        entity.isAirBorne = true;
+        float base = 0.4F * strength;
+        entity.motionX /= 2.0D;
+        entity.motionY /= 2.0D;
+        entity.motionZ /= 2.0D;
+        entity.motionX -= (dirX / len) * base;
+        entity.motionY += base;
+        entity.motionZ -= (dirZ / len) * base;
+
+        if (entity.motionY > 0.4D) {
+            entity.motionY = 0.4D;
+        }
+
+        entity.velocityChanged = true;
     }
 }

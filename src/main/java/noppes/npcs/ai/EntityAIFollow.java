@@ -55,7 +55,9 @@ public class EntityAIFollow extends EntityAIBase {
         if (updateTick < 10)
             return;
         updateTick = 0;
-        this.npc.getLookHelper().setLookPositionWithEntity(owner, 10.0F, (float) this.npc.getVerticalFaceSpeed());
+        if (!this.npc.abilities.isRotationLocked()) {
+            this.npc.getLookHelper().setLookPositionWithEntity(owner, 10.0F, (float) this.npc.getVerticalFaceSpeed());
+        }
 
         double speed = 1 + distance / 150;
         if (speed > 3)

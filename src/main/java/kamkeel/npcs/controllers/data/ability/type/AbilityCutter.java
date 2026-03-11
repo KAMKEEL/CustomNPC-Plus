@@ -1,0 +1,475 @@
+package kamkeel.npcs.controllers.data.ability.type;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.util.AbilityTargetHelper;
+import kamkeel.npcs.controllers.data.ability.enums.TargetFilter;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+import kamkeel.npcs.controllers.data.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.DamageSource;
+import net.minecraft.world.World;
+import noppes.npcs.api.ability.type.IAbilityCutter;
+import noppes.npcs.client.gui.builder.FieldDef;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Cutter ability: Sweeping fan attack in an arc.
+ * Deals damage to all entities in a cone/arc in front of the caster.
+ * Can sweep outward over time or hit instantly.
+ */
+public class AbilityCutter extends Ability implements IAbilityCutter {
+
+    public enum SweepMode {
+        SWIPE,
+        SPIN;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case SWIPE:
+                    return "ability.sweep.swipe";
+                case SPIN:
+                    return "ability.sweep.spin";
+                default:
+                    return name();
+            }
+        }
+    }
+
+    private float arcAngle = 90.0f;
+    private float range = 6.0f;
+    private float damage = 7.0f;
+    private float knockback = 1.5f;
+
+    private SweepMode sweepMode = SweepMode.SWIPE;
+    private float sweepSpeed = 6.0f;
+    private int spinDurationTicks = 60; // Duration for SPIN mode
+
+    private boolean piercing = true;
+    private float innerRadius = 0.0f;
+
+    // Runtime state
+    private transient Set<Integer> hitEntities = new HashSet<>();
+    private transient float currentRotation = 0.0f;
+    private transient boolean activeSoundPlayed = false;
+    private transient float sweepBaseYaw = 0.0f;
+
+    public AbilityCutter() {
+        this.typeId = "ability.cnpc.cutter";
+        this.name = "Cutter";
+        this.targetingMode = TargetingMode.AOE_SELF;
+        this.maxRange = 8.0f;
+        this.lockMovement = LockMode.NO;
+        this.cooldownTicks = 0;
+        this.windUpTicks = 20;
+        this.telegraphType = TelegraphType.CONE;
+        this.windUpSound = "random.bow";
+        this.activeSound = "random.break";
+        this.windUpAnimationName = "Ability_Cutter_Windup";
+        this.activeAnimationName = "Ability_Cutter_Active";
+        this.defaultIconLayers = new DefaultIconLayer[]{
+            new DefaultIconLayer("customnpcs:textures/gui/ability/cutter.png",
+                this::getActiveColor)
+        };
+    }
+
+    @Override
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
+
+    @Override
+    public TargetingMode[] getAllowedTargetingModes() {
+        return new TargetingMode[]{TargetingMode.AOE_SELF};
+    }
+
+    /**
+     * Calculate how many ticks the active sweep phase takes.
+     * SWIPE: arcAngle / sweepSpeed ticks
+     * SPIN: spinDurationTicks
+     */
+    private int getActiveDurationTicks() {
+        if (sweepMode == SweepMode.SPIN) {
+            return spinDurationTicks;
+        }
+        return sweepSpeed > 0 ? (int) Math.ceil(arcAngle / sweepSpeed) : 1;
+    }
+
+    @Override
+    public boolean keepTelegraphDuringActive() {
+        return true;
+    }
+
+    /**
+     * Creates a CONE telegraph that lasts through both windup and active sweep phases.
+     * Warning color transitions when the sweep actually begins (at windUpTicks).
+     */
+    @Override
+    public TelegraphInstance createTelegraph(EntityLivingBase caster, EntityLivingBase target) {
+        if (!isShowTelegraph() || getTelegraphType() == TelegraphType.NONE) {
+            return null;
+        }
+
+        Telegraph telegraph = Telegraph.cone(getTelegraphLength(), getTelegraphAngle(), getTelegraphInnerRadius());
+        int totalDuration = windUpTicks + getActiveDurationTicks();
+        telegraph.setDurationTicks(totalDuration);
+        telegraph.setColor(windUpColor);
+        telegraph.setWarningColor(activeColor);
+        // Warning transition starts when the sweep begins (active phase)
+        telegraph.setWarningStartTick(windUpTicks);
+        telegraph.setHeightOffset(telegraphHeightOffset);
+
+        double groundY = findGroundLevel(caster.worldObj, caster.posX, caster.posY, caster.posZ);
+        TelegraphInstance instance = new TelegraphInstance(telegraph, caster.posX, groundY, caster.posZ, caster.rotationYaw);
+        instance.setCasterEntityId(caster.getEntityId());
+        instance.setEntityIdToFollow(caster.getEntityId());
+
+        if (target != null && !isRotationLockedDuringWindup()) {
+            instance.setTargetEntityId(target.getEntityId());
+        } else {
+            // No target to track yaw from — track the caster's rotation instead
+            // so the telegraph follows where the player/NPC is facing
+            instance.setTrackFollowedEntityYaw(true);
+        }
+
+        return instance;
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return range;
+    }
+
+    @Override
+    public float getTelegraphLength() {
+        return range;
+    }
+
+    @Override
+    public float getTelegraphAngle() {
+        return arcAngle;
+    }
+
+    @Override
+    public float getTelegraphInnerRadius() {
+        return innerRadius;
+    }
+
+    @Override
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        hitEntities.clear();
+        currentRotation = -arcAngle / 2.0f;
+        activeSoundPlayed = false;
+
+        // Compute sweep direction from caster/target at execution time.
+        // Server-side telegraph instances are not ticked, so their yaw is stale
+        // from windup start — use the caster's current rotation instead.
+        if (target != null) {
+            double dx = target.posX - caster.posX;
+            double dz = target.posZ - caster.posZ;
+            if (dx * dx + dz * dz > 0.0001) {
+                sweepBaseYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+            } else {
+                sweepBaseYaw = caster.rotationYaw;
+            }
+        } else {
+            sweepBaseYaw = caster.rotationYaw;
+        }
+    }
+
+    @Override
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        if (caster.worldObj.isRemote && !isPreview()) return;
+
+        switch (sweepMode) {
+            case SWIPE:
+                float prevRotation = currentRotation;
+                currentRotation += sweepSpeed;
+
+                // Play active sound when sweep reaches center (where target typically stands)
+                if (!activeSoundPlayed && currentRotation >= 0) {
+                    playActiveSound(caster, caster.worldObj);
+                }
+
+                if (currentRotation > arcAngle / 2.0f) {
+                    if (!isPreview()) {
+                        performSweepDamageRange(caster, caster.worldObj, innerRadius, range, prevRotation, arcAngle / 2.0f);
+                    }
+                    signalCompletion();
+                    return;
+                }
+                if (!isPreview()) {
+                    performSweepDamageRange(caster, caster.worldObj, innerRadius, range, prevRotation, currentRotation);
+                }
+                break;
+
+            case SPIN:
+                // Play active sound at spin start
+                if (!activeSoundPlayed) {
+                    playActiveSound(caster, caster.worldObj);
+                }
+
+                if (tick >= spinDurationTicks) {
+                    signalCompletion();
+                    return;
+                }
+                float prevSpin = currentRotation;
+                currentRotation = (currentRotation + sweepSpeed) % 360.0f;
+                if (!isPreview()) {
+                    hitEntities.clear();
+                    performSweepDamageRange(caster, caster.worldObj, innerRadius, range, prevSpin, currentRotation);
+                }
+                break;
+        }
+    }
+
+    private void playActiveSound(EntityLivingBase caster, World world) {
+        activeSoundPlayed = true;
+        if (activeSound != null && !activeSound.isEmpty()) {
+            world.playSoundAtEntity(caster, activeSound, 1.0f, 1.0f);
+        }
+    }
+
+    /**
+     * Check for entities between two sweep angles, ensuring no gaps between ticks.
+     * For SWIPE mode, this covers the continuous arc from startAngle to endAngle.
+     */
+    private void performSweepDamageRange(EntityLivingBase caster, World world, float minDist, float maxDist,
+                                         float startAngle, float endAngle) {
+        // Calculate the angular range covered this tick
+        float minAngle = Math.min(startAngle, endAngle);
+        float maxAngle = Math.max(startAngle, endAngle);
+
+        AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
+            caster.posX - maxDist, caster.posY - 1, caster.posZ - maxDist,
+            caster.posX + maxDist, caster.posY + 3, caster.posZ + maxDist
+        );
+
+        @SuppressWarnings("unchecked")
+        List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
+
+        for (EntityLivingBase entity : entities) {
+            if (entity == caster) continue;
+            if (hitEntities.contains(entity.getEntityId())) continue;
+            if (!AbilityTargetHelper.shouldAffect(caster, entity, TargetFilter.ENEMIES, false)) continue;
+            // If not piercing, stop after hitting one entity this sweep
+            if (!piercing && !hitEntities.isEmpty()) break;
+
+            double dx = entity.posX - caster.posX;
+            double dz = entity.posZ - caster.posZ;
+            double dist = Math.sqrt(dx * dx + dz * dz);
+
+            if (dist < minDist || dist > maxDist) continue;
+            if (!isInSweepRange(dx, dz, sweepBaseYaw, minAngle, maxAngle)) continue;
+
+            // Line-of-sight check: skip targets behind solid blocks or enemy barriers
+            if (!hasLineOfSight(world, caster, entity)) continue;
+            if (isBlockedByBarrier(world, caster, entity)) continue;
+
+            hitEntities.add(entity.getEntityId());
+
+            float distFactor = 1.0f - ((float) dist / maxDist) * 0.3f;
+            float actualDamage = damage * distFactor;
+
+            // Apply damage with scripted event support
+            boolean wasHit = applyAbilityDamage(caster, entity, actualDamage, knockback);
+
+            // Apply effects if hit wasn't cancelled
+            if (wasHit) {
+                applyEffects(entity);
+            }
+        }
+    }
+
+    /**
+     * Check if an entity falls within the angular range between two sweep positions.
+     * This ensures entities at long range can't slip between tick-gaps.
+     */
+    private boolean isInSweepRange(double dx, double dz, float casterYaw, float minAngle, float maxAngle) {
+        double angleToEntity = Math.toDegrees(Math.atan2(-dx, dz));
+        double entityRelative = normalizeAngle(angleToEntity - casterYaw);
+        return entityRelative >= minAngle && entityRelative <= maxAngle;
+    }
+
+    private double normalizeAngle(double angle) {
+        while (angle > 180) angle -= 360;
+        while (angle < -180) angle += 360;
+        return angle;
+    }
+
+    @Override
+    public void onComplete(EntityLivingBase caster, EntityLivingBase target) {
+        hitEntities.clear();
+        currentRotation = 0.0f;
+        activeSoundPlayed = false;
+        sweepBaseYaw = 0.0f;
+    }
+
+    @Override
+    public void onInterrupt(EntityLivingBase caster, DamageSource source, float damage) {
+        hitEntities.clear();
+        currentRotation = 0.0f;
+        activeSoundPlayed = false;
+        sweepBaseYaw = 0.0f;
+    }
+
+    @Override
+    public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setFloat("arcAngle", arcAngle);
+        nbt.setFloat("range", range);
+        nbt.setFloat("damage", damage);
+        nbt.setFloat("knockback", knockback);
+        nbt.setString("sweepMode", sweepMode.name());
+        nbt.setFloat("sweepSpeed", sweepSpeed);
+        nbt.setInteger("spinDurationTicks", spinDurationTicks);
+        nbt.setBoolean("piercing", piercing);
+        nbt.setFloat("innerRadius", innerRadius);
+    }
+
+    @Override
+    public void readTypeNBT(NBTTagCompound nbt) {
+        this.arcAngle = nbt.getFloat("arcAngle");
+        this.range = nbt.getFloat("range");
+        this.damage = nbt.getFloat("damage");
+        this.knockback = nbt.getFloat("knockback");
+        try {
+            this.sweepMode = SweepMode.valueOf(nbt.getString("sweepMode"));
+        } catch (Exception e) {
+            this.sweepMode = SweepMode.SWIPE;
+        }
+        this.sweepSpeed = nbt.getFloat("sweepSpeed");
+        this.spinDurationTicks = nbt.getInteger("spinDurationTicks");
+        this.piercing = nbt.getBoolean("piercing");
+        this.innerRadius = nbt.getFloat("innerRadius");
+    }
+
+    // Getters & Setters
+    public float getArcAngle() {
+        return arcAngle;
+    }
+
+    public void setArcAngle(float arcAngle) {
+        this.arcAngle = arcAngle;
+    }
+
+    public float getRange() {
+        return range;
+    }
+
+    public void setRange(float range) {
+        this.range = range;
+    }
+
+    public float getDamage() {
+        return damage;
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    @Override
+    public float getDisplayDamage() { return damage; }
+
+    public float getKnockback() {
+        return knockback;
+    }
+
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
+
+    public SweepMode getSweepModeEnum() {
+        return sweepMode;
+    }
+
+    public void setSweepModeEnum(SweepMode sweepMode) {
+        this.sweepMode = sweepMode;
+    }
+
+    @Override
+    public int getSweepMode() {
+        return sweepMode.ordinal();
+    }
+
+    @Override
+    public void setSweepMode(int mode) {
+        SweepMode[] values = SweepMode.values();
+        this.sweepMode = mode >= 0 && mode < values.length ? values[mode] : SweepMode.SWIPE;
+    }
+
+    public float getSweepSpeed() {
+        return sweepSpeed;
+    }
+
+    public void setSweepSpeed(float sweepSpeed) {
+        this.sweepSpeed = sweepSpeed;
+    }
+
+    public int getSpinDurationTicks() {
+        return spinDurationTicks;
+    }
+
+    public void setSpinDurationTicks(int spinDurationTicks) {
+        this.spinDurationTicks = Math.max(1, spinDurationTicks);
+    }
+
+    public boolean isPiercing() {
+        return piercing;
+    }
+
+    public void setPiercing(boolean piercing) {
+        this.piercing = piercing;
+    }
+
+    public float getInnerRadius() {
+        return innerRadius;
+    }
+
+    public void setInnerRadius(float innerRadius) {
+        this.innerRadius = innerRadius;
+    }
+
+    public float getCurrentRotation() {
+        return currentRotation;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("gui.range", this::getRange, this::setRange)
+            ),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.section("ability.section.sweep"),
+            FieldDef.enumField("ability.sweepMode", SweepMode.class, this::getSweepModeEnum, this::setSweepModeEnum)
+                .hover("ability.hover.sweepMode"),
+            FieldDef.row(
+                FieldDef.floatField("ability.arcAngle", this::getArcAngle, this::setArcAngle),
+                FieldDef.floatField("ability.innerRadius", this::getInnerRadius, this::setInnerRadius)
+                    .hover("ability.hover.innerRadius")
+            ),
+            FieldDef.floatField("ability.sweepSpeed", this::getSweepSpeed, this::setSweepSpeed),
+            FieldDef.intField("ability.spinDuration", this::getSpinDurationTicks, this::setSpinDurationTicks)
+                .range(1, 1000)
+                .visibleWhen(() -> this.getSweepModeEnum() == SweepMode.SPIN),
+            FieldDef.boolField("ability.piercing", this::isPiercing, this::setPiercing)
+                .hover("ability.hover.piercing"),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        ));
+    }
+}

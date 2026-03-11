@@ -482,7 +482,7 @@ public class RenderNPCInterface extends RenderLiving {
                         Minecraft.getMinecraft().entityRenderer.disableLightmap((double) 0);
                     }
 
-                    GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.getAlpha());
+                    glColor(overlayData.getColor(), overlayData.getAlpha());
 
                     GL11.glDepthMask(!npc.isInvisible());
 
@@ -519,6 +519,14 @@ public class RenderNPCInterface extends RenderLiving {
             }
             npc.display.overlayRenderTicks++;
         }
+    }
+
+    private static void glColor(int color, float alpha) {
+        float r = ((color >> 16) & 0xFF) / 255.0F;
+        float g = ((color >> 8)  & 0xFF) / 255.0F;
+        float b = (color & 0xFF) / 255.0F;
+
+        GL11.glColor4f(r, g, b, alpha);
     }
 
     @Override
@@ -601,7 +609,26 @@ public class RenderNPCInterface extends RenderLiving {
         InputStream inputstream = null;
         try {
             TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-            texturemanager.deleteTexture(location);
+
+            // Compute the hash-based skin location first
+            ResourceLocation skinLocation = location;
+            try {
+                MessageDigest digest = MessageDigest.getInstance("MD5");
+                byte[] hash = digest.digest(npc.display.texture.getBytes("UTF-8"));
+                StringBuilder sb = new StringBuilder(2 * hash.length);
+                for (byte b : hash) {
+                    sb.append(String.format("%02x", b & 0xff));
+                }
+                if (npc.display.modelType == 0) {
+                    skinLocation = new ResourceLocation("skin/" + sb.toString());
+                } else {
+                    skinLocation = new ResourceLocation("skin64/" + sb.toString());
+                }
+            } catch (Exception ignored) {
+            }
+
+            // Delete old processed skin texture if cached (prevents GL texture leak)
+            texturemanager.deleteTexture(skinLocation);
 
             IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(location);
             inputstream = iresource.getInputStream();
@@ -617,22 +644,8 @@ public class RenderNPCInterface extends RenderLiving {
             ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(true));
             object.setBufferedImage(bufferedimage);
 
-            try {
-                MessageDigest digest = MessageDigest.getInstance("MD5");
-                byte[] hash = digest.digest(npc.display.texture.getBytes("UTF-8"));
-                StringBuilder sb = new StringBuilder(2 * hash.length);
-                for (byte b : hash) {
-                    sb.append(String.format("%02x", b & 0xff));
-                }
-                if (npc.display.modelType == 0) {
-                    location = new ResourceLocation("skin/" + sb.toString());
-                } else {
-                    location = new ResourceLocation("skin64/" + sb.toString());
-                }
-            } catch (Exception ignored) {
-            }
-            texturemanager.loadTexture(location, object);
-            return location;
+            texturemanager.loadTexture(skinLocation, object);
+            return skinLocation;
         } finally {
             if (inputstream != null) {
                 inputstream.close();

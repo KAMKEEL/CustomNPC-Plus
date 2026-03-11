@@ -1,0 +1,954 @@
+/* ============================================================
+   CustomNPC+ — Javadoc Theme (Javadoc 11)
+   Tokyo Night — Styled Edition
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Tokyo Night palette ── */
+  --bg:           #1a1b26;
+  --bg2:          #1f2335;
+  --bg3:          #24283b;
+  --bg-elevated:  #292e42;
+  --border:       #3b4261;
+  --border2:      #414868;
+  --text:         #c0caf5;
+  --text-mid:     #a9b1d6;
+  --text-dim:     #565f89;
+  --green:        #9ece6a;
+  --green-dim:    rgba(158, 206, 106, 0.12);
+  --blue:         #7aa2f7;
+  --blue-dim:     rgba(122, 162, 247, 0.12);
+  --amber:        #e0af68;
+  --amber-dim:    rgba(224, 175, 104, 0.10);
+  --purple:       #bb9af7;
+  --purple-dim:   rgba(187, 154, 247, 0.10);
+  --cyan:         #7dcfff;
+  --cyan-dim:     rgba(125, 207, 255, 0.10);
+  --red:          #f7768e;
+  --highlight-bg: rgba(122, 162, 247, 0.08);
+  --hover-bg:     rgba(187, 154, 247, 0.08);
+  --nav-h:        44px;
+  --subnav-h:     36px;
+
+  /* ── Font stacks ── */
+  --font-ui:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:  'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+}
+
+* { box-sizing: border-box !important; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.skipNav { display: none !important; }
+
+/* ══════════════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════════════ */
+
+.fixedNav {
+  position: fixed !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  z-index: 100 !important;
+}
+
+/* Top bar — gradient accent stripe on top */
+.topNav {
+  position: relative !important;
+  background: var(--bg2) !important;
+  border-bottom: 1px solid var(--border) !important;
+  height: var(--nav-h) !important;
+  margin: 0 !important; padding: 0 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  overflow: visible !important;
+}
+
+/* Gradient accent line across the very top */
+.topNav::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan)) !important;
+  z-index: 10 !important;
+}
+
+/* Nav list — leave room on right for brand */
+.topNav > ul.navList {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 2px 0 0 8px !important;
+  padding-right: 320px !important;
+  display: flex !important;
+  align-items: stretch !important;
+  flex-shrink: 0 !important;
+}
+
+.topNav > ul.navList > li {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 16px !important;
+  height: var(--nav-h) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  text-transform: none !important;
+  letter-spacing: 0.01em !important;
+  color: var(--text-dim) !important;
+  border-bottom: 2px solid transparent !important;
+  transition: color 0.2s !important;
+}
+
+.topNav > ul.navList > li > a {
+  display: flex !important;
+  align-items: center !important;
+  height: var(--nav-h) !important;
+  margin: 0 -16px !important;
+  padding: 0 16px !important;
+  color: var(--text-dim) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+  letter-spacing: 0.01em !important;
+  white-space: nowrap !important;
+  border-bottom: 2px solid transparent !important;
+  transition: color 0.2s, border-color 0.2s !important;
+}
+
+.topNav > ul.navList > li > a:hover {
+  color: var(--text) !important;
+  border-bottom-color: var(--purple) !important;
+  background: transparent !important;
+  text-shadow: none !important;
+  text-decoration: none !important;
+}
+
+/* Active item — gradient underline */
+.topNav > ul.navList > li.navBarCell1Rev {
+  color: var(--text) !important;
+  border-image: linear-gradient(90deg, var(--blue), var(--purple)) 1 !important;
+  border-bottom-width: 2px !important;
+  border-bottom-style: solid !important;
+}
+
+/* ── Brand — pinned to far right of topNav ── */
+.topNav > .aboutLanguage {
+  position: absolute !important;
+  top: 0 !important; right: 0 !important;
+  height: var(--nav-h) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 0 16px !important;
+  background: var(--bg2) !important;
+  border-left: 1px solid var(--border) !important;
+  z-index: 5 !important;
+}
+
+/* Hide the duplicate in bottom nav */
+.bottomNav > .aboutLanguage,
+.bottomNav .aboutLanguage {
+  display: none !important;
+}
+
+#javadoc-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.header-brand { text-decoration: none !important; }
+
+/* Brand title — gradient text */
+.header-title {
+  font-family: var(--font-ui) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, var(--blue), var(--purple)) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  line-height: 1.4 !important;
+  white-space: nowrap !important;
+}
+
+.header-title span {
+  display: block !important;
+  font-family: var(--font-mono) !important;
+  font-size: 9px !important;
+  font-weight: 400 !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--text-dim) !important;
+  color: var(--text-dim) !important;
+  margin-top: 1px !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+
+.header-back {
+  display: inline-flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+  color: var(--text-dim) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 5px 12px !important;
+  border: 1px solid var(--border2) !important;
+  border-radius: 6px !important;
+  white-space: nowrap !important;
+  transition: all 0.2s !important;
+}
+
+.header-back:hover {
+  color: var(--text) !important;
+  border-color: var(--purple) !important;
+  background: var(--purple-dim) !important;
+  text-decoration: none !important;
+  text-shadow: none !important;
+}
+
+/* ── Sub nav ── */
+.subNav {
+  background: var(--bg3) !important;
+  border-bottom: 1px solid var(--border) !important;
+  height: var(--subnav-h) !important;
+  margin: 0 !important;
+  padding: 0 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+/* Search first */
+.subNav > ul.navListSearch {
+  order: -1 !important;
+}
+
+.subNav ul,
+.subNav ul.navList,
+.subNav ul.subNavList,
+.subNav ul.navListSearch {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+.subNav li {
+  display: flex !important;
+  align-items: center !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  color: var(--text-dim) !important;
+  padding: 0 6px !important;
+  white-space: nowrap !important;
+  border: none !important;
+  height: auto !important;
+  text-transform: none !important;
+}
+
+.subNav a {
+  color: var(--blue) !important;
+  text-decoration: none !important;
+  font-size: 11px !important;
+  font-family: var(--font-ui) !important;
+  transition: color 0.15s !important;
+}
+
+.subNav a:hover { color: var(--purple) !important; text-shadow: none !important; }
+
+.subNav label {
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  color: var(--text-dim) !important;
+  text-transform: none !important;
+  margin-right: 4px !important;
+}
+
+/* ══════════════════════════════════════════════
+   CONTENT
+   ══════════════════════════════════════════════ */
+
+main {
+  background: var(--bg) !important;
+  padding: 28px !important;
+  flex: 1 0 auto !important;
+}
+
+.contentContainer, div.contentContainer {
+  background: var(--bg) !important;
+  padding: 0 28px 0px !important;
+}
+
+.header {
+  padding: 0 28px 0 !important;
+  margin-bottom: 20px !important;
+}
+
+/* Subtitle under h1 on help/overview pages */
+.header .subTitle,
+div.subTitle {
+  color: var(--text-mid) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+  margin-top: 8px !important;
+}
+
+.packageLabelInType {
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  color: var(--text-dim) !important;
+}
+
+/* ── Headings ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-ui) !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Page title — gradient accent bar */
+h1.title, h2.title {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+  border-bottom: none !important;
+  padding-bottom: 16px !important;
+  padding-left: 16px !important;
+  margin-bottom: 24px !important;
+  margin-top: 0 !important;
+  border-left: 4px solid transparent !important;
+  border-image: linear-gradient(180deg, var(--blue), var(--purple)) 1 !important;
+}
+
+/* Section h2 — colored panel */
+section > h2,
+li.blockList > section > h2 {
+  font-size: 14px !important;
+  color: var(--green) !important;
+  border-left: 3px solid var(--green) !important;
+  border-bottom: none !important;
+  padding: 10px 14px !important;
+  margin: 0 !important;
+  background: var(--green-dim) !important;
+}
+
+/* Generic h2 (table section headers like "Method Summary") */
+h2 {
+  font-size: 14px !important;
+  color: var(--amber) !important;
+  border-bottom: none !important;
+  border-left: 3px solid var(--amber) !important;
+  padding: 8px 12px !important;
+  margin-top: 28px !important;
+  margin-bottom: 12px !important;
+  background: var(--amber-dim) !important;
+}
+
+/* h3 — table section headers inside blockList */
+h3 {
+  font-size: 12px !important;
+  color: var(--text-mid) !important;
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  background: var(--bg3) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* h4 — method detail names */
+h4 {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--cyan) !important;
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  background: var(--bg3) !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-left: 3px solid var(--cyan) !important;
+}
+
+/* ── blockList sections — card-like containers ── */
+ul.blockList > li.blockList,
+ul.blockListLast > li.blockList {
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  margin-bottom: 14px !important;
+  padding: 0 !important;
+  background: var(--bg2) !important;
+  overflow: hidden !important;
+}
+
+/* Help page: section cards with padding around their content */
+ul.blockList > li.blockList > section {
+  padding: 0 !important;
+}
+
+ul.blockList > li.blockList > section > p,
+ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) {
+  padding: 14px 18px !important;
+  margin: 0 !important;
+  color: var(--text-mid) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+}
+
+/* Nested lists inside section content */
+ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) > li {
+  color: var(--text-mid) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
+  padding: 3px 0 !important;
+  list-style: none !important;
+}
+
+ul.blockList > li.blockList > section > ul:not(.blockList):not(.blockListLast) > li::before {
+  content: '\203A' !important;
+  color: var(--purple) !important;
+  margin-right: 8px !important;
+  font-weight: 700 !important;
+}
+
+/* ── Inherited methods block ── */
+ul.blockList > li.blockList > h3,
+ul.blockList > li.blockList > ul.blockList > li.blockList > h3 {
+  font-size: 11px !important;
+  color: var(--text-dim) !important;
+  padding: 8px 14px !important;
+  background: var(--bg3) !important;
+  border-bottom: 1px solid var(--border) !important;
+  margin: 0 !important;
+}
+
+/* The comma-separated code block of inherited method names */
+ul.blockList > li.blockList > code,
+li.blockList > code {
+  display: block !important;
+  padding: 10px 16px !important;
+  color: var(--text-dim) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  background: var(--bg) !important;
+  border: none !important;
+  line-height: 1.8 !important;
+}
+
+/* ── Inheritance chain ── */
+ul.inheritance {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 0 16px !important;
+  font-size: 12px !important;
+  color: var(--text-dim) !important;
+}
+ul.inheritance li { padding-left: 16px !important; }
+ul.inheritance li:first-child { padding-left: 0 !important; }
+
+/* ── General content lists (help page) ── */
+main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.navListSearch):not(.inheritance) {
+  padding-left: 0 !important;
+  margin: 4px 0 4px 12px !important;
+  list-style: none !important;
+}
+main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.navListSearch):not(.inheritance) > li {
+  color: var(--text-mid) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
+  padding: 3px 0 !important;
+  line-height: 1.7 !important;
+}
+main ul:not(.blockList):not(.blockListLast):not(.navList):not(.subNavList):not(.navListSearch):not(.inheritance) > li::before {
+  content: '\203A' !important;
+  color: var(--purple) !important;
+  margin-right: 8px !important;
+  font-weight: 700 !important;
+}
+
+/* General paragraphs in content */
+main > div p, .contentContainer p {
+  color: var(--text-mid) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+  margin: 8px 0 !important;
+}
+
+/* Emphasized phrase */
+.emphasizedPhrase {
+  display: block !important;
+  color: var(--text-dim) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  font-style: italic !important;
+  border-left: 2px solid var(--purple) !important;
+  padding: 8px 14px !important;
+  margin-top: 16px !important;
+  background: var(--purple-dim) !important;
+  border-radius: 0 4px 4px 0 !important;
+}
+
+/* Bottom footer subNav */
+footer {
+    /*margin-top: auto;*/
+}
+footer .subNav {
+  background: var(--bg3) !important;
+  border-top: 1px solid var(--border) !important;
+  border-bottom: none !important;
+  height: var(--subnav-h) !important;
+  padding: 0 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+/* ══════════════════════════════════════════════
+   TABLES
+   ══════════════════════════════════════════════ */
+
+table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  margin: 16px 0 !important;
+  font-size: 13px !important;
+  overflow: hidden !important;
+}
+
+caption {
+  background: var(--bg3) !important;
+  padding: 8px 14px !important;
+  text-align: left !important;
+  border-bottom: 1px solid var(--border2) !important;
+  caption-side: top !important;
+}
+
+/* Table tabs — pill style */
+.activeTableTab, .tableTab {
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  padding: 4px 12px !important;
+  border: 1px solid var(--border2) !important;
+  border-radius: 20px !important;
+  display: inline-block !important;
+  margin-right: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+}
+
+.activeTableTab {
+  color: var(--text) !important;
+  border-color: var(--blue) !important;
+  background: var(--blue-dim) !important;
+}
+
+.tableTab { color: var(--text-dim) !important; background: var(--bg3) !important; }
+.tableTab a { color: var(--text-dim) !important; text-decoration: none !important; }
+.tableTab a:hover { color: var(--text) !important; text-shadow: none !important; }
+
+/* Column headers */
+th[scope="col"] {
+  background: var(--bg-elevated) !important;
+  color: var(--text-dim) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  padding: 10px 14px !important;
+  border-bottom: 2px solid var(--border2) !important;
+  text-align: left !important;
+}
+
+/* Data cells */
+th[scope="row"], td {
+  background: var(--bg2) !important;
+  color: var(--text) !important;
+  padding: 10px 14px !important;
+  border-bottom: 1px solid var(--border) !important;
+  vertical-align: top !important;
+  text-align: left !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  transition: background 0.15s !important;
+}
+
+/* Stronger alternating row contrast */
+tr.altColor > td, tr.altColor > th[scope="row"] { background: var(--bg) !important; }
+tr.rowColor > td, tr.rowColor > th[scope="row"] { background: var(--bg2) !important; }
+
+tr:hover > td, tr:hover > th[scope="row"] {
+  background: var(--purple-dim) !important;
+  border-bottom-color: rgba(187, 154, 247, 0.25) !important;
+}
+tr:hover > td a, tr:hover > th[scope="row"] a {
+  color: var(--purple) !important;
+}
+
+/* ── Links ── */
+a, a:visited { color: var(--blue) !important; text-decoration: none !important; transition: color 0.15s !important; }
+a:hover { color: var(--purple) !important; text-decoration: none !important; }
+.memberNameLink a { color: var(--cyan) !important; font-weight: 500 !important; }
+.memberNameLink a:hover { color: var(--purple) !important; }
+.externalLink { color: var(--blue) !important; }
+
+/* ── Description blocks ── */
+div.block {
+  color: var(--text-mid) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+  padding: 4px 0 !important;
+}
+ul.blockList > li.blockList > div.block{ padding: 12px 16px !important; margin: 0 !important; }
+
+/* ── Method detail ── */
+ul.blockList, ul.blockListLast { list-style: none !important; padding: 0 !important; margin: 0 !important; }
+ul.blockList > li.blockList, ul.blockListLast > li.blockList {
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  margin-bottom: 12px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Method/type signatures — accent left bar */
+pre.methodSignature, pre.typeSignature {
+  background: var(--bg2) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-left: 3px solid var(--cyan) !important;
+  margin: 0 !important;
+  padding: 14px 18px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  color: var(--text) !important;
+  overflow-x: auto !important;
+  white-space: pre-wrap !important;
+}
+
+pre {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border) !important;
+  border-left: 3px solid var(--blue) !important;
+  border-radius: 6px !important;
+  padding: 14px 18px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  color: var(--text) !important;
+  overflow-x: auto !important;
+  margin: 0 !important;
+  white-space: pre-wrap !important;
+}
+
+code {
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  color: var(--cyan) !important;
+  background: var(--bg3) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+}
+
+dl { padding: 12px 16px !important; margin: 0 !important; }
+dt { margin-bottom: 4px !important; }
+dd { margin: 0 0 8px 16px !important; color: var(--text-mid) !important; font-size: 12px !important; }
+
+.paramLabel, .returnLabel, .throwsLabel, .seeLabel, .simpleTagLabel {
+  font-family: var(--font-ui) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: var(--purple) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+.typeNameLabel { color: var(--cyan) !important; }
+
+.deprecationBlock {
+  background: var(--amber-dim) !important;
+  border-left: 3px solid var(--amber) !important;
+  border-radius: 0 6px 6px 0 !important;
+  padding: 10px 14px !important;
+  color: var(--amber) !important;
+  font-size: 12px !important;
+}
+
+/* ── Inputs ── */
+input[type="text"] {
+  background: var(--bg) !important;
+  border: 1px solid var(--border2) !important;
+  color: var(--text) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  padding: 5px 12px !important;
+  outline: none !important;
+  border-radius: 6px !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+input[type="text"]:focus {
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 2px var(--blue-dim) !important;
+}
+input[type="reset"] {
+  background: var(--bg3) !important;
+  border: 1px solid var(--border2) !important;
+  color: var(--text-dim) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11px !important;
+  padding: 5px 12px !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+  transition: all 0.2s !important;
+}
+input[type="reset"]:hover {
+  border-color: var(--text-dim) !important;
+  color: var(--text-mid) !important;
+}
+
+/* ══════════════════════════════════════════════
+   BOTTOM NAV
+   ══════════════════════════════════════════════ */
+
+.bottomNav {
+  background: var(--bg2) !important;
+  border-top: 1px solid var(--border) !important;
+  min-height: var(--nav-h) !important;
+  padding: 0 !important;
+  margin-top: 32px !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* Gradient accent line on bottom nav too */
+.bottomNav::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important; left: 0 !important; right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, var(--blue), var(--purple), var(--cyan)) !important;
+}
+
+.bottomNav ul.navList[title="Navigation"] {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 0 0 8px !important;
+  display: flex !important;
+  align-items: stretch !important;
+  height: var(--nav-h) !important;
+}
+
+.bottomNav ul.navList[title="Navigation"] li {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 16px !important;
+  height: var(--nav-h) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  text-transform: none !important;
+  letter-spacing: 0.01em !important;
+  color: var(--text-dim) !important;
+  border-top: 2px solid transparent !important;
+  transition: color 0.2s !important;
+}
+
+.bottomNav ul.navList[title="Navigation"] li > a {
+  display: flex !important;
+  align-items: center !important;
+  height: var(--nav-h) !important;
+  margin: 0 -16px !important;
+  padding: 0 16px !important;
+  color: var(--text-dim) !important;
+  text-decoration: none !important;
+  font-family: var(--font-ui) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  transition: color 0.2s !important;
+}
+
+.bottomNav ul.navList[title="Navigation"] li > a:hover {
+  color: var(--text) !important;
+  text-shadow: none !important;
+}
+
+.bottomNav ul.navList[title="Navigation"] li.navBarCell1Rev {
+  color: var(--text) !important;
+  border-image: linear-gradient(90deg, var(--blue), var(--purple)) 1 !important;
+  border-top-width: 2px !important;
+  border-top-style: solid !important;
+}
+
+.bottomNav .aboutLanguage {
+  display: none !important;
+}
+
+.legalCopy {
+  background: var(--bg2) !important;
+  color: var(--text-dim) !important;
+  font-size: 11px !important;
+  font-family: var(--font-ui) !important;
+  padding: 14px 18px !important;
+  text-align: center !important;
+  border-top: 1px solid var(--border) !important;
+}
+
+/* ══════════════════════════════════════════════
+   SEARCH RESULTS DROPDOWN (jQuery UI Autocomplete)
+   ══════════════════════════════════════════════ */
+
+.ui-autocomplete {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border2) !important;
+  border-radius: 8px !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  z-index: 9999 !important;
+  list-style: none !important;
+  padding: 4px 0 !important;
+  margin: 4px 0 0 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(122, 162, 247, 0.05) !important;
+}
+
+/* Category headers */
+.ui-autocomplete .ui-autocomplete-category {
+  background: var(--bg-elevated) !important;
+  color: var(--text-dim) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  padding: 6px 14px !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-top: 1px solid var(--border) !important;
+  cursor: default !important;
+}
+
+/* Individual result items */
+.ui-autocomplete .ui-menu-item {
+  background: var(--bg2) !important;
+  margin: 0 !important;
+  list-style: none !important;
+}
+
+.ui-autocomplete .ui-menu-item > div,
+.ui-autocomplete .ui-menu-item-wrapper {
+  background: var(--bg2) !important;
+  color: var(--text) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  padding: 7px 14px !important;
+  border: none !important;
+  border-left: 2px solid transparent !important;
+  cursor: pointer !important;
+  line-height: 1.5 !important;
+  transition: all 0.1s !important;
+}
+
+/* Hover / focus state */
+.ui-autocomplete .ui-menu-item > div.ui-state-active,
+.ui-autocomplete .ui-menu-item > div.ui-state-focus,
+.ui-autocomplete .ui-menu-item-wrapper.ui-state-active,
+.ui-autocomplete .ui-menu-item-wrapper.ui-state-focus,
+.ui-autocomplete .ui-state-active,
+.ui-autocomplete .ui-state-focus {
+  background: var(--purple-dim) !important;
+  color: var(--text) !important;
+  border: none !important;
+  border-left: 2px solid var(--purple) !important;
+  margin: 0 !important;
+}
+
+/* Highlighted matching text */
+.resultHighlight {
+  color: var(--cyan) !important;
+  font-weight: 600 !important;
+}
+
+/* Search tag result extras */
+.searchTagHolderResult {
+  color: var(--text-dim) !important;
+  font-size: 11px !important;
+}
+
+.searchTagDescResult {
+  color: var(--text-dim) !important;
+  font-size: 11px !important;
+  font-style: italic !important;
+}
+
+/* "No results found" */
+.ui-autocomplete .ui-menu-item:only-child > div {
+  color: var(--text-dim) !important;
+  font-style: italic !important;
+}
+
+/* Override jQuery UI defaults */
+.ui-widget {
+  font-family: var(--font-mono) !important;
+}
+
+.ui-widget-content {
+  background: var(--bg2) !important;
+  color: var(--text) !important;
+  border-color: var(--border2) !important;
+}
+
+.ui-menu .ui-menu-item {
+  padding: 0 !important;
+}
+
+/* Watermark style for search input placeholder */
+.watermark {
+  color: var(--text-dim) !important;
+}
+
+/* ══════════════════════════════════════════════
+   MISC
+   ══════════════════════════════════════════════ */
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+::selection { background: rgba(187, 154, 247, 0.25); color: var(--text); }
+hr { border: none !important; border-top: 1px solid var(--border) !important; margin: 24px 0 !important; }

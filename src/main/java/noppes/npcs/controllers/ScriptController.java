@@ -3,7 +3,9 @@ package noppes.npcs.controllers;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import kamkeel.npcs.network.packets.request.script.ScriptFilesPacket;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -21,6 +23,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
+import somehussar.janino.EntityUnloadListener;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -45,7 +48,7 @@ public class ScriptController {
     public static boolean HasStart = false;
     private final ScriptEngineManager manager;
     private ScriptEngineFactory nashornFactory;
-    public Map<String, String> languages = new HashMap<String, String>();
+    public final Map<String, String> languages = new HashMap<String, String>();
     public Map<String, String> scripts = new HashMap<String, String>();
     public long lastLoaded = 0;
     public File dir;
@@ -61,10 +64,16 @@ public class ScriptController {
     public GlobalNPCDataScript globalNpcScripts = new GlobalNPCDataScript((EntityNPCInterface) null);
     public long lastGlobalNpcUpdate = 0L;
 
+    /**
+     * Incremented whenever external scripts loaded.
+     */
+    public int globalRevision;
+
+
     public ScriptController() {
         Instance = this;
         manager = new ScriptEngineManager();
-        if (!ConfigScript.ScriptingEnabled)
+        if (!CustomNpcs.proxy.isScriptingEnabled())
             return;
         LogWriter.info("Script Engines Available:");
 
@@ -97,6 +106,7 @@ public class ScriptController {
             } catch (Exception ignored) {
             }
         }
+        languages.put("Java", ".java");
     }
 
     private File forgeScriptsFile() {
@@ -124,7 +134,7 @@ public class ScriptController {
         File file = this.forgeScriptsFile();
         try {
             NBTJsonUtil.SaveFile(file, this.forgeScripts.writeToNBT(new NBTTagCompound()));
-            this.forgeScripts.lastInited = -1L;
+            this.forgeScripts.resetLastInited();
         } catch (IOException | JsonException var4) {
             var4.printStackTrace();
         }
@@ -160,7 +170,7 @@ public class ScriptController {
         File file = this.playerScriptsFile();
         try {
             NBTJsonUtil.SaveFile(file, this.playerScripts.writeToNBT(new NBTTagCompound()));
-            this.playerScripts.lastInited = -1L;
+            this.playerScripts.resetLastInited();
         } catch (IOException | JsonException var4) {
             var4.printStackTrace();
         }
@@ -202,7 +212,7 @@ public class ScriptController {
         File file = this.npcScriptsFile();
         try {
             NBTJsonUtil.SaveFile(file, this.globalNpcScripts.writeToNBT(new NBTTagCompound()));
-            this.globalNpcScripts.lastInited = -1L;
+            this.globalNpcScripts.resetLastInited();
         } catch (IOException | JsonException var4) {
             var4.printStackTrace();
         }
@@ -217,7 +227,7 @@ public class ScriptController {
             File file = this.playerScriptsFile();
             try {
                 NBTJsonUtil.SaveFile(file, this.playerScripts.writeToNBT(new NBTTagCompound()));
-                this.playerScripts.lastInited = -1L;
+                this.playerScripts.resetLastInited();
             } catch (IOException | JsonException var4) {
                 var4.printStackTrace();
             }
@@ -226,6 +236,14 @@ public class ScriptController {
 
     public synchronized void saveGlobalScriptsSync() {
         customNPCThread.execute(this::saveGlobalNpcScripts);
+    }
+
+    public void syncClientScripts(EntityPlayerMP player) {
+        if (player != null) {
+            ScriptFilesPacket.sendToPlayer(player, "Java");
+        } else {
+            ScriptFilesPacket.sendToAll("Java");
+        }
     }
 
     public void loadCategories() {
@@ -245,6 +263,7 @@ public class ScriptController {
                 loadDir(scriptDir, "", ext);
         }
         lastLoaded = System.currentTimeMillis();
+        globalRevision++;
     }
 
     private void loadDir(File dir, String name, String ext) {
@@ -348,7 +367,7 @@ public class ScriptController {
         return list;
     }
 
-    private List<String> getScripts(String language) {
+    public List<String> getScripts(String language) {
         List<String> list = new ArrayList<String>();
         String ext = languages.get(language);
         if (ext == null)
@@ -359,6 +378,11 @@ public class ScriptController {
             }
         }
         return list;
+    }
+
+    @SubscribeEvent
+    public void addWorldAccess(WorldEvent.Load event) {
+        event.world.addWorldAccess(new EntityUnloadListener());
     }
 
     @SubscribeEvent

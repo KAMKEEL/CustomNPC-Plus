@@ -86,7 +86,8 @@ public class EntityCustomNpc extends EntityNPCFlying {
                 worldObj.MAX_ENTITY_RADIUS = newWidth / 2;
             }
 
-            setSize(newWidth, newHeight);
+            this.width = newWidth;
+            this.height = newHeight;
             this.setPosition(posX, posY, posZ);
         }
     }

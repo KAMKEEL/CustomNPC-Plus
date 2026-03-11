@@ -10,9 +10,11 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
+import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.gui.SubGuiColorSelector;
-import noppes.npcs.client.gui.global.GuiNPCManageLinked;
-import noppes.npcs.client.gui.script.GuiScriptLinkedItem;
+import noppes.npcs.client.gui.SubGuiTagSelect;
+import net.minecraft.client.gui.GuiScreen;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.GuiButtonBiDirectional;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -25,6 +27,7 @@ import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.LinkedItem;
+import noppes.npcs.controllers.data.LinkedItemScript;
 import org.lwjgl.opengl.GL11;
 
 public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListener, GuiYesNoCallback, ISubGuiListener {
@@ -35,7 +38,7 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
     private int tab = -1;
     private int colorPicked = 0;
 
-    public SubGuiLinkedItem(GuiNPCManageLinked parent, LinkedItem linkedItem) {
+    public SubGuiLinkedItem(GuiScreen parent, LinkedItem linkedItem) {
         this.linkedItem = linkedItem;
         this.parent = parent;
         this.originalName = linkedItem.name;
@@ -119,8 +122,8 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         GuiNpcTextField digSpeedField = new GuiNpcTextField(12, this, x + 110, y, 50, 20, "" + linkedItem.digSpeed);
         digSpeedField.setIntegersOnly().setMinMaxDefault(0, 20, 1);
         addTextField(digSpeedField);
-        GuiNpcTextField attackSpeedField = new GuiNpcTextField(14, this, x +165, y, 50, 20, "" +linkedItem.attackSpeed);
-        attackSpeedField.setIntegersOnly().setMinMaxDefault(0,999999999,20);
+        GuiNpcTextField attackSpeedField = new GuiNpcTextField(14, this, x + 165, y, 50, 20, "" + linkedItem.attackSpeed);
+        attackSpeedField.setIntegersOnly().setMinMaxDefault(0, 999999999, 20);
         addTextField(attackSpeedField);
 
         y += spacing;
@@ -157,6 +160,8 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         }
         GuiButtonBiDirectional useActionButton = new GuiButtonBiDirectional(6, x + 120, y, 100, 20, useActions, useActionIndex);
         addButton(useActionButton);
+
+        addButton(new GuiNpcButton(40, x + 230, y, 100, 20, "gui.tags"));
         y += spacing;
 
         // Armor Type: BiDirectional button (None, All, Head, Chestplate, Leggings, Boots)
@@ -285,6 +290,31 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         scrollWindow.addLabel(new GuiNpcLabel(70, "display.durabilityShow", x, localY + 5, 0xFFFFFF));
         GuiNpcButtonYesNo durabilityButton = new GuiNpcButtonYesNo(26, x + 120, localY, linkedItem.display.durabilityShow);
         scrollWindow.addButton(durabilityButton);
+        localY += 30;
+
+        // Animation controls
+        scrollWindow.addLabel(new GuiNpcLabel(80, "gui.animated", x, localY + 5, 0xFFFFFF));
+        boolean isAnim = linkedItem.display.animated != null && linkedItem.display.animated;
+        GuiNpcButtonYesNo animBtn = new GuiNpcButtonYesNo(29, x + 120, localY, isAnim);
+        animBtn.setHoverText("gui.animated.hover");
+        scrollWindow.addButton(animBtn);
+        localY += 25;
+
+        if (isAnim) {
+            scrollWindow.addLabel(new GuiNpcLabel(81, "gui.frameCount", x, localY + 5, 0xFFFFFF));
+            GuiNpcTextField fcField = new GuiNpcTextField(71, this, x + 120, localY, 60, 20,
+                "" + (linkedItem.display.frameCount != null ? linkedItem.display.frameCount : 1));
+            fcField.setIntegersOnly().setMinMaxDefault(1, 256, 1);
+            scrollWindow.addTextField(fcField);
+            localY += 25;
+
+            scrollWindow.addLabel(new GuiNpcLabel(82, "gui.frameTime", x, localY + 5, 0xFFFFFF));
+            GuiNpcTextField ftField = new GuiNpcTextField(72, this, x + 120, localY, 60, 20,
+                "" + (linkedItem.display.frametime != null ? linkedItem.display.frametime : 2));
+            ftField.setIntegersOnly().setMinMaxDefault(1, 100, 2);
+            scrollWindow.addTextField(ftField);
+            localY += 25;
+        }
 
         scrollWindow.scrollY = 0;
         scrollWindow.maxScrollY = Math.max(localY - scrollWindow.clipHeight, 0);
@@ -307,10 +337,10 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             return;
         } else if (id == -3) {
             PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(false), originalName));
-            GuiScriptLinkedItem scriptGUI = new GuiScriptLinkedItem((GuiNPCManageLinked) this.parent, linkedItem);
-            scriptGUI.setWorldAndResolution(mc, width, height);
-            scriptGUI.initGui();
-            mc.currentScreen = scriptGUI;
+            GuiScriptInterface.open(this.parent, new LinkedItemScript(linkedItem.id));
+            return;
+        } else if (id == 40) {
+            setSubGui(new SubGuiTagSelect(linkedItem.tagUUIDs));
             return;
         } else if (id == 20) {
             // Open confirmation for version bump.
@@ -383,6 +413,9 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             linkedItem.isNormalItem = ((GuiNpcButtonYesNo) guibutton).getBoolean();
         } else if (id == 26 && guibutton instanceof GuiNpcButtonYesNo) {
             linkedItem.display.durabilityShow = ((GuiNpcButtonYesNo) guibutton).getBoolean();
+        } else if (id == 29 && guibutton instanceof GuiNpcButtonYesNo) {
+            linkedItem.display.animated = ((GuiNpcButtonYesNo) guibutton).getBoolean();
+            initGui();
         }
     }
 
@@ -431,6 +464,10 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             linkedItem.display.translateY = textField.getFloat();
         } else if (id == 63) {
             linkedItem.display.translateZ = textField.getFloat();
+        } else if (id == 71) {
+            linkedItem.display.frameCount = Math.max(1, textField.getInteger());
+        } else if (id == 72) {
+            linkedItem.display.frametime = Math.max(1, textField.getInteger());
         }
     }
 
@@ -474,7 +511,20 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             int iconWidth = data.getTotalWidth();
             int iconHeight = data.getTotalWidth();
             int width = data.getTotalWidth();
-            int height = data.getTotalWidth();
+            int height = data.getTotalHeight();
+
+            // Animation V offset for preview
+            if (data.isAnimated()) {
+                iconY += (int) (data.getCurrentFrameVOffset() * height);
+                iconHeight = data.getFrameHeight();
+            } else if (linkedItem.display.animated != null && linkedItem.display.animated
+                    && linkedItem.display.frameCount != null && linkedItem.display.frameCount > 1) {
+                iconY += (int) (AnimationHelper.getFrameVOffset(height, linkedItem.display.frameCount, linkedItem.display.frametime) * height);
+                iconHeight = height / linkedItem.display.frameCount;
+            } else {
+                iconHeight = data.getTotalWidth();
+                height = data.getTotalWidth();
+            }
 
             float[] colors = ColorUtil.hexToRGB(linkedItem.display.itemColor);
             GL11.glColor3f(colors[0], colors[1], colors[2]);

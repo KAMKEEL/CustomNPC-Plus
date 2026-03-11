@@ -1,8 +1,9 @@
 package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.entity.data.ITintData;
 
-public class TintData {
+public class TintData implements ITintData {
     private boolean tintEnabled = false;
     private boolean hurtTintEnabled = true;
     private boolean generalTintEnabled = false;

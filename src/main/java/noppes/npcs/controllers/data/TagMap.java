@@ -13,10 +13,18 @@ import java.util.UUID;
 
 public class TagMap {
     public int cloneTab;
+    public String cloneFolder;
     public HashMap<String, HashSet<UUID>> tagMap;
 
     public TagMap(int tab) {
         this.cloneTab = tab;
+        this.cloneFolder = null;
+        this.tagMap = new HashMap<String, HashSet<UUID>>();
+    }
+
+    public TagMap(String folder) {
+        this.cloneTab = -1;
+        this.cloneFolder = folder;
         this.tagMap = new HashMap<String, HashSet<UUID>>();
     }
 

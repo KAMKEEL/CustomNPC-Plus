@@ -17,6 +17,7 @@ import net.minecraftforge.client.IItemRenderer;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.renderer.AnimationHelper;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.items.ItemCustomizable;
 import noppes.npcs.scripted.NpcAPI;
@@ -222,7 +223,8 @@ public class ItemCustomRenderer implements IItemRenderer {
         int pass = 0;
 
         GL11.glPushMatrix();
-        ClientCacheHandler.getImageData(scriptCustomItem.getTexture()).bindTexture();
+        ImageData entityImageData = ClientCacheHandler.getImageData(scriptCustomItem.getTexture());
+        entityImageData.bindTexture();
 
         if (renderInFrame) {
             GL11.glTranslatef(0.0F, -0.05F, 0.0F);
@@ -233,10 +235,22 @@ public class ItemCustomRenderer implements IItemRenderer {
 
         Tessellator tessellator = Tessellator.instance;
 
+        // Animation V offset for entity rendering
+        float entityVOff = 0f;
+        float entityVEnd = 1f;
+        if (entityImageData.isAnimated()) {
+            entityVOff = entityImageData.getCurrentFrameVOffset();
+            entityVEnd = entityVOff + (float) entityImageData.getFrameHeight() / entityImageData.getTotalHeight();
+        } else if (scriptCustomItem.isTextureAnimated() != null && scriptCustomItem.isTextureAnimated()
+                && scriptCustomItem.getFrameCount() != null && scriptCustomItem.getFrameCount() > 1) {
+            entityVOff = AnimationHelper.getFrameVOffset(entityImageData.getTotalHeight(), scriptCustomItem.getFrameCount(), scriptCustomItem.getFrameTime());
+            entityVEnd = entityVOff + AnimationHelper.getFrameVSize(entityImageData.getTotalHeight(), scriptCustomItem.getFrameCount());
+        }
+
         float f14 = 0.0F;
         float f15 = 1.0F;
-        float f4 = 0.0F;
-        float f5 = 1.0F;
+        float f4 = entityVOff;
+        float f5 = entityVEnd;
         float f6 = 1.0F;
         float f7 = 0.5F;
         float f8 = 0.25F;
@@ -272,8 +286,11 @@ public class ItemCustomRenderer implements IItemRenderer {
                         GL11.glRotatef(-90.0F, 0.0F, 0.0F, 1.0F);
                     }*/
 
-                ImageData imageData = ClientCacheHandler.getImageData(scriptCustomItem.getTexture());
-                ItemRenderer.renderItemIn2D(tessellator, f15, f4, f14, f5, imageData.getTotalWidth(), imageData.getTotalHeight(), f9);
+                ImageData loopImageData = ClientCacheHandler.getImageData(scriptCustomItem.getTexture());
+                int entityFrameH = loopImageData.isAnimated() ? loopImageData.getFrameHeight()
+                    : (scriptCustomItem.isTextureAnimated() != null && scriptCustomItem.isTextureAnimated() && scriptCustomItem.getFrameCount() != null && scriptCustomItem.getFrameCount() > 1
+                        ? loopImageData.getTotalHeight() / scriptCustomItem.getFrameCount() : loopImageData.getTotalHeight());
+                ItemRenderer.renderItemIn2D(tessellator, f15, f4, f14, f5, loopImageData.getTotalWidth(), entityFrameH, f9);
 
                 if (itemStack.hasEffect(pass)) {
                     GL11.glDepthFunc(GL11.GL_EQUAL);
@@ -359,8 +376,20 @@ public class ItemCustomRenderer implements IItemRenderer {
         GL11.glDisable(GL11.GL_LIGHTING); //Forge: Make sure that render states are reset, a renderEffect can derp them up.
         GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-        ClientCacheHandler.getImageData(scriptCustomItem.getTexture()).bindTexture();
-        renderCustomItemSlot(0, 0, 16, 16, itemRed, itemGreen, itemBlue);
+        ImageData imageData = ClientCacheHandler.getImageData(scriptCustomItem.getTexture());
+        imageData.bindTexture();
+
+        float vOff = 0f;
+        float vEnd = 1f;
+        if (imageData.isAnimated()) {
+            vOff = imageData.getCurrentFrameVOffset();
+            vEnd = vOff + (float) imageData.getFrameHeight() / imageData.getTotalHeight();
+        } else if (scriptCustomItem.isTextureAnimated() != null && scriptCustomItem.isTextureAnimated()
+                && scriptCustomItem.getFrameCount() != null && scriptCustomItem.getFrameCount() > 1) {
+            vOff = AnimationHelper.getFrameVOffset(imageData.getTotalHeight(), scriptCustomItem.getFrameCount(), scriptCustomItem.getFrameTime());
+            vEnd = vOff + AnimationHelper.getFrameVSize(imageData.getTotalHeight(), scriptCustomItem.getFrameCount());
+        }
+        renderCustomItemSlot(0, 0, 16, 16, itemRed, itemGreen, itemBlue, vOff, vEnd);
 
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
@@ -412,13 +441,17 @@ public class ItemCustomRenderer implements IItemRenderer {
     }
 
     public void renderCustomItemSlot(int posX, int posY, int imageWidth, int imageHeight, float itemRed, float itemGreen, float itemBlue) {
+        renderCustomItemSlot(posX, posY, imageWidth, imageHeight, itemRed, itemGreen, itemBlue, 0f, 1f);
+    }
+
+    public void renderCustomItemSlot(int posX, int posY, int imageWidth, int imageHeight, float itemRed, float itemGreen, float itemBlue, float vOff, float vEnd) {
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
         tessellator.setColorRGBA_F(itemRed, itemGreen, itemBlue, 1.0F);
-        tessellator.addVertexWithUV((double) (posX), (double) (posY + imageHeight), 0, 0, 1);
-        tessellator.addVertexWithUV((double) (posX + imageWidth), (double) (posY + imageHeight), 0, 1, 1);
-        tessellator.addVertexWithUV((double) (posX + imageWidth), (double) (posY), 0, 1, 0);
-        tessellator.addVertexWithUV((double) (posX), (double) (posY), 0, 0, 0);
+        tessellator.addVertexWithUV((double) (posX), (double) (posY + imageHeight), 0, 0, vEnd);
+        tessellator.addVertexWithUV((double) (posX + imageWidth), (double) (posY + imageHeight), 0, 1, vEnd);
+        tessellator.addVertexWithUV((double) (posX + imageWidth), (double) (posY), 0, 1, vOff);
+        tessellator.addVertexWithUV((double) (posX), (double) (posY), 0, 0, vOff);
         tessellator.draw();
     }
 
@@ -429,7 +462,8 @@ public class ItemCustomRenderer implements IItemRenderer {
         TextureManager texturemanager = mc.getTextureManager();
         int par3 = 0;
 
-        ClientCacheHandler.getImageData(scriptCustomItem.getTexture()).bindTexture();
+        ImageData item3dImageData = ClientCacheHandler.getImageData(scriptCustomItem.getTexture());
+        item3dImageData.bindTexture();
 
         Tessellator tessellator = Tessellator.instance;
         IIcon icon = entityLivingBase.getItemIcon(itemStack, par3);
@@ -447,7 +481,19 @@ public class ItemCustomRenderer implements IItemRenderer {
         GL11.glRotatef(335.0F, 0.0F, 0.0F, 1.0F);
         GL11.glTranslatef(-0.9375F, -0.0625F, 0.0F);
 
-        renderCustomItemIn2D(scriptCustomItem, tessellator, 1.0F, 0.0F, 0.0F, 1.0F, 0.0625F);
+        // Animation V offset for 3D handheld rendering
+        float item3dVOff = 0f;
+        float item3dVEnd = 1f;
+        if (item3dImageData.isAnimated()) {
+            item3dVOff = item3dImageData.getCurrentFrameVOffset();
+            item3dVEnd = item3dVOff + (float) item3dImageData.getFrameHeight() / item3dImageData.getTotalHeight();
+        } else if (scriptCustomItem.isTextureAnimated() != null && scriptCustomItem.isTextureAnimated()
+                && scriptCustomItem.getFrameCount() != null && scriptCustomItem.getFrameCount() > 1) {
+            item3dVOff = AnimationHelper.getFrameVOffset(item3dImageData.getTotalHeight(), scriptCustomItem.getFrameCount(), scriptCustomItem.getFrameTime());
+            item3dVEnd = item3dVOff + AnimationHelper.getFrameVSize(item3dImageData.getTotalHeight(), scriptCustomItem.getFrameCount());
+        }
+
+        renderCustomItemIn2D(scriptCustomItem, tessellator, 1.0F, item3dVOff, 0.0F, item3dVEnd, 0.0625F);
 
         if (itemStack.hasEffect(par3)) {
             GL11.glDepthFunc(GL11.GL_EQUAL);
@@ -485,7 +531,10 @@ public class ItemCustomRenderer implements IItemRenderer {
     public static void renderCustomItemIn2D(IItemCustomizable wrapper, Tessellator p_78439_0_, float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, float p_78439_7_) {
         ImageData imageData = ClientCacheHandler.getImageData(wrapper.getTexture());
         int width = imageData.getTotalWidth();
-        int height = imageData.getTotalHeight();
+        // Use frame height for edge pixel calculations so animated strips render correctly
+        int height = imageData.isAnimated() ? imageData.getFrameHeight()
+            : (wrapper.isTextureAnimated() != null && wrapper.isTextureAnimated() && wrapper.getFrameCount() != null && wrapper.getFrameCount() > 1
+                ? imageData.getTotalHeight() / wrapper.getFrameCount() : imageData.getTotalHeight());
 
         p_78439_0_.startDrawingQuads();
         p_78439_0_.setNormal(0.0F, 0.0F, 1.0F);

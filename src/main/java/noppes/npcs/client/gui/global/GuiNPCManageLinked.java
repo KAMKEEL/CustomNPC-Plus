@@ -5,6 +5,7 @@ import kamkeel.npcs.network.packets.request.linked.LinkedGetAllPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedGetPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemBuildPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemRemovePacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedItemClonePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCAddPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCRemovePacket;
@@ -85,6 +86,15 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
         super.initGui();
 
         int y = guiTop + 8;
+
+        // Fullscreen button - FIRST (only for Items tab)
+        if (tab == 1) {
+            GuiNpcButton fullBtn = new GuiNpcButton(66, guiLeft + 368, y, 45, 20, "gui.fullscreen");
+            fullBtn.setTextColor(0x55FF55);
+            fullBtn.setHoverText("gui.fullscreen.tooltip");
+            this.addButton(fullBtn);
+            y += 22;
+        }
 
         this.addButton(new GuiNpcButton(10, guiLeft + 368, y, 45, 20, "gui.npcs"));
         this.addButton(new GuiNpcButton(11, guiLeft + 368, y += 22, 45, 20, "gui.items"));
@@ -216,6 +226,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
     }
 
     private List<String> getSearchList() {
+        if (data == null) return new ArrayList<String>();
         if (search.isEmpty()) {
             return new ArrayList<String>(this.data.keySet());
         }
@@ -265,6 +276,11 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             scroll.setSelected("");
         }
 
+        if (button.id == 66) {
+            mc.displayGuiScreen(new GuiLinkedItemDirectory(npc));
+            return;
+        }
+
         if (linkedItem == null)
             return;
 
@@ -273,13 +289,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
         }
         if (button.id == 4) {
             if (data.containsKey(scroll.getSelected()) && linkedItem != null && linkedItem.id >= 0) {
-                String name = linkedItem.name;
-                while (data.containsKey(name))
-                    name += "_";
-                LinkedItem linkedItemClone = this.linkedItem.clone();
-                linkedItemClone.name = name;
-                linkedItemClone.id = -1;
-                PacketClient.sendClient(new LinkedItemSavePacket(linkedItemClone.writeToNBT(false), ""));
+                PacketClient.sendClient(new LinkedItemClonePacket(this.linkedItem.id));
             }
         }
         if (button.id == 5) {
@@ -338,21 +348,21 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
             // Health
             label = StatCollector.translateToLocal("stats.health") + ": ";
-            value = String.valueOf(npc.stats.maxHealth);
+            value = "" + npc.stats.maxHealth;
             fontRendererObj.drawString(label, xLabel, y, 0x29d6b9, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
 
             // Damage (using getAttackStrength)
             label = StatCollector.translateToLocal("stats.meleestrength") + ": ";
-            value = String.valueOf(npc.stats.getAttackStrength());
+            value = "" + npc.stats.getAttackStrength();
             fontRendererObj.drawString(label, xLabel, y, 0xff5714, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
 
             // Attack Speed
             label = StatCollector.translateToLocal("stats.meleespeed") + ": ";
-            value = String.valueOf(npc.stats.attackSpeed);
+            value = "" + npc.stats.attackSpeed;
             fontRendererObj.drawString(label, xLabel, y, 0xf7ca28, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
@@ -381,7 +391,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
             // Walk Speed
             label = StatCollector.translateToLocal("stats.speed") + ": ";
-            value = String.valueOf(npc.ais.getWalkingSpeed());
+            value = "" + npc.ais.getWalkingSpeed();
             fontRendererObj.drawString(label, xLabel, y, 0xffae0d, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
@@ -415,7 +425,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
             // Version
             label = StatCollector.translateToLocal("display.version") + ": ";
-            value = String.valueOf(linkedItem.version);
+            value = "" + linkedItem.version;
             fontRendererObj.drawString(label, xLabel, y, labelColor, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
@@ -423,7 +433,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             // Max Stack Size
             labelColor = 0xff5714;
             label = StatCollector.translateToLocal("display.maxStack") + ": ";
-            value = String.valueOf(linkedItem.stackSize);
+            value = "" + linkedItem.stackSize;
             fontRendererObj.drawString(label, xLabel, y, labelColor, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
@@ -431,7 +441,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             // Dig Speed
             labelColor = 0xf7ca28;
             label = StatCollector.translateToLocal("display.digSpeed") + ": ";
-            value = String.valueOf(linkedItem.digSpeed);
+            value = "" + linkedItem.digSpeed;
             fontRendererObj.drawString(label, xLabel, y, labelColor, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
@@ -498,14 +508,14 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             labelColor = 0x7cff54;
             // isTool
             label = StatCollector.translateToLocal("display.isTool") + ": ";
-            value = String.valueOf(linkedItem.isTool).toUpperCase();
+            value = ("" + linkedItem.isTool).toUpperCase();
             fontRendererObj.drawString(label, xLabel, y, labelColor, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;
 
             // isNormalItem
             label = StatCollector.translateToLocal("display.isNormalItem") + ": ";
-            value = String.valueOf(linkedItem.isNormalItem).toUpperCase();
+            value = ("" + linkedItem.isNormalItem).toUpperCase();
             fontRendererObj.drawString(label, xLabel, y, labelColor, false);
             fontRendererObj.drawString(value, xValue, y, valueColor, false);
             y += 15;

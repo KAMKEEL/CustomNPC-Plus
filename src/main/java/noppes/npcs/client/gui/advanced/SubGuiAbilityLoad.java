@@ -1,0 +1,233 @@
+package noppes.npcs.client.gui.advanced;
+
+import kamkeel.npcs.controllers.AbilityController;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.enums.UserType;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilitiesGetPacket;
+import kamkeel.npcs.network.packets.request.ability.CustomAbilityGetPacket;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.client.gui.util.ISubGuiListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.constants.EnumScrollData;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+
+/**
+ * Dialog for loading a saved ability preset.
+ * Shows custom abilities from the server, then asks Clone/Reference via SubGuiAbilityLoadMode.
+ */
+public class SubGuiAbilityLoad extends SubGuiInterface implements ICustomScrollListener, IScrollData, IGuiData, ISubGuiListener {
+
+    private final SubGuiAbilityConfig parentConfig;
+    private final GuiNPCAbilities parentAbilities;
+    private String selectedDisplayName = null;
+    private String selectedName = null;
+
+    private HashMap<String, Integer> rawData = new HashMap<>();
+    private GuiCustomScroll scroll;
+
+    private String search = "";
+    private boolean waitingForLoad = false;
+    private int pendingLoadMode = -1;
+
+    public SubGuiAbilityLoad(SubGuiAbilityConfig parentConfig) {
+        this.parentConfig = parentConfig;
+        this.parentAbilities = null;
+
+        setBackground("menubg.png");
+        xSize = 220;
+        ySize = 216;
+
+        PacketClient.sendClient(new CustomAbilitiesGetPacket());
+    }
+
+    public SubGuiAbilityLoad(GuiNPCAbilities parentAbilities) {
+        this.parentConfig = null;
+        this.parentAbilities = parentAbilities;
+
+        setBackground("menubg.png");
+        xSize = 220;
+        ySize = 216;
+
+        PacketClient.sendClient(new CustomAbilitiesGetPacket());
+    }
+
+    @Override
+    public void initGui() {
+        super.initGui();
+
+        int y = guiTop + 5;
+
+        addLabel(new GuiNpcLabel(0, "ability.load.select", guiLeft + 10, y));
+        y += 14;
+
+        if (scroll == null) {
+            scroll = new GuiCustomScroll(this, 0);
+            scroll.setSize(200, 140);
+        }
+        scroll.guiLeft = guiLeft + 10;
+        scroll.guiTop = y;
+        scroll.setList(getFilteredList());
+        if (selectedDisplayName != null) {
+            scroll.setSelected(selectedDisplayName);
+        }
+        addScroll(scroll);
+
+        y += 143;
+
+        // Search bar
+        addTextField(new GuiNpcTextField(10, this, fontRendererObj, guiLeft + 10, y, 200, 20, search));
+
+        y += 24;
+
+        addButton(new GuiNpcButton(0, guiLeft + 10, y, 95, 20, "gui.load"));
+        addButton(new GuiNpcButton(2, guiLeft + 115, y, 95, 20, "gui.cancel"));
+
+        getButton(0).setEnabled(selectedName != null);
+    }
+
+    private List<String> getFilteredList() {
+        List<String> list = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : rawData.entrySet()) {
+            String name = entry.getKey();
+
+            // Only show NPC-valid abilities (NPC_ONLY or BOTH)
+            UserType ut = UserType.fromOrdinal(entry.getValue());
+            if (!ut.allowsNpc()) continue;
+
+            if (!search.isEmpty() && !name.toLowerCase().contains(search.toLowerCase())) {
+                continue;
+            }
+            list.add(name);
+        }
+        return list;
+    }
+
+    @Override
+    public void buttonEvent(GuiButton guibutton) {
+        int id = guibutton.id;
+
+        if (id == 0 && selectedName != null) {
+            if (parentAbilities != null) {
+                // From NPC abilities GUI - ask clone/reference
+                setSubGui(new SubGuiAbilityLoadMode());
+            } else {
+                // From config GUI - always clone
+                waitingForLoad = true;
+                pendingLoadMode = SubGuiAbilityLoadMode.MODE_CLONE;
+                PacketClient.sendClient(new CustomAbilityGetPacket(selectedName));
+            }
+        } else if (id == 2) {
+            close();
+        }
+    }
+
+    @Override
+    public void keyTyped(char c, int i) {
+        super.keyTyped(c, i);
+        if (getTextField(10) != null && getTextField(10).isFocused()) {
+            String newSearch = getTextField(10).getText();
+            if (!search.equals(newSearch)) {
+                search = newSearch;
+                scroll.resetScroll();
+                scroll.setList(getFilteredList());
+            }
+        }
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        if (subgui instanceof SubGuiAbilityLoadMode) {
+            int mode = ((SubGuiAbilityLoadMode) subgui).getResult();
+            if (mode < 0) return; // cancelled
+
+            if (mode == SubGuiAbilityLoadMode.MODE_REFERENCE) {
+                // Reference mode - just pass the reference name
+                if (parentAbilities != null && selectedName != null) {
+                    parentAbilities.loadAbilityReference(selectedName);
+                }
+                close();
+            } else {
+                // Clone mode - request full data
+                waitingForLoad = true;
+                pendingLoadMode = SubGuiAbilityLoadMode.MODE_CLONE;
+                PacketClient.sendClient(new CustomAbilityGetPacket(selectedName));
+            }
+        }
+    }
+
+    @Override
+    public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
+        if (scroll.id == 0) {
+            selectedDisplayName = scroll.getSelected();
+            selectedName = selectedDisplayName;
+            initGui();
+        }
+    }
+
+    @Override
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
+        if (scroll.id == 0 && selection != null && !selection.isEmpty()) {
+            selectedDisplayName = selection;
+            selectedName = selection;
+            if (parentAbilities != null) {
+                setSubGui(new SubGuiAbilityLoadMode());
+            } else {
+                waitingForLoad = true;
+                pendingLoadMode = SubGuiAbilityLoadMode.MODE_CLONE;
+                PacketClient.sendClient(new CustomAbilityGetPacket(selectedName));
+            }
+        }
+    }
+
+    @Override
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
+        if (type == EnumScrollData.CUSTOM_ABILITIES) {
+            rawData = data;
+            if (scroll != null) {
+                scroll.setList(getFilteredList());
+                if (selectedDisplayName != null && rawData.containsKey(selectedDisplayName)) {
+                    scroll.setSelected(selectedDisplayName);
+                }
+            }
+            initGui();
+        }
+    }
+
+    @Override
+    public void setGuiData(NBTTagCompound compound) {
+        if (waitingForLoad) {
+            waitingForLoad = false;
+            Ability loaded = AbilityController.Instance.fromNBT(compound);
+            if (loaded != null) {
+                if (parentConfig != null) {
+                    parentConfig.loadAbility(loaded);
+                } else if (parentAbilities != null) {
+                    parentAbilities.loadAbility(loaded);
+                }
+            }
+            close();
+        }
+    }
+
+    @Override
+    public void setSelected(String selected) {
+        this.selectedDisplayName = selected;
+        if (scroll != null) {
+            scroll.setSelected(selected);
+        }
+    }
+}

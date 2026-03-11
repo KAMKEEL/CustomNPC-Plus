@@ -18,6 +18,11 @@ public class EntityAILeapAtTargetNpc extends EntityAIBase {
 
     @Override
     public boolean shouldExecute() {
+        // Don't leap if ability is controlling movement
+        if (this.npc.abilities.isAbilityControllingMovement()) {
+            return false;
+        }
+
         this.leapTarget = this.npc.getAttackTarget();
         if (this.leapTarget == null) {
             return false;

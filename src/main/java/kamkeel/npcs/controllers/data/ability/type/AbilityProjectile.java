@@ -1,0 +1,374 @@
+package kamkeel.npcs.controllers.data.ability.type;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
+import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
+import noppes.npcs.api.ability.type.IAbilityProjectile;
+import noppes.npcs.client.gui.builder.FieldDef;
+
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * Projectile ability: Ranged attack that deals damage to target.
+ * Currently instant damage - can be enhanced with custom projectile entities.
+ */
+public class AbilityProjectile extends Ability implements IAbilityProjectile {
+
+    // Type-specific parameters
+    private float damage = 6.0f;
+    private float speed = 1.5f;
+    private float knockback = 0.5f;
+    private String projectileType = "fireball";
+    private boolean explosive = false;
+    private float explosionRadius = 0.0f;
+    private boolean homing = false;
+    private float homingStrength = 0.1f;
+
+    public AbilityProjectile() {
+        this.typeId = "ability.cnpc.projectile";
+        this.name = "Projectile";
+        this.targetingMode = TargetingMode.AGGRO_TARGET;
+        this.minRange = 5.0f;
+        this.maxRange = 20.0f;
+        this.cooldownTicks = 0;
+        this.windUpTicks = 15;
+        this.lockMovement = LockMode.NO;
+        // No telegraph for projectile - it's a ranged attack
+        this.telegraphType = TelegraphType.NONE;
+        this.showTelegraph = false;
+    }
+
+    @Override
+    public boolean allowBurst() {
+        return false;
+    }
+
+    @Override
+    public boolean isTargetingModeLocked() {
+        return true;
+    }
+
+    @Override
+    public TargetingMode[] getAllowedTargetingModes() {
+        return new TargetingMode[]{TargetingMode.AGGRO_TARGET};
+    }
+
+    @Override
+    public void onExecute(EntityLivingBase caster, EntityLivingBase target) {
+        if (caster.worldObj.isRemote && !isPreview()) {
+            signalCompletion();
+            return;
+        }
+
+        if (isPlayerCaster(caster)) {
+            // Player: instant hit-scan in look direction
+            executePlayerProjectile(caster, caster.worldObj);
+        } else if (target != null) {
+            // NPC: instant hit-scan on aggro target
+            executeNpcProjectile(caster, target, caster.worldObj);
+        }
+
+        signalCompletion();
+    }
+
+    /**
+     * NPC projectile: instant hit-scan damage on the aggro target.
+     */
+    private void executeNpcProjectile(EntityLivingBase caster, EntityLivingBase target, World world) {
+        if (isPreview()) return;
+
+        double dx = target.posX - caster.posX;
+        double dy = (target.posY + target.height / 2) - (caster.posY + caster.getEyeHeight());
+        double dz = target.posZ - caster.posZ;
+        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (len > 0) {
+            dx /= len;
+            dy /= len;
+            dz /= len;
+        }
+
+        applyAbilityDamageWithDirection(caster, target, damage, knockback, dx, dz);
+        world.playSoundAtEntity(caster, "random.bow", 1.0f, 0.8f);
+
+        if (explosive && explosionRadius > 0) {
+            applyExplosionDamage(caster, target, world, target.posX, target.posY, target.posZ);
+        }
+
+        spawnProjectileParticles(world, caster, target);
+    }
+
+    /**
+     * Player projectile: fires instant hit-scan in look direction.
+     * Raycasts for the first entity in range and applies damage.
+     */
+    private void executePlayerProjectile(EntityLivingBase caster, World world) {
+        if (isPreview()) return;
+
+        Vec3 look = caster.getLookVec();
+        double eyeX = caster.posX;
+        double eyeY = caster.posY + caster.getEyeHeight();
+        double eyeZ = caster.posZ;
+
+        // Raycast: find the closest entity along look direction
+        EntityLivingBase hitTarget = null;
+        double closestDist = maxRange;
+
+        @SuppressWarnings("unchecked")
+        List<Entity> candidates = world.getEntitiesWithinAABBExcludingEntity(caster,
+            caster.boundingBox.expand(maxRange, maxRange, maxRange));
+
+        for (Entity entity : candidates) {
+            if (!(entity instanceof EntityLivingBase)) continue;
+            if (entity.isDead) continue;
+
+            // Check if entity is roughly along look direction
+            double dx = entity.posX - eyeX;
+            double dy = (entity.posY + entity.height / 2) - eyeY;
+            double dz = entity.posZ - eyeZ;
+            double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (dist > maxRange || dist < 0.5) continue;
+
+            // Dot product to check alignment with look vector
+            double dot = (dx * look.xCoord + dy * look.yCoord + dz * look.zCoord) / dist;
+            if (dot < 0.95) continue; // Must be within ~18 degree cone
+
+            if (dist < closestDist) {
+                closestDist = dist;
+                hitTarget = (EntityLivingBase) entity;
+            }
+        }
+
+        world.playSoundAtEntity(caster, "random.bow", 1.0f, 0.8f);
+
+        if (hitTarget != null) {
+            applyAbilityDamageWithDirection(caster, hitTarget, damage, knockback, look.xCoord, look.zCoord);
+
+            if (explosive && explosionRadius > 0) {
+                applyExplosionDamage(caster, hitTarget, world, hitTarget.posX, hitTarget.posY, hitTarget.posZ);
+            }
+
+            spawnProjectileParticles(world, caster, hitTarget);
+        } else {
+            // No hit — spawn particles along look direction anyway
+            spawnProjectileParticlesInDirection(world, caster, look);
+        }
+    }
+
+    /**
+     * Apply explosion splash damage around a point.
+     */
+    private void applyExplosionDamage(EntityLivingBase caster, EntityLivingBase primaryTarget, World world,
+                                      double x, double y, double z) {
+        @SuppressWarnings("unchecked")
+        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(primaryTarget,
+            primaryTarget.boundingBox.expand(explosionRadius, explosionRadius, explosionRadius));
+
+        for (Entity entity : entities) {
+            if (entity instanceof EntityLivingBase && entity != caster) {
+                EntityLivingBase living = (EntityLivingBase) entity;
+                float dist = primaryTarget.getDistanceToEntity(living);
+                if (dist < explosionRadius) {
+                    float falloff = 1.0f - (dist / explosionRadius);
+                    applyAbilityDamage(caster, living, damage * falloff * 0.5f, 0);
+                }
+            }
+        }
+
+        world.playSoundAtEntity(primaryTarget, "random.explode", 0.5f, 1.0f);
+        for (int i = 0; i < 10; i++) {
+            world.spawnParticle("explode",
+                x + (world.rand.nextDouble() - 0.5) * explosionRadius,
+                y + world.rand.nextDouble() * 2,
+                z + (world.rand.nextDouble() - 0.5) * explosionRadius,
+                0, 0.1, 0);
+        }
+    }
+
+    private void spawnProjectileParticles(World world, EntityLivingBase caster, EntityLivingBase target) {
+        double startX = caster.posX;
+        double startY = caster.posY + caster.getEyeHeight();
+        double startZ = caster.posZ;
+        double endX = target.posX;
+        double endY = target.posY + target.height / 2;
+        double endZ = target.posZ;
+
+        double dx = endX - startX;
+        double dy = endY - startY;
+        double dz = endZ - startZ;
+        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        String particle = "flame";
+        if (projectileType.equals("arrow")) {
+            particle = "crit";
+        } else if (projectileType.equals("magic")) {
+            particle = "witchMagic";
+        }
+
+        // Spawn particles along path
+        int steps = (int) Math.max(5, dist * 2);
+        for (int i = 0; i < steps; i++) {
+            double progress = (double) i / steps;
+            double px = startX + dx * progress;
+            double py = startY + dy * progress;
+            double pz = startZ + dz * progress;
+            world.spawnParticle(particle, px, py, pz, 0, 0, 0);
+        }
+    }
+
+    /**
+     * Spawn projectile particles along a direction (player miss — no entity hit).
+     */
+    private void spawnProjectileParticlesInDirection(World world, EntityLivingBase caster, Vec3 look) {
+        double startX = caster.posX;
+        double startY = caster.posY + caster.getEyeHeight();
+        double startZ = caster.posZ;
+
+        String particle = "flame";
+        if (projectileType.equals("arrow")) {
+            particle = "crit";
+        } else if (projectileType.equals("magic")) {
+            particle = "witchMagic";
+        }
+
+        int steps = (int) Math.max(5, maxRange * 2);
+        for (int i = 0; i < steps; i++) {
+            double progress = (double) i / steps * maxRange;
+            double px = startX + look.xCoord * progress;
+            double py = startY + look.yCoord * progress;
+            double pz = startZ + look.zCoord * progress;
+            world.spawnParticle(particle, px, py, pz, 0, 0, 0);
+        }
+    }
+
+    @Override
+    public void onActiveTick(EntityLivingBase caster, EntityLivingBase target, int tick) {
+        // Projectile is instant, nothing to do per-tick
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return 0; // No telegraph for projectile
+    }
+
+    @Override
+    public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setFloat("damage", damage);
+        nbt.setFloat("speed", speed);
+        nbt.setFloat("knockback", knockback);
+        nbt.setString("projectileType", projectileType);
+        nbt.setBoolean("explosive", explosive);
+        nbt.setFloat("explosionRadius", explosionRadius);
+        nbt.setBoolean("homing", homing);
+        nbt.setFloat("homingStrength", homingStrength);
+    }
+
+    @Override
+    public void readTypeNBT(NBTTagCompound nbt) {
+        this.damage = nbt.getFloat("damage");
+        this.speed = nbt.getFloat("speed");
+        this.knockback = nbt.getFloat("knockback");
+        this.projectileType = nbt.getString("projectileType");
+        this.explosive = nbt.getBoolean("explosive");
+        this.explosionRadius = nbt.getFloat("explosionRadius");
+        this.homing = nbt.getBoolean("homing");
+        this.homingStrength = nbt.getFloat("homingStrength");
+    }
+
+    // Getters & Setters
+    public float getDamage() {
+        return damage;
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    @Override
+    public float getDisplayDamage() { return damage; }
+
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public float getKnockback() {
+        return knockback;
+    }
+
+    public void setKnockback(float knockback) {
+        this.knockback = knockback;
+    }
+
+    public String getProjectileType() {
+        return projectileType;
+    }
+
+    public void setProjectileType(String projectileType) {
+        this.projectileType = projectileType;
+    }
+
+    public boolean isExplosive() {
+        return explosive;
+    }
+
+    public void setExplosive(boolean explosive) {
+        this.explosive = explosive;
+    }
+
+    public float getExplosionRadius() {
+        return explosionRadius;
+    }
+
+    public void setExplosionRadius(float explosionRadius) {
+        this.explosionRadius = explosionRadius;
+    }
+
+    public boolean isHoming() {
+        return homing;
+    }
+
+    public void setHoming(boolean homing) {
+        this.homing = homing;
+    }
+
+    public float getHomingStrength() {
+        return homingStrength;
+    }
+
+    public void setHomingStrength(float homingStrength) {
+        this.homingStrength = homingStrength;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getAbilityDefinitions(List<FieldDef> defs) {
+        defs.addAll(Arrays.asList(
+            FieldDef.row(
+                FieldDef.floatField("enchantment.damage", this::getDamage, this::setDamage),
+                FieldDef.floatField("stats.speed", this::getSpeed, this::setSpeed)
+            ),
+            FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback),
+            FieldDef.stringEnumField("ability.projectileType", new String[]{"fireball", "arrow", "magic"}, this::getProjectileType, this::setProjectileType),
+            FieldDef.section("ability.section.homing"),
+            FieldDef.boolField("gui.enabled", this::isHoming, this::setHoming).hover("ability.hover.homing"),
+            FieldDef.floatField("gui.strength", this::getHomingStrength, this::setHomingStrength).visibleWhen(this::isHoming),
+            FieldDef.section("ability.section.explosive"),
+            FieldDef.boolField("gui.enabled", this::isExplosive, this::setExplosive).hover("ability.hover.explosive"),
+            FieldDef.floatField("gui.radius", this::getExplosionRadius, this::setExplosionRadius).visibleWhen(this::isExplosive),
+            AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects)
+        ));
+    }
+}
