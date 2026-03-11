@@ -11,8 +11,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a type defined within the script itself (not from Java classpath).
@@ -40,6 +42,11 @@ public class ScriptTypeInfo extends TypeInfo {
     
     // Generic type parameters declared on this type (e.g., <E>, <K, V>, <T extends Entity>)
     private final List<TypeParamInfo> declaredTypeParams = new ArrayList<>();
+
+    // Recursion guard: tracks ScriptTypeInfo instances currently being parameterized on this thread
+    // to break the cycle: parameterize → substitute → parameterize (self-referential types)
+    private static final ThreadLocal<Set<ScriptTypeInfo>> PARAMETERIZING =
+            ThreadLocal.withInitial(HashSet::new);
     
     // Parent class reference (for inner class resolution)
     private ScriptTypeInfo outerClass;
@@ -166,34 +173,48 @@ public class ScriptTypeInfo extends TypeInfo {
     @Override
     public TypeInfo parameterize(List<TypeInfo> typeArgs) {
         if (typeArgs == null || typeArgs.isEmpty()) return this;
-        ScriptTypeInfo result = new ScriptTypeInfo(getSimpleName(), getFullName(), getKind(),
-                declarationOffset, bodyStart, bodyEnd, modifiers);
-        result.setRawType(this);
-        result.setAppliedTypeArgs(typeArgs);
-        result.superClass = this.superClass;
-        result.superClassName = this.superClassName;
-        result.implementedInterfaces.addAll(this.implementedInterfaces);
-        result.implementedInterfaceNames.addAll(this.implementedInterfaceNames);
-        result.declaredTypeParams.addAll(this.declaredTypeParams);
-        result.outerClass = this.outerClass;
-        GenericContext ctx = GenericContext.forReceiver(result);
 
-        // Parameterize methods, constructors, and fields with the generic context of this type. 
-        for (Map.Entry<String, List<MethodInfo>> entry : this.methods.entrySet()) {
-            List<MethodInfo> substituted = new ArrayList<>();
-            for (MethodInfo m : entry.getValue()) substituted.add(substituteMethod(m, ctx));
-            result.methods.put(entry.getKey(), substituted);
+        Set<ScriptTypeInfo> active = PARAMETERIZING.get();
+        if (!active.add(this)) {
+            // Re-entrant call on the same raw type — fall back to shallow parameterization
+            // (no method/field substitution) to break the infinite recursion.
+            return super.parameterize(typeArgs);
         }
-        for (MethodInfo ctor : this.constructors) {
-            result.constructors.add(substituteMethod(ctor, ctx));
+
+        try {
+            ScriptTypeInfo result = new ScriptTypeInfo(getSimpleName(), getFullName(), getKind(),
+                    declarationOffset, bodyStart, bodyEnd, modifiers);
+            result.setRawType(this);
+            result.setAppliedTypeArgs(typeArgs);
+            result.superClass = this.superClass;
+            result.superClassName = this.superClassName;
+            result.implementedInterfaces.addAll(this.implementedInterfaces);
+            result.implementedInterfaceNames.addAll(this.implementedInterfaceNames);
+            result.declaredTypeParams.addAll(this.declaredTypeParams);
+            result.outerClass = this.outerClass;
+            // Use fromBindings instead of forReceiver to avoid infinite recursion:
+            // forReceiver(result) → substitute() → parameterize() → forReceiver() → ...
+            GenericContext ctx = GenericContext.fromBindings(this.declaredTypeParams, typeArgs);
+
+            // Parameterize methods, constructors, and fields with the generic context of this type. 
+            for (Map.Entry<String, List<MethodInfo>> entry : this.methods.entrySet()) {
+                List<MethodInfo> substituted = new ArrayList<>();
+                for (MethodInfo m : entry.getValue()) substituted.add(substituteMethod(m, ctx));
+                result.methods.put(entry.getKey(), substituted);
+            }
+            for (MethodInfo ctor : this.constructors) {
+                result.constructors.add(substituteMethod(ctor, ctx));
+            }
+            for (Map.Entry<String, FieldInfo> entry : this.fields.entrySet()) {
+                FieldInfo f = entry.getValue();
+                TypeInfo subType = ctx.substitute(f.getTypeInfo());
+                result.fields.put(entry.getKey(), subType != f.getTypeInfo()
+                        ? FieldInfo.external(f.getName(), subType, null, f.getModifiers()) : f);
+            }
+            return result;
+        } finally {
+            active.remove(this);
         }
-        for (Map.Entry<String, FieldInfo> entry : this.fields.entrySet()) {
-            FieldInfo f = entry.getValue();
-            TypeInfo subType = ctx.substitute(f.getTypeInfo());
-            result.fields.put(entry.getKey(), subType != f.getTypeInfo()
-                    ? FieldInfo.external(f.getName(), subType, null, f.getModifiers()) : f);
-        }
-        return result;
     }
 
     // ==================== INHERITANCE ====================

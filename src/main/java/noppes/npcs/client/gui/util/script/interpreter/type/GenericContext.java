@@ -40,6 +40,47 @@ public final class GenericContext {
     }
 
     /**
+     * Create a GenericContext directly from declared type parameters and applied type arguments.
+     * 
+     * Unlike {@link #forReceiver(TypeInfo)}, this does NOT introspect a TypeInfo, so it cannot
+     * trigger recursive parameterization. Use this inside {@code parameterize()} implementations
+     * to avoid the cycle: parameterize → forReceiver → substitute → parameterize.
+     *
+     * @param declaredParams the declared type parameters (e.g., [T, E])
+     * @param appliedArgs the applied type arguments (e.g., [String, Integer])
+     * @return a context mapping param names to applied args (with bound fallbacks for unmatched params)
+     */
+    public static GenericContext fromBindings(List<TypeParamInfo> declaredParams, List<TypeInfo> appliedArgs) {
+        if (declaredParams == null || declaredParams.isEmpty()) {
+            return EMPTY;
+        }
+
+        Map<String, TypeInfo> applied = new HashMap<>();
+        if (appliedArgs != null) {
+            int count = Math.min(declaredParams.size(), appliedArgs.size());
+            for (int i = 0; i < count; i++) {
+                TypeParamInfo declared = declaredParams.get(i);
+                TypeInfo arg = appliedArgs.get(i);
+                if (declared == null || declared.getName() == null || declared.getName().isEmpty() || arg == null) {
+                    continue;
+                }
+                applied.put(declared.getName(), arg);
+            }
+        }
+
+        Map<String, TypeInfo> bounds = new HashMap<>();
+        for (TypeParamInfo declared : declaredParams) {
+            if (declared == null) continue;
+            String name = declared.getName();
+            if (name == null || name.isEmpty()) continue;
+            TypeInfo bound = declared.getBoundTypeInfo();
+            bounds.put(name, (bound != null && bound.isResolved()) ? bound : TypeInfo.OBJECT);
+        }
+
+        return new GenericContext(applied, bounds);
+    }
+
+    /**
      * Create a GenericContext for a receiver type.
      * 
      * Fast path: returns singleton EMPTY for non-generic types (no allocation overhead).
@@ -85,7 +126,13 @@ public final class GenericContext {
                 String name = declared.getName();
                 if (name == null || name.isEmpty()) continue;
                 TypeInfo bound = declared.getBoundTypeInfo();
-                bounds.put(name, (bound != null && bound.isResolved()) ? bound : TypeInfo.OBJECT);
+                TypeInfo effectiveBound = (bound != null && bound.isResolved()) ? bound : TypeInfo.OBJECT;
+                
+                List<TypeInfo> additionalBounds = declared.getAdditionalBoundTypes();
+                if (additionalBounds != null && !additionalBounds.isEmpty()) {
+                    effectiveBound = IntersectionTypeInfo.of(effectiveBound, additionalBounds);
+                }
+                bounds.put(name, effectiveBound);
             }
         }
 
