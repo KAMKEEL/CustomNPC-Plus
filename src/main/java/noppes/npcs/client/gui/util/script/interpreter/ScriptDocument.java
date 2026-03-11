@@ -882,50 +882,55 @@ public class ScriptDocument {
                     modifiers, typeParamsClause, typeParamsClauseOffset, extendsClause, implementsClause, jsDoc));
         }
 
-        // ========== PASS 2: Build hierarchy using stack-based containment ==========
+        // ========== PASS 2a: Pre-register all type names (enables forward references) ==========
         // Sort by bodyStart ascending so outer types are processed before inner types
         rawDeclarations.sort(Comparator.comparingInt(r -> r.bodyStart));
 
-        // Stack tracks the nesting chain: top = current innermost enclosing type
-        Deque<ScriptTypeInfo> parentStack = new ArrayDeque<>();
+        // Pre-registration pass: create ScriptTypeInfo objects and register them in all
+        // lookup maps BEFORE resolving extends/implements clauses. This allows classes to
+        // reference script-defined types declared later in the file (forward references).
+        List<ScriptTypeInfo> registeredTypes = new ArrayList<>(rawDeclarations.size());
+        {
+            Deque<ScriptTypeInfo> preRegStack = new ArrayDeque<>();
+            for (RawTypeDeclaration raw : rawDeclarations) {
+                while (!preRegStack.isEmpty() && preRegStack.peek().getBodyEnd() <= raw.bodyStart) {
+                    preRegStack.pop();
+                }
 
-        for (RawTypeDeclaration raw : rawDeclarations) {
-            // Pop any parent whose body has ended before this declaration starts.
-            // This handles sibling types at the same level: when we reach InnerB,
-            // InnerA (whose bodyEnd <= InnerB.bodyStart) gets popped, leaving Outer on top.
-            while (!parentStack.isEmpty() && parentStack.peek().getBodyEnd() <= raw.bodyStart) {
-                parentStack.pop();
+                ScriptTypeInfo scriptType;
+                if (preRegStack.isEmpty()) {
+                    scriptType = ScriptTypeInfo.create(
+                            raw.name, raw.kind, raw.declOffset, raw.bodyStart, raw.bodyEnd, raw.modifiers);
+                    scriptTypes.put(raw.name, scriptType);
+                } else {
+                    ScriptTypeInfo parent = preRegStack.peek();
+                    scriptType = ScriptTypeInfo.createInner(
+                            raw.name, raw.kind, parent, raw.declOffset, raw.bodyStart, raw.bodyEnd, raw.modifiers);
+                }
+
+                if (raw.jsDoc != null) {
+                    scriptType.setJSDocInfo(raw.jsDoc);
+                }
+
+                // Parse generic type parameters early so they are available during hierarchy resolution
+                if (raw.typeParamsClause != null && !raw.typeParamsClause.trim().isEmpty()) {
+                    parseTypeParamsClause(raw.typeParamsClause, scriptType, raw.bodyStart + 1, raw.typeParamsClauseOffset);
+                }
+
+                scriptTypesByFullName.put(scriptType.getFullName(), scriptType);
+                scriptTypesByDotName.put(scriptType.getDotSeparatedName(), scriptType);
+
+                preRegStack.push(scriptType);
+                registeredTypes.add(scriptType);
             }
+        }
 
-            ScriptTypeInfo scriptType;
-            if (parentStack.isEmpty()) {
-                // Top-level type: no enclosing parent
-                scriptType = ScriptTypeInfo.create(
-                        raw.name, raw.kind, raw.declOffset, raw.bodyStart, raw.bodyEnd, raw.modifiers);
-                scriptTypes.put(raw.name, scriptType);
-            } else {
-                // Inner type: parent is top of stack. createInner sets outerClass link
-                // and adds this type to the parent's innerClasses list.
-                ScriptTypeInfo parent = parentStack.peek();
-                scriptType = ScriptTypeInfo.createInner(
-                        raw.name, raw.kind, parent, raw.declOffset, raw.bodyStart, raw.bodyEnd, raw.modifiers);
-            }
-
-            if (raw.jsDoc != null) {
-                scriptType.setJSDocInfo(raw.jsDoc);
-            }
-
-            // Parse generic type parameters (e.g., <E>, <K, V>, <T extends Entity>)
-            if (raw.typeParamsClause != null && !raw.typeParamsClause.trim().isEmpty()) {
-                parseTypeParamsClause(raw.typeParamsClause, scriptType, raw.bodyStart + 1, raw.typeParamsClauseOffset);
-            }
-
-            // Register in all lookup maps for O(1) access by any naming convention
-            scriptTypesByFullName.put(scriptType.getFullName(), scriptType);
-            scriptTypesByDotName.put(scriptType.getDotSeparatedName(), scriptType);
-
-            // Push onto stack — this type can contain further nested types
-            parentStack.push(scriptType);
+        // ========== PASS 2b: Resolve hierarchy and parse members ==========
+        // All script-defined type names are now in the lookup maps, so resolveType()
+        // can find forward-declared types during extends/implements resolution.
+        for (int i = 0; i < rawDeclarations.size(); i++) {
+            RawTypeDeclaration raw = rawDeclarations.get(i);
+            ScriptTypeInfo scriptType = registeredTypes.get(i);
 
             // Resolve extends clause (parent class inheritance)
             // Use bodyStart+1 so findEnclosingScriptType returns this type,
