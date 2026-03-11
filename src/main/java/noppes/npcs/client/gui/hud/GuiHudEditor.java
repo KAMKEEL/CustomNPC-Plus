@@ -23,6 +23,7 @@ public class GuiHudEditor extends GuiScreen {
 
     private final int HANDLE_SIZE = 10;
     private final int RESET_POSITION_ID = 100;
+    private final int RESET_SIZE_ID = 104;
 
     // IDs for cycle buttons.
     private final int CYCLE_LEFT_ID = 101;
@@ -90,9 +91,11 @@ public class GuiHudEditor extends GuiScreen {
                     rowHeight += btn.height + spacingY;
                 }
             }
-            // Always add the Reset Position button below the custom buttons.
-            GuiButton resetPos = new GuiButton(RESET_POSITION_ID, width / 2 - buttonWidth / 2, height - 70 - rowHeight, buttonWidth, 20, "Reset Position");
+            // Always add the Reset Position and Reset Size buttons below the custom buttons.
+            GuiButton resetSize = new GuiButton(RESET_SIZE_ID, startXRight, height - 70 - rowHeight, buttonWidth, 20, "Reset Size");
+            GuiButton resetPos = new GuiButton(RESET_POSITION_ID, startXLeft, height - 70 - rowHeight, buttonWidth, 20, "Reset Position");
             buttonList.add(resetPos);
+            buttonList.add(resetSize);
         }
 
         // Now update (or add if missing) the cycle buttons at the very bottom.
@@ -149,10 +152,11 @@ public class GuiHudEditor extends GuiScreen {
             int actualY = (int) (hud.posY / 100F * res.getScaledHeight());
             int margin = 5;
             int barWidth = 6; // same as WIDTH_BAR_SIZE
-            int barX = actualX + (int) (hud.overlayWidth * effectiveScale) + margin;
+            int barX = actualX + (int) ((hud.overlayWidth + margin) * effectiveScale);
             int barY = actualY + (int) (((hud.overlayHeight - 20) / 2.0F) * effectiveScale);
             int barHeight = (int) (20 * effectiveScale);
-            if (mouseX >= barX && mouseX <= barX + barWidth &&
+            int scaledBarWidth = Math.max(6, (int) (barWidth * effectiveScale));
+            if (mouseX >= barX && mouseX <= barX + scaledBarWidth &&
                 mouseY >= barY && mouseY <= barY + barHeight) {
                 resizingWidth = true;
                 selectedComponent = hud;
@@ -226,15 +230,22 @@ public class GuiHudEditor extends GuiScreen {
             }
             if (resizing) {
                 int currentMouseX = Mouse.getX() * width / mc.displayWidth;
-                int deltaX = currentMouseX - initialMouseX;
-                selectedComponent.scale = initialScale + deltaX;
+                int currentMouseY = scaledHeight - (Mouse.getY() * scaledHeight / mc.displayHeight);
+                int actualX = (int) (selectedComponent.posX / 100F * scaledWidth);
+                int actualY = (int) (selectedComponent.posY / 100F * scaledHeight);
+                // Use diagonal distance ratio so the resize handle tracks the mouse
+                float initDist = (float) Math.sqrt((double)(initialMouseX - actualX) * (initialMouseX - actualX) + (double)(initialMouseY - actualY) * (initialMouseY - actualY));
+                float currDist = (float) Math.sqrt((double)(currentMouseX - actualX) * (currentMouseX - actualX) + (double)(currentMouseY - actualY) * (currentMouseY - actualY));
+                if (initDist > 1) {
+                    selectedComponent.scale = (int) (initialScale * currDist / initDist);
+                }
                 if (selectedComponent.scale < 50) selectedComponent.scale = 50;
-                if (selectedComponent.scale > 300) selectedComponent.scale = 300;
+                if (selectedComponent.scale > 500) selectedComponent.scale = 500;
             }
             if (resizingWidth && (selectedComponent instanceof CompassHudComponent)) {
                 int currentMouseX = Mouse.getX() * width / mc.displayWidth;
                 int delta = currentMouseX - initialWidthMouseX;
-                selectedComponent.overlayWidth = initialOverlayWidth + delta;
+                selectedComponent.overlayWidth = initialOverlayWidth + (int) (delta / effectiveScale);
                 if (selectedComponent.overlayWidth < 50) selectedComponent.overlayWidth = 50;
                 if (selectedComponent.overlayWidth > 500) selectedComponent.overlayWidth = 500;
             }
@@ -265,6 +276,11 @@ public class GuiHudEditor extends GuiScreen {
                 int centerY = (res.getScaledHeight() - compHeight) / 2;
                 selectedComponent.posX = 100F * centerX / res.getScaledWidth();
                 selectedComponent.posY = 100F * centerY / res.getScaledHeight();
+                updateCustomButtons();
+            }
+        } else if (button.id == RESET_SIZE_ID) {
+            if (selectedComponent != null) {
+                selectedComponent.scale = 100;
                 updateCustomButtons();
             }
         } else if (button.id == CYCLE_LEFT_ID) {
