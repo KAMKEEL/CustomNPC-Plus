@@ -11,7 +11,10 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.controllers.APIRegistry;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.SubGuiAPISelect;
+import noppes.npcs.client.gui.util.SubGuiConfirmLink;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -127,6 +130,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         // Request data from server
         if (handler instanceof IScriptHandlerPacket)
             ((IScriptHandlerPacket) handler).requestData();
+        else
+            gui.serverDataReceived = true; // No server data to wait for
 
         return gui;
     }
@@ -366,13 +371,11 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         this.addButton(new GuiNpcButton(109, var9, this.guiTop + 78, 80, 20, "gui.website"));
-        this.addButton(new GuiNpcButton(112, var9 + 81, this.guiTop + 78, 80, 20, "gui.forum"));
-        this.addButton(new GuiNpcButton(110, var9, this.guiTop + 99, 80, 20, "script.apidoc"));
-        this.addButton(new GuiNpcButton(111, var9 + 81, this.guiTop + 99, 80, 20, "script.apisrc"));
+        this.addButton(new GuiNpcButton(110, var9 + 81, this.guiTop + 78, 80, 20, "gui.api"));
 
         // Disable all buttons until server data arrives
         if (!serverDataReceived) {
-            for (int btnId : new int[]{100, 102, 103, 104, 106, 109, 110, 111, 112}) {
+            for (int btnId : new int[]{100, 102, 103, 104, 106, 109, 110}) {
                 GuiNpcButton btn = getButton(btnId);
                 if (btn != null) btn.enabled = false;
             }
@@ -592,17 +595,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 this.openLink("https://www.curseforge.com/minecraft/mc-mods/customnpc-plus");
             }
 
-            if (i == 1) {
-                this.openLink("https://kamkeel.github.io/CustomNPC-Plus/");
-            }
-
-            if (i == 2) {
-                this.openLink("https://kamkeel.github.io/CustomNPC-Plus/");
-            }
-
-            if (i == 3) {
-                this.openLink("http://www.minecraftforge.net/forum/index.php/board,122.0.html");
-            }
             if (i == 10) {
                 handler.removeScriptUnit(this.activeTab - 1);
                 this.activeTab = 0;
@@ -698,15 +690,12 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if (guibutton.id == 110) {
-            this.displayGuiScreen(new GuiConfirmOpenLink(this, "https://github.com/KAMKEEL/CustomNPC-Plus-API", 1, true));
-        }
-
-        if (guibutton.id == 111) {
-            this.displayGuiScreen(new GuiConfirmOpenLink(this, "https://github.com/Noppes/CustomNPCsAPI", 2, true));
-        }
-
-        if (guibutton.id == 112) {
-            this.displayGuiScreen(new GuiConfirmOpenLink(this, "http://www.minecraftforge.net/forum/index.php/board,122.0.html", 3, true));
+            if (APIRegistry.Instance.size() == 1) {
+                String url = APIRegistry.Instance.getEntries().values().iterator().next();
+                this.setSubGui(new SubGuiConfirmLink(url));
+            } else {
+                this.setSubGui(new SubGuiAPISelect());
+            }
         }
 
         if (guibutton.id == 100) {

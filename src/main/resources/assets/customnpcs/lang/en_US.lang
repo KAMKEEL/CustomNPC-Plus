@@ -854,8 +854,7 @@ quest.tracking=Tracking
 quest.alerts=Alerts
 quest.noAlerts=No Alerts
 
-script.apidoc=API Docs
-script.apisrc=API Source
+gui.api=API
 
 script.scripts=Scripts
 script.hooks=Hooks
