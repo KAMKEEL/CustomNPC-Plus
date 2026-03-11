@@ -9175,6 +9175,12 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                                     constructor = info.findConstructor(argCount);
                                 }
                             }
+
+                            // Second pass: re-parse arguments with expected parameter types from resolved constructor
+                            // This enables SAM type inference for lambda arguments (e.g., Consumer<T> parameters)
+                            if (constructor != null && constructor.getParameters().size() == arguments.size()) {
+                                arguments = parseMethodArguments(openParen + 1, closeParen, constructor, info);
+                            }
                             
                             // Create MethodCallInfo for constructor
                             // Use the actual variable name (className) for variables, not the class's simple name
