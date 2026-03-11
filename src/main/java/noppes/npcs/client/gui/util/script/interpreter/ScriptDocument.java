@@ -763,12 +763,14 @@ public class ScriptDocument {
         final int bodyEnd;
         final int modifiers;
         final String typeParamsClause;
+        final int typeParamsClauseOffset; // Global offset of first char inside <...>
         final String extendsClause;
         final String implementsClause;
         final JSDocInfo jsDoc;
 
         RawTypeDeclaration(String name, TypeInfo.Kind kind, int declOffset, int bodyStart, int bodyEnd,
-                           int modifiers, String typeParamsClause, String extendsClause, String implementsClause, JSDocInfo jsDoc) {
+                           int modifiers, String typeParamsClause, int typeParamsClauseOffset,
+                           String extendsClause, String implementsClause, JSDocInfo jsDoc) {
             this.name = name;
             this.kind = kind;
             this.declOffset = declOffset;
@@ -776,6 +778,7 @@ public class ScriptDocument {
             this.bodyEnd = bodyEnd;
             this.modifiers = modifiers;
             this.typeParamsClause = typeParamsClause;
+            this.typeParamsClauseOffset = typeParamsClauseOffset;
             this.extendsClause = extendsClause;
             this.implementsClause = implementsClause;
             this.jsDoc = jsDoc;
@@ -813,6 +816,7 @@ public class ScriptDocument {
 
             // Extract type params clause <...> if present (depth-aware)
             String typeParamsClause = null;
+            int typeParamsClauseOffset = -1;
             if (scanPos < text.length() && text.charAt(scanPos) == '<') {
                 int depth = 1, i = scanPos + 1;
                 while (i < text.length() && depth > 0) {
@@ -821,6 +825,7 @@ public class ScriptDocument {
                     else if (c == '>') depth--;
                 }
                 if (depth == 0) {
+                    typeParamsClauseOffset = scanPos + 1;
                     typeParamsClause = text.substring(scanPos + 1, i - 1);
                     scanPos = i;
                     while (scanPos < text.length() && Character.isWhitespace(text.charAt(scanPos)))
@@ -874,7 +879,7 @@ public class ScriptDocument {
 
             rawDeclarations.add(new RawTypeDeclaration(
                     typeName, kind, m.start(), bodyStart, bodyEnd,
-                    modifiers, typeParamsClause, extendsClause, implementsClause, jsDoc));
+                    modifiers, typeParamsClause, typeParamsClauseOffset, extendsClause, implementsClause, jsDoc));
         }
 
         // ========== PASS 2: Build hierarchy using stack-based containment ==========
@@ -912,7 +917,7 @@ public class ScriptDocument {
 
             // Parse generic type parameters (e.g., <E>, <K, V>, <T extends Entity>)
             if (raw.typeParamsClause != null && !raw.typeParamsClause.trim().isEmpty()) {
-                parseTypeParamsClause(raw.typeParamsClause, scriptType, raw.bodyStart + 1);
+                parseTypeParamsClause(raw.typeParamsClause, scriptType, raw.bodyStart + 1, raw.typeParamsClauseOffset);
             }
 
             // Register in all lookup maps for O(1) access by any naming convention
@@ -985,15 +990,20 @@ public class ScriptDocument {
     /**
      * Parse a generic type parameters clause like "E", "K, V", or "T extends Entity"
      * into TypeParamInfo objects and add them to the script type.
+     * Validates that in multi-bound declarations (e.g., {@code T extends Number & Comparable<T>}),
+     * all bounds after the first must be interfaces (Java 8+ rule).
      */
-    private void parseTypeParamsClause(String clause, ScriptTypeInfo scriptType, int declOffset) {
-        // Split by commas at depth 0 only (respecting nested angle brackets)
+    private void parseTypeParamsClause(String clause, ScriptTypeInfo scriptType, int declOffset, int clauseStartOffset) {
         List<String> params = splitAtDepthZero(clause, ',');
+        int paramTextPos = 0;
         for (String param : params) {
             String trimmed = param.trim();
-            if (trimmed.isEmpty()) continue;
+            int leadingSpaces = param.indexOf(trimmed.isEmpty() ? param : trimmed);
+            if (trimmed.isEmpty()) {
+                paramTextPos += param.length() + 1;
+                continue;
+            }
 
-            // Find 'extends' at depth 0 — not inside nested <> brackets
             int extendsIdx = indexOfAtDepthZero(trimmed, "extends");
             String paramName = extendsIdx >= 0 ? trimmed.substring(0, extendsIdx).trim() : trimmed;
             
@@ -1009,6 +1019,10 @@ public class ScriptDocument {
             if (extendsIdx >= 0) {
                 String afterExtends = trimmed.substring(extendsIdx + 7).trim();
                 List<String> bounds = splitAtDepthZero(afterExtends, '&');
+                
+                // Track position within trimmed to find each bound's absolute location
+                int searchFrom = extendsIdx + 7;
+                
                 for (int bi = 0; bi < bounds.size(); bi++) {
                     String bound = bounds.get(bi).trim();
                     if (bound.isEmpty()) continue;
@@ -1019,10 +1033,25 @@ public class ScriptDocument {
                     }
                     if (boundEndIdx > 0) {
                         String name = bound.substring(0, boundEndIdx);
+                        
+                        // Find the position of this bound name within trimmed
+                        int nameIdxInTrimmed = trimmed.indexOf(name, searchFrom);
+                        searchFrom = nameIdxInTrimmed + name.length();
+                        
                         if (bi == 0) {
                             boundName = name;
                         } else {
                             additionalBoundNames.add(name);
+                            
+                            // Validate: secondary bounds must be interfaces
+                            if (clauseStartOffset >= 0 && nameIdxInTrimmed >= 0) {
+                                TypeInfo addBoundCheck = resolveType(name, declOffset);
+                                if (addBoundCheck != null && addBoundCheck.isResolved() && !isInterfaceType(addBoundCheck)) {
+                                    int errorStart = clauseStartOffset + paramTextPos + leadingSpaces + nameIdxInTrimmed;
+                                    int errorEnd = errorStart + name.length();
+                                    addError(null, errorStart, errorEnd, "Interface expected here");
+                                }
+                            }
                         }
                     }
                 }
@@ -1043,6 +1072,30 @@ public class ScriptDocument {
                 }
             }
             scriptType.addDeclaredTypeParam(typeParam);
+            paramTextPos += param.length() + 1;
+        }
+        
+        registerTypeParamInterfaceBounds(scriptType);
+    }
+    
+    private boolean isInterfaceType(TypeInfo typeInfo) {
+        if (typeInfo.isInterface()) return true;
+        Class<?> javaClass = typeInfo.getJavaClass();
+        if (javaClass != null) return javaClass.isInterface();
+        return false;
+    }
+    
+    private void registerTypeParamInterfaceBounds(ScriptTypeInfo scriptType) {
+        for (TypeParamInfo param : scriptType.getDeclaredTypeParams()) {
+            TypeInfo primaryBound = param.getBoundTypeInfo();
+            if (primaryBound != null && isInterfaceType(primaryBound)) {
+                scriptType.addImplementedInterface(primaryBound, primaryBound.getSimpleName());
+            }
+            for (TypeInfo addBound : param.getAdditionalBoundTypes()) {
+                if (isInterfaceType(addBound)) {
+                    scriptType.addImplementedInterface(addBound, addBound.getSimpleName());
+                }
+            }
         }
     }
 
@@ -1092,6 +1145,10 @@ public class ScriptDocument {
     }
 
     private TypeInfo parameterizeWithClause(TypeInfo baseType, String typeArgsClause, int position) {
+        return parameterizeWithClause(baseType, typeArgsClause, position, -1);
+    }
+    
+    private TypeInfo parameterizeWithClause(TypeInfo baseType, String typeArgsClause, int position, int clauseTextOffset) {
         List<String> argSegments = splitAtDepthZero(typeArgsClause, ',');
         List<TypeInfo> typeArgs = new ArrayList<>();
         for (String argName : argSegments) {
@@ -1113,9 +1170,59 @@ public class ScriptDocument {
             typeArgs.add(argType);
         }
         if (!typeArgs.isEmpty()) {
+            if (clauseTextOffset >= 0) {
+                validateTypeArgBounds(baseType, typeArgs, argSegments, clauseTextOffset);
+            }
             return baseType.parameterize(typeArgs);
         }
         return baseType;
+    }
+    
+    private void validateTypeArgBounds(TypeInfo baseType, List<TypeInfo> typeArgs, 
+                                       List<String> argSegments, int clauseTextOffset) {
+        List<TypeParamInfo> typeParams = baseType.getTypeParams();
+        if (typeParams == null || typeParams.isEmpty()) return;
+        
+        int count = Math.min(typeArgs.size(), typeParams.size());
+        int charPos = 0;
+        int segIdx = 0;
+        for (int i = 0; i < count; i++) {
+            TypeInfo argType = typeArgs.get(i);
+            TypeParamInfo param = typeParams.get(i);
+            
+            String segment = segIdx < argSegments.size() ? argSegments.get(segIdx) : "";
+            String trimmedSeg = segment.trim();
+            int leading = 0;
+            while (leading < segment.length() && Character.isWhitespace(segment.charAt(leading))) leading++;
+            
+            if (argType != null && argType.isResolved() && !trimmedSeg.isEmpty()) {
+                TypeInfo primaryBound = param.getBoundTypeInfo();
+                if (primaryBound != null && primaryBound.isResolved()) {
+                    if (!TypeChecker.isTypeCompatible(primaryBound, argType)) {
+                        int errorStart = clauseTextOffset + charPos + leading;
+                        int errorEnd = errorStart + trimmedSeg.length();
+                        addError(null, errorStart, errorEnd,
+                                "Type argument " + argType.getSimpleName() + " is not within bounds of type parameter " + 
+                                param.getName() + " (expected extends " + primaryBound.getSimpleName() + ")");
+                    }
+                }
+                
+                for (TypeInfo addBound : param.getAdditionalBoundTypes()) {
+                    if (addBound == null || !addBound.isResolved()) continue;
+                    if (!TypeChecker.isTypeCompatible(addBound, argType)) {
+                        int errorStart = clauseTextOffset + charPos + leading;
+                        int errorEnd = errorStart + trimmedSeg.length();
+                        addError(null, errorStart, errorEnd,
+                                "Type argument " + argType.getSimpleName() + " does not implement required interface " + 
+                                addBound.getSimpleName());
+                        break;
+                    }
+                }
+            }
+            
+            charPos += segment.length() + 1;
+            segIdx++;
+        }
     }
     
     private void markTypeParamDeclarations(List<ScriptLine.Mark> marks, int afterNameEnd, ScriptTypeInfo typeInfo) {
@@ -6693,7 +6800,8 @@ public class ScriptDocument {
                 // Parameterize with generic type arguments (e.g., new Box<String>(...))
                 String typeArgsClause = newMatcher.group(2);
                 if (typeArgsClause != null && !typeArgsClause.trim().isEmpty()) {
-                    baseType = parameterizeWithClause(baseType, typeArgsClause, position);
+                    int typeArgsTextOffset = position + newMatcher.start(2);
+                    baseType = parameterizeWithClause(baseType, typeArgsClause, position, typeArgsTextOffset);
                 }
                 
                 String rest = expr.substring(newMatcher.end());
@@ -7678,7 +7786,8 @@ public class ScriptDocument {
                 if (baseType != null) {
                     String typeArgsClause = newMatcher.group(2);
                     if (typeArgsClause != null && !typeArgsClause.trim().isEmpty()) {
-                        baseType = parameterizeWithClause(baseType, typeArgsClause, position);
+                        int typeArgsTextOffset = position + newMatcher.start(2);
+                        baseType = parameterizeWithClause(baseType, typeArgsClause, position, typeArgsTextOffset);
                     }
                 }
                 return baseType;
