@@ -140,6 +140,9 @@ public class ScriptDocument {
     // Declaration errors (duplicate declarations, etc.)
     private final List<AssignmentInfo> declarationErrors = new ArrayList<>();
 
+    // Centralized error list - populated by ErrorUnderlineRenderer during rendering
+    private final List<DocumentError> errors = new ArrayList<>();
+
     // Excluded regions (strings/comments) - positions where other patterns shouldn't match
     private final List<int[]> excludedRanges = new ArrayList<>();
     
@@ -361,6 +364,7 @@ public class ScriptDocument {
      */
     public void formatCodeText() {
         // Clear previous state (same for both languages)
+        errors.clear();
         imports.clear();
         methods.clear();
         globalFields.clear();
@@ -394,6 +398,9 @@ public class ScriptDocument {
 
         // Phase 7: Compute indent guides
         computeIndentGuides(marks);
+
+        // Phase 8: Populate centralized error list from all error sources
+        populateErrors();
     }
 
     // Store the last JS analyzer for autocomplete (deprecated - use methods/globalFields/methodLocals instead)
@@ -10095,6 +10102,105 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         errored.addAll(declarationErrors);
         
         return errored;
+    }
+
+    public void addError(Token token, int startPos, int endPos, String message) {
+        errors.add(new DocumentError(token, startPos, endPos, message));
+    }
+
+    public List<DocumentError> getErrors() {
+        return Collections.unmodifiableList(errors);
+    }
+
+    /**
+     * Collect all validation errors from MethodCallInfo, AssignmentInfo, MethodInfo, and ScriptTypeInfo
+     * into the centralized error list. Called once during analysis (formatCodeText), not during rendering.
+     */
+    private void populateErrors() {
+        // Method call errors
+        List<MethodInfo> allMethods = getAllMethods();
+        for (MethodCallInfo call : getMethodCalls()) {
+            boolean isDeclaration = false;
+            int methodStart = call.getMethodNameStart();
+            for (MethodInfo mi : allMethods) {
+                if (!call.isConstructor() && mi.getDeclarationOffset() <= methodStart && mi.getBodyStart() >= methodStart) {
+                    isDeclaration = true;
+                    break;
+                }
+            }
+            if (isDeclaration)
+                continue;
+
+            if (call.hasArgCountError()) {
+                int methodEnd = methodStart + call.getMethodName().length();
+                addError(null, methodStart, methodEnd, call.getErrorMessage());
+            } else if (call.hasArgTypeError()) {
+                for (MethodCallInfo.ArgumentTypeError error : call.getArgumentTypeErrors()) {
+                    MethodCallInfo.Argument arg = error.getArg();
+                    addError(null, arg.getStartOffset(), arg.getEndOffset(), error.getMessage());
+                }
+            } else if (call.hasError()) {
+                addError(null, call.getMethodNameStart(), call.getCloseParenOffset() + 1, call.getErrorMessage());
+            }
+        }
+
+        // Assignment errors
+        for (AssignmentInfo assign : getAllErroredAssignments()) {
+            int underlineStart, underlineEnd;
+
+            if (assign.isLhsError()) {
+                underlineStart = assign.getLhsStart();
+                underlineEnd = assign.getLhsEnd();
+            } else if (assign.isRhsError()) {
+                underlineStart = assign.getRhsStart();
+                underlineEnd = assign.getRhsEnd();
+            } else if (assign.isFullLineError()) {
+                underlineStart = assign.getStatementStart();
+                underlineEnd = assign.getRhsEnd();
+            } else {
+                continue;
+            }
+
+            addError(null, underlineStart, underlineEnd, assign.getErrorMessage());
+        }
+
+        // Method declaration errors
+        for (MethodInfo method : allMethods) {
+            if (!method.isDeclaration() || !method.hasError())
+                continue;
+
+            if (method.hasReturnStatementErrors()) {
+                for (MethodInfo.ReturnStatementError returnError : method.getReturnStatementErrors()) {
+                    addError(null, returnError.getStartOffset(), returnError.getEndOffset(), returnError.getMessage());
+                }
+            } else if (method.hasMissingReturnError()) {
+                int methodNameStart = method.getNameOffset();
+                int methodNameEnd = methodNameStart + method.getName().length();
+                addError(null, methodNameStart, methodNameEnd, method.getErrorMessage());
+            } else if (method.hasParameterErrors()) {
+                for (MethodInfo.ParameterError paramError : method.getParameterErrors()) {
+                    FieldInfo param = paramError.getParameter();
+                    if (param == null || param.getDeclarationOffset() < 0)
+                        continue;
+
+                    int paramStart = param.getDeclarationOffset();
+                    int paramEnd = paramStart + param.getName().length();
+                    addError(null, paramStart, paramEnd, paramError.getMessage());
+                }
+            } else if (method.hasError()) {
+                addError(null, method.getFullDeclarationOffset(), method.getDeclarationEnd(), method.getErrorMessage());
+            }
+        }
+
+        // Script type declaration errors
+        for (ScriptTypeInfo type : getScriptTypes()) {
+            if (!type.hasError())
+                continue;
+
+            int typeStart = type.getDeclarationOffset();
+            int typeEnd = type.getBodyStart();
+            addError(null, typeStart, typeEnd, type.getErrorMessage());
+        }
     }
 
     public TypeResolver getTypeResolver() {

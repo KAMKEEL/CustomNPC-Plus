@@ -1,16 +1,14 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
 import noppes.npcs.client.ClientProxy;
-import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
-import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
-import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
-import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
-import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import org.lwjgl.opengl.GL11;
 
 /**
  * Helper class for rendering error underlines in script editor lines.
- * Handles the repetitive calculation of underline positions and drawing of curly underlines.
+ * Renders underlines from the document's centralized error list ({@link DocumentError}).
+ * 
+ * <p>Error collection happens during analysis in {@link ScriptDocument#formatCodeText()}.
+ * This renderer only draws; it does not detect or collect errors.
  */
 public class ErrorUnderlineRenderer {
     private static final int ERROR_COLOR = 0xFF5555;
@@ -32,6 +30,8 @@ public class ErrorUnderlineRenderer {
 
     /**
      * Draw error underlines for all validation errors in the document that intersect the given line.
+     * Iterates over the document's centralized error list and draws underlines for each error
+     * whose span intersects this line.
      *
      * @param doc The script document containing all errors
      * @param lineStartX X coordinate where the line starts rendering
@@ -47,125 +47,10 @@ public class ErrorUnderlineRenderer {
 
         if (doc == null)
             return;
-        
 
-        // Check all method calls in the document
-        for (MethodCallInfo call : doc.getMethodCalls()) {
-            // Skip method declarations that were erroneously recorded as calls
-            boolean isDeclaration = false;
-            int methodStart = call.getMethodNameStart();
-            for (MethodInfo mi : doc.getAllMethods()) {
-                //!call.isConstructor for enum declarations
-                if (!call.isConstructor() && mi.getDeclarationOffset() <= methodStart && mi.getBodyStart() >= methodStart) {
-                    isDeclaration = true;
-                    break;
-                }
-            }
-            if (isDeclaration)
-                continue;
-
-            // Skip if this call doesn't intersect this line
-            if (call.getCloseParenOffset() < lineStart || call.getOpenParenOffset() > lineEnd)
-                continue;
-
-            // Handle arg count errors (underline the method name)
-            if (call.hasArgCountError()) {
-                int methodEnd = methodStart + call.getMethodName().length();
-                drawUnderlineForSpan(methodStart, methodEnd, lineStartX, baselineY,
-                        lineText, lineStart, lineEnd, ERROR_COLOR);
-            } else if (call.hasArgTypeError()) {
-                // Handle return type mismatch (underline the method name) - currently commented out
-                // if (call.hasReturnTypeMismatch()) { ... }
-
-                // Handle arg type errors (underline specific arguments)
-                
-                for (MethodCallInfo.ArgumentTypeError error : call.getArgumentTypeErrors()) {
-                    MethodCallInfo.Argument arg = error.getArg();
-                    drawUnderlineForSpan(arg.getStartOffset(), arg.getEndOffset(),
-                            lineStartX, baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
-                }
-            } else if(call.hasError()){
-                // Handle other call errors (underline the whole call)
-                drawUnderlineForSpan(call.getMethodNameStart(), call.getCloseParenOffset() + 1,
-                        lineStartX, baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
-            }
-        }
-
-        // Check all field accesses in the document (currently commented out)
-        // for (FieldAccessInfo access : doc.getFieldAccesses()) { ... }
-
-        // Check all errored assignments in the document
-        for (AssignmentInfo assign : doc.getAllErroredAssignments()) {
-            int underlineStart, underlineEnd;
-
-            if (assign.isLhsError()) {
-                underlineStart = assign.getLhsStart();
-                underlineEnd = assign.getLhsEnd();
-            } else if (assign.isRhsError()) {
-                underlineStart = assign.getRhsStart();
-                underlineEnd = assign.getRhsEnd();
-            } else if (assign.isFullLineError()) {
-                underlineStart = assign.getStatementStart();
-                underlineEnd = assign.getRhsEnd();
-            } else {
-                continue;
-            }
-
-            drawUnderlineForSpan(underlineStart, underlineEnd, lineStartX, baselineY,
-                    lineText, lineStart, lineEnd, ERROR_COLOR);
-        }
-
-        // Check all method declarations for errors
-        for (MethodInfo method : doc.getAllMethods()) {
-            if (!method.isDeclaration() || !method.hasError())
-                continue;
-
-            // Handle return statement type errors
-            if (method.hasReturnStatementErrors()) {
-                for (MethodInfo.ReturnStatementError returnError : method.getReturnStatementErrors()) {
-                    drawUnderlineForSpan(returnError.getStartOffset(), returnError.getEndOffset(),
-                            lineStartX, baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
-                }
-            }
-
-            // Handle missing return error (underline the method name)
-            else if (method.hasMissingReturnError()) {
-                int methodNameStart = method.getNameOffset();
-                int methodNameEnd = methodNameStart + method.getName().length();
-                drawUnderlineForSpan(methodNameStart, methodNameEnd, lineStartX, baselineY,
-                        lineText, lineStart, lineEnd, ERROR_COLOR);
-            }
-            // Handle parameter errors
-            else if (method.hasParameterErrors()) {
-                for (MethodInfo.ParameterError paramError : method.getParameterErrors()) {
-                    FieldInfo param = paramError.getParameter();
-                    if (param == null || param.getDeclarationOffset() < 0)
-                        continue;
-
-                    int paramStart = param.getDeclarationOffset();
-                    int paramEnd = paramStart + param.getName().length();
-                    drawUnderlineForSpan(paramStart, paramEnd, lineStartX, baselineY,
-                            lineText, lineStart, lineEnd, ERROR_COLOR);
-                }
-            }
-
-            // Handle all other errors
-            else if (method.hasError()) {
-                drawUnderlineForSpan(method.getFullDeclarationOffset(), method.getDeclarationEnd(), lineStartX,
-                        baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
-            }
-
-        }
-        
-        
-        for(ScriptTypeInfo types : doc.getScriptTypes()){
-            if(!types.hasError())
-                continue;
-            
-            int typeStart = types.getDeclarationOffset();
-            int typeEnd = types.getBodyStart();
-            drawUnderlineForSpan(typeStart, typeEnd, lineStartX, baselineY,
-                    lineText, lineStart, lineEnd, ERROR_COLOR);
+        for (DocumentError error : doc.getErrors()) {
+            drawUnderlineForSpan(error.getStartPos(), error.getEndPos(),
+                    lineStartX, baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
         }
     }
 
