@@ -63,9 +63,9 @@ public class RenderEnergyBeam extends RenderEnergy {
         double renderOriginY = y - headOffsetY;
         double renderOriginZ = z - headOffsetZ;
 
-        // Get beam properties
-        float beamWidth = beam.getBeamWidth();
-        float headSize = beam.getHeadSize();
+        // Get beam properties (interpolated for smooth size transitions)
+        float beamWidth = beam.getInterpolatedBeamWidth(partialTicks);
+        float headSize = beam.getInterpolatedHeadSize(partialTicks);
         int innerColor = beam.getInnerColor();
         int outerColor = beam.getOuterColor();
         float outerAlpha = beam.getOuterColorAlpha() * proximityAlpha;
@@ -105,7 +105,7 @@ public class RenderEnergyBeam extends RenderEnergy {
      * Grows from 0 to headSize based on charge progress.
      */
     private void renderChargingOrb(EntityAbilityBeam beam, double x, double y, double z, float partialTicks, float proximityAlpha) {
-        float headSize = beam.getHeadSize();
+        float headSize = beam.getInterpolatedHeadSize(partialTicks);
         float chargeProgress = beam.getInterpolatedChargeProgress(partialTicks);
         float size = headSize * chargeProgress;
 

@@ -1,0 +1,143 @@
+.card {
+  display: block;
+  text-decoration: none;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 22px;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.35s ease both;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.release::before      { background: var(--green); }
+.latest::before       { background: linear-gradient(90deg, var(--green), var(--blue)); }
+.experimental::before { background: var(--amber); }
+
+.card:hover {
+  border-color: var(--border2);
+  background: var(--bg3);
+  transform: translateY(-2px);
+}
+
+.card:hover::before { opacity: 1; }
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+
+.badgeLatest {
+  color: var(--green);
+  border-color: var(--green-dim);
+  background: rgba(57, 211, 83, 0.08);
+  animation: pulseBorder 2s ease infinite;
+}
+
+.badgeRelease {
+  color: var(--text-dim);
+  border-color: var(--border2);
+  background: transparent;
+}
+
+.badgeExperimental {
+  color: var(--amber);
+  border-color: var(--amber-dim);
+  background: rgba(240, 160, 48, 0.08);
+}
+
+.arrow {
+  font-size: 14px;
+  color: var(--border2);
+  transition: color 0.15s, transform 0.15s;
+}
+
+.card:hover .arrow {
+  color: var(--text-mid);
+  transform: translateX(3px);
+}
+
+/* ── Version ── */
+.version {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.latest .version { color: var(--green); }
+.versionBranch   { font-size: 16px; color: var(--amber); }
+
+/* ── Meta ── */
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.metaKey {
+  min-width: 36px;
+  color: var(--text-dim);
+}
+
+.metaVal {
+  color: var(--text-mid);
+  font-family: 'IBM Plex Mono', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hash { color: var(--blue); }
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseBorder {
+  0%, 100% { border-color: var(--green-dim); }
+  50%       { border-color: var(--green); }
+}

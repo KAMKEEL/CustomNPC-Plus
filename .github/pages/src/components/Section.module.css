@@ -1,0 +1,46 @@
+.section {
+  margin-top: 40px;
+  margin-bottom: 8px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 3px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.releases {
+  color: var(--green);
+  border-color: var(--green-dim);
+  background: rgba(57, 211, 83, 0.06);
+}
+
+.experimental {
+  color: var(--amber);
+  border-color: var(--amber-dim);
+  background: rgba(240, 160, 48, 0.06);
+}
+
+.line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.count {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}

@@ -31,8 +31,8 @@ public class RenderEnergyDisc extends RenderEnergy {
 
         // Get interpolated values
         float size = disc.getInterpolatedSize(partialTicks);
-        float radius = disc.getDiscRadius() * size;
-        float thickness = disc.getDiscThickness() * size;
+        float radius = disc.getInterpolatedDiscRadius(partialTicks) * size;
+        float thickness = disc.getInterpolatedDiscThickness(partialTicks) * size;
 
         // Subtle pulsing effect
         float pulseTime = entity.ticksExisted + partialTicks;

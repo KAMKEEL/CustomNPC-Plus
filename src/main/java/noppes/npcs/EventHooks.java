@@ -482,9 +482,9 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onEnergyProjectileTick(EntityEnergyProjectile projectile) {
+    public static void onEnergyProjectileTick(EntityEnergyProjectile projectile, int tick) {
         IEnergyProjectile wrapped = (IEnergyProjectile) NpcAPI.Instance().getIEntity(projectile);
-        EnergyProjectileEvent.UpdateEvent event = new EnergyProjectileEvent.UpdateEvent(wrapped);
+        EnergyProjectileEvent.UpdateEvent event = new EnergyProjectileEvent.UpdateEvent(wrapped, tick);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ENERGY_PROJECTILE_TICK, event);
 
         Entity owner = projectile.worldObj.getEntityByID(projectile.getOwnerEntityId());

@@ -33,6 +33,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
     // Laser-specific properties
     private float laserWidth = 0.2f;
+    private float prevLaserWidth = 0.2f;
     private float expansionSpeed = 2.0f; // Blocks per tick
     private float maxLength = 32.0f; // Maximum beam reach in blocks
 
@@ -144,6 +145,9 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
     @Override
     protected void updateProjectile() {
+        // Store previous values for interpolation
+        prevLaserWidth = laserWidth;
+
         if (isCharging()) {
             updateCharging();
             return;
@@ -703,7 +707,12 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
         return laserWidth;
     }
 
+    public float getInterpolatedLaserWidth(float partialTicks) {
+        return prevLaserWidth + (laserWidth - prevLaserWidth) * partialTicks;
+    }
+
     public void setLaserWidth(float width) {
+        this.prevLaserWidth = this.laserWidth;
         this.laserWidth = width;
     }
 
@@ -879,6 +888,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
 
     @Override
     protected void applyProjectileClientSyncData(NBTTagCompound nbt) {
+        prevLaserWidth = laserWidth;
         laserWidth = nbt.getFloat("LaserWidth");
         expansionSpeed = nbt.getFloat("ExpansionSpeed");
         maxLength = nbt.getFloat("MaxLength");
@@ -892,6 +902,7 @@ public class EntityAbilityLaser extends EntityEnergyProjectile {
     @Override
     protected void readProjectileNBT(NBTTagCompound nbt) {
         this.laserWidth = sanitize(nbt.hasKey("LaserWidth") ? nbt.getFloat("LaserWidth") : 0.2f, 0.2f, MAX_ENTITY_SIZE);
+        this.prevLaserWidth = this.laserWidth;
         this.expansionSpeed = sanitize(nbt.hasKey("ExpansionSpeed") ? nbt.getFloat("ExpansionSpeed") : 2.0f, 0.1f, MAX_ENTITY_SIZE);
         this.maxLength = sanitize(nbt.hasKey("MaxLength") ? nbt.getFloat("MaxLength") : 32.0f, 1.0f, MAX_ENTITY_SIZE);
         this.dirX = nbt.getDouble("DirX");
