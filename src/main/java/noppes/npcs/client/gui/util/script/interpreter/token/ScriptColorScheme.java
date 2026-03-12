@@ -178,9 +178,10 @@ public final class ScriptColorScheme {
             int lineNumberActiveColor = bg.has("lineNumberActiveColor") ? parseColor(bg.get("lineNumberActiveColor"), d.getLineNumberActiveColor(), "background.lineNumberActiveColor") : d.getLineNumberActiveColor();
             int scrollbarColor        = bg.has("scrollbarColor")        ? parseColor(bg.get("scrollbarColor"),        d.getScrollbarColor(),        "background.scrollbarColor")        : d.getScrollbarColor();
             int borderColor           = bg.has("borderColor")           ? parseColor(bg.get("borderColor"),           d.getBorderColor(),           "background.borderColor")           : d.getBorderColor();
+            int caretColor            = bg.has("caretColor")            ? parseColor(bg.get("caretColor"),            d.getCaretColor(),            "background.caretColor")            : d.getCaretColor();
 
             return new BackgroundStyleEntry(backgroundColor, gutterColor, gutterSeparatorColor,
-                    lineNumberColor, lineNumberActiveColor, scrollbarColor, borderColor);
+                    lineNumberColor, lineNumberActiveColor, scrollbarColor, borderColor, caretColor);
         } catch (Exception e) {
             LogWriter.error("[ColorScheme] Error parsing 'background', using defaults: " + e.getMessage());
             return BackgroundStyleEntry.DEFAULT;
@@ -241,7 +242,8 @@ public final class ScriptColorScheme {
                 0xFF606366, // lineNumberColor   (inactive)
                 0xFFb9c7d6, // lineNumberActiveColor (current line)
                 0xFFe0e0e0, // scrollbarColor
-                0xffa0a0a0  // borderColor       (outer border)
+                0xffa0a0a0, // borderColor       (outer border)
+                0xffffffff  // caretColor        (cursor)
         );
 
         private final int backgroundColor;
@@ -251,10 +253,11 @@ public final class ScriptColorScheme {
         private final int lineNumberActiveColor;
         private final int scrollbarColor;
         private final int borderColor;
+        private final int caretColor;
 
         BackgroundStyleEntry(int backgroundColor, int gutterColor, int gutterSeparatorColor,
                              int lineNumberColor, int lineNumberActiveColor,
-                             int scrollbarColor, int borderColor) {
+                             int scrollbarColor, int borderColor, int caretColor) {
             this.backgroundColor = backgroundColor;
             this.gutterColor = gutterColor;
             this.gutterSeparatorColor = gutterSeparatorColor;
@@ -262,6 +265,7 @@ public final class ScriptColorScheme {
             this.lineNumberActiveColor = lineNumberActiveColor;
             this.scrollbarColor = scrollbarColor;
             this.borderColor = borderColor;
+            this.caretColor = caretColor;
         }
 
         public int getBackgroundColor()       { return backgroundColor; }
@@ -271,5 +275,6 @@ public final class ScriptColorScheme {
         public int getLineNumberActiveColor() { return lineNumberActiveColor; }
         public int getScrollbarColor()        { return scrollbarColor; }
         public int getBorderColor()           { return borderColor; }
+        public int getCaretColor()            { return caretColor; }
     }
 }

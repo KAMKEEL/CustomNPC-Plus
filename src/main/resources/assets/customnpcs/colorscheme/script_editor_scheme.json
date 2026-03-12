@@ -6,7 +6,9 @@
     "lineNumberColor": "#FF606366",
     "lineNumberActiveColor": "#FFB9C7D6",
     "scrollbarColor": "#FFE0E0E0",
-    "borderColor": "#FFA0A0A0"
+    "borderColor": "#FFA0A0A0",
+    "caretColor": "#FFFFFFFF"
+
   },
   "COMMENT": {
     "color": "#FF777777",

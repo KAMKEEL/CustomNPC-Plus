@@ -1053,7 +1053,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 if (active && isEnabled() && (recentInput || (cursorCounter / 10) % 2 == 0) && (selection.getCursorPosition() >= data.start && selection.getCursorPosition() < data.end || (i == list.size() - 1 && selection.getCursorPosition() == text.length()))) {
                     int posX = x + LINE_NUMBER_GUTTER_WIDTH + ClientProxy.Font.width(
                             line.substring(0, Math.min(selection.getCursorPosition() - data.start, line.length())));
-                    drawRect(posX + 1, posY, posX + 2, posY  + container.lineHeight, 0xffffffff);
+                    drawRect(posX + 1, posY, posX + 2, posY  + container.lineHeight, ScriptColorScheme.getBackgroundStyle().getCaretColor());
                 }
             }
         }

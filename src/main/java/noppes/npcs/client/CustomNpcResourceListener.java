@@ -31,9 +31,6 @@ public class CustomNpcResourceListener implements
 
             FolderResourcePack pack = new FolderResourcePack(CustomNpcs.Dir);
             LogWriter.info("[ResourceListener] Adding FolderResourcePack: " + CustomNpcs.Dir.getAbsolutePath());
-            File schemeInFolder = new File(CustomNpcs.Dir, "assets/customnpcs/colorscheme/script_editor_scheme.json");
-            LogWriter.info("[ResourceListener] Colorscheme in customnpcs folder: " + schemeInFolder.exists()
-                    + " (" + schemeInFolder.getAbsolutePath() + ")");
             simplemanager.reloadResourcePack(pack);
             
             ScriptColorScheme.reloadColorScheme(var1);
