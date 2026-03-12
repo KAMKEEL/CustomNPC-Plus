@@ -9,6 +9,7 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.LogWriter;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -42,31 +43,10 @@ public final class ScriptColorScheme {
     public static void reloadColorScheme(IResourceManager resourceManager) {
         ResourceLocation loc = new ResourceLocation("customnpcs", "colorscheme/script_editor_scheme.json");
         try {
-            List<IResource> allResources = resourceManager.getAllResources(loc);
+            IResource resource = resourceManager.getResource(loc);
 
-            if (allResources.isEmpty()) {
-                LogWriter.info("[ColorScheme] No script_editor_scheme.json found in any resource pack, using defaults");
-                resetToDefaults();
-                return;
-            }
-
-            int count = allResources.size();
-            LogWriter.info("[ColorScheme] Found " + count + " script_editor_scheme.json resource(s):");
-            for (int i = 0; i < count; i++) {
-                IResource res = allResources.get(i);
-                String preview = peekResourceContent(res);
-                LogWriter.info("[ColorScheme]   [" + i + "] id=@" + Integer.toHexString(System.identityHashCode(res))
-                        + " preview: " + preview);
-            }
-            LogWriter.info("[ColorScheme] Using highest-priority resource (last in list, index " + (count - 1) + ")");
-
-            // Re-fetch the resource list to get a fresh InputStream for the last entry,
-            // because peekResourceContent consumed the original streams.
-            List<IResource> freshResources = resourceManager.getAllResources(loc);
-            IResource bestResource = freshResources.get(freshResources.size() - 1);
-
-            try (InputStream is = bestResource.getInputStream();
-                 InputStreamReader reader = new InputStreamReader(is, "UTF-8")) {
+            try (InputStream is = resource.getInputStream();
+                 InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
                 loadFromJson(reader);
                 LogWriter.info("[ColorScheme] Loaded script_editor_scheme.json successfully");
                 logLoadedSample();
