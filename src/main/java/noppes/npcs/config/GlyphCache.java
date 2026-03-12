@@ -78,6 +78,15 @@ public class GlyphCache {
     private static final int GLYPH_PADDING = 2;
 
     /**
+     * Spacing (in pixels) inserted between adjacent glyphs in the temporary string image during rasterization.
+     * Each glyph is shifted right by GLYPH_SPACING * glyphIndex to prevent kerning from merging adjacent glyphs.
+     * This must be >= 2 * GLYPH_PADDING + 1 so that when padded bounding boxes are extracted for adjacent glyphs,
+     * they never overlap. Without sufficient spacing, bold/italic glyphs (which have wider ink bounds) can bleed
+     * fragments of neighbouring glyphs into each other's cached texture regions.
+     */
+    private static final int GLYPH_SPACING = 2 * GLYPH_PADDING + 1;
+
+    /**
      * Transparent (alpha zero) white background color for use with BufferedImage.clearRect().
      */
     private static Color BACK_COLOR = new Color(255, 255, 255, 0);
@@ -506,7 +515,7 @@ public class GlyphCache {
                  */
                 for (int i = 0; i < numGlyphs; i++) {
                     Point2D pos = vector.getGlyphPosition(i);
-                    pos.setLocation(pos.getX() + 2 * i, pos.getY());
+                    pos.setLocation(pos.getX() + GLYPH_SPACING * i, pos.getY());
                     vector.setGlyphPosition(i, pos);
                 }
 
