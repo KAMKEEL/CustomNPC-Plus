@@ -19,6 +19,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
+import noppes.npcs.client.gui.util.script.interpreter.token.ScriptColorScheme;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.hover.GutterIconRenderer;
 import noppes.npcs.client.gui.util.script.interpreter.hover.HoverState;
@@ -597,18 +598,18 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Draw outer border around entire area
         int offset = fullscreen() ? 2 : 1;
         drawRect(x - offset, y - offset - searchBar.getTotalHeight(), x + width + offset, y + height + offset,
-                0xffa0a0a0);
+                ScriptColorScheme.getBackgroundStyle().getBorderColor());
 
         int searchHeight = searchBar.getTotalHeight();
 
 
         // Draw line number gutter background
         int viewportX = x + LINE_NUMBER_GUTTER_WIDTH;
-        drawRect(x, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, 0xff000000);
+        drawRect(x, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, ScriptColorScheme.getBackgroundStyle().getGutterColor());
         // Draw text viewport background (starts after gutter)
-        drawRect(x + LINE_NUMBER_GUTTER_WIDTH, y, x + width, y + height, 0xff000000);
+        drawRect(x + LINE_NUMBER_GUTTER_WIDTH, y, x + width, y + height, ScriptColorScheme.getBackgroundStyle().getBackgroundColor());
         // Draw separator line between gutter and text area
-        drawRect(x + LINE_NUMBER_GUTTER_WIDTH-1, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, 0xff3c3f41);
+        drawRect(x + LINE_NUMBER_GUTTER_WIDTH-1, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, ScriptColorScheme.getBackgroundStyle().getGutterSeparatorColor());
 
         // Enable scissor test to clip drawing to the TEXT viewport rectangle (excludes gutter)
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
@@ -833,13 +834,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             int lineNumX = x + LINE_NUMBER_GUTTER_WIDTH - lineNumWidth - 5 - GutterIconRenderer.ICON_GUTTER_WIDTH; // right-align before icon space
             int lineNumY = posY + 1;
             // Highlight current line number
-            int lineNumColor = 0xFF606366;
+            int lineNumColor = ScriptColorScheme.getBackgroundStyle().getLineNumberColor();
             if (active && isEnabled()) {
                 for (int li = 0; li < list.size(); li++) {
                     LineData ld = list.get(li);
                     if (selection.getCursorPosition() >= ld.start && selection.getCursorPosition() < ld.end || (li == list.size() - 1 && selection.getCursorPosition() == text.length())) {
                         if (li == i) {
-                            lineNumColor = 0xFFb9c7d6;
+                            lineNumColor = ScriptColorScheme.getBackgroundStyle().getLineNumberActiveColor();
                             break;
                         }
                     }
@@ -1078,7 +1079,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             double linesCount = (double) effLines;
             int posY = (int) (y + 1f * scroll.getScrollPos() / linesCount * (height - 4)) + 1;
 
-            drawRect(posX, posY, posX + 5, posY + sbSize + 2, 0xFFe0e0e0);
+            drawRect(posX, posY, posX + 5, posY + sbSize + 2, ScriptColorScheme.getBackgroundStyle().getScrollbarColor());
         }
 
         if (parent != null)

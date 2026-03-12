@@ -1,0 +1,167 @@
+{
+  "background": {
+    "backgroundColor": "#FF000000",
+    "gutterColor": "#FF000000",
+    "gutterSeparatorColor": "#FF3C3F41",
+    "lineNumberColor": "#FF606366",
+    "lineNumberActiveColor": "#FFB9C7D6",
+    "scrollbarColor": "#FFE0E0E0",
+    "borderColor": "#FFA0A0A0"
+  },
+  "COMMENT": {
+    "color": "#FF777777",
+    "priority": 140,
+    "bold": false,
+    "italic": false
+  },
+  "STRING": {
+    "color": "#FFCC8855",
+    "priority": 130,
+    "bold": false,
+    "italic": false
+  },
+  "JSDOC_TAG": {
+    "color": "#FFCC9933",
+    "priority": 125,
+    "bold": false,
+    "italic": false
+  },
+  "JSDOC_TYPE": {
+    "color": "#FF00AAAA",
+    "priority": 124,
+    "bold": false,
+    "italic": false
+  },
+  "UNUSED_IMPORT": {
+    "color": "#FF666666",
+    "priority": 119,
+    "bold": false,
+    "italic": false
+  },
+  "CLASS_KEYWORD": {
+    "color": "#FFFF5555",
+    "priority": 115,
+    "bold": false,
+    "italic": false
+  },
+  "IMPORT_KEYWORD": {
+    "color": "#FFFFAA00",
+    "priority": 110,
+    "bold": false,
+    "italic": false
+  },
+  "KEYWORD": {
+    "color": "#FFFF5555",
+    "priority": 100,
+    "bold": false,
+    "italic": false
+  },
+  "MODIFIER": {
+    "color": "#FFFFAA00",
+    "priority": 90,
+    "bold": false,
+    "italic": false
+  },
+  "INTERFACE_DECL": {
+    "color": "#FF55FFFF",
+    "priority": 85,
+    "bold": false,
+    "italic": false
+  },
+  "ENUM_DECL": {
+    "color": "#FFFF55FF",
+    "priority": 85,
+    "bold": false,
+    "italic": false
+  },
+  "ENUM_CONSTANT": {
+    "color": "#FF55FFFF",
+    "priority": 84,
+    "bold": true,
+    "italic": false
+  },
+  "CLASS_DECL": {
+    "color": "#FF00AAAA",
+    "priority": 85,
+    "bold": false,
+    "italic": false
+  },
+  "IMPORTED_CLASS": {
+    "color": "#FF00AAAA",
+    "priority": 75,
+    "bold": false,
+    "italic": false
+  },
+  "GENERIC_TYPE_PARAM": {
+    "color": "#FF00FA9A",
+    "priority": 76,
+    "bold": false,
+    "italic": false
+  },
+  "TYPE_DECL": {
+    "color": "#FF00AAAA",
+    "priority": 70,
+    "bold": false,
+    "italic": false
+  },
+  "METHOD_DECL": {
+    "color": "#FF00AA00",
+    "priority": 60,
+    "bold": false,
+    "italic": false
+  },
+  "METHOD_CALL": {
+    "color": "#FF55FF55",
+    "priority": 50,
+    "bold": false,
+    "italic": false
+  },
+  "UNDEFINED_VAR": {
+    "color": "#FFAA0000",
+    "priority": 20,
+    "bold": false,
+    "italic": false
+  },
+  "PARAMETER": {
+    "color": "#FF5555FF",
+    "priority": 36,
+    "bold": false,
+    "italic": false
+  },
+  "GLOBAL_FIELD": {
+    "color": "#FF55FFFF",
+    "priority": 35,
+    "bold": false,
+    "italic": false
+  },
+  "LOCAL_FIELD": {
+    "color": "#FFFFFF55",
+    "priority": 25,
+    "bold": false,
+    "italic": false
+  },
+  "STATIC_FINAL_FIELD": {
+    "color": "#FFFF55FF",
+    "priority": 36,
+    "bold": false,
+    "italic": true
+  },
+  "LITERAL": {
+    "color": "#FF777777",
+    "priority": 40,
+    "bold": false,
+    "italic": false
+  },
+  "VARIABLE": {
+    "color": "#FFFFFFFF",
+    "priority": 30,
+    "bold": false,
+    "italic": false
+  },
+  "DEFAULT": {
+    "color": "#FFFFFFFF",
+    "priority": 0,
+    "bold": false,
+    "italic": false
+  }
+}

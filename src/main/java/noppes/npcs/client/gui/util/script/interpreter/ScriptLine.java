@@ -333,7 +333,7 @@ public class ScriptLine {
                 // Get the width of everything before this segment
                 String prefix = fullText.substring(0, seg.startPos);
                 int prefixWidth = ClientProxy.Font.width(prefix);
-                int color = (seg.color & 0xFF000000) == 0 ? (0xFF000000 | seg.color) : seg.color;
+                int color =  seg.color;
 
                 // Draw this segment at the correct position
                 ClientProxy.Font.drawString(seg.text, x + prefixWidth, y, color);

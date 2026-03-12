@@ -437,7 +437,7 @@ public class TokenHoverRenderer {
         
         for (TokenHoverInfo.TextSegment segment : segments) {
             String text = segment.text;
-            int color = 0xFF000000 | segment.color;
+            int color = segment.color;
             
             // Split segment into words for wrapping
             String[] words = text.split("(?<=\\s)|(?=\\s)"); // Keep whitespace as separate tokens

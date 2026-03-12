@@ -6,81 +6,100 @@ import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
  * Defines all token types for syntax highlighting with hex colors and priorities.
  * Priority determines which token type wins when marks overlap.
  * Higher priority = wins conflicts.
+ *
+ * Style properties (color, priority, bold, italic) can be overridden at runtime
+ * via {@link ScriptColorScheme}. The enum constructor values serve as compile-time defaults.
  */
 public enum TokenType {
     // Comments and strings have highest priority - they override everything inside them
-    COMMENT(0x777777, 140),
-    STRING(0xCC8855, 130),
+    COMMENT(0xFF777777, 140),
+    STRING(0xFFCC8855, 130),
     
     // JSDoc elements - lower priority but will fill gaps left by fragmented comment marking
-    JSDOC_TAG(0xCC9933, 125),           // @param, @type, @return etc. (gold/orange)
-    JSDOC_TYPE(0x00AAAA, 124),          // {TypeName} in JSDoc (aqua like types)
+    JSDOC_TAG(0xFFCC9933, 125),           // @param, @type, @return etc. (gold/orange)
+    JSDOC_TYPE(0xFF00AAAA, 124),          // {TypeName} in JSDoc (aqua like types)
     
-    UNUSED_IMPORT(0x666666, 119),       // unused import statements (gray)
+    UNUSED_IMPORT(0xFF666666, 119),       // unused import statements (gray)
     
     // Keywords and modifiers
-    CLASS_KEYWORD(0xFF5555, 115),      // 'class', 'interface', 'enum' keywords
-    IMPORT_KEYWORD(0xFFAA00, 110),     // 'import' keyword
-    KEYWORD(0xFF5555, 100),            // control flow: if, else, for, while, etc.
-    MODIFIER(0xFFAA00, 90),            // public, private, static, final, etc.
+    CLASS_KEYWORD(0xFFFF5555, 115),      // 'class', 'interface', 'enum' keywords
+    IMPORT_KEYWORD(0xFFFFAA00, 110),     // 'import' keyword
+    KEYWORD(0xFFFF5555, 100),            // control flow: if, else, for, while, etc.
+    MODIFIER(0xFFFFAA00, 90),            // public, private, static, final, etc.
     
     // Type declarations and references
-    INTERFACE_DECL(0x55FFFF, 85),      // interface names (aqua)
-    ENUM_DECL(0xFF55FF, 85),           // enum names (magenta)
-    ENUM_CONSTANT(0x55FFFF, 84, true, false),  // enum constant values (blue, bold+italic) - like IntelliJ
-    CLASS_DECL(0x00AAAA, 85),          // class names in declarations
-    IMPORTED_CLASS(0x00AAAA, 75),      // imported class usages
-    GENERIC_TYPE_PARAM(0x00FA9A, 76), // generic type parameters like T, E, K, V (light green)
-    TYPE_DECL(0x00AAAA, 70),           // package paths, type references
+    INTERFACE_DECL(0xFF55FFFF, 85),      // interface names (aqua)
+    ENUM_DECL(0xFFFF55FF, 85),           // enum names (magenta)
+    ENUM_CONSTANT(0xFF55FFFF, 84, true, false),  // enum constant values (blue, bold+italic) - like IntelliJ
+    CLASS_DECL(0xFF00AAAA, 85),          // class names in declarations
+    IMPORTED_CLASS(0xFF00AAAA, 75),      // imported class usages
+    GENERIC_TYPE_PARAM(0xFF00FA9A, 76), // generic type parameters like T, E, K, V (light green)
+    TYPE_DECL(0xFF00AAAA, 70),           // package paths, type references
 
     // Methods
-    METHOD_DECL(0x00AA00, 60),         // method declarations (green)
-    METHOD_CALL(0x55FF55, 50),         // method calls (bright green)
+    METHOD_DECL(0xFF00AA00, 60),         // method declarations (green)
+    METHOD_CALL(0xFF55FF55, 50),         // method calls (bright green)
 
     // Variables and fields
-    UNDEFINED_VAR(0xAA0000, 20),      // unresolved variables (dark red) - high priority
-    PARAMETER(0x5555FF, 36),           // method parameters (blue)
-    GLOBAL_FIELD(0x55FFFF, 35),        // class-level fields (aqua)
-    LOCAL_FIELD(0xFFFF55, 25),         // local variables (yellow)
-    STATIC_FINAL_FIELD(0xFF55FF, 36, false, true), // static final fields (magenta, italic)
+    UNDEFINED_VAR(0xFFAA0000, 20),      // unresolved variables (dark red) - high priority
+    PARAMETER(0xFF5555FF, 36),           // method parameters (blue)
+    GLOBAL_FIELD(0xFF55FFFF, 35),        // class-level fields (aqua)
+    LOCAL_FIELD(0xFFFFFF55, 25),         // local variables (yellow)
+    STATIC_FINAL_FIELD(0xFFFF55FF, 36, false, true), // static final fields (magenta, italic)
 
     // Literals
-    LITERAL(0x777777, 40),             // numeric and boolean literals
+    LITERAL(0xFF777777, 40),             // numeric and boolean literals
 
     // Default
-    VARIABLE(0xFFFFFF, 30),            // generic variables
-    DEFAULT(0xFFFFFF, 0);              // default text color (white)
+    VARIABLE(0xFFFFFFFF, 30),            // generic variables
+    DEFAULT(0xFFFFFFFF, 0);              // default text color (white)
 
-    private final int hexColor;
-    private final int priority;
-    private final boolean bold;
-    private final boolean italic;
+    private final int defaultHexColor;
+    private final int defaultPriority;
+    private final boolean defaultBold;
+    private final boolean defaultItalic;
 
     TokenType(int hexColor, int priority) {
         this(hexColor, priority, false, false);
     }
 
     TokenType(int hexColor, int priority, boolean bold, boolean italic) {
-        this.hexColor = hexColor;
-        this.priority = priority;
-        this.bold = bold;
-        this.italic = italic;
+        this.defaultHexColor = hexColor;
+        this.defaultPriority = priority;
+        this.defaultBold = bold;
+        this.defaultItalic = italic;
     }
 
     public int getHexColor() {
-        return hexColor;
+        return ScriptColorScheme.styles[ordinal()].hexColor;
     }
 
     public int getPriority() {
-        return priority;
+        return ScriptColorScheme.styles[ordinal()].priority;
     }
 
     public boolean isBold() {
-        return bold;
+        return ScriptColorScheme.styles[ordinal()].bold;
     }
 
     public boolean isItalic() {
-        return italic;
+        return ScriptColorScheme.styles[ordinal()].italic;
+    }
+
+    int getDefaultHexColor() {
+        return defaultHexColor;
+    }
+
+    int getDefaultPriority() {
+        return defaultPriority;
+    }
+
+    boolean getDefaultBold() {
+        return defaultBold;
+    }
+
+    boolean getDefaultItalic() {
+        return defaultItalic;
     }
 
     public static TokenType getByType(TypeInfo typeInfo) {
