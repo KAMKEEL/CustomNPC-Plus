@@ -160,6 +160,7 @@ public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
     private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(60 * 1000);
     public static final HashMap<String, Object> engineObjects = new HashMap<>();
+    public static volatile long engineObjectsVersion = 0;
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
 
@@ -255,10 +256,12 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public void addGlobalObject(String key, Object obj) {
         NpcAPI.engineObjects.put(key, obj);
+        NpcAPI.engineObjectsVersion++;
     }
 
     public void removeGlobalObject(String key) {
         NpcAPI.engineObjects.remove(key);
+        NpcAPI.engineObjectsVersion++;
     }
 
     public boolean hasGlobalObject(String key) {

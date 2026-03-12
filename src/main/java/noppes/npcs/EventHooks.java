@@ -92,6 +92,7 @@ import noppes.npcs.scripted.item.ScriptItemStack;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class EventHooks {
     public EventHooks() {
@@ -1053,12 +1054,24 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
+    private static final HashMap<Class<?>, String> forgeEventNameCache = new HashMap<>();
+
+    private static String getForgeEventName(Event event) {
+        Class<?> clazz = event.getClass();
+        String cached = forgeEventNameCache.get(clazz);
+        if (cached != null)
+            return cached;
+        String eventName = clazz.getName();
+        int i = eventName.lastIndexOf(".");
+        eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
+        forgeEventNameCache.put(clazz, eventName);
+        return eventName;
+    }
+
     public static void onForgeEvent(ForgeEvent ev, Event event) {
         ForgeDataScript handler = ScriptController.Instance.forgeScripts;
         if (handler.isEnabled()) {
-            String eventName = event.getClass().getName();
-            int i = eventName.lastIndexOf(".");
-            eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
+            String eventName = getForgeEventName(event);
             if (event.isCancelable()) {
                 ev.setCanceled(event.isCanceled());
             }
