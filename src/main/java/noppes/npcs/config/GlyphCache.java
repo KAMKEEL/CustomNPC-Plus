@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -43,13 +44,13 @@ public class GlyphCache {
      * The width in pixels of every texture used for caching pre-rendered glyph images. Used by GlyphCache when calculating
      * floating point 0.0-1.0 texture coordinates. Must be a power of two for mip-mapping to work.
      */
-    private static final int TEXTURE_WIDTH = 256;
+    private static final int TEXTURE_WIDTH = 512;
 
     /**
      * The height in pixels of every texture used for caching pre-rendered glyph images. Used by GlyphCache when calculating
      * floating point 0.0-1.0 texture coordinates. Must be a power of two for mip-mapping to work.
      */
-    private static final int TEXTURE_HEIGHT = 256;
+    private static final int TEXTURE_HEIGHT = 512;
 
     /**
      * Initial width in pixels of the stringImage buffer used to extract individual glyph images.
@@ -66,7 +67,14 @@ public class GlyphCache {
      * glyphs from "bleeding through" when the scaled GUI resolution is not pixel aligned and sometimes results in off-by-one
      * sampling of the glyph cache textures.
      */
-    private static final int GLYPH_BORDER = 1;
+    private static final int GLYPH_BORDER = 2;
+
+    /**
+     * Extra padding (in pixels) added around each glyph's reported pixel bounds before blitting into the atlas.
+     * Font hinting (especially GASP-aware rendering) can cause rendered pixels to extend beyond the bounds
+     * reported by GlyphVector.getGlyphPixelBounds(). This padding ensures those overflow pixels are captured.
+     */
+    private static final int GLYPH_PADDING = 2;
 
     /**
      * Transparent (alpha zero) white background color for use with BufferedImage.clearRect().
@@ -282,6 +290,11 @@ public class GlyphCache {
         return (int) (font.getLineMetrics(s, this.fontRenderContext).getHeight());
     }
 
+    java.awt.font.LineMetrics getLineMetrics(String s) {
+        Font font = lookupFont(s.toCharArray(), 0, s.length(), 0);
+        return font.getLineMetrics(s, this.fontRenderContext);
+    }
+
     /**
      * Given a single OpenType font, perform full text layout and create a new GlyphVector for a string.
      *
@@ -422,6 +435,9 @@ public class GlyphCache {
                  */
                 vectorBounds = vector.getPixelBounds(fontRenderContext, 0, 0);
 
+                /* Expand bounds to account for hinting overflow */
+                vectorBounds.grow(GLYPH_PADDING, GLYPH_PADDING);
+
                 /* Enlage the stringImage if it is too small to store the entire rendered string */
                 if (stringImage == null || vectorBounds.width > stringImage.getWidth() || vectorBounds.height > stringImage.getHeight()) {
                     int width = Math.max(vectorBounds.width, stringImage.getWidth());
@@ -429,7 +445,7 @@ public class GlyphCache {
                     allocateStringImage(width, height);
                 }
 
-                /* Erase the upper-left corner where the string will get drawn*/
+                /* Erase the region where the string will get drawn (expanded for hinting overflow) */
                 stringGraphics.clearRect(0, 0, vectorBounds.width, vectorBounds.height);
 
                 /* Draw string with opaque white color and baseline adjustment so the upper-left corner of the image is at (0,0) */
@@ -441,8 +457,12 @@ public class GlyphCache {
              * by this method is positioned around the origin of each individual glyph." However, the actual
              * bounds are all relative to the start of the entire GlyphVector, which is actually more useful
              * for extracting the glyph's image from the rendered string.
+             *
+             * Passing fontRenderContext ensures bounds match the GASP-aware rendering hints.
+             * The rect is then grown by GLYPH_PADDING to capture any hinting overflow pixels.
              */
-            Rectangle rect = vector.getGlyphPixelBounds(index, null, -vectorBounds.x, -vectorBounds.y);
+            Rectangle rect = vector.getGlyphPixelBounds(index, fontRenderContext, -vectorBounds.x, -vectorBounds.y);
+            rect.grow(GLYPH_PADDING, GLYPH_PADDING);
 
             /* If the current line in cache image is full, then advance to the next line */
             if (cachePosX + rect.width + GLYPH_BORDER > TEXTURE_WIDTH) {
@@ -573,10 +593,20 @@ public class GlyphCache {
     private void setRenderingHints() {
         stringGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
             antiAliasEnabled ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
-        stringGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-            antiAliasEnabled ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+
+        if (antiAliasEnabled) {
+            stringGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+            stringGraphics.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY);
+        } else {
+            stringGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+        }
 
         stringGraphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
+
+        fontRenderContext = stringGraphics.getFontRenderContext();
     }
 
     /**
@@ -608,8 +638,10 @@ public class GlyphCache {
             GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, imageBuffer);
 
         /* Explicitely disable mipmap support becuase updateTexture() will only update the base level 0 */
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
     }
 
     /**
