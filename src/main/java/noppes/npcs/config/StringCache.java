@@ -73,8 +73,9 @@ public class StringCache {
      */
     private static final int STRIKETHROUGH_THICKNESS = 2;
 
-    // BetterFonts renders glyphs at 2x internal resolution; this scale converts to GUI coords
-    private static final float RENDER_SCALE = 0.5F;
+    // BetterFonts base scale: maps internal 2x glyph coords to GUI coords.
+    // With scale-aware rasterization, the effective scale becomes BASE_RENDER_SCALE / guiScaleFactor.
+    private static final float BASE_RENDER_SCALE = 0.5F;
     private static final boolean FONT_DEBUG_LOG = Boolean.getBoolean("cnpc.font.debug");
     private static final boolean FONT_DEBUG_DISABLE_INK_OFFSET = Boolean.getBoolean("cnpc.font.debug.disableInkOffset");
 
@@ -90,8 +91,14 @@ public class StringCache {
         return c == '"' ? "\\\"" : String.valueOf(c);
     }
 
-    private static float pixelSnap(float coord) {
-        return (float) Math.floor(coord * 2.0F + 0.5F) * RENDER_SCALE;
+    private float renderScale() {
+        return BASE_RENDER_SCALE / glyphCache.getGuiScaleFactor();
+    }
+
+    private float pixelSnap(float coord) {
+        float scale = renderScale();
+        float invScale = 1.0F / scale;
+        return (float) Math.floor(coord * invScale + 0.5F) * scale;
     }
 
     private int baselineOffset = BASELINE_OFFSET;
@@ -468,7 +475,8 @@ public class StringCache {
             if (g.y > maxY)
                 maxY = g.y;
         }
-        fontHeight = (int) ((maxY + height) / 2.0F - minY / 2.0F);
+        int scaleFactor = glyphCache.getGuiScaleFactor();
+        fontHeight = (int) (((maxY + height) - minY) / 2.0F / scaleFactor);
         updateFontMetrics();
     }
 
@@ -477,9 +485,34 @@ public class StringCache {
         float ascent = lm.getAscent();
         float descent = lm.getDescent();
 
-        baselineOffset = (int) (ascent * RENDER_SCALE + 0.5f);
+        /*
+         * baselineOffset is added directly to startY (GUI pixels) at render time, so it must be a
+         * scale-invariant GUI-pixel value. The constant BASELINE_OFFSET (7) is correct for the default
+         * 18pt font and remains stable across all GUI scale factors because it operates in GUI coordinate
+         * space — independent of the glyph rasterization scale.
+         *
+         * A dynamic formula like (ascent - padding) * renderScale is fragile: ascent comes from the
+         * scaled font (fontSize * scaleFactor) and rounding/font-metric variations across scales can
+         * produce values 1-2 pixels too large, visibly shifting text down within its highlight box.
+         */
+        baselineOffset = BASELINE_OFFSET;
+
+        /*
+         * underlineOffset and strikethroughOffset are multiplied by renderScale() at draw time
+         * (same as glyph.x/glyph.y), so they must be in glyph-space pixels. These scale correctly
+         * because ascent/descent are proportional to the rasterization size.
+         */
         underlineOffset = (int) (descent * 0.25f + 0.5f);
         strikethroughOffset = -(int) (ascent * 0.35f + 0.5f);
+    }
+
+    private void checkForScaleChange() {
+        if (glyphCache.checkAndUpdateScaleFactor()) {
+            weakRefCache.clear();
+            stringCache.clear();
+            cacheDightGlyphs();
+            updateHeight();
+        }
     }
 
     /**
@@ -518,6 +551,8 @@ public class StringCache {
             return 0;
         }
 
+        /* Detect window resize: if GUI scale factor changed, invalidate all caches and re-rasterize */
+        checkForScaleChange();
 
         /* Make sure the entire string is cached before rendering and return its glyph representation */
         Entry entry = cacheString(str);
@@ -615,10 +650,11 @@ public class StringCache {
             if (FONT_DEBUG_DISABLE_INK_OFFSET) {
                 glyphX = glyph.x;
             }
-            float x1 = pixelSnap(startX + (glyphX) * RENDER_SCALE);
-            float x2 = pixelSnap(startX + (glyphX + texture.width) * RENDER_SCALE);
-            float y1 = pixelSnap(startY + (glyph.y) * RENDER_SCALE);
-            float y2 = pixelSnap(startY + (glyph.y + texture.height) * RENDER_SCALE);
+            float rs = renderScale();
+            float x1 = pixelSnap(startX + (glyphX) * rs);
+            float x2 = pixelSnap(startX + (glyphX + texture.width) * rs);
+            float y1 = pixelSnap(startY + (glyph.y) * rs);
+            float y2 = pixelSnap(startY + (glyph.y + texture.height) * rs);
 
             if (FONT_DEBUG_LOG && isSpacingDebugGlyph(c)) {
                 LogWriter.info("[StringCache glyph-debug] char='" + debugGlyphLabel(c) + "' idx=" + glyph.stringIndex +
@@ -667,10 +703,11 @@ public class StringCache {
                 /* Draw underline under glyph if the style is enabled */
                 if ((renderStyle & ColorCode.UNDERLINE) != 0) {
                     /* The divide by 2.0F is needed to align with the scaled GUI coordinate system; startX/startY are already scaled */
-                    float x1 = pixelSnap(startX + (glyph.x - glyphSpace) * RENDER_SCALE);
-                    float x2 = pixelSnap(startX + (glyph.x + glyph.advance) * RENDER_SCALE);
-                    float y1 = pixelSnap(startY + (underlineOffset) * RENDER_SCALE);
-                    float y2 = pixelSnap(startY + (underlineOffset + UNDERLINE_THICKNESS) * RENDER_SCALE);
+                    float urs = renderScale();
+                    float x1 = pixelSnap(startX + (glyph.x - glyphSpace) * urs);
+                    float x2 = pixelSnap(startX + (glyph.x + glyph.advance) * urs);
+                    float y1 = pixelSnap(startY + (underlineOffset) * urs);
+                    float y2 = pixelSnap(startY + (underlineOffset + UNDERLINE_THICKNESS) * urs);
 
                     tessellator.addVertex(x1, y1, 0);
                     tessellator.addVertex(x1, y2, 0);
@@ -681,10 +718,11 @@ public class StringCache {
                 /* Draw strikethrough in the middle of glyph if the style is enabled */
                 if ((renderStyle & ColorCode.STRIKETHROUGH) != 0) {
                     /* The divide by 2.0F is needed to align with the scaled GUI coordinate system; startX/startY are already scaled */
-                    float x1 = pixelSnap(startX + (glyph.x - glyphSpace) * RENDER_SCALE);
-                    float x2 = pixelSnap(startX + (glyph.x + glyph.advance) * RENDER_SCALE);
-                    float y1 = pixelSnap(startY + (strikethroughOffset) * RENDER_SCALE);
-                    float y2 = pixelSnap(startY + (strikethroughOffset + STRIKETHROUGH_THICKNESS) * RENDER_SCALE);
+                    float srs = renderScale();
+                    float x1 = pixelSnap(startX + (glyph.x - glyphSpace) * srs);
+                    float x2 = pixelSnap(startX + (glyph.x + glyph.advance) * srs);
+                    float y1 = pixelSnap(startY + (strikethroughOffset) * srs);
+                    float y2 = pixelSnap(startY + (strikethroughOffset + STRIKETHROUGH_THICKNESS) * srs);
 
                     tessellator.addVertex(x1, y1, 0);
                     tessellator.addVertex(x1, y2, 0);
@@ -700,7 +738,7 @@ public class StringCache {
 
 
         /* Return total horizontal advance (slightly wider than the bounding box, but close enough for centering strings) */
-        return entry.advance / 2;
+        return (int) (entry.advance * renderScale());
     }
 
     /**
@@ -715,11 +753,13 @@ public class StringCache {
             return 0;
         }
 
+        checkForScaleChange();
+
         /* Make sure the entire string is cached and rendered since it will probably be used again in a renderString() call */
         Entry entry = cacheString(str);
 
         /* Return total horizontal advance (slightly wider than the bounding box, but close enough for centering strings) */
-        return entry.advance / 2;
+        return (int) (entry.advance * renderScale());
     }
 
     /**
@@ -738,8 +778,8 @@ public class StringCache {
             return 0;
         }
 
-        /* Convert the width from GUI coordinate system to pixels */
-        width += width;
+        /* Convert the width from GUI coordinate system to internal glyph pixels */
+        width = (int) (width / renderScale());
 
         /* The glyph array for a string is sorted by the string's logical character position */
         Glyph glyphs[] = cacheString(str).glyphs;

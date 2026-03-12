@@ -1,6 +1,7 @@
 package noppes.npcs.config;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
@@ -91,6 +92,21 @@ public class GlyphCache {
      */
     private boolean antiAliasEnabled = false;
 
+    /**
+     * The current Minecraft GUI scale factor (1-4). Glyphs are rasterized at fontSize * guiScaleFactor
+     * so the atlas has enough texel density for the actual display resolution. This prevents
+     * GL_LINEAR texture filtering from diluting alpha values at high resolutions.
+     */
+    private int guiScaleFactor = 1;
+
+    /**
+     * Return the GUI scale factor used for glyph rasterization. StringCache uses this
+     * to compute an effective render scale that compensates for the larger atlas images.
+     */
+    int getGuiScaleFactor() {
+        return guiScaleFactor;
+    }
+
 
     /**
      * Temporary image for rendering a string to and then extracting the glyph images from.
@@ -101,6 +117,7 @@ public class GlyphCache {
      * The Graphics2D associated with stringImage and used for string drawing to extract the individual glyph shapes.
      */
     private Graphics2D stringGraphics;
+
 
 
     /**
@@ -280,6 +297,7 @@ public class GlyphCache {
 
         fontSize = size;
         antiAliasEnabled = antiAlias;
+        guiScaleFactor = queryGuiScaleFactor();
         setRenderingHints();
     }
 
@@ -295,8 +313,48 @@ public class GlyphCache {
 
             fontSize = size;
             antiAliasEnabled = antiAlias;
+            guiScaleFactor = queryGuiScaleFactor();
             setRenderingHints();
         }
+    }
+
+    private static int queryGuiScaleFactor() {
+        try {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc != null && mc.displayWidth > 0 && mc.displayHeight > 0) {
+                ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+                return Math.max(1, sr.getScaleFactor());
+            }
+        } catch (Exception ignored) {
+        }
+        return 1;
+    }
+
+    /**
+     * Check if the GUI scale factor has changed (e.g. due to window resize) and invalidate the glyph
+     * cache if so. Glyphs must be re-rasterized at the new density to prevent GL_LINEAR filtering
+     * from diluting alpha at high display resolutions.
+     *
+     * @return true if the scale factor changed and glyphs were invalidated
+     */
+    boolean checkAndUpdateScaleFactor() {
+        int newScale = queryGuiScaleFactor();
+        if (newScale != guiScaleFactor) {
+            guiScaleFactor = newScale;
+            invalidateGlyphCache();
+            return true;
+        }
+        return false;
+    }
+
+    private void invalidateGlyphCache() {
+        glyphCache.clear();
+        fontCache.clear();
+        cachePosX = GLYPH_BORDER;
+        cachePosY = GLYPH_BORDER;
+        cacheLineHeight = 0;
+        allocateGlyphCacheTexture();
+        allocateStringImage(STRING_WIDTH, STRING_HEIGHT);
     }
 
     int fontHeight(String s) {
@@ -338,6 +396,9 @@ public class GlyphCache {
      * @return an OpenType font capable of displaying at least the first character at the start position in text
      */
     Font lookupFont(char text[], int start, int limit, int style) {
+        /* Rasterize at scaled size so atlas texel density matches display resolution */
+        int renderSize = fontSize * guiScaleFactor;
+
         /* Try using an already known base font; the first font in usedFonts list is the one set with setDefaultFont() */
         Iterator<Font> iterator = usedFonts.iterator();
         while (iterator.hasNext()) {
@@ -345,7 +406,7 @@ public class GlyphCache {
             Font font = iterator.next();
             if (font.canDisplayUpTo(text, start, limit) != start) {
                 /* Return a font instance of the proper point size and style; usedFonts has only 1pt sized plain style fonts */
-                return font.deriveFont(style, fontSize);
+                return font.deriveFont(style, renderSize);
             }
         }
 
@@ -360,7 +421,7 @@ public class GlyphCache {
                 usedFonts.add(font);
 
                 /* Return a font instance of the proper point size and style; allFonts has only 1pt sized plain style fonts */
-                return font.deriveFont(style, fontSize);
+                return font.deriveFont(style, renderSize);
             }
         }
 
@@ -368,7 +429,7 @@ public class GlyphCache {
         Font font = usedFonts.get(0);
 
         /* Return a font instance of the proper point size and style; usedFonts only 1pt sized plain style fonts */
-        return font.deriveFont(style, fontSize);
+        return font.deriveFont(style, renderSize);
     }
 
     /**
@@ -460,7 +521,7 @@ public class GlyphCache {
                 /* Expand bounds to account for hinting overflow */
                 vectorBounds.grow(GLYPH_PADDING, GLYPH_PADDING);
 
-                /* Enlage the stringImage if it is too small to store the entire rendered string */
+                /* Enlarge the stringImage if it is too small to store the entire rendered string */
                 if (stringImage == null || vectorBounds.width > stringImage.getWidth() || vectorBounds.height > stringImage.getHeight()) {
                     int width = Math.max(vectorBounds.width, stringImage.getWidth());
                     int height = Math.max(vectorBounds.height, stringImage.getHeight());
@@ -615,16 +676,19 @@ public class GlyphCache {
         stringGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
             antiAliasEnabled ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
 
-        if (antiAliasEnabled) {
-            stringGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
-            stringGraphics.setRenderingHint(RenderingHints.KEY_RENDERING,
-                RenderingHints.VALUE_RENDER_QUALITY);
-        } else {
-            stringGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-        }
+//        if (antiAliasEnabled) {
+//            stringGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+//                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+//            stringGraphics.setRenderingHint(RenderingHints.KEY_RENDERING,
+//                RenderingHints.VALUE_RENDER_QUALITY);
+//        } else {
+//            stringGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+//                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+//        }
 
+        stringGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        stringGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         stringGraphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
 
         fontRenderContext = stringGraphics.getFontRenderContext();
