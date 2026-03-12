@@ -586,6 +586,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new UpdateAnimationsPacket());
         DATA_PACKET.registerPacket(new VillagerListPacket());
         DATA_PACKET.registerPacket(new PlayerDataInfoPacket());
+        DATA_PACKET.registerPacket(new ProfileSharedQuestPacket());
 
         // Data | GUI Packets
         DATA_PACKET.registerPacket(new GuiClosePacket());

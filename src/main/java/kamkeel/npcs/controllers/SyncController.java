@@ -12,6 +12,7 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.network.packets.data.LoginPacket;
+import kamkeel.npcs.network.packets.data.ProfileSharedQuestPacket;
 import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.AbilityHotbarSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilitySyncPacket;
@@ -184,6 +185,7 @@ public class SyncController {
         DBCAddon.instance.syncPlayer(player);
         syncPlayerData(player, false);
         PartyInfoPacket.sendPartyData(player);
+        ProfileSharedQuestPacket.sendToPlayer(player);
 
         // Sync skin overlays after full handshake to ensure the client is ready.
         // Overlays are not part of getSyncNBTFull(), and packets sent during

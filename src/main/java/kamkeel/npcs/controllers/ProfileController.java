@@ -7,7 +7,9 @@ import kamkeel.npcs.controllers.data.profile.Profile;
 import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
 import kamkeel.npcs.controllers.data.profile.ProfileOperation;
 import kamkeel.npcs.controllers.data.profile.Slot;
+import kamkeel.npcs.network.packets.data.ProfileSharedQuestPacket;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
@@ -453,6 +455,9 @@ public class ProfileController implements IProfileHandler {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             verifySlotQuests(profile.player);
             save(profile.player, profile);
+            if (profile.player instanceof EntityPlayerMP) {
+                ProfileSharedQuestPacket.sendToPlayer((EntityPlayerMP) profile.player);
+            }
 
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
             EventHooks.onProfileCreate(handler, scriptPlayer, profile, newSlotId, true);
@@ -524,6 +529,9 @@ public class ProfileController implements IProfileHandler {
             saveSlotData(profile.player, profile, prevSlot);
             loadSlotData(profile.player, profile, newSlotId);
             syncSharedQuestsToPlayer(profile.player);
+            if (profile.player instanceof EntityPlayerMP) {
+                ProfileSharedQuestPacket.sendToPlayer((EntityPlayerMP) profile.player);
+            }
 
             EventHooks.onProfileChange(handler, scriptPlayer, profile, newSlotId, prevSlot, true);
         } else {
@@ -901,5 +909,8 @@ public class ProfileController implements IProfileHandler {
             profile.sharedQuestTimestamps.put(questId, completeTime);
         }
         save(player, profile);
+        if (player instanceof EntityPlayerMP) {
+            ProfileSharedQuestPacket.sendToPlayer((EntityPlayerMP) player);
+        }
     }
 }
