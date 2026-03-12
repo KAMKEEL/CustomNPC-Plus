@@ -1,7 +1,11 @@
 package noppes.npcs.client;
 
+import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.data.profile.Profile;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.config.ConfigMain;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,15 +31,34 @@ public class ProfileClientConfig {
         sharedQuestTimestamps = new HashMap<>();
     }
 
-    public static Map<Integer, Long> getSharedQuestTimestamps() {
-        return sharedQuestTimestamps;
+    /**
+     * Whether profiles are enabled, checking the correct source for each side.
+     */
+    public static boolean isProfilesEnabled() {
+        if (ProfileController.Instance != null)
+            return ConfigMain.ProfilesEnabled;
+        return ClientCacheHandler.allowProfiles;
     }
 
-    public static boolean hasSharedQuest(int questId) {
+    /**
+     * Check if a quest has a shared timestamp, resolving from server or client cache.
+     */
+    public static boolean hasSharedQuest(EntityPlayer player, int questId) {
+        if (ProfileController.Instance != null) {
+            Profile profile = ProfileController.Instance.getProfile(player);
+            return profile != null && profile.sharedQuestTimestamps.containsKey(questId);
+        }
         return sharedQuestTimestamps.containsKey(questId);
     }
 
-    public static Long getSharedQuestTimestamp(int questId) {
+    /**
+     * Get the shared quest timestamp, resolving from server or client cache.
+     */
+    public static Long getSharedQuestTimestamp(EntityPlayer player, int questId) {
+        if (ProfileController.Instance != null) {
+            Profile profile = ProfileController.Instance.getProfile(player);
+            return profile != null ? profile.sharedQuestTimestamps.get(questId) : null;
+        }
         return sharedQuestTimestamps.get(questId);
     }
 }
