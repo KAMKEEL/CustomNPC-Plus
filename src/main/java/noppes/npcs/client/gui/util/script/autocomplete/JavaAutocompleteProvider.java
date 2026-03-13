@@ -10,8 +10,6 @@ import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -100,92 +98,52 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         if (receiverExpr == null || receiverExpr.isEmpty()) {
             return;
         }
+
+        // Resolve position once — used for both type resolution and static context detection
+        int resolvePos = getMemberAccessResolvePosition(context);
         
-        // Resolve the type of the receiver expression
-        TypeInfo receiverType = document.resolveExpressionType(receiverExpr, getMemberAccessResolvePosition(context));
+        TypeInfo receiverType = document.resolveExpressionType(receiverExpr, resolvePos);
         
         if (receiverType == null || !receiverType.isResolved()) {
             return;
         }
         
-        // Determine if this is a static context (accessing a class type)
-        boolean isStaticContext = isStaticAccess(receiverExpr, getMemberAccessResolvePosition(context));
+        boolean isStaticContext = isStaticAccess(receiverExpr, resolvePos);
         
-        Class<?> clazz = receiverType.getJavaClass();
-        if (clazz == null) {
-            // Try ScriptTypeInfo
-            if (receiverType instanceof ScriptTypeInfo) {
-                addScriptTypeMembers((ScriptTypeInfo) receiverType, items, isStaticContext, context.methodsOnly);
-            }
-            return;
-        }
-        
-        // Add methods
+        // Shared deduplication sets across all member sources
         Set<String> addedMethods = new HashSet<>();
-        for (Method method : clazz.getMethods()) {
-            if (Modifier.isPublic(method.getModifiers())) {
-                // Filter by static context
-                if (isStaticContext && !Modifier.isStatic(method.getModifiers())) {
-                    continue;
-                }
-                
-                String sig = method.getName() + "(" + method.getParameterCount() + ")";
-                if (!addedMethods.contains(sig)) {
-                    addedMethods.add(sig);
-                    MethodInfo methodInfo = MethodInfo.fromReflection(method, receiverType);
-                    items.add(AutocompleteItem.fromMethod(methodInfo, context.methodsOnly));
-                }
-            }
-        }
+        Set<String> addedFields = new HashSet<>();
 
-        for (MethodInfo method : receiverType.getSyntheticMethods()) {
-            if (isStaticContext && !Modifier.isStatic(method.getModifiers())) 
-                continue;
-            
-            items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
+        // Unified method enumeration — works for Java types, ScriptTypeInfo, and intersection bounds
+        for (MethodInfo method : receiverType.getAllMethods()) {
+            if (isStaticContext && !Modifier.isStatic(method.getModifiers())) continue;
+            String sig = method.getName() + "(" + method.getParameterCount() + ")";
+            if (addedMethods.add(sig))
+                items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
         }
         
-        // Add fields (skip if methodsOnly is true - but the filtering will be done in getSuggestions)
         if (!context.methodsOnly) {
-            for (Field field : clazz.getFields()) {
-                if (Modifier.isPublic(field.getModifiers())) {
-                    // Filter by static context
-                    if (isStaticContext && !Modifier.isStatic(field.getModifiers())) {
-                        continue;
-                    }
-                    
-                    FieldInfo fieldInfo = FieldInfo.fromReflection(field, receiverType);
-                    items.add(AutocompleteItem.fromField(fieldInfo));
-                }
-            }
-
-            for (FieldInfo field : receiverType.getSyntheticFields()) {
-                if (isStaticContext && !Modifier.isStatic(field.getModifiers()))
-                    continue;
-                
-                items.add(AutocompleteItem.fromField(field));
+            // Unified field enumeration with deduplication
+            for (FieldInfo field : receiverType.getAllFields()) {
+                if (isStaticContext && !Modifier.isStatic(field.getModifiers())) continue;
+                if (addedFields.add(field.getName()))
+                    items.add(AutocompleteItem.fromField(field));
             }
         }
         
-        // Add nested types (inner classes/interfaces) in static context
+        // Nested types (inner classes) in static context via getAllNestedTypes()
         if (isStaticContext && !context.methodsOnly) {
-            try {
-                for (Class<?> nested : clazz.getDeclaredClasses()) {
-                    if (!Modifier.isPublic(nested.getModifiers())) {
-                        continue;
-                    }
-                    // Convert $ notation to dot notation for resolution
-                    String nestedFullName = nested.getName().replace('$', '.');
-                    TypeInfo nestedType = TypeResolver.getInstance().resolveFullName(nestedFullName);
-                    if (nestedType != null && nestedType.isResolved()) {
-                        items.add(AutocompleteItem.fromType(nestedType));
-                    }
-                }
-            } catch (SecurityException ignored) {
-                // Some runtimes may restrict getDeclaredClasses()
+            for (TypeInfo nestedType : receiverType.getAllNestedTypes()) {
+                items.add(AutocompleteItem.fromType(nestedType));
             }
         }
-        
+
+        // Enum constants — polymorphic via TypeInfo.getEnumConstants()
+        if (!context.methodsOnly) {
+            for (EnumConstantInfo enumConstant : receiverType.getEnumConstants().values()) {
+                items.add(AutocompleteItem.fromField(enumConstant.getFieldInfo()));
+            }
+        }
     }
 
     /**
@@ -216,76 +174,6 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
 
         // Fallback: use the provided prefixStart (caret context)
         return Math.max(0, Math.min(context.prefixStart, context.text.length()));
-    }
-    
-    /**
-     * Add members from a script-defined type.
-     */
-    protected void addScriptTypeMembers(ScriptTypeInfo scriptType, List<AutocompleteItem> items, boolean isStaticContext) {
-        addScriptTypeMembers(scriptType, items, isStaticContext, false);
-    }
-    
-    /**
-     * Add members from a script-defined type.
-     * @param scriptType The script type to get members from
-     * @param items The list to add items to
-     * @param isStaticContext Whether we're in a static context
-     * @param forMethodReference If true, only add methods with no parentheses in insert text
-     */
-    protected void addScriptTypeMembers(ScriptTypeInfo scriptType, List<AutocompleteItem> items, boolean isStaticContext, boolean forMethodReference) {
-        // Add methods (getMethods returns Map<String, List<MethodInfo>>)
-        for (List<MethodInfo> overloads : scriptType.getMethods().values()) {
-            for (MethodInfo method : overloads) {
-                // Filter by static context
-                if (isStaticContext && !method.isStatic()) {
-                    continue;
-                }
-                items.add(AutocompleteItem.fromMethod(method, forMethodReference));
-            }
-        }
-        
-        // Add fields (skip if methodsOnly/forMethodReference is true)
-        if (!forMethodReference) {
-            // Add fields (getFields returns Map<String, FieldInfo>)
-            for (FieldInfo field : scriptType.getFields().values()) {
-                // Filter by static context
-                if (isStaticContext && !field.isStatic()) {
-                    continue;
-                }
-                items.add(AutocompleteItem.fromField(field));
-            }
-            
-            // Add enum constants (getEnumConstants returns Map<String, EnumConstantInfo>)
-            for (EnumConstantInfo enumConstant : scriptType.getEnumConstants().values()) {
-                items.add(AutocompleteItem.fromField(enumConstant.getFieldInfo()));
-            }
-
-            // Add nested types (inner classes/interfaces) in static context
-            if (isStaticContext) {
-                for (ScriptTypeInfo inner : scriptType.getInnerClasses()) {
-                    items.add(AutocompleteItem.fromType(inner));
-                }
-            }
-        }
-        
-        // Add parent class members
-        if (scriptType.hasSuperClass()) {
-            TypeInfo superType = scriptType.getSuperClass();
-            if (superType != null && superType.getJavaClass() != null) {
-                Class<?> superClazz = superType.getJavaClass();
-                Set<String> addedMethods = new HashSet<>();
-                for (Method method : superClazz.getMethods()) {
-                    if (Modifier.isPublic(method.getModifiers())) {
-                        String sig = method.getName() + "(" + method.getParameterCount() + ")";
-                        if (!addedMethods.contains(sig)) {
-                            addedMethods.add(sig);
-                            MethodInfo methodInfo = MethodInfo.fromReflection(method, superType);
-                            items.add(AutocompleteItem.fromMethod(methodInfo, forMethodReference));
-                        }
-                    }
-                }
-            }
-        }
     }
     
     /**

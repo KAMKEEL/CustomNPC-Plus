@@ -582,7 +582,7 @@ public class TokenHoverInfo {
 //            // Show modifiers from source if we have a declaration position
 //            String modifiers = extractModifiersAtPosition(fieldInfo.getDeclarationOffset());
 //            if (modifiers != null && !modifiers.isEmpty()) {
-//                addSegment(modifiers + " ", TokenType.MODIFIER.getHexColor());
+//                addSegment(modifiers + " ", TokenType.KEYWORD.getHexColor());
 //            }
 //        }
         
@@ -801,6 +801,64 @@ public class TokenHoverInfo {
                     addTypeSegments(boundType);
                 } else {
                     addSegment(param.getBoundTypeName(), TokenType.IMPORTED_CLASS.getHexColor());
+                }
+
+                List<TypeInfo> additionalBoundTypes = param.getAdditionalBoundTypes();
+                List<String> additionalBoundNames = param.getAdditionalBoundNames();
+                for (int j = 0; j < additionalBoundNames.size(); j++) {
+                    addSegment(" & ", TokenType.DEFAULT.getHexColor());
+                    TypeInfo additionalBoundType = j < additionalBoundTypes.size() ? additionalBoundTypes.get(j) : null;
+                    if (additionalBoundType != null && additionalBoundType.isResolved()) {
+                        addTypeSegments(additionalBoundType);
+                        if (!additionalBoundType.isParameterized()) {
+                            addBoundTypeParamSegments(additionalBoundType);
+                        }
+                    } else {
+                        addSegment(additionalBoundNames.get(j), TokenType.IMPORTED_CLASS.getHexColor());
+                    }
+                }
+            }
+        }
+        
+        addSegment(">", TokenType.DEFAULT.getHexColor());
+    }
+
+    private void addBoundTypeParamSegments(TypeInfo boundType) {
+        List<TypeParamInfo> params = boundType.getTypeParams();
+        if (params == null || params.isEmpty()) return;
+
+        addSegment("<", TokenType.DEFAULT.getHexColor());
+        for (int i = 0; i < params.size(); i++) {
+            if (i > 0)
+                addSegment(", ", TokenType.DEFAULT.getHexColor());
+            TypeParamInfo tp = params.get(i);
+            addSegment(tp.getName(), TokenType.GENERIC_TYPE_PARAM.getHexColor());
+
+            if (tp.getBoundTypeName() != null && !"Object".equals(tp.getBoundTypeName())) {
+                addSegment(" extends ", TokenType.KEYWORD.getHexColor());
+                TypeInfo innerBound = tp.getBoundTypeInfo();
+                if (innerBound != null && innerBound.isResolved()) {
+                    addTypeSegments(innerBound);
+                    if (!innerBound.isParameterized()) {
+                        addBoundTypeParamSegments(innerBound);
+                    }
+                } else {
+                    addSegment(tp.getBoundTypeName(), TokenType.IMPORTED_CLASS.getHexColor());
+                }
+
+                List<TypeInfo> innerAdditional = tp.getAdditionalBoundTypes();
+                List<String> innerAdditionalNames = tp.getAdditionalBoundNames();
+                for (int j = 0; j < innerAdditionalNames.size(); j++) {
+                    addSegment(" & ", TokenType.DEFAULT.getHexColor());
+                    TypeInfo innerAddBound = j < innerAdditional.size() ? innerAdditional.get(j) : null;
+                    if (innerAddBound != null && innerAddBound.isResolved()) {
+                        addTypeSegments(innerAddBound);
+                        if (!innerAddBound.isParameterized()) {
+                            addBoundTypeParamSegments(innerAddBound);
+                        }
+                    } else {
+                        addSegment(innerAdditionalNames.get(j), TokenType.IMPORTED_CLASS.getHexColor());
+                    }
                 }
                 addSegment(" extends ", TokenType.KEYWORD.getHexColor());
             }

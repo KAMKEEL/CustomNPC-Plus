@@ -389,6 +389,17 @@ public class AutocompleteManager {
         
         // Walk left across a dotted receiver chain
         while (pos >= 0) {
+            // Skip excluded regions (comments/strings) to avoid reading dots from inside them
+            if (document != null && document.isExcluded(pos)) {
+                int jumped = jumpBeforeExcluded(pos);
+                if (jumped == pos) {
+                    pos--;
+                } else {
+                    pos = jumped;
+                }
+                continue;
+            }
+
             char c = text.charAt(pos);
             
             if (Character.isWhitespace(c)) {
@@ -414,10 +425,24 @@ public class AutocompleteManager {
                 // Consume identifier
                 while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) pos--;
                 
-                // If preceded by a dot, keep going
+                // If preceded by a dot, keep going (skip excluded ranges when looking for the dot)
                 int checkPos = pos;
-                while (checkPos >= 0 && Character.isWhitespace(text.charAt(checkPos))) {
-                    checkPos--;
+                while (checkPos >= 0) {
+                    char ch = text.charAt(checkPos);
+                    if (Character.isWhitespace(ch)) {
+                        checkPos--;
+                        continue;
+                    }
+                    if (document != null && document.isExcluded(checkPos)) {
+                        int jumped = jumpBeforeExcluded(checkPos);
+                        if (jumped == checkPos) {
+                            checkPos--;
+                        } else {
+                            checkPos = jumped;
+                        }
+                        continue;
+                    }
+                    break;
                 }
                 if (checkPos >= 0 && text.charAt(checkPos) == '.') {
                     pos = checkPos - 1;
@@ -1044,13 +1069,16 @@ public class AutocompleteManager {
 
         // Check if we found a dot
         if (pos >= 0 && text.charAt(pos) == '.') {
+            if (document != null && document.isExcluded(pos)) return -1;
             return pos;
         } else {
             while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos)))
                 pos--;
 
-            if (pos >= 0 && text.charAt(pos) == '.')
+            if (pos >= 0 && text.charAt(pos) == '.') {
+                if (document != null && document.isExcluded(pos)) return -1;
                 return pos;
+            }
         }
         return -1;
     }

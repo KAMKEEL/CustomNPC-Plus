@@ -604,6 +604,7 @@ public class TypeInfo {
     public boolean isInnerClass() { return enclosingType != null; }
     public boolean isInterface() {return kind == Kind.INTERFACE;}
     public boolean isEnum() {return kind == Kind.ENUM;}
+    public boolean isClass() {return kind == Kind.CLASS;}
     public boolean isPrimitive() {return this.isPrimitive || javaClass != null && javaClass.isPrimitive();}
     private TypeInfo setPrimitive(boolean value) { this.isPrimitive = value; return this;}
     
@@ -772,6 +773,145 @@ public class TypeInfo {
     }
 
     /**
+     * Returns all public instance members of this type for autocomplete/resolution.
+     * Override in subclasses to extend or replace the default Java reflection path.
+     */
+    public List<MethodInfo> getAllMethods() {
+        if (javaClass != null) {
+            // Java reflection path: enumerate public methods + synthetics
+            List<MethodInfo> result = new ArrayList<>();
+            try {
+                for (java.lang.reflect.Method m : javaClass.getMethods()) {
+                    try {
+                        result.add(MethodInfo.fromReflection(m, this));
+                    } catch (Exception e) {
+                        // Skip individual methods that fail (e.g., linkage errors on obscure return types)
+                    }
+                }
+            } catch (Exception ignored) {}
+            result.addAll(getSyntheticMethods());
+            return result;
+        }
+
+        // javaClass == null: check rawType, jsTypeInfo, synthetics in priority order
+        if (rawType != null && rawType != this) {
+            List<MethodInfo> rawMethods = rawType.getAllMethods();
+            if (!rawMethods.isEmpty() && isParameterized()) {
+                GenericContext ctx = GenericContext.forReceiver(this);
+                List<MethodInfo> substituted = new ArrayList<>(rawMethods.size());
+                for (MethodInfo m : rawMethods) {
+                    substituted.add(m.substituteTypeParams(ctx));
+                }
+                return substituted;
+            }
+            return rawMethods;
+        }
+
+        // No javaClass, no rawType — collect from jsTypeInfo and synthetics
+        List<MethodInfo> result = new ArrayList<>();
+        if (jsTypeInfo != null) {
+            for (JSMethodInfo m : jsTypeInfo.getMethods().values()) {
+                result.add(MethodInfo.fromJSMethod(m, this));
+            }
+        }
+        result.addAll(getSyntheticMethods());
+        return result;
+    }
+
+    public List<FieldInfo> getAllFields() {
+        if (javaClass != null) {
+            // Java reflection path: enumerate public fields + synthetics
+            List<FieldInfo> result = new ArrayList<>();
+            try {
+                for (java.lang.reflect.Field f : javaClass.getFields()) {
+                    try {
+                        result.add(FieldInfo.fromReflection(f, this));
+                    } catch (Exception e) {
+                        // Skip individual fields that fail rather than losing ALL fields.
+                    }
+                }
+            } catch (Exception ignored) {}
+            result.addAll(getSyntheticFields());
+            return result;
+        }
+
+        // javaClass == null: check rawType, jsTypeInfo, synthetics in priority order
+        if (rawType != null && rawType != this) {
+            List<FieldInfo> rawFields = rawType.getAllFields();
+            if (!rawFields.isEmpty() && isParameterized()) {
+                GenericContext ctx = GenericContext.forReceiver(this);
+                List<FieldInfo> substituted = new ArrayList<>(rawFields.size());
+                for (FieldInfo f : rawFields) {
+                    substituted.add(f.substituteTypeParams(ctx));
+                }
+                return substituted;
+            }
+            return rawFields;
+        }
+
+        // No javaClass, no rawType — collect from jsTypeInfo and synthetics
+        List<FieldInfo> result = new ArrayList<>();
+        if (jsTypeInfo != null) {
+            for (JSFieldInfo f : jsTypeInfo.getFields().values()) {
+                result.add(FieldInfo.fromJSField(f, this));
+            }
+        }
+        result.addAll(getSyntheticFields());
+        return result;
+    }
+
+    /**
+     * Returns all public nested types (inner classes/interfaces/enums) of this type.
+     * Uses reflection to discover nested types from the Java class, filters to public only,
+     * converts internal '$' separators to '.' for name resolution, and resolves each via TypeResolver.
+     * 
+     * Override in subclasses (e.g., ScriptTypeInfo) to return script-defined inner classes.
+     * 
+     * @return List of resolved nested TypeInfo instances (may be empty, never null)
+     */
+    public List<TypeInfo> getAllNestedTypes() {
+        if (javaClass != null) {
+            List<TypeInfo> result = new ArrayList<>();
+            try {
+                for (Class<?> nested : javaClass.getDeclaredClasses()) {
+                    if (!Modifier.isPublic(nested.getModifiers())) {
+                        continue;
+                    }
+                    // Convert JVM internal '$' separator to '.' for TypeResolver lookup
+                    String nestedFullName = nested.getName().replace('$', '.');
+                    TypeInfo nestedType = TypeResolver.getInstance().resolveFullName(nestedFullName);
+                    if (nestedType != null && nestedType.isResolved()) {
+                        result.add(nestedType);
+                    }
+                }
+            } catch (SecurityException ignored) {
+                // Some runtimes may restrict getDeclaredClasses()
+            }
+            return result;
+        }
+
+        if (rawType != null && rawType != this) {
+            return rawType.getAllNestedTypes();
+        }
+
+        // No javaClass, no rawType — check jsTypeInfo for inner types
+        if (jsTypeInfo != null) {
+            Map<String, JSTypeInfo> innerTypes = jsTypeInfo.getInnerTypes();
+            if (!innerTypes.isEmpty()) {
+                List<TypeInfo> result = new ArrayList<>(innerTypes.size());
+                for (JSTypeInfo inner : innerTypes.values()) {
+                    TypeInfo ti = TypeInfo.fromJSTypeInfo(inner);
+                    if (ti != null) {
+                        result.add(ti);
+                    }
+                }
+                return result;
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
      * Check if this type has a method with the given name.
      */
     public boolean hasMethod(String methodName) {
@@ -789,6 +929,8 @@ public class TypeInfo {
             } catch (Exception e) {
                 // Security or linkage error
             }
+        } else if (rawType != null && rawType != this) {
+            return rawType.hasMethod(methodName);
         }
         
         TypeInfo obj = TypeInfo.object(); 
@@ -817,6 +959,8 @@ public class TypeInfo {
             } catch (Exception e) {
                 // Security or linkage error
             }
+        } else if (rawType != null && rawType != this) {
+            return rawType.hasMethod(methodName, paramCount);
         }
         TypeInfo obj = TypeInfo.object();
         if (obj != this) return obj.hasMethod(methodName);
@@ -828,13 +972,15 @@ public class TypeInfo {
      * Override in ScriptTypeInfo for script-defined types.
      */
     public boolean hasConstructors() {
-        if (javaClass == null) return false;
-        try {
-            return javaClass.getConstructors().length > 0;
-        } catch (Exception e) {
-            // Security or linkage error
-            return false;
+        if (javaClass != null) {
+            try {
+                return javaClass.getConstructors().length > 0;
+            } catch (Exception e) {
+                return false;
+            }
         }
+        if (rawType != null && rawType != this) return rawType.hasConstructors();
+        return false;
     }
     
     /**
@@ -843,16 +989,18 @@ public class TypeInfo {
      */
     public List<MethodInfo> getConstructors() {
         List<MethodInfo> result = new ArrayList<>();
-        if (javaClass == null) return result;
-        
-        try {
-            java.lang.reflect.Constructor<?>[] constructors = javaClass.getConstructors();
-            for (java.lang.reflect.Constructor<?> ctor : constructors) {
-                result.add(MethodInfo.fromReflectionConstructor(ctor, this));
+        if (javaClass != null) {
+            try {
+                java.lang.reflect.Constructor<?>[] constructors = javaClass.getConstructors();
+                for (java.lang.reflect.Constructor<?> ctor : constructors) {
+                    result.add(MethodInfo.fromReflectionConstructor(ctor, this));
+                }
+            } catch (Exception e) {
+                // Security or linkage error
             }
-        } catch (Exception e) {
-            // Security or linkage error
+            return result;
         }
+        if (rawType != null && rawType != this) return rawType.getConstructors();
         return result;
     }
     
@@ -861,45 +1009,49 @@ public class TypeInfo {
      * Override in ScriptTypeInfo for script-defined types.
      */
     public MethodInfo findConstructor(int argCount) {
-        if (javaClass == null) return null;
-        
-        try {
-           Constructor<?>[] constructors = javaClass.getConstructors();
-            for (Constructor<?> ctor : constructors) {
-                if (ctor.getParameterCount() == argCount) {
-                    return MethodInfo.fromReflectionConstructor(ctor, this);
+        if (javaClass != null) {
+            try {
+                Constructor<?>[] constructors = javaClass.getConstructors();
+                for (Constructor<?> ctor : constructors) {
+                    if (ctor.getParameterCount() == argCount) {
+                        return MethodInfo.fromReflectionConstructor(ctor, this);
+                    }
                 }
+            } catch (Exception e) {
+                // Security or linkage error
             }
-        } catch (Exception e) {
-            // Security or linkage error
+            return null;
         }
+        if (rawType != null && rawType != this) return rawType.findConstructor(argCount);
         return null;
     }
     
     public MethodInfo findConstructor(TypeInfo[] argTypes) {
-        if (javaClass == null) return null;
-        
-        try {
-            Constructor<?>[] constructors = javaClass.getConstructors();
-            for (Constructor<?> ctor : constructors) {
-                if (ctor.getParameterCount() == argTypes.length) {
-                   Class<?>[] paramTypes = ctor.getParameterTypes();
-                    boolean match = true;
-                    for (int i = 0; i < argTypes.length; i++) {
-                        TypeInfo paramTypeInfo = TypeInfo.fromClass(paramTypes[i]);
-                        if (!TypeChecker.isTypeCompatible(paramTypeInfo, argTypes[i])) {
-                            match = false;
-                            break;
+        if (javaClass != null) {
+            try {
+                Constructor<?>[] constructors = javaClass.getConstructors();
+                for (Constructor<?> ctor : constructors) {
+                    if (ctor.getParameterCount() == argTypes.length) {
+                       Class<?>[] paramTypes = ctor.getParameterTypes();
+                        boolean match = true;
+                        for (int i = 0; i < argTypes.length; i++) {
+                            TypeInfo paramTypeInfo = TypeInfo.fromClass(paramTypes[i]);
+                            if (!TypeChecker.isTypeCompatible(paramTypeInfo, argTypes[i])) {
+                                match = false;
+                                break;
+                            }
+                        }
+                        if (match) {
+                            return MethodInfo.fromReflectionConstructor(ctor, this);
                         }
                     }
-                    if (match) {
-                        return MethodInfo.fromReflectionConstructor(ctor, this);
-                    }
                 }
+            } catch (Exception e) {
+                // Security or linkage error
             }
-        } catch (Exception e) {
-            // Security or linkage error
+            return null;
         }
+        if (rawType != null && rawType != this) return rawType.findConstructor(argTypes);
         return null;
     }
 
@@ -913,30 +1065,63 @@ public class TypeInfo {
             return jsTypeInfo.hasField(fieldName);
         }
         
-        if (javaClass == null) return false;
-        try {
-            for (java.lang.reflect.Field f : javaClass.getFields()) {
-                if (f.getName().equals(fieldName)) {
-                    return true;
+        if (javaClass != null) {
+            try {
+                for (java.lang.reflect.Field f : javaClass.getFields()) {
+                    if (f.getName().equals(fieldName)) {
+                        return true;
+                    }
                 }
+            } catch (Exception e) {
+                // Security or linkage error
             }
-        } catch (Exception e) {
-            // Security or linkage error
+            return false;
         }
+        if (rawType != null && rawType != this) return rawType.hasField(fieldName);
         return false;
     }
 
-    public boolean hasEnumConstant(String constantName) {
-        if (javaClass == null || !javaClass.isEnum()) return false;
+    /**
+     * Returns all enum constants for this type as a name-to-EnumConstantInfo map.
+     * For Java enum types, builds the map via reflection. For script-defined enums,
+     * ScriptTypeInfo overrides this to return its stored constants directly.
+     *
+     * @return Map of constant name to EnumConstantInfo (empty if not an enum or no constants)
+     */
+    public Map<String, EnumConstantInfo> getEnumConstants() {
+        if (javaClass == null || !javaClass.isEnum()) {
+            if (rawType != null && rawType != this) {
+                return rawType.getEnumConstants();
+            }
+            return Collections.emptyMap();
+        }
+        Map<String, EnumConstantInfo> result = new LinkedHashMap<>();
         try {
             Object[] constants = javaClass.getEnumConstants();
             for (Object constant : constants) {
-                if (constant.toString().equals(constantName)) 
-                    return true;
+                String name = constant.toString();
+                result.put(name, EnumConstantInfo.fromReflection(name, this, null));
             }
         } catch (Exception e) {
-            // Security or linkage error
+            // Security or linkage error — return whatever we have so far
         }
+        return result;
+    }
+
+    public boolean hasEnumConstant(String constantName) {
+        if (javaClass != null && javaClass.isEnum()) {
+            try {
+                Object[] constants = javaClass.getEnumConstants();
+                for (Object constant : constants) {
+                    if (constant.toString().equals(constantName))
+                        return true;
+                }
+            } catch (Exception e) {
+                // Security or linkage error
+            }
+            return false;
+        }
+        if (rawType != null && rawType != this) return rawType.hasEnumConstant(constantName);
         return false;
     }
 
@@ -944,16 +1129,19 @@ public class TypeInfo {
      * Get an enum constant by name.
      */
     public EnumConstantInfo getEnumConstant(String constantName) {
-        if (javaClass == null || !javaClass.isEnum()) return null;
-        try {
-            Object[] constants = javaClass.getEnumConstants();
-            for (Object constant : constants) {
-                if (constant.toString().equals(constantName)) 
-                    return EnumConstantInfo.fromReflection(constantName, this, null);
+        if (javaClass != null && javaClass.isEnum()) {
+            try {
+                Object[] constants = javaClass.getEnumConstants();
+                for (Object constant : constants) {
+                    if (constant.toString().equals(constantName))
+                        return EnumConstantInfo.fromReflection(constantName, this, null);
+                }
+            } catch (Exception e) {
+                // Security or linkage error
             }
-        } catch (Exception e) {
-            // Security or linkage error
+            return null;
         }
+        if (rawType != null && rawType != this) return rawType.getEnumConstant(constantName);
         return null;
     }
 
@@ -976,6 +1164,13 @@ public class TypeInfo {
             } catch (Exception e) {
                 // Security or linkage error
             }
+        } else if (rawType != null && rawType != this) {
+            MethodInfo rawMethod = rawType.getMethodInfo(methodName);
+            if (rawMethod != null && isParameterized()) {
+                GenericContext ctx = GenericContext.forReceiver(this);
+                return rawMethod.substituteTypeParams(ctx);
+            }
+            return rawMethod;
         }
         TypeInfo obj = TypeInfo.object();
         if (obj != this) return obj.getMethodInfo(methodName);
@@ -1012,6 +1207,16 @@ public class TypeInfo {
                 // Security or linkage error
             }
            if (!overloads.isEmpty()) return overloads;
+        } else if (rawType != null && rawType != this) {
+            java.util.List<MethodInfo> rawOverloads = rawType.getAllMethodOverloads(methodName);
+            if (!rawOverloads.isEmpty() && isParameterized()) {
+                GenericContext ctx = GenericContext.forReceiver(this);
+                for (MethodInfo m : rawOverloads) {
+                    overloads.add(m.substituteTypeParams(ctx));
+                }
+                return overloads;
+            }
+            return rawOverloads;
         }
         TypeInfo obj = TypeInfo.object();
         if (obj != this) return obj.getAllMethodOverloads(methodName);    
@@ -1078,16 +1283,25 @@ public class TypeInfo {
             return null;
         }
         
-        if (javaClass == null) return null;
-        try {
-            for (java.lang.reflect.Field f : javaClass.getFields()) {
-                if (f.getName().equals(fieldName)) {
-                    // Create a synthetic FieldInfo from reflection
-                    return FieldInfo.fromReflection(f, this);
+        if (javaClass != null) {
+            try {
+                for (java.lang.reflect.Field f : javaClass.getFields()) {
+                    if (f.getName().equals(fieldName)) {
+                        return FieldInfo.fromReflection(f, this);
+                    }
                 }
+            } catch (Exception e) {
+                // Security or linkage error
             }
-        } catch (Exception e) {
-            // Security or linkage error
+            return null;
+        }
+        if (rawType != null && rawType != this) {
+            FieldInfo rawField = rawType.getFieldInfo(fieldName);
+            if (rawField != null && isParameterized()) {
+                GenericContext ctx = GenericContext.forReceiver(this);
+                return rawField.substituteTypeParams(ctx);
+            }
+            return rawField;
         }
         return null;
     }
@@ -1206,7 +1420,17 @@ public class TypeInfo {
                 return null;
             }
             
-            // Not a functional interface
+            // Not a functional interface — try rawType for parameterized script types
+            if (rawType != null && rawType != this) {
+                MethodInfo rawSAM = rawType.getSingleAbstractMethod();
+                if (rawSAM != null && isParameterized()) {
+                    GenericContext ctx = GenericContext.forReceiver(this);
+                    cachedSAM = rawSAM.substituteTypeParams(ctx);
+                    return cachedSAM;
+                }
+                cachedSAM = rawSAM;
+                return cachedSAM;
+            }
             cachedSAM = null;
             return null;
             

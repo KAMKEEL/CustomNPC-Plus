@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.token;
 
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 /**
@@ -110,7 +111,10 @@ public enum TokenType {
     public static int getColor(TypeInfo typeInfo) {
         return getByType(typeInfo).getHexColor();
     }
-
+    
+    public static int getPackageColor(){
+        return IMPORTED_CLASS.getHexColor();
+    }
     /**
      * Convert this token type to a Minecraft color code character.
      * Used for backward compatibility with the existing rendering system.
