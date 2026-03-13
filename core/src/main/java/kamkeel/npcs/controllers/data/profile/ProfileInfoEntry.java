@@ -1,6 +1,7 @@
 package kamkeel.npcs.controllers.data.profile;
 
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
 
 public class ProfileInfoEntry {
     private String label;
@@ -26,8 +27,8 @@ public class ProfileInfoEntry {
         this(label, 0xFFFFFF, result, 0xFFFFFF);
     }
 
-    public NBTTagCompound writeToNBT() {
-        NBTTagCompound tag = new NBTTagCompound();
+    public INBTCompound writeToNBT() {
+        INBTCompound tag = NBT.compound();
         tag.setString("Label", label);
         tag.setInteger("LabelColor", labelColor);
         tag.setString("Result", result);
@@ -35,7 +36,7 @@ public class ProfileInfoEntry {
         return tag;
     }
 
-    public static ProfileInfoEntry readFromNBT(NBTTagCompound tag) {
+    public static ProfileInfoEntry readFromNBT(INBTCompound tag) {
         return new ProfileInfoEntry(
             tag.getString("Label"),
             tag.getInteger("LabelColor"),

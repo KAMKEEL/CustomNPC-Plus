@@ -1,47 +1,44 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.IPlayerTransportData;
 import noppes.npcs.api.handler.data.ITransportLocation;
-import noppes.npcs.controllers.TransportController;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.core.NBT;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 
 public class PlayerTransportData implements IPlayerTransportData {
-    private final PlayerData parent;
     public HashSet<Integer> transports = new HashSet<Integer>();
 
-    public PlayerTransportData(PlayerData parent) {
-        this.parent = parent;
+    public PlayerTransportData() {
     }
 
-    public void loadNBTData(NBTTagCompound compound) {
+    public void loadNBTData(INBTCompound compound) {
         HashSet<Integer> dialogsRead = new HashSet<Integer>();
         if (compound == null)
             return;
-        NBTTagList list = compound.getTagList("TransportData", 10);
+        INBTList list = compound.getList("TransportData", 10);
         if (list == null) {
             return;
         }
 
-        for (int i = 0; i < list.tagCount(); i++) {
-            NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
+        for (int i = 0; i < list.size(); i++) {
+            INBTCompound nbttagcompound = list.getCompound(i);
             dialogsRead.add(nbttagcompound.getInteger("Transport"));
         }
         this.transports = dialogsRead;
     }
 
-    public void saveNBTData(NBTTagCompound compound) {
-        NBTTagList list = new NBTTagList();
+    public void saveNBTData(INBTCompound compound) {
+        INBTList list = NBT.list();
         for (int dia : transports) {
-            NBTTagCompound nbttagcompound = new NBTTagCompound();
+            INBTCompound nbttagcompound = NBT.compound();
             nbttagcompound.setInteger("Transport", dia);
-            list.appendTag(nbttagcompound);
+            list.addCompound(nbttagcompound);
         }
 
-        compound.setTag("TransportData", list);
+        compound.setList("TransportData", list);
     }
 
     public boolean hasTransport(int id) {
@@ -57,17 +54,11 @@ public class PlayerTransportData implements IPlayerTransportData {
     }
 
     public ITransportLocation getTransport(int id) {
-        return TransportController.getInstance().getTransport(id);
+        return null; // Resolved in version-specific code
     }
 
     public ITransportLocation[] getTransports() {
-        ArrayList<ITransportLocation> list = new ArrayList<>();
-        for (int id : transports) {
-            ITransportLocation location = TransportController.getInstance().getTransport(id);
-            list.add(location);
-        }
-
-        return list.toArray(new ITransportLocation[0]);
+        return new ITransportLocation[0]; // Resolved in version-specific code
     }
 
     public void removeTransport(int id) {

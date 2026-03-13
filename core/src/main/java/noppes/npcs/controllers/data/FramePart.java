@@ -1,14 +1,14 @@
 package noppes.npcs.controllers.data;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IFramePart;
-import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
 
 public class FramePart implements IFramePart {
-    public Animation parent;
+    public boolean paused = false;
+    public static float renderPartialTick = 0;
+
     public EnumAnimationPart part;
     public float[] rotation = {0, 0, 0};
     public float[] pivot = {0, 0, 0};
@@ -111,7 +111,7 @@ public class FramePart implements IFramePart {
         return this;
     }
 
-    public void readFromNBT(NBTTagCompound compound) {
+    public void readFromNBT(INBTCompound compound) {
         part = EnumAnimationPart.valueOf(compound.getString("Part"));
         for (int i = 0; i < 3; i++) {
             rotation[i] = compound.getFloat("Rotation" + i);
@@ -131,8 +131,8 @@ public class FramePart implements IFramePart {
         }
     }
 
-    public NBTTagCompound writeToNBT() {
-        NBTTagCompound compound = new NBTTagCompound();
+    public INBTCompound writeToNBT() {
+        INBTCompound compound = NBT.compound();
         compound.setString("Part", part.toString());
         for (int i = 0; i < 3; i++) {
             compound.setFloat("Rotation" + i, rotation[i]);
@@ -159,9 +159,8 @@ public class FramePart implements IFramePart {
         return part;
     }
 
-    @SideOnly(Side.CLIENT)
     public void interpolateAngles() {
-        if (parent != null && parent.paused)
+        if (paused)
             return;
 
         float pi = (float) Math.PI / 180;
@@ -169,8 +168,8 @@ public class FramePart implements IFramePart {
             this.prevRotations[0] = this.rotation[0] * pi;
             this.prevRotations[1] = this.rotation[1] * pi;
             this.prevRotations[2] = this.rotation[2] * pi;
-        } else if (this.partialRotationTick != ClientEventHandler.partialRenderTick) {
-            this.partialRotationTick = ClientEventHandler.partialRenderTick;
+        } else if (this.partialRotationTick != FramePart.renderPartialTick) {
+            this.partialRotationTick = FramePart.renderPartialTick;
             if (this.smooth == 0) {
                 this.prevRotations[0] = (this.rotation[0] * pi - this.prevRotations[0]) * Math.abs(this.speed) / 10f + this.prevRotations[0];
                 this.prevRotations[1] = (this.rotation[1] * pi - this.prevRotations[1]) * Math.abs(this.speed) / 10f + this.prevRotations[1];
@@ -192,17 +191,16 @@ public class FramePart implements IFramePart {
         }
     }
 
-    @SideOnly(Side.CLIENT)
     public void interpolateOffset() {
-        if (parent != null && parent.paused)
+        if (paused)
             return;
 
         if (this.smooth == 2) {
             this.prevPivots[0] = this.pivot[0];
             this.prevPivots[1] = this.pivot[1];
             this.prevPivots[2] = this.pivot[2];
-        } else if (this.partialPivotTick != ClientEventHandler.partialRenderTick) {
-            this.partialPivotTick = ClientEventHandler.partialRenderTick;
+        } else if (this.partialPivotTick != FramePart.renderPartialTick) {
+            this.partialPivotTick = FramePart.renderPartialTick;
             if (this.smooth == 0) {
                 this.prevPivots[0] = (this.pivot[0] - this.prevPivots[0]) * Math.abs(this.speed) / 10f + this.prevPivots[0];
                 this.prevPivots[1] = (this.pivot[1] - this.prevPivots[1]) * Math.abs(this.speed) / 10f + this.prevPivots[1];
@@ -224,10 +222,9 @@ public class FramePart implements IFramePart {
         }
     }
 
-    @SideOnly(Side.CLIENT)
     public void jumpToCurrentFrame() {
-        this.partialRotationTick = ClientEventHandler.partialRenderTick;
-        this.partialPivotTick = ClientEventHandler.partialRenderTick;
+        this.partialRotationTick = FramePart.renderPartialTick;
+        this.partialPivotTick = FramePart.renderPartialTick;
 
         this.prevPivots[0] = this.pivot[0];
         this.prevPivots[1] = this.pivot[1];

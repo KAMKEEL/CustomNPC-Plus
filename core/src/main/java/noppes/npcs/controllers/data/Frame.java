@@ -1,17 +1,20 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.handler.data.IFramePart;
 import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.core.NBT;
 
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class Frame implements IFrame {
-    public Animation parent;
+    public float parentSpeed = 1.0f;
+    public byte parentSmooth = 0;
+
     public HashMap<EnumAnimationPart, FramePart> frameParts = new HashMap<>();
     public int duration = 0;
 
@@ -121,7 +124,7 @@ public class Frame implements IFrame {
         this.comment = comment;
     }
 
-    public void readFromNBT(NBTTagCompound compound) {
+    public void readFromNBT(INBTCompound compound) {
         duration = compound.getInteger("Duration");
         if (compound.hasKey("ColorMarker")) {
             this.setColorMarker(compound.getInteger("ColorMarker"));
@@ -140,15 +143,15 @@ public class Frame implements IFrame {
             smooth = compound.getByte("Smooth");
         }
 
-        if (!customized && parent != null) {
-            this.speed = parent.speed;
-            this.smooth = parent.smooth;
+        if (!customized) {
+            this.speed = parentSpeed;
+            this.smooth = parentSmooth;
         }
 
         HashMap<EnumAnimationPart, FramePart> frameParts = new HashMap<>();
-        NBTTagList list = compound.getTagList("FrameParts", 10);
-        for (int i = 0; i < list.tagCount(); i++) {
-            NBTTagCompound item = list.getCompoundTagAt(i);
+        INBTList list = compound.getList("FrameParts", 10);
+        for (int i = 0; i < list.size(); i++) {
+            INBTCompound item = list.getCompound(i);
             FramePart framePart = new FramePart();
             framePart.readFromNBT(item);
             if (!framePart.customized) {
@@ -160,8 +163,8 @@ public class Frame implements IFrame {
         this.frameParts = frameParts;
     }
 
-    public NBTTagCompound writeToNBT() {
-        NBTTagCompound compound = new NBTTagCompound();
+    public INBTCompound writeToNBT() {
+        INBTCompound compound = NBT.compound();
         compound.setInteger("Duration", duration);
         compound.setInteger("ColorMarker", this.colorMarker);
         compound.setString("Comment", this.comment);
@@ -171,12 +174,12 @@ public class Frame implements IFrame {
             compound.setByte("Smooth", smooth);
         }
 
-        NBTTagList list = new NBTTagList();
+        INBTList list = NBT.list();
         for (FramePart framePart : frameParts.values()) {
-            NBTTagCompound item = framePart.writeToNBT();
-            list.appendTag(item);
+            INBTCompound item = framePart.writeToNBT();
+            list.addCompound(item);
         }
-        compound.setTag("FrameParts", list);
+        compound.setList("FrameParts", list);
         return compound;
     }
 
@@ -186,7 +189,8 @@ public class Frame implements IFrame {
         for (Map.Entry<EnumAnimationPart, FramePart> entry : frameParts.entrySet()) {
             frame.frameParts.put(entry.getKey(), entry.getValue().copy());
         }
-        frame.parent = this.parent;
+        frame.parentSpeed = this.parentSpeed;
+        frame.parentSmooth = this.parentSmooth;
         frame.duration = this.duration;
         frame.customized = this.customized;
         frame.speed = this.speed;

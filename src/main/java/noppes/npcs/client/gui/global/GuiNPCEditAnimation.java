@@ -113,14 +113,15 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
 
         for (Frame frame : animation.frames) {
-            frame.parent = animation;
+            frame.parentSpeed = animation.speed;
+            frame.parentSmooth = animation.smooth;
             if (!frame.isCustomized()) {
                 frame.speed = animation.speed;
                 frame.smooth = animation.smooth;
             }
             for (Map.Entry<EnumAnimationPart, FramePart> entry : frame.frameParts.entrySet()) {
                 FramePart part = entry.getValue();
-                part.parent = animation;
+                part.paused = animation.paused;
                 if (!part.isCustomized()) {
                     part.speed = frame.speed;
                     part.smooth = frame.smooth;
@@ -675,7 +676,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 case 47:
                     if (copiedFrame != null) {
                         Frame frame = new Frame(10);
-                        frame.parent = this.animation;
+                        frame.parentSpeed = this.animation.speed;
+                        frame.parentSmooth = this.animation.smooth;
                         frame.readFromNBT(copiedFrame.writeToNBT());
                         this.addFrame(frame);
                         this.initGui();

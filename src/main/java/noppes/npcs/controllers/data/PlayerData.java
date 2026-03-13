@@ -49,10 +49,10 @@ import java.util.HashSet;
 import java.util.UUID;
 
 public class PlayerData implements IExtendedEntityProperties, IPlayerData {
-    public PlayerDialogData dialogData = new PlayerDialogData(this);
+    public PlayerDialogData dialogData = new PlayerDialogData();
     public PlayerBankData bankData = new PlayerBankData(this);
     public PlayerQuestData questData = new PlayerQuestData(this);
-    public PlayerTransportData transportData = new PlayerTransportData(this);
+    public PlayerTransportData transportData = new PlayerTransportData();
     public PlayerFactionData factionData = new PlayerFactionData(this);
     public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
     public PlayerMailData mailData = new PlayerMailData(this);
@@ -141,10 +141,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     }
 
     public void setNBT(NBTTagCompound data) {
-        dialogData.loadNBTData(data);
+        dialogData.loadNBTData(new MC1710NBTCompound(data));
         bankData.loadNBTData(data);
         questData.loadNBTData(data);
-        transportData.loadNBTData(data);
+        transportData.loadNBTData(new MC1710NBTCompound(data));
         factionData.loadNBTData(data);
         itemgiverData.loadNBTData(data);
         mailData.loadNBTData(data);
@@ -186,10 +186,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             uuid = player.getPersistentID().toString();
         }
         NBTTagCompound compound = new NBTTagCompound();
-        dialogData.saveNBTData(compound);
+        dialogData.saveNBTData(new MC1710NBTCompound(compound));
         bankData.saveNBTData(compound);
         questData.saveNBTData(compound);
-        transportData.saveNBTData(compound);
+        transportData.saveNBTData(new MC1710NBTCompound(compound));
         factionData.saveNBTData(compound);
         itemgiverData.saveNBTData(compound);
         mailData.saveNBTData(compound);
@@ -219,14 +219,14 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
     public NBTTagCompound getSyncNBT() {
         NBTTagCompound compound = new NBTTagCompound();
-        dialogData.saveNBTData(compound);
+        dialogData.saveNBTData(new MC1710NBTCompound(compound));
         questData.saveNBTData(compound);
         factionData.saveNBTData(compound);
         return compound;
     }
 
     public void setSyncNBT(NBTTagCompound data) {
-        dialogData.loadNBTData(data);
+        dialogData.loadNBTData(new MC1710NBTCompound(data));
         questData.loadNBTData(data);
         factionData.loadNBTData(data);
     }
@@ -247,10 +247,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             uuid = player.getPersistentID().toString();
         }
         NBTTagCompound compound = new NBTTagCompound();
-        dialogData.saveNBTData(compound);
+        dialogData.saveNBTData(new MC1710NBTCompound(compound));
         bankData.saveNBTData(compound);
         questData.saveNBTData(compound);
-        transportData.saveNBTData(compound);
+        transportData.saveNBTData(new MC1710NBTCompound(compound));
         factionData.saveNBTData(compound);
         mailData.saveNBTData(compound);
         tradeData.writeToNBT(compound);
@@ -263,10 +263,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     }
 
     public void setSyncNBTFull(NBTTagCompound data) {
-        dialogData.loadNBTData(data);
+        dialogData.loadNBTData(new MC1710NBTCompound(data));
         bankData.loadNBTData(data);
         questData.loadNBTData(data);
-        transportData.loadNBTData(data);
+        transportData.loadNBTData(new MC1710NBTCompound(data));
         factionData.loadNBTData(data);
         mailData.loadNBTData(data);
         tradeData.readFromNBT(data);

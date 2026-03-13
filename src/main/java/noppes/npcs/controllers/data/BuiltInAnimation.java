@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 /**
  * A read-only animation loaded from mod assets.
@@ -78,8 +79,9 @@ public class BuiltInAnimation extends Animation {
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound item = list.getCompoundTagAt(i);
             Frame frame = new Frame();
-            frame.parent = this;
-            frame.readFromNBT(item);
+            frame.parentSpeed = this.speed;
+            frame.parentSmooth = this.smooth;
+            frame.readFromNBT(new MC1710NBTCompound(item));
             frames.add(frame);
         }
 

@@ -1,44 +1,43 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.IPlayerDialogData;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.core.NBT;
 
 import java.util.HashSet;
 
 public class PlayerDialogData implements IPlayerDialogData {
-    private final PlayerData parent;
     public HashSet<Integer> dialogsRead = new HashSet<Integer>();
 
-    public PlayerDialogData(PlayerData parent) {
-        this.parent = parent;
+    public PlayerDialogData() {
     }
 
-    public void loadNBTData(NBTTagCompound compound) {
+    public void loadNBTData(INBTCompound compound) {
         HashSet<Integer> dialogsRead = new HashSet<Integer>();
         if (compound == null)
             return;
-        NBTTagList list = compound.getTagList("DialogData", 10);
+        INBTList list = compound.getList("DialogData", 10);
         if (list == null) {
             return;
         }
 
-        for (int i = 0; i < list.tagCount(); i++) {
-            NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
+        for (int i = 0; i < list.size(); i++) {
+            INBTCompound nbttagcompound = list.getCompound(i);
             dialogsRead.add(nbttagcompound.getInteger("Dialog"));
         }
         this.dialogsRead = dialogsRead;
     }
 
-    public void saveNBTData(NBTTagCompound compound) {
-        NBTTagList list = new NBTTagList();
+    public void saveNBTData(INBTCompound compound) {
+        INBTList list = NBT.list();
         for (int dia : dialogsRead) {
-            NBTTagCompound nbttagcompound = new NBTTagCompound();
+            INBTCompound nbttagcompound = NBT.compound();
             nbttagcompound.setInteger("Dialog", dia);
-            list.appendTag(nbttagcompound);
+            list.addCompound(nbttagcompound);
         }
 
-        compound.setTag("DialogData", list);
+        compound.setList("DialogData", list);
     }
 
     public boolean hasReadDialog(int id) {

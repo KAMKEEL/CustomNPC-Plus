@@ -165,6 +165,7 @@ public class ClientEventHandler {
         }
         ClientEventHandler.renderer = event.renderer;
         ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
+        FramePart.renderPartialTick = ClientEventHandler.partialRenderTick;
 
         this.setOriginalPlayerParts(event.entity);
     }

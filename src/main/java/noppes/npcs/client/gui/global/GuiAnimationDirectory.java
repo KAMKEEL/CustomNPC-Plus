@@ -195,7 +195,8 @@ public class GuiAnimationDirectory extends GuiDirectoryCategorized {
             data.animation.loop = 0;
             if (!animation.frames.isEmpty()) {
                 Frame firstFrame = new Frame();
-                firstFrame.parent = data.animation;
+                firstFrame.parentSpeed = data.animation.speed;
+                firstFrame.parentSmooth = data.animation.smooth;
                 firstFrame.readFromNBT(animation.frames.get(0).writeToNBT());
                 data.animation.addFrame(firstFrame);
             }
