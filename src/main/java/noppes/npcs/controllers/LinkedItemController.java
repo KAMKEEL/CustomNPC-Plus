@@ -126,7 +126,6 @@ public class LinkedItemController implements ILinkedItemHandler {
         File dir = getDir();
         if (!dir.exists()) {
             dir.mkdir();
-            return;
         }
 
         categoryManager.loadCategories(dir);
