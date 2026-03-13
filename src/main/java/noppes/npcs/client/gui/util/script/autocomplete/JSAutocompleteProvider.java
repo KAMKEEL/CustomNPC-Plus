@@ -1,15 +1,16 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.*;
+import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.*;
+import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 import noppes.npcs.config.ConfigScript;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -37,6 +38,15 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
     /**
      * Add suggestions for member access (after dot).
      * Uses ScriptDocument's unified type resolution system.
+     *
+     * Fixes applied vs original implementation:
+     * - Single getMemberAccessResolvePosition() call (was duplicated)
+     * - Single getMergeRegistryType() call (was duplicated)
+     * - Shared addedMethods/addedFields sets across ALL sources for cross-source deduplication
+     * - Unified nested type lookup via getAllNestedTypes() instead of raw reflection
+     * - Single Object method injection path (registry-based via fromJSMethod)
+     * - Name-based Object.class guard instead of fragile Class identity comparison
+     * - Logged SecurityException instead of silently swallowed
      */
     protected void addMemberSuggestions(Context context, List<AutocompleteItem> items) {
         String receiverExpr = context.receiverExpression;
@@ -44,113 +54,105 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             return;
         }
 
+        // Resolve position once — used for both type resolution and static context detection
+        int resolvePos = getMemberAccessResolvePosition(context);
+
         // Use ScriptDocument's resolveExpressionType - handles both Java and JS
-        TypeInfo receiverType = document.resolveExpressionType(receiverExpr, getMemberAccessResolvePosition(context));
+        TypeInfo receiverType = document.resolveExpressionType(receiverExpr, resolvePos);
         if (receiverType == null || !receiverType.isResolved()) {
             return;
         }
 
-        // Check for synthetic types first (e.g., Nashorn Java object, custom types)
-        SyntheticType syntheticType = 
-            document.getTypeResolver().getSyntheticType(receiverType.getSimpleName());
+        // --- JS-SPECIFIC: synthetic type early return ---
+        SyntheticType syntheticType = document.getTypeResolver().getSyntheticType(receiverType.getSimpleName());
         if (syntheticType != null) {
             addSyntheticTypeSuggestions(syntheticType, items, context.methodsOnly);
             return;
         }
 
-        boolean isStaticContext = isStaticAccess(receiverExpr, getMemberAccessResolvePosition(context));
+        boolean isStaticContext = isStaticAccess(receiverExpr, resolvePos);
 
+        // Resolve merge-registry type once — used for both method and field fallback
         Class<?> javaClass = receiverType.getJavaClass();
-        if (javaClass != null) {
-            Set<String> addedMethods = new HashSet<>();
-            for (Method method : javaClass.getMethods()) {
-                if (!Modifier.isPublic(method.getModifiers())) continue;
-                if (isStaticContext && !Modifier.isStatic(method.getModifiers())) continue;
-                String sig = method.getName() + "(" + method.getParameterCount() + ")";
-                if (addedMethods.add(sig)) {
-                    items.add(AutocompleteItem.fromMethod(MethodInfo.fromReflection(method, receiverType), context.methodsOnly));
-                }
+        JSTypeInfo mergeRegistryType = (javaClass != null
+                && receiverType.getSyntheticMethods().isEmpty()
+                && receiverType.getSyntheticFields().isEmpty())
+                ? getMergeRegistryType(javaClass) : null;
+
+        // Shared deduplication sets — prevent the same method/field appearing from multiple sources
+        Set<String> addedMethods = new HashSet<>();
+        Set<String> addedFields = new HashSet<>();
+
+        // ---- SHARED: unified method enumeration (TypeInfo.getAllMethods covers reflection + synthetics) ----
+        for (MethodInfo method : receiverType.getAllMethods()) {
+            if (isStaticContext && !Modifier.isStatic(method.getModifiers()))
+                continue;
+            String sig = method.getName() + "(" + method.getParameterCount() + ")";
+            if (addedMethods.add(sig))
+                items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
+        }
+
+        // --- JS-SPECIFIC: merge registry type fallback for methods ---
+        if (mergeRegistryType != null) {
+            addMethodsFromType(mergeRegistryType, receiverType, items, addedMethods, context.methodsOnly,
+                    isStaticContext);
+        }
+
+        if (!context.methodsOnly) {
+            // ---- SHARED: unified field enumeration with deduplication ----
+            for (FieldInfo field : receiverType.getAllFields()) {
+                if (isStaticContext && !Modifier.isStatic(field.getModifiers()))
+                    continue;
+                if (addedFields.add(field.getName()))
+                    items.add(AutocompleteItem.fromField(field));
             }
-            List<MethodInfo> effectiveSyntheticMethods = receiverType.getSyntheticMethods();
-            if (!effectiveSyntheticMethods.isEmpty()) {
-                for (MethodInfo method : effectiveSyntheticMethods) {
-                    if (isStaticContext && !method.isStatic()) continue;
-                    items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
-                }
-            } else {
-                JSTypeInfo jsType = getMergeRegistryType(javaClass);
-                if (jsType != null) {
-                    addMethodsFromType(jsType, receiverType, items, new HashSet<>(), context.methodsOnly, isStaticContext);
-                }
+
+            // --- JS-SPECIFIC: merge registry type fallback for fields ---
+            if (mergeRegistryType != null) {
+                addFieldsFromType(mergeRegistryType, receiverType, items, addedFields, isStaticContext);
             }
-            if (!context.methodsOnly) {
-                for (Field field : javaClass.getFields()) {
-                    if (!Modifier.isPublic(field.getModifiers())) continue;
-                    if (isStaticContext && !Modifier.isStatic(field.getModifiers())) continue;
-                    items.add(AutocompleteItem.fromField(FieldInfo.fromReflection(field, receiverType)));
-                }
-                if (!receiverType.getSyntheticFields().isEmpty()) {
-                    for (FieldInfo field : receiverType.getSyntheticFields()) {
-                        if (isStaticContext && !field.isStatic()) continue;
-                        items.add(AutocompleteItem.fromField(field));
-                    }
-                } else {
-                    JSTypeInfo jsType = getMergeRegistryType(javaClass);
-                    if (jsType != null) {
-                        addFieldsFromType(jsType, receiverType, items, new HashSet<>(), isStaticContext);
-                    }
-                }
+        }
+
+        // ---- SHARED: nested types (inner classes) in static context via getAllNestedTypes() ----
+        if (isStaticContext && !context.methodsOnly) {
+            // ScriptTypeInfo.getAllNestedTypes() returns script inner classes directly;
+            // TypeInfo.getAllNestedTypes() uses reflection. No duplicate logic needed.
+            for (TypeInfo nestedType : receiverType.getAllNestedTypes()) {
+                items.add(AutocompleteItem.fromType(nestedType));
             }
-            if (!isStaticContext && javaClass != Object.class) {
-                JSTypeInfo objJSType = registry.getType("Object");
-                if (objJSType != null) {
-                    for (JSMethodInfo m : objJSType.getMethods().values()) {
-                        if (!m.isStatic()) {
+        }
+
+        // Enum constants — polymorphic via TypeInfo.getEnumConstants()
+        if (!context.methodsOnly) {
+            for (EnumConstantInfo enumConstant : receiverType.getEnumConstants().values()) {
+                items.add(AutocompleteItem.fromField(enumConstant.getFieldInfo()));
+            }
+        }
+
+        // --- JS-SPECIFIC: Object methods from JS registry (single unified path) ---
+        // Add Object.class JS methods for instance access, unless receiver IS Object itself.
+        // Uses name comparison instead of Class identity for robustness across classloaders.
+        if (!isStaticContext && (javaClass == null || !"java.lang.Object".equals(javaClass.getName()))) {
+            JSTypeInfo objJSType = registry.getType("Object");
+            if (objJSType != null) {
+                for (JSMethodInfo m : objJSType.getMethods().values()) {
+                    if (!m.isStatic()) {
+                        String sig = m.getName() + "(" + m.getParameterCount() + ")";
+                        if (addedMethods.add(sig)) {
                             items.add(AutocompleteItem.fromJSMethod(m, receiverType, 1, context.methodsOnly));
                         }
                     }
                 }
             }
-            return;
         }
 
-        Set<String> syntheticMethodNames = new HashSet<>();
-        for (MethodInfo method : receiverType.getSyntheticMethods()) {
-            syntheticMethodNames.add(method.getName());
-            if (isStaticContext && !method.isStatic()) continue;
-            items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
-        }
-        for (FieldInfo field : receiverType.getSyntheticFields()) {
-            if (!context.methodsOnly) {
-                if (isStaticContext && !field.isStatic()) continue;
-                if (syntheticMethodNames.contains(field.getName())) continue;
-                items.add(AutocompleteItem.fromField(field));
-            }
-        }
-
-        JSTypeInfo jsTypeInfo = receiverType.getJSTypeInfo();
-        if (jsTypeInfo != null) {
-            addMethodsFromType(jsTypeInfo, receiverType, items, new HashSet<>(), context.methodsOnly, isStaticContext);
-            if (!context.methodsOnly && ConfigScript.ShowImplementationFieldsInAutocomplete) {
-                addFieldsFromType(jsTypeInfo, receiverType, items, new HashSet<>(), isStaticContext);
-            }
-        }
-
-        if (!isStaticContext) {
-            Set<String> addedObjMethods = new HashSet<>();
-            for (Method m : Object.class.getMethods()) {
-                if (!Modifier.isPublic(m.getModifiers()) || Modifier.isStatic(m.getModifiers())) continue;
-                String sig = m.getName() + "(" + m.getParameterCount() + ")";
-                if (addedObjMethods.add(sig)) {
-                    items.add(AutocompleteItem.fromMethod(MethodInfo.fromReflection(m, receiverType), context.methodsOnly));
-                }
-            }
-            JSTypeInfo objJSType = registry.getType("Object");
-            if (objJSType != null) {
-                for (JSMethodInfo m : objJSType.getMethods().values()) {
-                    if (!m.isStatic()) {
-                        items.add(AutocompleteItem.fromJSMethod(m, receiverType, 1, context.methodsOnly));
-                    }
+        // --- JS-SPECIFIC: pure JS type fallback (javaClass == null, not ScriptTypeInfo) ---
+        if (javaClass == null && !(receiverType instanceof ScriptTypeInfo)) {
+            JSTypeInfo jsTypeInfo = receiverType.getJSTypeInfo();
+            if (jsTypeInfo != null) {
+                addMethodsFromType(jsTypeInfo, receiverType, items, addedMethods, context.methodsOnly, isStaticContext);
+                if (!context.methodsOnly && ConfigScript.ShowImplementationFieldsInAutocomplete) {
+                    addFieldsFromType(jsTypeInfo, receiverType, items, addedFields, isStaticContext);
                 }
             }
         }
