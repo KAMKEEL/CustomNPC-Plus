@@ -19,7 +19,7 @@ import noppes.npcs.client.gui.util.script.interpreter.token.Token;
 public class HoverState {
 
     /** Minimum hover time (ms) before showing tooltip */
-    private static final long HOVER_DELAY_MS = 100;
+    private static final long HOVER_DELAY_MS = 250;
     
     // ==================== STATE ====================
     
@@ -88,6 +88,11 @@ public class HoverState {
 
     /** Whether click-to-pin behaviour is enabled for this hover state. */
     private boolean clickToPinEnabled = true;
+
+    /** Locked mouse position for tooltip placement (captured once when tooltip becomes visible) */
+    private int lockedTooltipMouseX;
+    private int lockedTooltipMouseY;
+    private boolean isTooltipPositionLocked;
 
     // ==================== UPDATE ====================
 
@@ -172,6 +177,9 @@ public class HoverState {
             if (elapsed >= HOVER_DELAY_MS && !tooltipVisible) {
                 tooltipVisible = true;
                 hoverInfo = TokenHoverInfo.fromToken(token);
+                lockedTooltipMouseX = lastMouseX;
+                lockedTooltipMouseY = lastMouseY;
+                isTooltipPositionLocked = true;
             }
         }
     }
@@ -223,6 +231,9 @@ public class HoverState {
             if (elapsed >= HOVER_DELAY_MS && !tooltipVisible) {
                 tooltipVisible = true;
                 hoverInfo = TokenHoverInfo.fromToken(token);
+                lockedTooltipMouseX = lastMouseX;
+                lockedTooltipMouseY = lastMouseY;
+                isTooltipPositionLocked = true;
             }
         }
     }
@@ -249,6 +260,7 @@ public class HoverState {
                 targetScrollOffset = 0;
                 tooltipMaxScroll = 0;
                 isDraggingScrollbar = false;
+                isTooltipPositionLocked = false;
             }
         }
     }
@@ -284,6 +296,11 @@ public class HoverState {
         this.tokenWidth = tokenW;
         // ensure hoveredToken reflects pinned token
         this.hoveredToken = token;
+        if (this.tooltipVisible && !this.isTooltipPositionLocked) {
+            this.lockedTooltipMouseX = lastMouseX;
+            this.lockedTooltipMouseY = lastMouseY;
+            this.isTooltipPositionLocked = true;
+        }
     }
 
     /**
@@ -294,9 +311,14 @@ public class HoverState {
         this.pinnedHoverInfo = null;
         this.tooltipVisible = false;
         this.hoverInfo = null;
+        this.isTooltipPositionLocked = false;
     }
 
     public boolean isPinned() { return pinnedToken != null; }
+
+    public int getLockedMouseX() { return lockedTooltipMouseX; }
+    public int getLockedMouseY() { return lockedTooltipMouseY; }
+    public boolean isPositionLocked() { return isTooltipPositionLocked; }
 
     // ==================== POSITION CALCULATION ====================
 

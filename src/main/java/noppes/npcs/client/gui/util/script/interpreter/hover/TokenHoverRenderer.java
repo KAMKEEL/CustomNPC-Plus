@@ -39,7 +39,7 @@ public class TokenHoverRenderer {
     private static final int SEPARATOR_SPACING = 5;
     
     /** Vertical offset from token */
-    private static final int VERTICAL_OFFSET = 4;
+    private static final int VERTICAL_OFFSET = 1;
     
     /** Maximum tooltip width as percentage of viewport */
     private static final float MAX_WIDTH_RATIO = 0.9f;
@@ -137,9 +137,20 @@ public class TokenHoverRenderer {
             }
         }
         
-        // Position the tooltip — use dragged position if user has panned the panel
-        int tooltipX = positionOverridden ? hoverState.getOverriddenTooltipX() : tokenX;
-        int tooltipY = positionOverridden ? hoverState.getOverriddenTooltipY() : tokenY + lineHeight + VERTICAL_OFFSET;
+        // Position the tooltip — use dragged position if user has panned the panel,
+        // otherwise use locked mouse position (captured when tooltip first became visible)
+        int tooltipX;
+        int tooltipY;
+        if (positionOverridden) {
+            tooltipX = hoverState.getOverriddenTooltipX();
+            tooltipY = hoverState.getOverriddenTooltipY();
+        } else if (hoverState.isPositionLocked()) {
+            tooltipX = hoverState.getLockedMouseX() + 2;
+            tooltipY = tokenY + lineHeight + VERTICAL_OFFSET;
+        } else {
+            tooltipX = tokenX;
+            tooltipY = tokenY + lineHeight + VERTICAL_OFFSET;
+        }
         
         // Clamp position — use screen bounds when user has dragged the panel outside the editor viewport
         int leftBound   = useScreenBounds ? 0       : viewportX;
@@ -164,7 +175,7 @@ public class TokenHoverRenderer {
             if (useScreenBounds) {
                 tooltipY = bottomBound - boxHeight;
             } else {
-                tooltipY = tokenY - boxHeight - VERTICAL_OFFSET; // try above token
+                tooltipY = tokenY - boxHeight;
             }
         }
         if (tooltipY < topBound) {
@@ -176,13 +187,20 @@ public class TokenHoverRenderer {
         
         // Mouse-over detection bounds:
         // When dragged, use panel rect only — no gap extension (token is unrelated to panel position)
-        // When default, union the token bottom and the tooltip rect so both directions are covered
+        // When default and tooltip is BELOW the token, union the token bottom and the tooltip rect
+        //   so the small gap between token and tooltip doesn't break hover detection.
+        // When tooltip is ABOVE the token, use only the tooltip rect — bridging would cover
+        //   intervening tokens and prevent hover-switching between them.
         if (hoverState.hasOverriddenPosition()) {
             hoverState.setTooltipBounds(tooltipX, tooltipY, boxWidth, boxHeight);
-        } else {
-            int boundsTopY    = Math.min(tokenY + lineHeight, tooltipY);
-            int boundsBottomY = Math.max(tooltipY + boxHeight, tokenY + lineHeight);
+        } else if (tooltipY >= tokenY + lineHeight) {
+            // Tooltip is below the token — bridge the gap
+            int boundsTopY    = tokenY + lineHeight;
+            int boundsBottomY = tooltipY + boxHeight;
             hoverState.setTooltipBounds(tooltipX, boundsTopY, boxWidth, boundsBottomY - boundsTopY);
+        } else {
+            // Tooltip is above the token — use tooltip rect only
+            hoverState.setTooltipBounds(tooltipX, tooltipY, boxWidth, boxHeight);
         }
         
         // Render the tooltip
@@ -218,7 +236,7 @@ public class TokenHoverRenderer {
         int boxHeight = visibleContentHeight + PADDING * 2;
 
         // Store scroll metadata into HoverState
-        hoverState.setTooltipMaxScroll(Math.max(0, totalContentHeight - visibleContentHeight + BOTTOM_GAP));
+        hoverState.setTooltipMaxScroll(Math.max(0, totalContentHeight - visibleContentHeight + (hasScrollbar? BOTTOM_GAP : 0)));
 
         // Draw background
         Gui.drawRect(x, y, x + boxWidth, y + boxHeight, BG_COLOR);

@@ -17,7 +17,6 @@ import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenErrorMessage;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
-import noppes.npcs.client.gui.util.script.interpreter.type.IntersectionTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
@@ -186,7 +185,6 @@ public class TokenHoverInfo {
                 break;
             case LITERAL:
             case KEYWORD:
-            case MODIFIER:
             case STRING:
             case COMMENT:
                 if (info.hasErrors())
@@ -443,7 +441,7 @@ public class TokenHoverInfo {
         if (token.getMethodInfo() != null) {
             MethodInfo constructor = token.getMethodInfo();
             declaration.add(new TextSegment("\n", TokenType.DEFAULT.getHexColor()));
-            additionalInfo.add("Constructor");
+           // additionalInfo.add("Constructor");
             buildConstructorDeclaration(constructor, typeInfo);
         }
     }
@@ -458,7 +456,7 @@ public class TokenHoverInfo {
 
         TypeInfo bound = typeInfo.getBoundType();
         if (bound != null && bound.getJavaClass() != null && bound.getJavaClass() != Object.class) {
-            addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+            addSegment(" extends ", TokenType.KEYWORD.getHexColor());
             addSegment(bound.getSimpleName(), getColorForTypeInfo(bound));
         }
         addSegment(">", TokenType.DEFAULT.getHexColor());
@@ -674,7 +672,7 @@ public class TokenHoverInfo {
         addInitializationTokens(token, fieldInfo);
         
         // Show it's a local variable
-        additionalInfo.add("Local variable");
+       // additionalInfo.add("Local variable");
     }
 
     public String getPackageName(TypeInfo type) {
@@ -723,7 +721,7 @@ public class TokenHoverInfo {
         
         addSegment(fieldInfo.getName(), TokenType.PARAMETER.getHexColor());
         
-        additionalInfo.add("Parameter");
+       // additionalInfo.add("Parameter");
     }
 
     private void extractUndefinedInfo(Token token) {

@@ -629,9 +629,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
 
             // Intercept wheel scroll for tooltip (highest priority)
-            if (wheelDelta != 0 && hoverState.isTooltipVisible() && hoverState.isMouseOverTooltip(xMouse, yMouse)) {
-                hoverState.scrollTooltip(wheelDelta);
-                wheelDelta = 0;
+            // Only consume the wheel event when the tooltip actually has content to scroll;
+            // otherwise let it fall through to the editor so non-scrollable tooltips don't eat input.
+            if (wheelDelta != 0 && hoverState.isTooltipVisible()) {
+                if (hoverState.isMouseOverTooltip(xMouse, yMouse)) {
+                    hoverState.scrollTooltip(wheelDelta);
+                    wheelDelta = 0;
+                } else {
+                    hoverState.clearHover();
+                }
             }
 
             // Let autocomplete menu consume scroll first if visible
