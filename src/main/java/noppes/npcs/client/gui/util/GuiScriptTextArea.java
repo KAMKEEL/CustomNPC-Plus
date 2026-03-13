@@ -2571,6 +2571,34 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             String after = getSelectionAfterText();
             int cursorPos = selection.getCursorPosition();
 
+            // Diamond/generic angle bracket handling
+            if (c == '<') {
+                if (!container.getDocument().isExcludedInclusive(cursorPos) && isGenericContext(before)) {
+                    if (hasUnmatchedCloserAhead(after, '<', '>')) {
+                        // There's already an unmatched '>' ahead — just insert '<'
+                        setText(before + "<" + after, true);
+                        selection.reset(before.length() + 1);
+                    } else {
+                        setText(before + "<>" + after, true);
+                        selection.reset(before.length() + 1);
+                    }
+                    scrollToCursor();
+                    autocompleteManager.onCharTyped(c, text, cursorPos);
+                    return true;
+                }
+            }
+
+            if (c == '>') {
+                if (after.length() > 0 && after.charAt(0) == '>') {
+                    if (shouldSkipAngleBracketClose(before)) {
+                        selection.reset(before.length() + 1);
+                        scrollToCursor();
+                        autocompleteManager.onCharTyped(c, text, cursorPos);
+                        return true;
+                    }
+                }
+            }
+
             if ((c == ')' || c == ']' || c == '}') && after.length() > 0 && after.charAt(0) == c) {
                 selection.reset(before.length() + 1);
                 scrollToCursor();
@@ -2687,6 +2715,86 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             backslashes++;
         }
         return (backslashes % 2) == 1;
+    }
+
+    private boolean isGenericContext(String before) {
+        if (before == null || before.isEmpty()) return false;
+
+        int i = before.length() - 1;
+        while (i >= 0 && (before.charAt(i) == ' ' || before.charAt(i) == '\t')) {
+            i--;
+        }
+        if (i < 0) return false;
+
+        char last = before.charAt(i);
+
+        if (last == '>' || last == ')' || last == ']') return true;
+        if (last == ',') return true;
+
+        if (Character.isJavaIdentifierPart(last)) {
+            int end = i + 1;
+            while (i >= 0 && Character.isJavaIdentifierPart(before.charAt(i))) {
+                i--;
+            }
+            String word = before.substring(i + 1, end);
+
+            if (isComparisonKeyword(word)) return false;
+            if (isNumericLiteral(word)) return false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isComparisonKeyword(String word) {
+        return "if".equals(word) || "while".equals(word) || "for".equals(word)
+                || "return".equals(word) || "else".equals(word) || "case".equals(word)
+                || "assert".equals(word) || "throw".equals(word) || "true".equals(word)
+                || "false".equals(word) || "null".equals(word);
+    }
+
+    private boolean isNumericLiteral(String word) {
+        if (word.isEmpty()) return false;
+        char first = word.charAt(0);
+        return first >= '0' && first <= '9';
+    }
+
+    private boolean shouldSkipAngleBracketClose(String before) {
+        if (before == null || before.isEmpty()) return false;
+        int depth = 0;
+        boolean inLineComment = false;
+        boolean inBlockComment = false;
+        boolean inString = false;
+        boolean escape = false;
+        char stringDelimiter = 0;
+
+        for (int i = 0; i < before.length(); i++) {
+            char c = before.charAt(i);
+            char next = i + 1 < before.length() ? before.charAt(i + 1) : 0;
+
+            if (inString) {
+                if (escape) { escape = false; }
+                else if (c == '\\') { escape = true; }
+                else if (c == stringDelimiter || c == '\n') { inString = false; }
+                continue;
+            }
+            if (inBlockComment) {
+                if (c == '*' && next == '/') { inBlockComment = false; i++; }
+                continue;
+            }
+            if (inLineComment) {
+                if (c == '\n') { inLineComment = false; }
+                continue;
+            }
+            if (c == '/' && next == '/') { inLineComment = true; i++; continue; }
+            if (c == '/' && next == '*') { inBlockComment = true; i++; continue; }
+            if (c == '"' || c == '\'') { inString = true; stringDelimiter = c; escape = false; continue; }
+
+            if (c == '<') depth++;
+            else if (c == '>') depth--;
+        }
+        return depth > 0;
     }
 
     private boolean hasUnmatchedCloserAhead(String after, char opener, char closer) {
