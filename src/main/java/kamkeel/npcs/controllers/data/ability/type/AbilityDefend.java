@@ -10,9 +10,11 @@ import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
+import noppes.npcs.EventHooks;
 import noppes.npcs.api.ability.type.IAbilityDefend;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.scripted.event.AbilityEvent;
 
 import java.util.List;
 
@@ -147,8 +149,14 @@ public abstract class AbilityDefend extends Ability implements IAbilityDefend {
             }
         }
 
+        //inject defend event
+        AbilityEvent.DefendEvent event = new AbilityEvent.DefendEvent(caster, this, attacker, lastAttacker, amount);
+        if (EventHooks.onAbilityDefend(this, event)) {
+            return event.getDamage();
+        }
+
         // Always calculate the correct reduction for the caller's damage amount
-        return performDefend(attacker, amount);
+        return performDefend(attacker, event.getDamage());
     }
 
     /**

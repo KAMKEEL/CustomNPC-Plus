@@ -215,6 +215,46 @@ public class AbilityEvent extends CustomNPCsEvent implements IAbilityEvent {
     }
 
     @Cancelable
+    public static class DefendEvent extends AbilityEvent implements IAbilityEvent.DefendEvent {
+        private final IEntityLivingBase attacker;
+        private final IEntityLivingBase lastAttacker;
+        private float damage;
+
+        public DefendEvent(EntityLivingBase entity, Ability ability, EntityLivingBase attacker,
+                        EntityLivingBase lastAttacker, float damage) {
+            super(entity, ability, null);
+            this.attacker = attacker != null ? (IEntityLivingBase) NpcAPI.Instance().getIEntity(attacker) : null;
+            this.lastAttacker = lastAttacker != null ? (IEntityLivingBase) NpcAPI.Instance().getIEntity(lastAttacker) : null;
+            this.damage = damage;
+        }
+
+        @Override
+        public IEntityLivingBase getAttacker() {
+            return attacker;
+        }
+
+        @Override
+        public IEntityLivingBase getLastAttacker() {
+            return lastAttacker;
+        }
+
+        @Override
+        public float getDamage() {
+            return damage;
+        }
+
+        @Override
+        public void setDamage(float damage) {
+            this.damage = damage;
+        }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.ABILITY_DEFEND.function;
+        }
+    }
+
+    @Cancelable
     public static class ToggleEvent extends AbilityEvent implements IAbilityEvent.ToggleEvent {
         private final int oldState;
         private final int newState;

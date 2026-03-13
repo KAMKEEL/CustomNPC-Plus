@@ -125,6 +125,7 @@ public enum EnumScriptType {
     ABILITY_INTERRUPT("abilityInterrupt"),
     ABILITY_COMPLETE("abilityComplete"),
     ABILITY_HIT("abilityHit"),
+    ABILITY_DEFEND("abilityDefend"),
     ABILITY_TICK("abilityTick"),
     ABILITY_TOGGLE("abilityToggle"),
     ABILITY_TOGGLE_TICK("abilityToggleTick"),

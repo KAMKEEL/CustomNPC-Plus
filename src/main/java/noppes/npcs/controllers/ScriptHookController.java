@@ -124,6 +124,7 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(NPC, ABILITY_START, IAbilityEvent.StartEvent.class);
         hook(NPC, ABILITY_EXECUTE, IAbilityEvent.ExecuteEvent.class);
         hook(NPC, ABILITY_HIT, IAbilityEvent.HitEvent.class);
+        hook(NPC, ABILITY_DEFEND, IAbilityEvent.DefendEvent.class);
         hook(NPC, ABILITY_TICK, IAbilityEvent.TickEvent.class);
         hook(NPC, ABILITY_INTERRUPT, IAbilityEvent.InterruptEvent.class);
         hook(NPC, ABILITY_COMPLETE, IAbilityEvent.CompleteEvent.class);
@@ -259,6 +260,7 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(PLAYER, ABILITY_START, IAbilityEvent.StartEvent.class);
         hook(PLAYER, ABILITY_EXECUTE, IAbilityEvent.ExecuteEvent.class);
         hook(PLAYER, ABILITY_HIT, IAbilityEvent.HitEvent.class);
+        hook(PLAYER, ABILITY_DEFEND, IAbilityEvent.DefendEvent.class);
         hook(PLAYER, ABILITY_TICK, IAbilityEvent.TickEvent.class);
         hook(PLAYER, ABILITY_INTERRUPT, IAbilityEvent.InterruptEvent.class);
         hook(PLAYER, ABILITY_COMPLETE, IAbilityEvent.CompleteEvent.class);
@@ -357,6 +359,7 @@ public class ScriptHookController implements IScriptHookHandler {
         hook(ABILITY, ABILITY_START, IAbilityEvent.StartEvent.class);
         hook(ABILITY, ABILITY_EXECUTE, IAbilityEvent.ExecuteEvent.class);
         hook(ABILITY, ABILITY_HIT, IAbilityEvent.HitEvent.class);
+        hook(ABILITY, ABILITY_DEFEND, IAbilityEvent.DefendEvent.class);
         hook(ABILITY, ABILITY_TICK, IAbilityEvent.TickEvent.class);
         hook(ABILITY, ABILITY_INTERRUPT, IAbilityEvent.InterruptEvent.class);
         hook(ABILITY, ABILITY_COMPLETE, IAbilityEvent.CompleteEvent.class);
