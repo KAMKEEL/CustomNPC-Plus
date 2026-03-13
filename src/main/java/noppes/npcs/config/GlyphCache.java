@@ -78,13 +78,13 @@ public class GlyphCache {
     private static final int GLYPH_PADDING = 2;
 
     /**
-     * Spacing (in pixels) inserted between adjacent glyphs in the temporary string image during rasterization.
-     * Each glyph is shifted right by GLYPH_SPACING * glyphIndex to prevent kerning from merging adjacent glyphs.
-     * This must be >= 2 * GLYPH_PADDING + 1 so that when padded bounding boxes are extracted for adjacent glyphs,
-     * they never overlap. Without sufficient spacing, bold/italic glyphs (which have wider ink bounds) can bleed
-     * fragments of neighbouring glyphs into each other's cached texture regions.
+     * Minimum spacing (in pixels) inserted between adjacent glyphs in the temporary string image during
+     * rasterization. Each glyph is shifted right by glyphSpacing * glyphIndex to prevent kerning from
+     * merging adjacent glyphs. This base value is used for plain/bold styles. For italic fonts, the
+     * spacing is increased dynamically by {@link #computeGlyphSpacing(Font)} to account for the
+     * horizontal overhang caused by the italic slant.
      */
-    private static final int GLYPH_SPACING = 2 * GLYPH_PADDING + 1;
+    private static final int GLYPH_SPACING_BASE = 2 * GLYPH_PADDING + 1;
 
     /**
      * Transparent (alpha zero) white background color for use with BufferedImage.clearRect().
@@ -156,6 +156,36 @@ public class GlyphCache {
 
     int getGlyphPadding() {
         return GLYPH_PADDING;
+    }
+
+    /**
+     * Compute the inter-glyph spacing needed for a given font when rasterizing into the temporary
+     * string image. For plain and bold fonts, the base spacing (2*GLYPH_PADDING+1) is sufficient.
+     * For italic fonts, the slant causes the top of each glyph to lean horizontally, and at large
+     * raster sizes (e.g. 54pt at scale 3) this overhang can be 8+ pixels — far exceeding the base
+     * spacing's 1-pixel effective gap. Without adequate spacing, adjacent italic glyphs' rendered
+     * pixels overlap in the string image, and narrow glyphs like 'I'/'i' capture neighboring
+     * fragments as visible dot artifacts in their cached texture.
+     *
+     * The italic overhang is computed as: lineHeight * |italicAngle|. Java2D's standard italic
+     * angle is ~0.2 (approx 12°). A safety factor of 1.5× is applied since antialiasing can
+     * produce faint alpha slightly beyond the geometric slant boundary.
+     */
+    private int computeGlyphSpacing(Font font) {
+        float italicAngle = font.getItalicAngle();
+        if (italicAngle == 0 && font.isItalic()) {
+            italicAngle = -0.2f; // Java2D synthetic italic default shear
+        }
+
+        if (italicAngle == 0) {
+            return GLYPH_SPACING_BASE;
+        }
+
+        java.awt.font.LineMetrics lm = font.getLineMetrics("I", fontRenderContext);
+        float lineHeight = lm.getAscent() + lm.getDescent();
+        int italicOverhang = (int) Math.ceil(lineHeight * Math.abs(italicAngle) * 1.5f);
+
+        return Math.max(GLYPH_SPACING_BASE, 2 * GLYPH_PADDING + italicOverhang + 1);
     }
 
 
@@ -481,6 +511,7 @@ public class GlyphCache {
         int numGlyphs = vector.getNumGlyphs(); /* Length of the GlyphVector */
         Rectangle dirty = null;                /* Total area within texture that needs to be updated with glTexSubImage2D() */
         boolean vectorRendered = false;        /* True if entire GlyphVector was rendered into stringImage */
+        int glyphSpacing = computeGlyphSpacing(font);
 
         for (int index = 0; index < numGlyphs; index++) {
             int charIndex = start + vector.getGlyphCharIndex(index);
@@ -495,6 +526,20 @@ public class GlyphCache {
             int glyphCode = vector.getGlyphCode(index);
             if (glyphCache.containsKey(fontKey | glyphCode)) {
                 continue;
+            }
+
+            /*
+             * Skip whitespace glyphs that have no visible ink (spaces, tabs, etc.). These characters
+             * contribute only advance width, not visible pixels. Without this check, GLYPH_PADDING
+             * expansion would create a small non-zero rect for the empty glyph, and the blit from
+             * stringImage could capture stray antialiased fringe pixels from neighboring glyphs,
+             * causing whitespace to render as visible dots.
+             */
+            {
+                Rectangle glyphBounds = vector.getGlyphPixelBounds(index, fontRenderContext, 0, 0);
+                if (glyphBounds.width == 0 || glyphBounds.height == 0) {
+                    continue;
+                }
             }
 
             /*
@@ -515,7 +560,7 @@ public class GlyphCache {
                  */
                 for (int i = 0; i < numGlyphs; i++) {
                     Point2D pos = vector.getGlyphPosition(i);
-                    pos.setLocation(pos.getX() + GLYPH_SPACING * i, pos.getY());
+                    pos.setLocation(pos.getX() + glyphSpacing * i, pos.getY());
                     vector.setGlyphPosition(i, pos);
                 }
 
@@ -537,8 +582,16 @@ public class GlyphCache {
                     allocateStringImage(width, height);
                 }
 
-                /* Erase the region where the string will get drawn (expanded for hinting overflow) */
-                stringGraphics.clearRect(0, 0, vectorBounds.width, vectorBounds.height);
+                /*
+                 * Clear the ENTIRE stringImage, not just the vectorBounds area. The stringImage is reused
+                 * across calls and may be larger than the current vectorBounds. Individual glyph pixel bounds
+                 * (from getGlyphPixelBounds()) can differ slightly from the aggregate vector bounds
+                 * (from getPixelBounds()) due to integer rounding. After GLYPH_PADDING expansion, a glyph's
+                 * padded rect could extend 1-2 pixels beyond the vectorBounds area, capturing stale pixels
+                 * from a previous render. This caused tiny dot artifacts above capital letters whose ink
+                 * extends to the top of the line bounds. Clearing the full image eliminates this class of bugs.
+                 */
+                stringGraphics.clearRect(0, 0, stringImage.getWidth(), stringImage.getHeight());
 
                 /* Draw string with opaque white color and baseline adjustment so the upper-left corner of the image is at (0,0) */
                 stringGraphics.drawGlyphVector(vector, -vectorBounds.x, -vectorBounds.y);
@@ -554,6 +607,30 @@ public class GlyphCache {
              */
             Rectangle rect = vector.getGlyphPixelBounds(index, fontRenderContext, -vectorBounds.x, -vectorBounds.y);
             rect.grow(GLYPH_PADDING, GLYPH_PADDING);
+
+            /*
+             * Clamp the padded rect to the stringImage bounds. Due to rounding differences between
+             * getPixelBounds() and getGlyphPixelBounds(), a padded glyph rect can occasionally extend
+             * beyond the image edge. Reading pixels outside the image would cause an exception or
+             * capture garbage data.
+             */
+            if (rect.x < 0) {
+                rect.width += rect.x; // shrink width by the overshoot
+                rect.x = 0;
+            }
+            if (rect.y < 0) {
+                rect.height += rect.y; // shrink height by the overshoot
+                rect.y = 0;
+            }
+            if (rect.x + rect.width > stringImage.getWidth()) {
+                rect.width = stringImage.getWidth() - rect.x;
+            }
+            if (rect.y + rect.height > stringImage.getHeight()) {
+                rect.height = stringImage.getHeight() - rect.y;
+            }
+            if (rect.width <= 0 || rect.height <= 0) {
+                continue;
+            }
 
             /* If the current line in cache image is full, then advance to the next line */
             if (cachePosX + rect.width + GLYPH_BORDER > TEXTURE_WIDTH) {

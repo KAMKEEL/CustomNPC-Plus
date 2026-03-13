@@ -611,6 +611,12 @@ public class StringCache {
             /* Select the current glyph's texture information and horizontal layout position within this string */
             Glyph glyph = entry.glyphs[glyphIndex];
             GlyphCache.Entry texture = glyph.texture;
+
+            /* Skip glyphs with no cached texture (whitespace characters like spaces and tabs) */
+            if (texture == null) {
+                continue;
+            }
+
             int glyphX = glyph.x + glyph.inkOffsetX;
 
             /*
@@ -698,7 +704,7 @@ public class StringCache {
                 Glyph glyph = entry.glyphs[glyphIndex];
 
                 /* The strike/underlines are drawn beyond the glyph's width to include the extra space between glyphs */
-                int glyphSpace = glyph.advance - glyph.texture.width;
+                int glyphSpace = glyph.texture != null ? glyph.advance - glyph.texture.width : 0;
 
                 /* Draw underline under glyph if the style is enabled */
                 if ((renderStyle & ColorCode.UNDERLINE) != 0) {
