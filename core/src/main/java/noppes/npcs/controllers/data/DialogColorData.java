@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
 
 public class DialogColorData {
     private boolean enableColorSettings = false;
@@ -11,7 +12,7 @@ public class DialogColorData {
     private int buttonAcceptColor = 0xfff96605;
     private int buttonRejectColor = 0xfff96605;
 
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+    public INBTCompound writeToNBT(INBTCompound compound) {
         compound.setBoolean("ColorSettings", enableColorSettings);
         if (enableColorSettings) {
             compound.setInteger("LineColor1", lineColor1);
@@ -24,7 +25,7 @@ public class DialogColorData {
         return compound;
     }
 
-    public void readFromNBT(NBTTagCompound compound) {
+    public void readFromNBT(INBTCompound compound) {
         this.enableColorSettings = compound.getBoolean("ColorSettings");
         if (enableColorSettings) {
             lineColor1 = compound.getInteger("LineColor1");

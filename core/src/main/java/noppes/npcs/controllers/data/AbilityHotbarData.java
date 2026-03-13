@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
 
 public class AbilityHotbarData {
     public static final String CHAIN_PREFIX = "chain:";
@@ -25,15 +26,15 @@ public class AbilityHotbarData {
         return abilityKey;
     }
 
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        NBTTagCompound tag = new NBTTagCompound();
+    public INBTCompound writeToNBT(INBTCompound compound) {
+        INBTCompound tag = NBT.compound();
         tag.setInteger("slot", slot);
         tag.setString("abilityKey", abilityKey != null ? abilityKey : "");
-        compound.setTag("AbilityHotbar" + slot, tag);
+        compound.setCompound("AbilityHotbar" + slot, tag);
         return compound;
     }
 
-    public void readFromNBT(NBTTagCompound compound) {
+    public void readFromNBT(INBTCompound compound) {
         abilityKey = compound.getString("abilityKey");
     }
 

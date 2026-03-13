@@ -22,6 +22,7 @@ import noppes.npcs.controllers.CategoryManager;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.LinkedItemController;
 import noppes.npcs.controllers.data.Category;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.io.IOException;
 
@@ -72,7 +73,7 @@ public final class CategorySavePacket extends AbstractPacket {
             return;
 
         Category cat = new Category();
-        cat.readNBT(compound);
+        cat.readNBT(new MC1710NBTCompound(compound));
 
         if (cat.id <= 0) {
             cm.createCategory(cat.title);

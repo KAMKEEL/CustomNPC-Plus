@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
 
 public class ItemDisplayData {
     public String texture = "minecraft:textures/items/iron_pickaxe.png";
@@ -17,13 +18,13 @@ public class ItemDisplayData {
     public Integer frameCount = 1;
     public Integer frametime = 2;
 
-    public NBTTagCompound writeToNBT() {
-        NBTTagCompound compound = new NBTTagCompound();
+    public INBTCompound writeToNBT() {
+        INBTCompound compound = NBT.compound();
         this.writeToNBT(compound);
         return compound;
     }
 
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+    public INBTCompound writeToNBT(INBTCompound compound) {
         this.setBoolean(compound, "DurabilityShow", this.durabilityShow);
         this.setInteger(compound, "DurabilityColor", this.durabilityColor);
         this.setInteger(compound, "ItemColor", this.itemColor);
@@ -54,7 +55,7 @@ public class ItemDisplayData {
         return compound;
     }
 
-    public void readFromNBT(NBTTagCompound compound) {
+    public void readFromNBT(INBTCompound compound) {
         if (compound.hasKey("DurabilityShow")) {
             this.durabilityShow = compound.getBoolean("DurabilityShow");
         }
@@ -118,19 +119,19 @@ public class ItemDisplayData {
         }
     }
 
-    private void setBoolean(NBTTagCompound compound, String key, Boolean value) {
+    private void setBoolean(INBTCompound compound, String key, Boolean value) {
         if (value != null) {
             compound.setBoolean(key, value);
         }
     }
 
-    private void setInteger(NBTTagCompound compound, String key, Integer value) {
+    private void setInteger(INBTCompound compound, String key, Integer value) {
         if (value != null) {
             compound.setInteger(key, value);
         }
     }
 
-    private void setFloat(NBTTagCompound compound, String key, Float value) {
+    private void setFloat(INBTCompound compound, String key, Float value) {
         if (value != null) {
             compound.setFloat(key, value);
         }

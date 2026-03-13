@@ -27,6 +27,7 @@ import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.IPlayerTradeData;
 import noppes.npcs.api.handler.IPlayerTransportData;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
@@ -151,7 +152,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         skinOverlays.readFromNBT(data);
         animationData.readFromNBT(data);
         effectData.readFromNBT(data);
-        magicData.readToNBT(data);
+        magicData.readToNBT(new MC1710NBTCompound(data));
         tradeData.readFromNBT(data);
         abilityData.readFromNBT(data);
         hotbarData.readFromNBT(data);
@@ -196,7 +197,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         skinOverlays.writeToNBT(compound);
         animationData.writeToNBT(compound);
         effectData.writeToNBT(compound);
-        magicData.writeToNBT(compound);
+        magicData.writeToNBT(new MC1710NBTCompound(compound));
         tradeData.writeToNBT(compound);
         abilityData.writeToNBT(compound);
         hotbarData.writeToNBT(compound);

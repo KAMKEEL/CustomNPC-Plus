@@ -1,0 +1,14 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'noppes.npcs'
+version = '1.0'
+
+// Target Java 8 for compatibility with all MC versions (1.7.10 through 1.20.1)
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

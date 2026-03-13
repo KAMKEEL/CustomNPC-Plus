@@ -17,6 +17,7 @@ import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.MagicData;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -174,7 +175,7 @@ public class GuiNPCMagic extends GuiNPCInterface2 implements IScrollData, ICusto
 
     @Override
     public void setGuiData(NBTTagCompound compound) {
-        npcMagicData.readToNBT(compound);
+        npcMagicData.readToNBT(new MC1710NBTCompound(compound));
         initGui();
     }
 

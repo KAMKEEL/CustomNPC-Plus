@@ -45,6 +45,7 @@ import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.io.IOException;
 import java.util.EnumMap;
@@ -336,7 +337,7 @@ public class SyncController {
         NBTTagCompound compound = new NBTTagCompound();
         for (MagicCycle cycle : MagicController.getInstance().cycles.values()) {
             NBTTagCompound cycleCompound = new NBTTagCompound();
-            cycle.writeNBT(cycleCompound);
+            cycle.writeNBT(new MC1710NBTCompound(cycleCompound));
             list.appendTag(cycleCompound);
         }
         compound.setTag("Data", list);
@@ -585,7 +586,7 @@ public class SyncController {
                 mc.cyclesSync.clear();
                 for (int i = 0; i < list.tagCount(); i++) {
                     MagicCycle cycle = new MagicCycle();
-                    cycle.readNBT(list.getCompoundTagAt(i));
+                    cycle.readNBT(new MC1710NBTCompound(list.getCompoundTagAt(i)));
                     mc.cyclesSync.put(cycle.id, cycle);
                 }
 
@@ -757,7 +758,7 @@ public class SyncController {
             }
             case MAGIC_CYCLE: {
                 MagicCycle cycle = new MagicCycle();
-                cycle.readNBT(compound);
+                cycle.readNBT(new MC1710NBTCompound(compound));
                 MagicController.getInstance().cycles.put(cycle.id, cycle);
                 break;
             }

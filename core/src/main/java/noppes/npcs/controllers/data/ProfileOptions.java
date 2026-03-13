@@ -1,7 +1,8 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IProfileOptions;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
 import noppes.npcs.constants.EnumProfileSync;
 
 public class ProfileOptions implements IProfileOptions {
@@ -10,7 +11,7 @@ public class ProfileOptions implements IProfileOptions {
     public EnumProfileSync cooldownControl = EnumProfileSync.Individual;
     public EnumProfileSync completeControl = EnumProfileSync.Individual;
 
-    public void readFromNBT(NBTTagCompound compound) {
+    public void readFromNBT(INBTCompound compound) {
         // Party Management
         enableOptions = compound.getBoolean("EnableProfiles");
         if (enableOptions) {
@@ -29,8 +30,8 @@ public class ProfileOptions implements IProfileOptions {
         }
     }
 
-    public NBTTagCompound writeToNBT() {
-        NBTTagCompound compound = new NBTTagCompound();
+    public INBTCompound writeToNBT() {
+        INBTCompound compound = NBT.compound();
         compound.setBoolean("EnableProfiles", enableOptions);
         if (enableOptions) {
             compound.setInteger("CooldownControl", cooldownControl.ordinal());
@@ -47,17 +48,14 @@ public class ProfileOptions implements IProfileOptions {
         return compound;
     }
 
-    @Override
     public boolean hasProfileOptions() {
         return enableOptions;
     }
 
-    @Override
     public void setProfileOptions(boolean enable) {
         this.enableOptions = enable;
     }
 
-    @Override
     public void setCooldownControl(int profileType) {
         if (profileType < 0 || profileType >= EnumProfileSync.values().length) {
             return;
@@ -65,12 +63,10 @@ public class ProfileOptions implements IProfileOptions {
         this.cooldownControl = EnumProfileSync.values()[profileType];
     }
 
-    @Override
     public int getCooldownControl() {
         return this.cooldownControl.ordinal();
     }
 
-    @Override
     public void setCompleteControl(int profileType) {
         if (profileType < 0 || profileType >= EnumProfileSync.values().length) {
             return;
@@ -78,7 +74,6 @@ public class ProfileOptions implements IProfileOptions {
         this.completeControl = EnumProfileSync.values()[profileType];
     }
 
-    @Override
     public int getCompleteControl() {
         return this.completeControl.ordinal();
     }

@@ -47,4 +47,6 @@ tmp/
 src/test
 node_modules
 .github/pages-dist
+/core/build/
+/platform-api/build/
 

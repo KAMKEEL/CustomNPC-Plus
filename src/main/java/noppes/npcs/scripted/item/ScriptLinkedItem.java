@@ -6,6 +6,7 @@ import noppes.npcs.api.item.IItemLinked;
 import noppes.npcs.controllers.LinkedItemController;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLinked {
     public LinkedItem linkedItem = new LinkedItem();
@@ -219,7 +220,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
     }
 
     public NBTTagCompound getItemNBT(NBTTagCompound compound) {
-        this.itemDisplay.writeToNBT(compound);
+        this.itemDisplay.writeToNBT(new MC1710NBTCompound(compound));
         compound.setTag(LinkedItem.LINKED_DATA_NBT_TAG, this.linkedItem.writeToNBT(false));
         compound.setInteger(LinkedItem.LINKED_VERSION_VERSION_TAG, this.linkedVersion);
         compound.setDouble("DurabilityValue", this.durabilityValue);
@@ -227,7 +228,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
     }
 
     public void setItemNBT(NBTTagCompound compound) {
-        this.itemDisplay.readFromNBT(compound);
+        this.itemDisplay.readFromNBT(new MC1710NBTCompound(compound));
         this.linkedItem.readFromNBT(compound.getCompoundTag(LinkedItem.LINKED_DATA_NBT_TAG));
         this.linkedVersion = compound.getInteger(LinkedItem.LINKED_VERSION_VERSION_TAG);
         if (compound.hasKey("DurabilityValue"))

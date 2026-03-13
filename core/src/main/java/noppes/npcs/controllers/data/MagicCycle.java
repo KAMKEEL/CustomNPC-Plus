@@ -1,8 +1,9 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.IMagicCycle;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.core.NBT;
 import noppes.npcs.constants.EnumDiagramLayout;
 
 import java.util.HashMap;
@@ -21,15 +22,15 @@ public class MagicCycle implements IMagicCycle {
     public MagicCycle() {
     }
 
-    public void readNBT(NBTTagCompound compound) {
+    public void readNBT(INBTCompound compound) {
         id = compound.getInteger("ID");
         name = compound.getString("Name");
         displayName = compound.getString("DisplayName");
         layout = EnumDiagramLayout.values()[compound.getInteger("Layout")];
         associations.clear();
-        NBTTagList list = compound.getTagList("Associations", 10); // compound tags
-        for (int i = 0; i < list.tagCount(); i++) {
-            NBTTagCompound assocTag = list.getCompoundTagAt(i);
+        INBTList list = compound.getList("Associations", 10); // compound tags
+        for (int i = 0; i < list.size(); i++) {
+            INBTCompound assocTag = list.getCompound(i);
             MagicAssociation assoc = new MagicAssociation();
             assoc.magicId = assocTag.getInteger("MagicID");
             assoc.index = assocTag.getInteger("Index");
@@ -38,43 +39,38 @@ public class MagicCycle implements IMagicCycle {
         }
     }
 
-    public void writeNBT(NBTTagCompound compound) {
+    public void writeNBT(INBTCompound compound) {
         compound.setInteger("ID", id);
         compound.setString("Name", name);
         compound.setString("DisplayName", displayName);
         compound.setInteger("Layout", layout.ordinal());
-        NBTTagList list = new NBTTagList();
+        INBTList list = NBT.list();
         for (MagicAssociation assoc : associations.values()) {
-            NBTTagCompound assocTag = new NBTTagCompound();
+            INBTCompound assocTag = NBT.compound();
             assocTag.setInteger("MagicID", assoc.magicId);
             assocTag.setInteger("Index", assoc.index);
             assocTag.setInteger("Priority", assoc.priority);
-            list.appendTag(assocTag);
+            list.addCompound(assocTag);
         }
-        compound.setTag("Associations", list);
+        compound.setList("Associations", list);
     }
 
-    @Override
     public int getId() {
         return id;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
     public void setName(String name) {
         this.name = name;
     }
 
-    @Override
     public String getDisplayName() {
         return displayName;
     }
 
-    @Override
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
@@ -83,7 +79,6 @@ public class MagicCycle implements IMagicCycle {
         return layout;
     }
 
-    @Override
     public int getLayoutType() {
         return layout.ordinal();
     }
@@ -92,7 +87,6 @@ public class MagicCycle implements IMagicCycle {
         this.layout = layout;
     }
 
-    @Override
     public void setLayoutType(int layout) {
         if (layout < 0 || layout > EnumDiagramLayout.values().length - 1)
             return;

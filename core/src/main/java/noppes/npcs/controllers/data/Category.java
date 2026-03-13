@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
 
 /**
  * Simple category data class for the generic category system.
@@ -18,12 +19,12 @@ public class Category {
         this.title = title;
     }
 
-    public void readNBT(NBTTagCompound compound) {
+    public void readNBT(INBTCompound compound) {
         id = compound.getInteger("CatID");
         title = compound.getString("CatTitle");
     }
 
-    public NBTTagCompound writeNBT(NBTTagCompound compound) {
+    public INBTCompound writeNBT(INBTCompound compound) {
         compound.setInteger("CatID", id);
         compound.setString("CatTitle", title);
         return compound;

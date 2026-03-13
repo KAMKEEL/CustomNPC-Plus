@@ -30,3 +30,8 @@ plugins {
 
 // Include the local gradle-plugins composite build so plugin is resolved locally
 includeBuild 'gradle-plugins'
+
+// CNPC+ Multi-Version Core Modules
+// These are plain Java libraries with no Minecraft dependencies.
+// They contain version-independent game logic shared across all MC versions.
+include 'core', 'platform-api'

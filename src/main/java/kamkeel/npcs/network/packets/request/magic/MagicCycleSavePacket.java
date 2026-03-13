@@ -15,6 +15,7 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.MagicCycle;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.io.IOException;
 
@@ -58,7 +59,7 @@ public class MagicCycleSavePacket extends AbstractPacket {
             return;
         NBTTagCompound comp = ByteBufUtils.readNBT(in);
         MagicCycle cycle = new MagicCycle();
-        cycle.readNBT(comp);
+        cycle.readNBT(new MC1710NBTCompound(comp));
         MagicController.getInstance().saveCycle(cycle);
 
         NoppesUtilServer.sendMagicInfo((EntityPlayerMP) player, true);

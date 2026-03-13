@@ -21,6 +21,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiDirectoryCategorized;
@@ -135,7 +136,7 @@ public class GuiAnimationDirectory extends GuiDirectoryCategorized {
 
     @Override
     protected void onSaveCategory(Category cat) {
-        PacketClient.sendClient(new CategorySavePacket(EnumCategoryType.ANIMATION, cat.writeNBT(new NBTTagCompound())));
+        PacketClient.sendClient(new CategorySavePacket(EnumCategoryType.ANIMATION, ((MC1710NBTCompound) cat.writeNBT(new MC1710NBTCompound(new NBTTagCompound()))).getMCTag()));
     }
 
     @Override

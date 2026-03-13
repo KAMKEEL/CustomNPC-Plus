@@ -32,6 +32,7 @@ import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.controllers.data.TagMap;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -596,7 +597,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
         } else if (compound.hasKey("CloneTags")) {
             this.tagMap = new TagMap(activeTab);
             NBTTagCompound cloneTags = compound.getCompoundTag("CloneTags");
-            this.tagMap.readNBT(cloneTags);
+            this.tagMap.readNBT(new MC1710NBTCompound(cloneTags));
         } else if (compound.hasKey("AllTags")) {
             NBTTagList validTags = compound.getTagList("AllTags", 10);
             if (validTags != null) {

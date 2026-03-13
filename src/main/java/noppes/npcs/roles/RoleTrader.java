@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
@@ -78,7 +79,7 @@ public class RoleTrader extends RoleInterface {
         }
 
         // Stock system
-        nbttagcompound.setTag("Stock", stock.writeToNBT(new NBTTagCompound()));
+        nbttagcompound.setTag("Stock", ((MC1710NBTCompound) stock.writeToNBT(new MC1710NBTCompound(new NBTTagCompound()))).getMCTag());
 
         // Currency cost per slot (additive to item costs)
         NBTTagList currencyList = new NBTTagList();
@@ -131,7 +132,7 @@ public class RoleTrader extends RoleInterface {
 
         // Stock system
         if (nbttagcompound.hasKey("Stock")) {
-            stock.readFromNBT(nbttagcompound.getCompoundTag("Stock"));
+            stock.readFromNBT(new MC1710NBTCompound(nbttagcompound.getCompoundTag("Stock")));
         }
 
         // Currency cost per slot (additive to item costs)

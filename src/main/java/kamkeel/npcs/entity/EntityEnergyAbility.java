@@ -13,6 +13,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.controllers.data.MagicData;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 /**
  * Universal base class for all energy ability entities (Projectiles, Barriers, Sweeper).
@@ -358,7 +359,7 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         if (customDamageData != null) {
             nbt.setTag("CustomDamageData", customDamageData);
         }
-        magicData.writeToNBT(nbt);
+        magicData.writeToNBT(new MC1710NBTCompound(nbt));
     }
 
     /**
@@ -373,7 +374,7 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
         if (nbt.hasKey("CustomDamageData")) {
             this.customDamageData = nbt.getCompoundTag("CustomDamageData");
         }
-        magicData.readToNBT(nbt);
+        magicData.readToNBT(new MC1710NBTCompound(nbt));
     }
 
     // ==================== WORLD NBT (INTENTIONALLY EMPTY) ====================

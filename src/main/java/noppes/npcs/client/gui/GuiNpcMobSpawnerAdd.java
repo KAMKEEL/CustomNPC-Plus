@@ -25,6 +25,7 @@ import noppes.npcs.client.gui.util.ISubGuiListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.data.CloneFolder;
 import noppes.npcs.controllers.data.Tag;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -302,7 +303,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
             serverFolderNames.clear();
             for (int i = 0; i < folderList.tagCount(); i++) {
                 CloneFolder f = new CloneFolder();
-                f.readNBT(folderList.getCompoundTagAt(i));
+                f.readNBT(new MC1710NBTCompound(folderList.getCompoundTagAt(i)));
                 serverFolderNames.add(f.name);
             }
             validateFolder();

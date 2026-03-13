@@ -17,6 +17,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.MagicCycle;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -71,7 +72,7 @@ public class MagicCyclesPacket extends AbstractPacket {
                 return;
             NBTTagCompound compound = new NBTTagCompound();
             NBTTagCompound magicCompound = new NBTTagCompound();
-            cycle.writeNBT(magicCompound);
+            cycle.writeNBT(new MC1710NBTCompound(magicCompound));
             compound.setTag("MagicCycle", magicCompound);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         }

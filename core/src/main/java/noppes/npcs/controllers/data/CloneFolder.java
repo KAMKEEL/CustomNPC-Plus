@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
 
 public class CloneFolder {
     public String name;
@@ -16,12 +17,12 @@ public class CloneFolder {
         this.createdDate = System.currentTimeMillis();
     }
 
-    public void readNBT(NBTTagCompound compound) {
+    public void readNBT(INBTCompound compound) {
         name = compound.getString("Name");
         createdDate = compound.getLong("Created");
     }
 
-    public NBTTagCompound writeNBT(NBTTagCompound compound) {
+    public INBTCompound writeNBT(INBTCompound compound) {
         compound.setString("Name", name);
         compound.setLong("Created", createdDate);
         return compound;

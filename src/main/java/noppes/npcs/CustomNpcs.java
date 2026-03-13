@@ -64,6 +64,8 @@ import nikedemos.markovnames.generators.MarkovSlavic;
 import nikedemos.markovnames.generators.MarkovSpanish;
 import nikedemos.markovnames.generators.MarkovWelsh;
 import noppes.npcs.compat.PixelmonHelper;
+import noppes.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.wrapper.MC1710PlatformService;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.LoadConfiguration;
 import noppes.npcs.config.legacy.LegacyConfig;
@@ -214,6 +216,11 @@ public class CustomNpcs {
 
     @EventHandler
     public void load(FMLPreInitializationEvent ev) {
+        // Initialize the platform service bridge for CORE module
+        if (!PlatformServiceHolder.isInitialized()) {
+            PlatformServiceHolder.set(new MC1710PlatformService());
+        }
+
         PacketHandler.Instance = new PacketHandler();
 
         MinecraftServer server = MinecraftServer.getServer();

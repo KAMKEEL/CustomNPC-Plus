@@ -36,6 +36,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityTypeSelect;
@@ -235,7 +236,7 @@ public class GuiAbilityDirectory extends GuiDirectoryCategorized
 
     @Override
     protected void onSaveCategory(Category cat) {
-        PacketClient.sendClient(new CategorySavePacket(getCategoryType(), cat.writeNBT(new NBTTagCompound())));
+        PacketClient.sendClient(new CategorySavePacket(getCategoryType(), ((MC1710NBTCompound) cat.writeNBT(new MC1710NBTCompound(new NBTTagCompound()))).getMCTag()));
     }
 
     @Override

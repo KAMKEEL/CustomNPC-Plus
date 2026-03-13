@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.entity.data.ITintData;
+import noppes.npcs.platform.nbt.INBTCompound;
 
 public class TintData implements ITintData {
     private boolean tintEnabled = false;
@@ -11,7 +11,7 @@ public class TintData implements ITintData {
     private int generalTint = 0x000000;
     private int generalAlpha = 40;
 
-    public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
+    public INBTCompound writeToNBT(INBTCompound nbttagcompound) {
         nbttagcompound.setBoolean("TintEnabled", tintEnabled);
         if (tintEnabled) {
             nbttagcompound.setBoolean("HurtTintEnabled", hurtTintEnabled);
@@ -23,7 +23,7 @@ public class TintData implements ITintData {
         return nbttagcompound;
     }
 
-    public void readFromNBT(NBTTagCompound nbttagcompound) {
+    public void readFromNBT(INBTCompound nbttagcompound) {
         tintEnabled = nbttagcompound.getBoolean("TintEnabled");
         if (tintEnabled) {
             hurtTintEnabled = nbttagcompound.getBoolean("HurtTintEnabled");

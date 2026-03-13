@@ -16,6 +16,7 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumDiagramLayout;
 import noppes.npcs.controllers.data.MagicAssociation;
 import noppes.npcs.controllers.data.MagicCycle;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -311,7 +312,7 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
             cycle.associations.put(associationMap.get(name).magicId, associationMap.get(name));
         }
         NBTTagCompound compound = new NBTTagCompound();
-        cycle.writeNBT(compound);
+        cycle.writeNBT(new MC1710NBTCompound(compound));
         PacketClient.sendClient(new MagicCycleSavePacket(compound));
         super.close();
     }

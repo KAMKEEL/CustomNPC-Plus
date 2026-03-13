@@ -21,6 +21,7 @@ import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.HitboxData;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.controllers.data.TintData;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.util.ValueUtil;
@@ -102,7 +103,7 @@ public class DataDisplay {
 
         nbttagcompound = animationData.writeToNBT(nbttagcompound);
         nbttagcompound = hitboxData.writeToNBT(nbttagcompound);
-        nbttagcompound = tintData.writeToNBT(nbttagcompound);
+        nbttagcompound = ((MC1710NBTCompound) tintData.writeToNBT(new MC1710NBTCompound(nbttagcompound))).getMCTag();
 
         if (this.playerProfile != null) {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
@@ -190,7 +191,7 @@ public class DataDisplay {
 
         animationData.readFromNBT(nbttagcompound);
         hitboxData.readFromNBT(nbttagcompound);
-        tintData.readFromNBT(nbttagcompound);
+        tintData.readFromNBT(new MC1710NBTCompound(nbttagcompound));
 
         modelSize = ValueUtil.clamp(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
         if (modelSize > ConfigMain.NpcSizeLimit)

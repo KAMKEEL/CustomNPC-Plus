@@ -22,6 +22,7 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumPlayerData;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.MagicData;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -1033,7 +1034,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
     private void saveMagicCompound() {
         NBTTagCompound magicCompound = new NBTTagCompound();
-        magicData.writeToNBT(magicCompound);
+        magicData.writeToNBT(new MC1710NBTCompound(magicCompound));
         PacketClient.sendClient(new PlayerDataSaveInfoPacket(playerName, EnumPlayerData.Magic, magicCompound));
     }
 

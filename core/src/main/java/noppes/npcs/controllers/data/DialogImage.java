@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IDialogImage;
+import noppes.npcs.platform.nbt.INBTCompound;
 
 public class DialogImage implements IDialogImage {
     public int id;
@@ -29,7 +29,7 @@ public class DialogImage implements IDialogImage {
         this.id = id;
     }
 
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+    public INBTCompound writeToNBT(INBTCompound compound) {
         compound.setInteger("ID", id);
         compound.setString("Texture", texture);
         compound.setInteger("PosX", x);
@@ -49,7 +49,7 @@ public class DialogImage implements IDialogImage {
         return compound;
     }
 
-    public void readNBT(NBTTagCompound compound) {
+    public void readNBT(INBTCompound compound) {
         id = compound.getInteger("ID");
         texture = compound.getString("Texture");
         x = compound.getInteger("PosX");
@@ -67,135 +67,109 @@ public class DialogImage implements IDialogImage {
         alignment = compound.getInteger("Alignment");
     }
 
-    @Override
     public int getId() {
         return id;
     }
 
-    @Override
     public void setTexture(String texture) {
         this.texture = texture;
     }
 
-    @Override
     public String getTexture() {
         return texture;
     }
 
-    @Override
     public void setPosition(int x, int y) {
         this.x = x;
         this.y = y;
     }
 
-    @Override
     public int getX() {
         return x;
     }
 
-    @Override
     public int getY() {
         return y;
     }
 
-    @Override
     public void setWidthHeight(int width, int height) {
         this.width = width;
         this.height = height;
     }
 
-    @Override
     public int getWidth() {
         return width;
     }
 
-    @Override
     public int getHeight() {
         return height;
     }
 
-    @Override
     public void setTextureOffset(int offsetX, int offsetY) {
         this.textureX = offsetX;
         this.textureY = offsetY;
     }
 
-    @Override
     public int getTextureX() {
         return textureX;
     }
 
-    @Override
     public int getTextureY() {
         return textureY;
     }
 
-    @Override
     public void setColor(int color) {
         this.color = color;
     }
 
-    @Override
     public int getColor() {
         return color;
     }
 
-    @Override
     public void setSelectedColor(int color) {
         this.selectedColor = color;
     }
 
-    @Override
     public int getSelectedColor() {
         return selectedColor;
     }
 
-    @Override
     public void setScale(float scale) {
         this.scale = scale;
     }
 
-    @Override
     public float getScale() {
         return scale;
     }
 
-    @Override
     public void setAlpha(float alpha) {
         this.alpha = alpha;
     }
 
-    @Override
     public float getAlpha() {
         return alpha;
     }
 
-    @Override
     public void setRotation(float rotation) {
         this.rotation = rotation;
     }
 
-    @Override
     public float getRotation() {
         return rotation;
     }
 
-    @Override
     public void setImageType(int imageType) {
         this.imageType = imageType;
     }
 
-    @Override
     public int getImageType() {
         return imageType;
     }
 
-    @Override
     public void setAlignment(int alignment) {
         this.alignment = alignment;
     }
 
-    @Override
     public int getAlignment() {
         return alignment;
     }
