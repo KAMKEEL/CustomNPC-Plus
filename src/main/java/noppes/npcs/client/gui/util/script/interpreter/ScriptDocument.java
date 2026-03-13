@@ -4343,14 +4343,7 @@ public class ScriptDocument {
                 // Check if the name is a declared type parameter on this class (e.g., E in class Box<E>)
                 TypeParamInfo typeParam = enclosing.getDeclaredTypeParam(baseTypeName);
                 if (typeParam != null) {
-                    TypeInfo boundType = typeParam.getBoundTypeInfo();
-                    if (boundType == null) {
-                        typeParam.resolveBoundType();
-                        boundType = typeParam.getBoundTypeInfo();
-                    }
-                    TypeInfo result = (boundType != null && boundType.isResolved())
-                            ? TypeInfo.typeParameter(baseTypeName, boundType)
-                            : TypeInfo.typeParameter(baseTypeName);
+                    TypeInfo result = TypeInfo.typeParameter(baseTypeName, typeParam);
                     for (int i = 0; i < arrayDims; i++) result = TypeInfo.arrayOf(result);
                     return result;
                 }

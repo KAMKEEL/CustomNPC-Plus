@@ -73,8 +73,9 @@ public final class GenericContext {
             if (declared == null) continue;
             String name = declared.getName();
             if (name == null || name.isEmpty()) continue;
-            TypeInfo bound = declared.getBoundTypeInfo();
-            bounds.put(name, (bound != null && bound.isResolved()) ? bound : TypeInfo.OBJECT);
+            TypeInfo tp = TypeInfo.typeParameter(name, declared);
+            TypeInfo effectiveBound = tp.getBoundType();
+            bounds.put(name, effectiveBound != null ? effectiveBound : TypeInfo.OBJECT);
         }
 
         return new GenericContext(applied, bounds);
@@ -125,15 +126,9 @@ public final class GenericContext {
                 if (declared == null) continue;
                 String name = declared.getName();
                 if (name == null || name.isEmpty()) continue;
-                TypeInfo bound = declared.getBoundTypeInfo();
-                TypeInfo effectiveBound = (bound != null && bound.isResolved()) ? bound : TypeInfo.OBJECT;
-
-                // TODO: Goatee not sure what this was for
-//                List<TypeInfo> additionalBounds = declared.getAdditionalBoundTypes();
-//                if (additionalBounds != null && !additionalBounds.isEmpty()) {
-//                    effectiveBound = IntersectionTypeInfo.of(effectiveBound, additionalBounds);
-//                }
-                bounds.put(name, effectiveBound);
+                TypeInfo tp = TypeInfo.typeParameter(name, declared);
+                TypeInfo effectiveBound = tp.getBoundType();
+                bounds.put(name, effectiveBound != null ? effectiveBound : TypeInfo.OBJECT);
             }
         }
 

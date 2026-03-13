@@ -194,10 +194,72 @@ public class TypeInfo {
     public static TypeInfo typeParameter(String paramName, TypeInfo boundType) {
         Class<?> javaClass = (boundType != null && boundType.javaClass != null) ? boundType.javaClass : Object.class;
         Kind kind = (boundType != null) ? boundType.kind : Kind.CLASS;
+
+        if (boundType instanceof IntersectionTypeInfo) {
+            final IntersectionTypeInfo intersection = (IntersectionTypeInfo) boundType;
+            TypeInfo ti = new TypeInfo(paramName, paramName, "", kind, javaClass, true, null) {
+                @Override
+                public List<MethodInfo> getAllMethods() {
+                    List<MethodInfo> result = new ArrayList<>(super.getAllMethods());
+                    for (TypeInfo bound : intersection.getAdditionalBounds()) 
+                        result.addAll(bound.getAllMethods());
+                    
+                    return result;
+                }
+                @Override
+                public List<FieldInfo> getAllFields() {
+                    List<FieldInfo> result = new ArrayList<>(super.getAllFields());
+                    for (TypeInfo bound : intersection.getAdditionalBounds()) 
+                        result.addAll(bound.getAllFields());
+                    
+                    return result;
+                }
+            };
+            ti.typeParameterName = paramName;
+            ti.boundType = boundType;
+            return ti;
+        }
+
         TypeInfo ti = new TypeInfo(paramName, paramName, "", kind, javaClass, true, null);
         ti.typeParameterName = paramName;
         ti.boundType = boundType;
         return ti;
+    }
+
+    /**
+     * Create a TypeInfo representing a bounded type parameter from a {@link TypeParamInfo}.
+     * This is the single point of control for creating type parameter TypeInfos with bound handling.
+     *
+     * <p>If the TypeParamInfo has additional bounds (e.g., {@code T extends Number & Comparable<T>}),
+     * an {@link IntersectionTypeInfo} is created internally to represent the combined bound.
+     * This centralizes intersection creation so no caller needs to call {@code IntersectionTypeInfo.of()} directly.</p>
+     *
+     * @param paramName the type parameter name (e.g., "T")
+     * @param typeParam the TypeParamInfo containing bound information
+     * @return a TypeInfo tagged as a type parameter with the effective bound
+     */
+    public static TypeInfo typeParameter(String paramName, TypeParamInfo typeParam) {
+        if (typeParam == null) {
+            return typeParameter(paramName);
+        }
+        TypeInfo primaryBound = typeParam.getBoundTypeInfo();
+        if (primaryBound == null) {
+            typeParam.resolveBoundType();
+            primaryBound = typeParam.getBoundTypeInfo();
+        }
+
+        TypeInfo effectiveBound;
+        if (primaryBound != null && primaryBound.isResolved()) {
+            List<TypeInfo> additionalBounds = typeParam.getAdditionalBoundTypes();
+            if (additionalBounds != null && !additionalBounds.isEmpty()) {
+                effectiveBound = IntersectionTypeInfo.of(primaryBound, additionalBounds);
+            } else {
+                effectiveBound = primaryBound;
+            }
+        } else {
+            effectiveBound = null;
+        }
+        return typeParameter(paramName, effectiveBound);
     }
 
     public boolean isTypeParameter() {
