@@ -288,9 +288,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         // Set the script context for context-aware hook autocomplete
         activeArea.setScriptContext(getScriptContext());
-        activeArea.enableCodeHighlighting();
-
         updateScriptDocumentImports(activeArea, container);
+        
+        activeArea.enableCodeHighlighting();
 
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
@@ -299,7 +299,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             }
         });
 
-        activeArea.enableCodeHighlighting();
         this.addTextField(activeArea);
 
         // ==================== FULLSCREEN BUTTON ====================
@@ -458,7 +457,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.getTextField(2).setText(this.getTextField(2).getText() + addString);
             previousHookClicked = "";
 
-            updateScriptDocumentImports(getActiveScriptArea(), container);
+            GuiScriptTextArea activeArea = getActiveScriptArea();
+            updateScriptDocumentImports(activeArea, container);
+            activeArea.enableCodeHighlighting();
+
         } else {
             previousHookClicked = hook;
         }
@@ -484,10 +486,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             for (String fqn : ctx.getNamespaceFQNs())
                 wildcardImports.add(fqn + ".*");
             activeArea.addImplicitImports(wildcardImports.toArray(new String[0]));
-
-
-            // Format to update which implicit imports are actually used
-            activeArea.formatCodeText();
         }
     }
 
