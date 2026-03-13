@@ -1181,13 +1181,15 @@ public class FormatHelper {
             return settings.spaceBeforeSemicolon ? " " : "";
         }
 
-        // ---- COLON spacing (ternary : always gets space, label : uses settings) ----
+        // ---- COLON spacing (ternary : always gets space, enhanced-for : always gets space, label : uses settings) ----
         if (prev.type == TokenType.COLON) {
             if (isTernaryColon(allTokens, currIdx - 1)) return " ";
+            if (isEnhancedForLoopColon(allTokens, currIdx - 1)) return " ";
             return settings.spaceAfterColon ? " " : "";
         }
         if (curr.type == TokenType.COLON) {
             if (isTernaryColon(allTokens, currIdx)) return " ";
+            if (isEnhancedForLoopColon(allTokens, currIdx)) return " ";
             return settings.spaceBeforeColon ? " " : "";
         }
 
@@ -1394,6 +1396,39 @@ public class FormatHelper {
             if (t.type == TokenType.OPERATOR && t.value.equals("?")) return true;
             if (t.type == TokenType.SEMICOLON || t.type == TokenType.BRACE_OPEN ||
                 t.type == TokenType.BRACE_CLOSE) return false;
+        }
+        return false;
+    }
+
+    /**
+     * Check if a colon at the given index is the separator in an enhanced for-loop
+     * ({@code for (Type var : collection)}) by scanning backwards from the colon
+     * for an opening paren preceded by the {@code for} keyword.
+     */
+    private boolean isEnhancedForLoopColon(List<Token> tokens, int colonIdx) {
+        int depth = 0;
+        for (int i = colonIdx - 1; i >= 0; i--) {
+            Token t = tokens.get(i);
+            if (t.type == TokenType.PAREN_CLOSE) depth++;
+            else if (t.type == TokenType.PAREN_OPEN) {
+                if (depth > 0) {
+                    depth--;
+                } else {
+                    // Found the opening paren at our depth — check if preceded by 'for'
+                    for (int j = i - 1; j >= 0; j--) {
+                        if (tokens.get(j).type != TokenType.WHITESPACE) {
+                            return tokens.get(j).type == TokenType.KEYWORD
+                                && tokens.get(j).value.equals("for");
+                        }
+                    }
+                    return false;
+                }
+            }
+            // Stop at statement boundaries
+            if (t.type == TokenType.SEMICOLON || t.type == TokenType.BRACE_OPEN ||
+                t.type == TokenType.BRACE_CLOSE) {
+                return false;
+            }
         }
         return false;
     }

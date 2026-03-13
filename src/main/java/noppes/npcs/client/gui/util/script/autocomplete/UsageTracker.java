@@ -122,7 +122,7 @@ public class UsageTracker {
     
     // ==================== INSTANCE METHODS ====================
     
-    private UsageTracker(String filename) {
+    UsageTracker(String filename) {
         File dir = getDir();
         this.file = new File(dir, filename);
     }

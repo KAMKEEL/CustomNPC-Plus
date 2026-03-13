@@ -210,10 +210,7 @@ public class ScriptTextContainer extends JavaTextContainer {
             noppes.npcs.client.gui.util.script.interpreter.token.TokenType type) {
         if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.COMMENT) return JavaTextContainer.TokenType.COMMENT;
         if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.STRING) return JavaTextContainer.TokenType.STRING;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.CLASS_KEYWORD) return JavaTextContainer.TokenType.CLASS_KEYWORD;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.IMPORT_KEYWORD) return JavaTextContainer.TokenType.IMPORT_KEYWORD;
         if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.KEYWORD) return JavaTextContainer.TokenType.KEYWORD;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.MODIFIER) return JavaTextContainer.TokenType.MODIFIER;
         if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.INTERFACE_DECL) return JavaTextContainer.TokenType.INTERFACE_DECL;
         if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.ENUM_DECL) return JavaTextContainer.TokenType.ENUM_DECL;
         if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.CLASS_DECL) return JavaTextContainer.TokenType.CLASS_DECL;

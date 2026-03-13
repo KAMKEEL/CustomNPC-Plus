@@ -1,7 +1,6 @@
 package noppes.npcs.controllers.data;
 
-import kamkeel.npcs.controllers.ProfileController;
-import kamkeel.npcs.controllers.data.profile.Profile;
+import noppes.npcs.client.ProfileClientConfig;
 import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -22,7 +21,6 @@ import noppes.npcs.api.handler.data.IQuestCategory;
 import noppes.npcs.api.handler.data.IQuestInterface;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.api.handler.data.ISlot;
-import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
@@ -176,13 +174,13 @@ public class Quest implements ICompatibilty, IQuest {
     }
 
     public long getTimeUntilRepeat(EntityPlayer player) {
-        if (ConfigMain.ProfilesEnabled && profileOptions.enableOptions && profileOptions.cooldownControl == EnumProfileSync.Shared) {
-            Profile profile = ProfileController.Instance.getProfile(player);
-            if (profile != null) {
-                Long questTime = profile.sharedQuestTimestamps.get(this.id);
-                if (questTime == null) return 0L;
+        if (ProfileClientConfig.isProfilesEnabled() && profileOptions.enableOptions
+                && profileOptions.cooldownControl == EnumProfileSync.Shared) {
+            Long questTime = ProfileClientConfig.getSharedQuestTimestamp(player, this.id);
+            if (questTime != null) {
                 return calculateRemainingCooldown(player, questTime);
             }
+            return 0L;
         }
         IPlayerQuestData questData = PlayerData.get(player).getQuestData();
         return getTimeUntilRepeatQuestData(player, questData);

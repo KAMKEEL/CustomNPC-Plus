@@ -328,7 +328,6 @@ public class CustomEffectController implements ICustomEffectHandler {
         File dir = getDir();
         if (!dir.exists()) {
             dir.mkdir();
-            return;
         }
 
         categoryManager.loadCategories(dir);

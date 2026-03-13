@@ -282,7 +282,7 @@ public class GutterIconRenderer {
         int currentY = y + PADDING;
 
         for (TextSegment segment : segments) {
-            ClientProxy.Font.drawString(segment.text, currentX, currentY, 0xFF000000 | segment.color);
+            ClientProxy.Font.drawString(segment.text, currentX, currentY,  segment.color);
             currentX += ClientProxy.Font.width(segment.text);
         }
     }

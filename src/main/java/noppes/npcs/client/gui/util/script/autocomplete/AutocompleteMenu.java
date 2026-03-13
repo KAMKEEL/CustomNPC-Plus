@@ -419,7 +419,7 @@ public class AutocompleteMenu extends Gui {
             GL11.glPushMatrix();
             float scale = 0.5f;
             GL11.glScalef(scale, scale, scale);
-            int col = TokenType.MODIFIER.getHexColor();
+            int col = TokenType.KEYWORD.getHexColor();
             
             if (isStatic)
                 font.drawString("s", (int) (textX / scale), (int) (textY / scale), col);
@@ -482,6 +482,8 @@ public class AutocompleteMenu extends Gui {
                 return TokenType.getColor(item.getTypeInfo());
             case VARIABLE:
                 return TokenType.LOCAL_FIELD.getHexColor();
+            case PARAMETER:
+                return TokenType.PARAMETER.getHexColor();
             case KEYWORD:
                 return TokenType.KEYWORD.getHexColor();
             default:
@@ -637,6 +639,9 @@ public class AutocompleteMenu extends Gui {
     
     private void drawTypeLabel(AutocompleteItem item, String typeLabel, int x, int y, int typeColor, TypeInfo typeInfo) {
         if (typeInfo == null || item.getKind() == AutocompleteItem.Kind.CLASS) { //draw package on right
+            // draw default package color instead of interface/enum colors
+            if (typeInfo != null && !typeInfo.isClass())
+                typeColor = TokenType.getPackageColor();
             drawSimpleTypeWithArraySuffix(typeLabel, x, y, typeColor);
             return;
         }

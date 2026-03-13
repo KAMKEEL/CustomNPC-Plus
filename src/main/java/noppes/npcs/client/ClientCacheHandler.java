@@ -124,6 +124,7 @@ public class ClientCacheHandler {
         ClientCacheHandler.customOverlays.clear();
         ClientCacheHandler.skinOverlays.clear();
         ClientCacheHandler.playerAnimations.clear();
+        ProfileClientConfig.reset();
 
         // Clear Texture Caches
         GuiSoundSelection.cachedDomains.clear();

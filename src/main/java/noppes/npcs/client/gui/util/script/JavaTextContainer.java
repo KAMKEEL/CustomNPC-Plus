@@ -575,7 +575,7 @@ public class JavaTextContainer extends TextContainer {
 
         for (ImportEntry ie : importEntries) {
             // Highlight the 'import' keyword
-            marks.add(new Mark(ie.importKwStart, ie.importKwEnd, TokenType.IMPORT_KEYWORD));
+            marks.add(new Mark(ie.importKwStart, ie.importKwEnd, TokenType.KEYWORD));
 
             String fullPath = ie.fullPath;
             int pathStart = ie.pathStart;
@@ -836,7 +836,7 @@ public class JavaTextContainer extends TextContainer {
         Matcher m = CLASS_DECL.matcher(text);
         List<int[]> excluded = MethodBlock.getExcludedRanges(text);
         while (m.find()) {
-            marks.add(new Mark(m.start(1), m.end(1), TokenType.CLASS_KEYWORD));
+            marks.add(new Mark(m.start(1), m.end(1), TokenType.KEYWORD));
 
             int nameStart = m.start(2);
             int nameEnd = m.end(2);
@@ -868,7 +868,7 @@ public class JavaTextContainer extends TextContainer {
 
         // Highlight general keywords
         collectPatternMatches(marks, KEYWORD, TokenType.KEYWORD);
-        collectPatternMatches(marks, MODIFIER, TokenType.MODIFIER);
+        collectPatternMatches(marks, MODIFIER, TokenType.KEYWORD);
 
         collectTypeDeclarations(marks);
         collectPatternMatches(marks, NEW_TYPE, TokenType.NEW_TYPE, 1);
@@ -1211,10 +1211,7 @@ public class JavaTextContainer extends TextContainer {
     public enum TokenType {
         COMMENT('7', 130),
         STRING('5', 120),
-        CLASS_KEYWORD('c', 115),
-        IMPORT_KEYWORD('6', 110),
         KEYWORD('c', 100),
-        MODIFIER('6', 90),
         NEW_TYPE('d', 80),
         IMPORTED_CLASS('3', 75), //imported classes used in code
         INTERFACE_DECL('b', 85),

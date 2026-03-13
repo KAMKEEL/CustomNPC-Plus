@@ -4309,6 +4309,54 @@ public class ScriptDocument {
     }
 
     /**
+     * Recursively resolve any unresolved type names inside a TypeInfo using position-aware resolution.
+     *
+     * This handles a different concern than {@link GenericContext#substitute(TypeInfo)} —
+     * it does not replace type variables with concrete bindings. Instead, it re-resolves
+     * unresolved simple names (e.g., inner class names like "Node" or script-declared type
+     * parameters like "T") that appear as type arguments in parameterized types.
+     *
+     * For example, if a type resolves to {@code List<Node>} but "Node" is still unresolved,
+     * this will attempt to resolve "Node" using the position-aware
+     * {@link #resolveType(String, int)} which can find inner classes and type parameters
+     * visible at the given position.
+     *
+     * @param type     the type whose unresolved components should be re-resolved
+     * @param position the script text offset for scope-aware resolution
+     * @return the type with all resolvable components resolved, or the original if nothing changed
+     */
+    private TypeInfo substituteTypeParams(TypeInfo type, int position) {
+        if (type == null)
+            return null;
+
+        if (!type.isResolved() && type.getSimpleName() != null
+                && !type.getSimpleName().contains(".")) {
+            TypeInfo sub = resolveType(type.getSimpleName(), position);
+            return (sub != null && sub.isResolved()) ? sub : type;
+        }
+
+        if (type.isParameterized()) {
+            List<TypeInfo> args = type.getAppliedTypeArgs();
+            if (args != null && !args.isEmpty()) {
+                List<TypeInfo> substituted = new ArrayList<>(args.size());
+                boolean anyChanged = false;
+                for (TypeInfo arg : args) {
+                    TypeInfo sub = substituteTypeParams(arg, position);
+                    if (sub != arg)
+                        anyChanged = true;
+                    substituted.add(sub);
+                }
+                if (anyChanged) {
+                    TypeInfo raw = type.getRawType();
+                    return raw != null ? raw.parameterize(substituted) : type.parameterize(substituted);
+                }
+            }
+        }
+
+        return type;
+    }
+
+    /**
      * Position-aware type resolution overload.
      * Resolves a type name with positional context so that an unqualified inner class name
      * (e.g., just "Inner") resolves correctly when the cursor/position is inside the body
@@ -4330,7 +4378,7 @@ public class ScriptDocument {
 
         // If already resolved, no need for positional fallback
         if (resolved != null && resolved.isResolved()) {
-            return resolved;
+            return substituteTypeParams(resolved, position);
         }
 
         if (typeName != null && !typeName.contains(".")) {
@@ -4343,14 +4391,7 @@ public class ScriptDocument {
                 // Check if the name is a declared type parameter on this class (e.g., E in class Box<E>)
                 TypeParamInfo typeParam = enclosing.getDeclaredTypeParam(baseTypeName);
                 if (typeParam != null) {
-                    TypeInfo boundType = typeParam.getBoundTypeInfo();
-                    if (boundType == null) {
-                        typeParam.resolveBoundType();
-                        boundType = typeParam.getBoundTypeInfo();
-                    }
-                    TypeInfo result = (boundType != null && boundType.isResolved())
-                            ? TypeInfo.typeParameter(baseTypeName, boundType)
-                            : TypeInfo.typeParameter(baseTypeName);
+                    TypeInfo result = TypeInfo.typeParameter(baseTypeName, typeParam);
                     for (int i = 0; i < arrayDims; i++) result = TypeInfo.arrayOf(result);
                     return result;
                 }
@@ -4586,7 +4627,7 @@ public class ScriptDocument {
 
         // Modifiers - Java only
         if (!isJavaScript()) {
-            addPatternMarks(marks, MODIFIER_PATTERN, TokenType.MODIFIER);
+            addPatternMarks(marks, MODIFIER_PATTERN, TokenType.KEYWORD);
         }
 
         // Type declarations and usages - Java only (JS doesn't have explicit types)
@@ -5297,7 +5338,7 @@ public class ScriptDocument {
                 continue;
             
             // Mark 'import' keyword
-            marks.add(new ScriptLine.Mark(imp.getStartOffset(), imp.getStartOffset() + 6, TokenType.IMPORT_KEYWORD, imp));
+            marks.add(new ScriptLine.Mark(imp.getStartOffset(), imp.getStartOffset() + 6, TokenType.KEYWORD, imp));
 
             // Parse path tokens
             int pathStart = imp.getPathStartOffset();
@@ -5477,7 +5518,7 @@ public class ScriptDocument {
             if (isExcluded(m.start()))
                 continue;
 
-            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.CLASS_KEYWORD));
+            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.KEYWORD));
 
             String kind = m.group(1);
             TokenType nameType;
@@ -5541,7 +5582,7 @@ public class ScriptDocument {
             int extIdx = indexOfAtDepthZero(betweenParamsAndBrace, "extends");
             if (extIdx >= 0) {
                 int extendsAbsStart = scanPos + extIdx;
-                marks.add(new ScriptLine.Mark(extendsAbsStart, extendsAbsStart + 7, TokenType.IMPORT_KEYWORD));
+                marks.add(new ScriptLine.Mark(extendsAbsStart, extendsAbsStart + 7, TokenType.KEYWORD));
 
                 // Extract parent name after 'extends '
                 String afterExtends = betweenParamsAndBrace.substring(extIdx + 7).trim();
@@ -5574,7 +5615,7 @@ public class ScriptDocument {
             int implIdx = indexOfAtDepthZero(betweenParamsAndBrace, "implements");
             if (implIdx >= 0) {
                 int implAbsStart = scanPos + implIdx;
-                marks.add(new ScriptLine.Mark(implAbsStart, implAbsStart + 10, TokenType.IMPORT_KEYWORD));
+                marks.add(new ScriptLine.Mark(implAbsStart, implAbsStart + 10, TokenType.KEYWORD));
 
                 String afterImpl = betweenParamsAndBrace.substring(implIdx + 10).trim();
                 int implListStart = implAbsStart + 10;
@@ -6426,7 +6467,7 @@ public class ScriptDocument {
         while (pos >= 0 && Character.isWhitespace(text.charAt(pos)))
             pos--;
         
-        if (pos < 0 || text.charAt(pos) != '.')
+        if (pos < 0 || isExcluded(pos) || text.charAt(pos) != '.')
             return false;
         
         // Skip the dot and any whitespace
@@ -6434,7 +6475,7 @@ public class ScriptDocument {
         while (pos >= 0 && Character.isWhitespace(text.charAt(pos)))
             pos--;
         
-        if (pos < 0)
+        if (pos < 0 || isExcluded(pos))
             return false;
         
         // Check what's before the dot - could be:
@@ -6465,7 +6506,7 @@ public class ScriptDocument {
             pos--;
 
         // If preceded by a dot, this is part of a chain - treat as instance for now
-        if (pos >= 0 && text.charAt(pos) == '.') {
+        if (pos >= 0 && !isExcluded(pos) && text.charAt(pos) == '.') {
             return false;
         }
 
@@ -7158,7 +7199,8 @@ public class ScriptDocument {
         while (scanPos >= 0 && Character.isWhitespace(text.charAt(scanPos)))
             scanPos--;
 
-        if (scanPos < 0 || text.charAt(scanPos) != '.') {
+        // Guard: dot inside a comment/string must not be treated as a receiver chain separator
+        if (scanPos < 0 || isExcluded(scanPos) || text.charAt(scanPos) != '.') {
             return null; // No receiver
         }
 
@@ -8089,11 +8131,24 @@ public class ScriptDocument {
 
             if (Character.isJavaIdentifierPart(c)) {
                 while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) pos--;
-                // Skip whitespace to check for chained identifier (preceded by a dot)
+                // Skip whitespace AND excluded ranges to check for chained identifier (preceded by a dot).
+                // Without skipping excluded ranges, a dot inside a comment (e.g. "//event.\n    player")
+                // would be mistaken for a chain continuation dot.
                 int checkPos = pos;
-                while (checkPos >= 0 && Character.isWhitespace(text.charAt(checkPos))) checkPos--;
-                // If it's part of a chained identifier (preceded by a dot), continue
-                if (checkPos >= 0 && text.charAt(checkPos) == '.') { pos = checkPos - 1; continue; }
+                while (checkPos >= 0) {
+                    if (isExcluded(checkPos)) {
+                        for (int[] range : excludedRanges) {
+                            if (checkPos >= range[0] && checkPos < range[1]) {
+                                checkPos = range[0] - 1;
+                                break;
+                            }
+                        }
+                        continue;
+                    }
+                    if (Character.isWhitespace(text.charAt(checkPos))) { checkPos--; continue; }
+                    break;
+                }
+                if (checkPos >= 0 && !isExcluded(checkPos) && text.charAt(checkPos) == '.') { pos = checkPos - 1; continue; }
                 break;
             }
 
@@ -8201,7 +8256,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                 superClass, parentConstructor, false).setConstructor(true);
         callInfo.validate();
         methodCalls.add(callInfo);
-        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.IMPORT_KEYWORD,
+        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.KEYWORD,
                 errorMsg != null ? errorMsg : callInfo));
     }
 
@@ -9974,7 +10029,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
 
 
                             TokenType type = isClassTypeInfo ? varInfo.isGlobal() ? TokenType.GLOBAL_FIELD
-                                    : TokenType.LOCAL_FIELD : info.getTokenType();
+                                    : TokenType.LOCAL_FIELD : TokenType.METHOD_CALL;
                             marks.add(new ScriptLine.Mark(start, end, type, isClassTypeInfo ? varInfo : ctorCall));
                             continue;
                         }
@@ -10218,7 +10273,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         int i = position - 1;
         while (i >= 0 && Character.isWhitespace(text.charAt(i)))
             i--;
-        return i >= 0 && text.charAt(i) == '.';
+        return i >= 0 && text.charAt(i) == '.' && !isExcluded(i);
     }
 
     boolean isInImportOrPackage(int position) {

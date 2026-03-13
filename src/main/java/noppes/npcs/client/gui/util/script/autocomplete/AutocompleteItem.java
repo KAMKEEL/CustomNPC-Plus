@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
+import noppes.npcs.client.gui.util.script.autocomplete.weighter.CompletionWeigher;
+import noppes.npcs.client.gui.util.script.autocomplete.weighter.WeigherChain;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
@@ -22,12 +24,13 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public enum Kind {
         ENUM_CONSTANT(-1), // Enum constant value (highest priority for enums)
         METHOD(0),      // Method or function
-        FIELD(1),       // Field or property
-        VARIABLE(2),    // Local variable or parameter
-        CLASS(3),       // Class or interface type
-        ENUM(4),        // Enum type
-        KEYWORD(6),     // Language keyword
-        SNIPPET(7);     // Code snippet
+        FIELD(10),       // Field or property
+        PARAMETER(19),    // Local variable or parameter
+        VARIABLE(20),    // Local variable or parameter
+        CLASS(30),       // Class or interface type
+        ENUM(40),        // Enum type
+        KEYWORD(60),     // Language keyword
+        SNIPPET(70);     // Code snippet
         
         private final int priority;
         
@@ -141,7 +144,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             signature,
             method.getDocumentation(),
             method,
-            false, // TODO: Check for @Deprecated annotation
+            method.getJavaMethod() != null && method.getJavaMethod().isAnnotationPresent(Deprecated.class),
             false, // Methods don't require imports
             null,
             -1 // Java methods don't use inheritance depth sorting
@@ -158,7 +161,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         Kind kind;
         switch (field.getScope()) {
             case PARAMETER:
-                kind = Kind.VARIABLE;
+                kind = Kind.PARAMETER;
                 break;
             case LOCAL:
                 kind = Kind.VARIABLE;
@@ -577,8 +580,12 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     }
     
     /**
-     * Add a boost to the match score (e.g., from usage tracking).
+     * @deprecated Use {@link WeigherChain} instead. This method is no longer
+     * called by the autocomplete system. Score boosts are now handled by
+     * individual {@link CompletionWeigher} implementations that return
+     * independent comparable values per scoring dimension.
      */
+    @Deprecated
     public void addScoreBoost(int boost) {
         this.matchScore += boost;
     }
@@ -599,6 +606,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public String getImportPath() { return importPath; }
     public int getMatchScore() { return matchScore; }
     public int[] getMatchIndices() { return matchIndices; }
+    public int getInheritanceDepth() { return inheritanceDepth; }
     public int getColor() { return color; };
     public AutocompleteItem setColor(int col){ this.color = col;return this; }
     /**
@@ -694,6 +702,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             case METHOD: return "m";
             case FIELD: return "f";
             case VARIABLE: return "v";
+            case PARAMETER: return "p";
             case CLASS: return "C";
             case ENUM: return "E";
             case ENUM_CONSTANT: return "e";
@@ -711,6 +720,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             case METHOD: return 0xFFB877DB;     // Purple for methods
             case FIELD: return 0xFF79C0FF;      // Blue for fields
             case VARIABLE: return 0xFF7EE787;   // Green for variables
+            case PARAMETER: return 0XFFFF00FF;   // Green for variables
             case CLASS: return 0xFFFFA657;      // Orange for classes
             case ENUM: return 0xFFFFD866;       // Yellow for enums
             case ENUM_CONSTANT: return 0xFFFFD866;
@@ -720,6 +730,10 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         }
     }
     
+    /**
+     * Note: No longer used for autocomplete sorting (weigher chain used instead).
+     * Kept for backward compatibility and collections sorting.
+     */
     @Override
     public int compareTo(AutocompleteItem other) {
         // First by match score (descending) - this includes all penalties and boosts

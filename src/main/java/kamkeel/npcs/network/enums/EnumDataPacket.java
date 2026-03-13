@@ -67,6 +67,9 @@ public enum EnumDataPacket {
     ABILITY_HOTBAR_SYNC,
     ABILITY_COOLDOWN_SYNC,
 
+    // Profile System
+    PROFILE_SHARED_QUEST,
+
     // Auction System
     AUCTION_DATA,
 

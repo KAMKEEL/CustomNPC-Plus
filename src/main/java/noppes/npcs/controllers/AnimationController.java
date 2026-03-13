@@ -166,7 +166,6 @@ public class AnimationController implements IAnimationHandler {
         File dir = getDir();
         if (!dir.exists()) {
             dir.mkdir();
-            return;
         }
 
         categoryManager.loadCategories(dir);

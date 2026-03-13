@@ -19,7 +19,7 @@ import noppes.npcs.client.gui.util.script.interpreter.token.Token;
 public class HoverState {
 
     /** Minimum hover time (ms) before showing tooltip */
-    private static final long HOVER_DELAY_MS = 100;
+    private static final long HOVER_DELAY_MS = 250;
     
     // ==================== STATE ====================
     
@@ -88,6 +88,11 @@ public class HoverState {
 
     /** Whether click-to-pin behaviour is enabled for this hover state. */
     private boolean clickToPinEnabled = true;
+
+    /** Locked mouse position for tooltip placement (captured once when tooltip becomes visible) */
+    private int lockedTooltipMouseX;
+    private int lockedTooltipMouseY;
+    private boolean isTooltipPositionLocked;
 
     // ==================== UPDATE ====================
 
@@ -172,6 +177,9 @@ public class HoverState {
             if (elapsed >= HOVER_DELAY_MS && !tooltipVisible) {
                 tooltipVisible = true;
                 hoverInfo = TokenHoverInfo.fromToken(token);
+                lockedTooltipMouseX = lastMouseX;
+                lockedTooltipMouseY = lastMouseY;
+                isTooltipPositionLocked = true;
             }
         }
     }
@@ -223,6 +231,9 @@ public class HoverState {
             if (elapsed >= HOVER_DELAY_MS && !tooltipVisible) {
                 tooltipVisible = true;
                 hoverInfo = TokenHoverInfo.fromToken(token);
+                lockedTooltipMouseX = lastMouseX;
+                lockedTooltipMouseY = lastMouseY;
+                isTooltipPositionLocked = true;
             }
         }
     }
@@ -249,6 +260,7 @@ public class HoverState {
                 targetScrollOffset = 0;
                 tooltipMaxScroll = 0;
                 isDraggingScrollbar = false;
+                isTooltipPositionLocked = false;
             }
         }
     }
@@ -284,6 +296,11 @@ public class HoverState {
         this.tokenWidth = tokenW;
         // ensure hoveredToken reflects pinned token
         this.hoveredToken = token;
+        if (this.tooltipVisible && !this.isTooltipPositionLocked) {
+            this.lockedTooltipMouseX = lastMouseX;
+            this.lockedTooltipMouseY = lastMouseY;
+            this.isTooltipPositionLocked = true;
+        }
     }
 
     /**
@@ -294,14 +311,20 @@ public class HoverState {
         this.pinnedHoverInfo = null;
         this.tooltipVisible = false;
         this.hoverInfo = null;
+        this.isTooltipPositionLocked = false;
     }
 
     public boolean isPinned() { return pinnedToken != null; }
+
+    public int getLockedMouseX() { return lockedTooltipMouseX; }
+    public int getLockedMouseY() { return lockedTooltipMouseY; }
+    public boolean isPositionLocked() { return isTooltipPositionLocked; }
 
     // ==================== POSITION CALCULATION ====================
 
     /**
      * Get the character index within a line at the given X pixel position.
+     * Uses style-aware width calculation to account for bold/italic tokens.
      */
     private int getCharacterIndexAtX(ScriptLine line, int x) {
         String text = line.getText();
@@ -309,7 +332,7 @@ public class HoverState {
         
         int accumWidth = 0;
         for (int i = 0; i < text.length(); i++) {
-            int charWidth = noppes.npcs.client.ClientProxy.Font.width(String.valueOf(text.charAt(i)));
+            int charWidth = line.getRenderedWidth(i, i + 1);
             if (accumWidth + charWidth / 2 > x) {
                 return i;
             }
@@ -324,20 +347,19 @@ public class HoverState {
     private void calculateTokenPosition(ScriptLine line, Token token, 
                                         int viewportX, int viewportY,
                                         float scrollOffset, int lineHeight) {
-        // X position: calculate width of text before the token
-        String lineText = line.getText();
+        // X position: calculate width of text before the token (style-aware)
         int tokenLocalStart = token.getGlobalStart() - line.getGlobalStart();
-        tokenLocalStart = Math.max(0, Math.min(tokenLocalStart, lineText.length()));
+        tokenLocalStart = Math.max(0, Math.min(tokenLocalStart, line.getText().length()));
         
-        String textBefore = lineText.substring(0, tokenLocalStart);
-        tokenScreenX = viewportX + noppes.npcs.client.ClientProxy.Font.width(textBefore);
+        tokenScreenX = viewportX + line.getRenderedWidth(0, tokenLocalStart);
         
         // Y position: line position minus scroll
         int lineY = line.getLineIndex();
         tokenScreenY = viewportY + (int) ((lineY - scrollOffset) * lineHeight);
         
-        // Token width
-        tokenWidth = noppes.npcs.client.ClientProxy.Font.width(token.getText());
+        // Token width (style-aware)
+        int tokenLocalEnd = tokenLocalStart + token.getText().length();
+        tokenWidth = line.getRenderedWidth(tokenLocalStart, tokenLocalEnd);
     }
 
     public void setTooltipBounds(int x, int y, int width, int height) {

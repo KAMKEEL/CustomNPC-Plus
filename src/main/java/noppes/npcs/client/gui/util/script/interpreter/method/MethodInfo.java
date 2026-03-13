@@ -11,7 +11,7 @@ import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.GenericContext;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
-import noppes.npcs.client.gui.util.script.interpreter.type.TypeSubstitutor;
+
 import noppes.npcs.client.gui.util.script.interpreter.type.GenericParameterAdapter;
 
 import java.lang.reflect.Constructor;
@@ -173,13 +173,12 @@ public final class MethodInfo {
         }
 
         // If the receiver is parameterized (e.g., List<String>), substitute class type variables (E -> String)
-        Map<String, TypeInfo> receiverBindings = null;
+        GenericContext receiverCtx = null;
         if (GenericContext.hasGenerics(containingType)) {
-            receiverBindings = TypeSubstitutor.createBindingsFromReceiver(containingType);
-            if (!receiverBindings.isEmpty()) {
-                returnType = TypeSubstitutor.substitute(returnType, receiverBindings);
-            }
+            receiverCtx = GenericContext.forReceiver(containingType);
+            returnType = receiverCtx.substitute(returnType);
         }
+        
         List<FieldInfo> params = new ArrayList<>();
         // Use getGenericParameterTypes() to preserve generic information
         java.lang.reflect.Type[] genericParamTypes = method.getGenericParameterTypes();
@@ -190,9 +189,8 @@ public final class MethodInfo {
                 paramType = TypeInfo.fromClass(method.getParameterTypes()[i]);
             }
 
-            if (receiverBindings != null && !receiverBindings.isEmpty()) {
-                paramType = TypeSubstitutor.substitute(paramType, receiverBindings);
-            }
+            if (receiverCtx != null) 
+                paramType = receiverCtx.substitute(paramType);
 
             // Adapt Object params to receiver generic type args (e.g., Map.get(Object) -> Map.get(K))
             TypeInfo adapted = GenericParameterAdapter.adaptParameterType(method, containingType, i, paramType);
@@ -376,6 +374,37 @@ public final class MethodInfo {
      * Check if this method either overrides or implements something.
      */
     public boolean hasInheritanceMarker() { return isOverride() || isImplements(); }
+
+    /**
+     * Create a copy of this method with all type variables substituted using the given context.
+     * Applies substitution to both the return type and every parameter type recursively.
+     *
+     * Used when a generic type is parameterized (e.g., {@code Box<String>}) and its raw methods
+     * (declared with type variables like T) need to reflect the concrete type arguments.
+     *
+     * Example: for {@code class Box<T> { T get(); }}, calling this on the raw {@code get() → T}
+     * with a context binding {@code T → String} produces {@code get() → String}.
+     *
+     * @param context the generic context containing type variable bindings; if null, returns {@code this} unchanged
+     * @return a new MethodInfo with substituted types, or {@code this} if context is null
+     */
+    public MethodInfo substituteTypeParams(GenericContext context) {
+        if (context == null) {
+            return this;
+        }
+        TypeInfo subReturnType = context.substitute(returnType);
+        List<FieldInfo> subParams = new ArrayList<>(parameters.size());
+        for (FieldInfo param : parameters) {
+            subParams.add(param.substituteTypeParams(context));
+        }
+        MethodInfo result = new MethodInfo(name, subReturnType, containingType, subParams,
+                fullDeclarationOffset, typeOffset, nameOffset, bodyStart, bodyEnd,
+                resolved, isDeclaration, modifiers, documentation, javaMethod);
+        result.jsDocInfo = this.jsDocInfo;
+        result.overridesFrom = this.overridesFrom;
+        result.implementsFrom = this.implementsFrom;
+        return result;
+    }
 
     /**
      * Check if a position is inside this method's body.

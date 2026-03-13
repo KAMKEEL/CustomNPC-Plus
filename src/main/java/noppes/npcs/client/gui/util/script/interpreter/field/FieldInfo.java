@@ -9,7 +9,7 @@ import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.GenericContext;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
-import noppes.npcs.client.gui.util.script.interpreter.type.TypeSubstitutor;
+
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 
@@ -18,7 +18,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Metadata for a field (variable) declaration or reference.
@@ -165,12 +164,8 @@ public final class FieldInfo {
         }
 
         // If the receiver is parameterized, substitute class type variables in the field type
-        if (GenericContext.hasGenerics(containingType)) {
-            Map<String, TypeInfo> receiverBindings = TypeSubstitutor.createBindingsFromReceiver(containingType);
-            if (!receiverBindings.isEmpty()) {
-                type = TypeSubstitutor.substitute(type, receiverBindings);
-            }
-        }
+        if (GenericContext.hasGenerics(containingType)) 
+            type = GenericContext.forReceiver(containingType).substitute(type);
 
         // Check if this is an enum constant
         if (field.isEnumConstant()) {
@@ -531,6 +526,38 @@ public final class FieldInfo {
     public String getDocumentation() { return documentation; }
     public JSDocInfo getJSDocInfo() { return jsDocInfo; }
     public void setJSDocInfo(JSDocInfo jsDocInfo) { this.jsDocInfo = jsDocInfo; }
+
+    /**
+     * Create a copy of this field with its declared type substituted using the given context.
+     * Returns {@code this} unchanged if the context is null, the declared type is null,
+     * or substitution produces the same type (identity check).
+     *
+     * Used when a generic type is parameterized (e.g., {@code Box<String>}) and its raw fields
+     * (declared with type variables like T) need to reflect the concrete type arguments.
+     *
+     * Example: for {@code class Box<T> { T value; }}, calling this on the raw field {@code value: T}
+     * with a context binding {@code T → String} produces {@code value: String}.
+     *
+     * @param context the generic context containing type variable bindings; if null, returns {@code this} unchanged
+     * @return a new FieldInfo with the substituted declared type, or {@code this} if no substitution occurred
+     */
+    public FieldInfo substituteTypeParams(GenericContext context) {
+        if (context == null || declaredType == null) {
+            return this;
+        }
+        TypeInfo subType = context.substitute(declaredType);
+        if (subType == declaredType) {
+            return this;
+        }
+        FieldInfo result = new FieldInfo(name, scope, subType, declarationOffset, resolved,
+                containingMethod, documentation, initStart, initEnd, modifiers, reflectionField);
+        result.jsDocInfo = this.jsDocInfo;
+        result.scopeInfo = this.scopeInfo;
+        result.isVarArg = this.isVarArg;
+        result.inferredType = this.inferredType;
+        return result;
+    }
+
     public int getInitStart() { return initStart; }
     public int getInitEnd() { return initEnd; }
     public boolean hasInitializer() { return initStart >= 0 && initEnd > initStart; }

@@ -151,11 +151,11 @@ public class FieldChainMarker {
         int pos = m.end(2);
         while (pos < text.length()) {
             pos = document.skipWhitespace(pos);
-            if (pos >= text.length() || text.charAt(pos) != '.') break;
+            if (pos >= text.length() || document.isExcluded(pos) || text.charAt(pos) != '.') break;
             pos++; // Skip dot
             
             pos = document.skipWhitespace(pos);
-            if (pos >= text.length() || !Character.isJavaIdentifierStart(text.charAt(pos))) break;
+            if (pos >= text.length() || document.isExcluded(pos) || !Character.isJavaIdentifierStart(text.charAt(pos))) break;
 
             // Read identifier
             int identStart = pos;
@@ -452,11 +452,11 @@ public class FieldChainMarker {
         int pos = identEnd;
         while (pos < text.length()) {
             pos = document.skipWhitespace(pos);
-            if (pos >= text.length() || text.charAt(pos) != '.') break;
+            if (pos >= text.length() || document.isExcluded(pos) || text.charAt(pos) != '.') break;
             pos++; // Skip dot
             
             pos = document.skipWhitespace(pos);
-            if (pos >= text.length() || !Character.isJavaIdentifierStart(text.charAt(pos))) break;
+            if (pos >= text.length() || document.isExcluded(pos) || !Character.isJavaIdentifierStart(text.charAt(pos))) break;
 
             // Read identifier
             int nStart = pos;

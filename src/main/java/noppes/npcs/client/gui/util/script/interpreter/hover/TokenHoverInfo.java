@@ -185,7 +185,6 @@ public class TokenHoverInfo {
                 break;
             case LITERAL:
             case KEYWORD:
-            case MODIFIER:
             case STRING:
             case COMMENT:
                 if (info.hasErrors())
@@ -266,17 +265,17 @@ public class TokenHoverInfo {
             int mods = clazz.getModifiers();
             
             // Modifiers
-            if (Modifier.isPublic(mods)) addSegment("public ", TokenType.MODIFIER.getHexColor());
-            if (Modifier.isAbstract(mods) && !clazz.isInterface()) addSegment("abstract ", TokenType.MODIFIER.getHexColor());
-            if (Modifier.isFinal(mods) && !isEnum) addSegment("final ", TokenType.MODIFIER.getHexColor());
+            if (Modifier.isPublic(mods)) addSegment("public ", TokenType.KEYWORD.getHexColor());
+            if (Modifier.isAbstract(mods) && !clazz.isInterface()) addSegment("abstract ", TokenType.KEYWORD.getHexColor());
+            if (Modifier.isFinal(mods) && !isEnum) addSegment("final ", TokenType.KEYWORD.getHexColor());
             
             // Class type keyword
             if (clazz.isInterface()) {
-                addSegment("interface ", TokenType.MODIFIER.getHexColor());
+                addSegment("interface ", TokenType.KEYWORD.getHexColor());
             } else if (isEnum) {
-                addSegment("enum ", TokenType.MODIFIER.getHexColor());
+                addSegment("enum ", TokenType.KEYWORD.getHexColor());
             } else {
-                addSegment("class ", TokenType.MODIFIER.getHexColor());
+                addSegment("class ", TokenType.KEYWORD.getHexColor());
             }
             
             // Class name - use proper color based on type
@@ -290,7 +289,7 @@ public class TokenHoverInfo {
             // Extends
             Class<?> superclass = clazz.getSuperclass();
             if (superclass != null && superclass != Object.class && !isEnum) {
-                addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+                addSegment(" extends ", TokenType.KEYWORD.getHexColor());
                 addSegment(superclass.getSimpleName(), getColorForClass(superclass));
             }
 
@@ -299,7 +298,7 @@ public class TokenHoverInfo {
             // Implements
             Class<?>[] interfaces = clazz.getInterfaces();
             if (interfaces.length > 0) {
-                addSegment(clazz.isInterface() ? " extends " : " implements ", TokenType.MODIFIER.getHexColor());
+                addSegment(clazz.isInterface() ? " extends " : " implements ", TokenType.KEYWORD.getHexColor());
                 for (int i = 0; i < Math.min(interfaces.length, 3); i++) {
                     if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
                     addSegment(interfaces[i].getSimpleName(), TokenType.INTERFACE_DECL.getHexColor());
@@ -325,19 +324,19 @@ public class TokenHoverInfo {
             int mods = scriptType.getModifiers();
             
             // Modifiers
-            if (Modifier.isPublic(mods)) addSegment("public ", TokenType.MODIFIER.getHexColor());
+            if (Modifier.isPublic(mods)) addSegment("public ", TokenType.KEYWORD.getHexColor());
             if (Modifier.isAbstract(mods) && scriptType.getKind() != TypeInfo.Kind.INTERFACE) 
-                addSegment("abstract ", TokenType.MODIFIER.getHexColor());
-            if (Modifier.isFinal(mods)) addSegment("final ", TokenType.MODIFIER.getHexColor());
-            if (Modifier.isStatic(mods)) addSegment("static ", TokenType.MODIFIER.getHexColor());
+                addSegment("abstract ", TokenType.KEYWORD.getHexColor());
+            if (Modifier.isFinal(mods)) addSegment("final ", TokenType.KEYWORD.getHexColor());
+            if (Modifier.isStatic(mods)) addSegment("static ", TokenType.KEYWORD.getHexColor());
             
             // Class type keyword
             if (scriptType.getKind() == TypeInfo.Kind.INTERFACE) {
-                addSegment("interface ", TokenType.MODIFIER.getHexColor());
+                addSegment("interface ", TokenType.KEYWORD.getHexColor());
             } else if (scriptType.getKind() == TypeInfo.Kind.ENUM) {
-                addSegment("enum ", TokenType.MODIFIER.getHexColor());
+                addSegment("enum ", TokenType.KEYWORD.getHexColor());
             } else {
-                addSegment("class ", TokenType.MODIFIER.getHexColor());
+                addSegment("class ", TokenType.KEYWORD.getHexColor());
             }
             
             // Class name
@@ -347,7 +346,7 @@ public class TokenHoverInfo {
             addTypeSegments(typeInfo);
             addDeclaredTypeParamSegments(typeInfo);
             if (scriptType.hasSuperClass()) {
-                addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+                addSegment(" extends ", TokenType.KEYWORD.getHexColor());
                 TypeInfo superClass = scriptType.getSuperClass();
                 if (superClass != null && superClass.isResolved()) {
                     // Color based on resolved type
@@ -370,7 +369,7 @@ public class TokenHoverInfo {
                     // Already showed extends, so use comma
                     addSegment(", ", TokenType.DEFAULT.getHexColor());
                 } else {
-                    addSegment(keyword, TokenType.MODIFIER.getHexColor());
+                    addSegment(keyword, TokenType.KEYWORD.getHexColor());
                 }
                 
                 List<String> interfaceNames = scriptType.getImplementedInterfaceNames();
@@ -414,12 +413,12 @@ public class TokenHoverInfo {
             JSTypeInfo jsType = typeInfo.getJSTypeInfo();
             
             iconIndicator = "I";
-            addSegment("interface ", TokenType.MODIFIER.getHexColor());
+            addSegment("interface ", TokenType.KEYWORD.getHexColor());
             addTypeSegments(typeInfo);
             addDeclaredTypeParamSegments(typeInfo);
             
             if (jsType.getExtendsType() != null) {
-                addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+                addSegment(" extends ", TokenType.KEYWORD.getHexColor());
                 addSegment(jsType.getExtendsType(), TokenType.INTERFACE_DECL.getHexColor());
             }
             
@@ -442,7 +441,7 @@ public class TokenHoverInfo {
         if (token.getMethodInfo() != null) {
             MethodInfo constructor = token.getMethodInfo();
             declaration.add(new TextSegment("\n", TokenType.DEFAULT.getHexColor()));
-            additionalInfo.add("Constructor");
+           // additionalInfo.add("Constructor");
             buildConstructorDeclaration(constructor, typeInfo);
         }
     }
@@ -451,13 +450,13 @@ public class TokenHoverInfo {
         iconIndicator = "T";
         String paramName = typeInfo.getTypeParameterName();
 
-        addSegment("type parameter ", TokenType.MODIFIER.getHexColor());
+        addSegment("type parameter ", TokenType.KEYWORD.getHexColor());
         addSegment("<", TokenType.DEFAULT.getHexColor());
         addSegment(paramName, TokenType.GENERIC_TYPE_PARAM.getHexColor());
 
         TypeInfo bound = typeInfo.getBoundType();
         if (bound != null && bound.getJavaClass() != null && bound.getJavaClass() != Object.class) {
-            addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+            addSegment(" extends ", TokenType.KEYWORD.getHexColor());
             addSegment(bound.getSimpleName(), getColorForTypeInfo(bound));
         }
         addSegment(">", TokenType.DEFAULT.getHexColor());
@@ -583,7 +582,7 @@ public class TokenHoverInfo {
 //            // Show modifiers from source if we have a declaration position
 //            String modifiers = extractModifiersAtPosition(fieldInfo.getDeclarationOffset());
 //            if (modifiers != null && !modifiers.isEmpty()) {
-//                addSegment(modifiers + " ", TokenType.MODIFIER.getHexColor());
+//                addSegment(modifiers + " ", TokenType.KEYWORD.getHexColor());
 //            }
 //        }
         
@@ -673,7 +672,7 @@ public class TokenHoverInfo {
         addInitializationTokens(token, fieldInfo);
         
         // Show it's a local variable
-        additionalInfo.add("Local variable");
+       // additionalInfo.add("Local variable");
     }
 
     public String getPackageName(TypeInfo type) {
@@ -722,7 +721,7 @@ public class TokenHoverInfo {
         
         addSegment(fieldInfo.getName(), TokenType.PARAMETER.getHexColor());
         
-        additionalInfo.add("Parameter");
+       // additionalInfo.add("Parameter");
     }
 
     private void extractUndefinedInfo(Token token) {
@@ -796,13 +795,72 @@ public class TokenHoverInfo {
             TypeParamInfo param = params.get(i);
             addSegment(param.getName(), TokenType.GENERIC_TYPE_PARAM.getHexColor());
             if (param.getBoundTypeName() != null && !"Object".equals(param.getBoundTypeName())) {
-                addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+                addSegment(" extends ", TokenType.KEYWORD.getHexColor());
                 TypeInfo boundType = param.getBoundTypeInfo();
                 if (boundType != null && boundType.isResolved()) {
                     addTypeSegments(boundType);
                 } else {
                     addSegment(param.getBoundTypeName(), TokenType.IMPORTED_CLASS.getHexColor());
                 }
+
+                List<TypeInfo> additionalBoundTypes = param.getAdditionalBoundTypes();
+                List<String> additionalBoundNames = param.getAdditionalBoundNames();
+                for (int j = 0; j < additionalBoundNames.size(); j++) {
+                    addSegment(" & ", TokenType.DEFAULT.getHexColor());
+                    TypeInfo additionalBoundType = j < additionalBoundTypes.size() ? additionalBoundTypes.get(j) : null;
+                    if (additionalBoundType != null && additionalBoundType.isResolved()) {
+                        addTypeSegments(additionalBoundType);
+                        if (!additionalBoundType.isParameterized()) {
+                            addBoundTypeParamSegments(additionalBoundType);
+                        }
+                    } else {
+                        addSegment(additionalBoundNames.get(j), TokenType.IMPORTED_CLASS.getHexColor());
+                    }
+                }
+            }
+        }
+        
+        addSegment(">", TokenType.DEFAULT.getHexColor());
+    }
+
+    private void addBoundTypeParamSegments(TypeInfo boundType) {
+        List<TypeParamInfo> params = boundType.getTypeParams();
+        if (params == null || params.isEmpty()) return;
+
+        addSegment("<", TokenType.DEFAULT.getHexColor());
+        for (int i = 0; i < params.size(); i++) {
+            if (i > 0)
+                addSegment(", ", TokenType.DEFAULT.getHexColor());
+            TypeParamInfo tp = params.get(i);
+            addSegment(tp.getName(), TokenType.GENERIC_TYPE_PARAM.getHexColor());
+
+            if (tp.getBoundTypeName() != null && !"Object".equals(tp.getBoundTypeName())) {
+                addSegment(" extends ", TokenType.KEYWORD.getHexColor());
+                TypeInfo innerBound = tp.getBoundTypeInfo();
+                if (innerBound != null && innerBound.isResolved()) {
+                    addTypeSegments(innerBound);
+                    if (!innerBound.isParameterized()) {
+                        addBoundTypeParamSegments(innerBound);
+                    }
+                } else {
+                    addSegment(tp.getBoundTypeName(), TokenType.IMPORTED_CLASS.getHexColor());
+                }
+
+                List<TypeInfo> innerAdditional = tp.getAdditionalBoundTypes();
+                List<String> innerAdditionalNames = tp.getAdditionalBoundNames();
+                for (int j = 0; j < innerAdditionalNames.size(); j++) {
+                    addSegment(" & ", TokenType.DEFAULT.getHexColor());
+                    TypeInfo innerAddBound = j < innerAdditional.size() ? innerAdditional.get(j) : null;
+                    if (innerAddBound != null && innerAddBound.isResolved()) {
+                        addTypeSegments(innerAddBound);
+                        if (!innerAddBound.isParameterized()) {
+                            addBoundTypeParamSegments(innerAddBound);
+                        }
+                    } else {
+                        addSegment(innerAdditionalNames.get(j), TokenType.IMPORTED_CLASS.getHexColor());
+                    }
+                }
+                addSegment(" extends ", TokenType.KEYWORD.getHexColor());
             }
         }
         addSegment(">", TokenType.DEFAULT.getHexColor());
@@ -844,9 +902,9 @@ public class TokenHoverInfo {
         // Modifiers (public, private, etc.)
         declaration.clear();
         int mods = constructor.getModifiers();
-        if (Modifier.isPublic(mods)) addSegment("public ", TokenType.MODIFIER.getHexColor());
-        else if (Modifier.isProtected(mods)) addSegment("protected ", TokenType.MODIFIER.getHexColor());
-        else if (Modifier.isPrivate(mods)) addSegment("private ", TokenType.MODIFIER.getHexColor());
+        if (Modifier.isPublic(mods)) addSegment("public ", TokenType.KEYWORD.getHexColor());
+        else if (Modifier.isProtected(mods)) addSegment("protected ", TokenType.KEYWORD.getHexColor());
+        else if (Modifier.isPrivate(mods)) addSegment("private ", TokenType.KEYWORD.getHexColor());
         
         // Constructor name (same as class name)
         addSegment(constructor.getName(), containingType.getTokenType().getHexColor());
@@ -890,14 +948,14 @@ public class TokenHoverInfo {
         // Skip for now - could add later
         
         // Modifiers
-        if (Modifier.isPublic(mods)) addSegment("public ", TokenType.MODIFIER.getHexColor());
-        else if (Modifier.isProtected(mods)) addSegment("protected ", TokenType.MODIFIER.getHexColor());
-        else if (Modifier.isPrivate(mods)) addSegment("private ", TokenType.MODIFIER.getHexColor());
+        if (Modifier.isPublic(mods)) addSegment("public ", TokenType.KEYWORD.getHexColor());
+        else if (Modifier.isProtected(mods)) addSegment("protected ", TokenType.KEYWORD.getHexColor());
+        else if (Modifier.isPrivate(mods)) addSegment("private ", TokenType.KEYWORD.getHexColor());
         
-        if (Modifier.isStatic(mods)) addSegment("static ", TokenType.MODIFIER.getHexColor());
-        if (Modifier.isFinal(mods)) addSegment("final ", TokenType.MODIFIER.getHexColor());
-        if (Modifier.isAbstract(mods)) addSegment("abstract ", TokenType.MODIFIER.getHexColor());
-        if (Modifier.isSynchronized(mods)) addSegment("synchronized ", TokenType.MODIFIER.getHexColor());
+        if (Modifier.isStatic(mods)) addSegment("static ", TokenType.KEYWORD.getHexColor());
+        if (Modifier.isFinal(mods)) addSegment("final ", TokenType.KEYWORD.getHexColor());
+        if (Modifier.isAbstract(mods)) addSegment("abstract ", TokenType.KEYWORD.getHexColor());
+        if (Modifier.isSynchronized(mods)) addSegment("synchronized ", TokenType.KEYWORD.getHexColor());
         
         // Return type - check for actual type color (handle array suffix coloring)
         TypeInfo returnType = methodInfo.getReturnType();
@@ -932,12 +990,12 @@ public class TokenHoverInfo {
         if (methodInfo.isDeclaration() && methodInfo.getDeclarationOffset() >= 0) {
             String modifiers = extractModifiersAtPosition(methodInfo.getDeclarationOffset());
             if (modifiers != null && !modifiers.isEmpty()) {
-                addSegment(modifiers + " ", TokenType.MODIFIER.getHexColor());
+                addSegment(modifiers + " ", TokenType.KEYWORD.getHexColor());
             }
         } else {
             // Fallback: show static if we know it
             if (methodInfo.isStatic()) {
-                addSegment("static ", TokenType.MODIFIER.getHexColor());
+                addSegment("static ", TokenType.KEYWORD.getHexColor());
             }
         }
         
@@ -1395,20 +1453,20 @@ public class TokenHoverInfo {
      */
     private void addFieldModifiers(int mods) {
         if (Modifier.isPublic(mods))
-            addSegment("public ", TokenType.MODIFIER.getHexColor());
+            addSegment("public ", TokenType.KEYWORD.getHexColor());
         else if (Modifier.isProtected(mods))
-            addSegment("protected ", TokenType.MODIFIER.getHexColor());
+            addSegment("protected ", TokenType.KEYWORD.getHexColor());
         else if (Modifier.isPrivate(mods))
-            addSegment("private ", TokenType.MODIFIER.getHexColor());
+            addSegment("private ", TokenType.KEYWORD.getHexColor());
 
         if (Modifier.isStatic(mods))
-            addSegment("static ", TokenType.MODIFIER.getHexColor());
+            addSegment("static ", TokenType.KEYWORD.getHexColor());
         if (Modifier.isFinal(mods))
-            addSegment("final ", TokenType.MODIFIER.getHexColor());
+            addSegment("final ", TokenType.KEYWORD.getHexColor());
         if (Modifier.isVolatile(mods))
-            addSegment("volatile ", TokenType.MODIFIER.getHexColor());
+            addSegment("volatile ", TokenType.KEYWORD.getHexColor());
         if (Modifier.isTransient(mods))
-            addSegment("transient ", TokenType.MODIFIER.getHexColor());
+            addSegment("transient ", TokenType.KEYWORD.getHexColor());
     }
 
     /**

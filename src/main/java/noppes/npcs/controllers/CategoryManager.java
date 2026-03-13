@@ -67,6 +67,10 @@ public class CategoryManager {
         itemCategoryMap.remove(itemId);
     }
 
+    public boolean isLoaded() {
+        return baseDir != null;
+    }
+
     public File getItemDir(int itemId) {
         int catId = itemCategoryMap.getOrDefault(itemId, UNCATEGORIZED_ID);
         return getCategoryDir(catId);
@@ -86,6 +90,7 @@ public class CategoryManager {
     // ========== Category CRUD ==========
 
     public Category createCategory(String name) {
+        if (baseDir == null) return null;
         while (hasCategoryName(name)) name += "_";
         lastUsedCatID++;
         Category cat = new Category(lastUsedCatID, name);
@@ -96,7 +101,7 @@ public class CategoryManager {
     }
 
     public void saveCategory(Category cat) {
-        if (cat.id <= 0) return;
+        if (cat.id <= 0 || baseDir == null) return;
         Category existing = categories.get(cat.id);
         if (existing != null && !existing.title.equals(cat.title)) {
             String newTitle = cat.title;
@@ -116,6 +121,7 @@ public class CategoryManager {
     }
 
     public boolean removeCategory(int catId, Set<Integer> allItemIds) {
+        if (baseDir == null) return false;
         if (catId <= UNCATEGORIZED_ID) return false;
         Category cat = categories.get(catId);
         if (cat == null) return false;
@@ -149,6 +155,7 @@ public class CategoryManager {
     }
 
     public void moveItem(int itemId, String fileName, int destCatId) {
+        if (baseDir == null) return;
         int oldCatId = itemCategoryMap.getOrDefault(itemId, UNCATEGORIZED_ID);
         if (oldCatId == destCatId) return;
 

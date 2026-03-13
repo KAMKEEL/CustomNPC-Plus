@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
+import noppes.npcs.client.gui.util.script.autocomplete.weighter.ScoringContext;
+import noppes.npcs.client.gui.util.script.autocomplete.weighter.WeigherChain;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
@@ -10,8 +12,6 @@ import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -83,11 +83,8 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             }
         }
         
-        // Filter and score by prefix, then apply usage boosts and static penalties
+        // Filter by prefix, then sort using weigher chain
         filterAndScore(items, context.prefix, context.isMemberAccess, isStaticContext, ownerFullName);
-        
-        // Sort by score
-        Collections.sort(items);
         
         return items;
     }
@@ -100,92 +97,52 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         if (receiverExpr == null || receiverExpr.isEmpty()) {
             return;
         }
+
+        // Resolve position once — used for both type resolution and static context detection
+        int resolvePos = getMemberAccessResolvePosition(context);
         
-        // Resolve the type of the receiver expression
-        TypeInfo receiverType = document.resolveExpressionType(receiverExpr, getMemberAccessResolvePosition(context));
+        TypeInfo receiverType = document.resolveExpressionType(receiverExpr, resolvePos);
         
         if (receiverType == null || !receiverType.isResolved()) {
             return;
         }
         
-        // Determine if this is a static context (accessing a class type)
-        boolean isStaticContext = isStaticAccess(receiverExpr, getMemberAccessResolvePosition(context));
+        boolean isStaticContext = isStaticAccess(receiverExpr, resolvePos);
         
-        Class<?> clazz = receiverType.getJavaClass();
-        if (clazz == null) {
-            // Try ScriptTypeInfo
-            if (receiverType instanceof ScriptTypeInfo) {
-                addScriptTypeMembers((ScriptTypeInfo) receiverType, items, isStaticContext, context.methodsOnly);
-            }
-            return;
-        }
-        
-        // Add methods
+        // Shared deduplication sets across all member sources
         Set<String> addedMethods = new HashSet<>();
-        for (Method method : clazz.getMethods()) {
-            if (Modifier.isPublic(method.getModifiers())) {
-                // Filter by static context
-                if (isStaticContext && !Modifier.isStatic(method.getModifiers())) {
-                    continue;
-                }
-                
-                String sig = method.getName() + "(" + method.getParameterCount() + ")";
-                if (!addedMethods.contains(sig)) {
-                    addedMethods.add(sig);
-                    MethodInfo methodInfo = MethodInfo.fromReflection(method, receiverType);
-                    items.add(AutocompleteItem.fromMethod(methodInfo, context.methodsOnly));
-                }
-            }
-        }
+        Set<String> addedFields = new HashSet<>();
 
-        for (MethodInfo method : receiverType.getSyntheticMethods()) {
-            if (isStaticContext && !Modifier.isStatic(method.getModifiers())) 
-                continue;
-            
-            items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
+        // Unified method enumeration — works for Java types, ScriptTypeInfo, and intersection bounds
+        for (MethodInfo method : receiverType.getAllMethods()) {
+            if (isStaticContext && !Modifier.isStatic(method.getModifiers())) continue;
+            String sig = method.getName() + "(" + method.getParameterCount() + ")";
+            if (addedMethods.add(sig))
+                items.add(AutocompleteItem.fromMethod(method, context.methodsOnly));
         }
         
-        // Add fields (skip if methodsOnly is true - but the filtering will be done in getSuggestions)
         if (!context.methodsOnly) {
-            for (Field field : clazz.getFields()) {
-                if (Modifier.isPublic(field.getModifiers())) {
-                    // Filter by static context
-                    if (isStaticContext && !Modifier.isStatic(field.getModifiers())) {
-                        continue;
-                    }
-                    
-                    FieldInfo fieldInfo = FieldInfo.fromReflection(field, receiverType);
-                    items.add(AutocompleteItem.fromField(fieldInfo));
-                }
-            }
-
-            for (FieldInfo field : receiverType.getSyntheticFields()) {
-                if (isStaticContext && !Modifier.isStatic(field.getModifiers()))
-                    continue;
-                
-                items.add(AutocompleteItem.fromField(field));
+            // Unified field enumeration with deduplication
+            for (FieldInfo field : receiverType.getAllFields()) {
+                if (isStaticContext && !Modifier.isStatic(field.getModifiers())) continue;
+                if (addedFields.add(field.getName()))
+                    items.add(AutocompleteItem.fromField(field));
             }
         }
         
-        // Add nested types (inner classes/interfaces) in static context
+        // Nested types (inner classes) in static context via getAllNestedTypes()
         if (isStaticContext && !context.methodsOnly) {
-            try {
-                for (Class<?> nested : clazz.getDeclaredClasses()) {
-                    if (!Modifier.isPublic(nested.getModifiers())) {
-                        continue;
-                    }
-                    // Convert $ notation to dot notation for resolution
-                    String nestedFullName = nested.getName().replace('$', '.');
-                    TypeInfo nestedType = TypeResolver.getInstance().resolveFullName(nestedFullName);
-                    if (nestedType != null && nestedType.isResolved()) {
-                        items.add(AutocompleteItem.fromType(nestedType));
-                    }
-                }
-            } catch (SecurityException ignored) {
-                // Some runtimes may restrict getDeclaredClasses()
+            for (TypeInfo nestedType : receiverType.getAllNestedTypes()) {
+                items.add(AutocompleteItem.fromType(nestedType));
             }
         }
-        
+
+        // Enum constants — polymorphic via TypeInfo.getEnumConstants()
+        if (!context.methodsOnly) {
+            for (EnumConstantInfo enumConstant : receiverType.getEnumConstants().values()) {
+                items.add(AutocompleteItem.fromField(enumConstant.getFieldInfo()));
+            }
+        }
     }
 
     /**
@@ -216,76 +173,6 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
 
         // Fallback: use the provided prefixStart (caret context)
         return Math.max(0, Math.min(context.prefixStart, context.text.length()));
-    }
-    
-    /**
-     * Add members from a script-defined type.
-     */
-    protected void addScriptTypeMembers(ScriptTypeInfo scriptType, List<AutocompleteItem> items, boolean isStaticContext) {
-        addScriptTypeMembers(scriptType, items, isStaticContext, false);
-    }
-    
-    /**
-     * Add members from a script-defined type.
-     * @param scriptType The script type to get members from
-     * @param items The list to add items to
-     * @param isStaticContext Whether we're in a static context
-     * @param forMethodReference If true, only add methods with no parentheses in insert text
-     */
-    protected void addScriptTypeMembers(ScriptTypeInfo scriptType, List<AutocompleteItem> items, boolean isStaticContext, boolean forMethodReference) {
-        // Add methods (getMethods returns Map<String, List<MethodInfo>>)
-        for (List<MethodInfo> overloads : scriptType.getMethods().values()) {
-            for (MethodInfo method : overloads) {
-                // Filter by static context
-                if (isStaticContext && !method.isStatic()) {
-                    continue;
-                }
-                items.add(AutocompleteItem.fromMethod(method, forMethodReference));
-            }
-        }
-        
-        // Add fields (skip if methodsOnly/forMethodReference is true)
-        if (!forMethodReference) {
-            // Add fields (getFields returns Map<String, FieldInfo>)
-            for (FieldInfo field : scriptType.getFields().values()) {
-                // Filter by static context
-                if (isStaticContext && !field.isStatic()) {
-                    continue;
-                }
-                items.add(AutocompleteItem.fromField(field));
-            }
-            
-            // Add enum constants (getEnumConstants returns Map<String, EnumConstantInfo>)
-            for (EnumConstantInfo enumConstant : scriptType.getEnumConstants().values()) {
-                items.add(AutocompleteItem.fromField(enumConstant.getFieldInfo()));
-            }
-
-            // Add nested types (inner classes/interfaces) in static context
-            if (isStaticContext) {
-                for (ScriptTypeInfo inner : scriptType.getInnerClasses()) {
-                    items.add(AutocompleteItem.fromType(inner));
-                }
-            }
-        }
-        
-        // Add parent class members
-        if (scriptType.hasSuperClass()) {
-            TypeInfo superType = scriptType.getSuperClass();
-            if (superType != null && superType.getJavaClass() != null) {
-                Class<?> superClazz = superType.getJavaClass();
-                Set<String> addedMethods = new HashSet<>();
-                for (Method method : superClazz.getMethods()) {
-                    if (Modifier.isPublic(method.getModifiers())) {
-                        String sig = method.getName() + "(" + method.getParameterCount() + ")";
-                        if (!addedMethods.contains(sig)) {
-                            addedMethods.add(sig);
-                            MethodInfo methodInfo = MethodInfo.fromReflection(method, superType);
-                            items.add(AutocompleteItem.fromMethod(methodInfo, forMethodReference));
-                        }
-                    }
-                }
-            }
-        }
     }
     
     /**
@@ -427,8 +314,6 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 if (existingSimpleNames.contains(type.getSimpleName())) {
                     continue;
                 }
-                
-                // Create an item that requires import
                 AutocompleteItem item = new AutocompleteItem.Builder()
                     .name(type.getSimpleName())
                     .insertText(type.getSimpleName())
@@ -483,126 +368,31 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         return UsageTracker.getJavaInstance();
     }
     
-    /**
-     * Filter items by prefix, calculate match scores, apply usage boosts, and penalize static members in instance contexts.
-     */
-    protected void filterAndScore(List<AutocompleteItem> items, String prefix, 
+    protected WeigherChain getWeigherChain() {
+        return CompletionWeigherChains.javaChain();
+    }
+
+    protected void filterAndScore(List<AutocompleteItem> items, String prefix,
                                  boolean isMemberAccess, boolean isStaticContext, String ownerFullName) {
-        UsageTracker tracker = getUsageTracker();
-        
-        if (prefix == null || prefix.isEmpty()) {
-            // No filtering needed, all items get a base score + usage boost
-            for (AutocompleteItem item : items) {
-                item.calculateMatchScore("", false);
-                applyUsageBoost(item, tracker, ownerFullName);
-                applyStaticPenalty(item, isMemberAccess, isStaticContext);
-                applyObjectMethodPenalty(item);
-                applyKeywordPenalty(item, prefix);
-            }
-            return;
-        }
-        
-        // For non-member access (first word), require strict prefix matching
-        // For member access (after dot), allow fuzzy/contains matching
         boolean requirePrefix = !isMemberAccess;
-        
-        // Filter, score, apply usage boosts, and apply penalties
+
         Iterator<AutocompleteItem> iter = items.iterator();
         while (iter.hasNext()) {
             AutocompleteItem item = iter.next();
-            int score = item.calculateMatchScore(prefix, requirePrefix);
+            int score = item.calculateMatchScore(
+                    prefix != null ? prefix : "", requirePrefix);
             if (score < 0) {
                 iter.remove();
-            } else {
-                applyUsageBoost(item, tracker, ownerFullName);
-                applyStaticPenalty(item, isMemberAccess, isStaticContext);
-                applyObjectMethodPenalty(item);
-                applyKeywordPenalty(item, prefix);
             }
         }
-    }
-    
-    /**
-     * Apply usage-based score boost to an item.
-     */
-    protected void applyUsageBoost(AutocompleteItem item, UsageTracker tracker, String ownerFullName) {
-        int usageCount = tracker.getUsageCount(item, ownerFullName);
-        int boost = UsageTracker.calculateUsageBoost(usageCount);
-        item.addScoreBoost(boost);
-    }
-    
-    /**
-     * Apply penalty to static members when accessed in a non-static (instance) context.
-     * This matches IntelliJ's behavior where static members are deprioritized when
-     * accessing through an instance (e.g., Minecraft.getMinecraft().getMinecraft()).
-     * However, if the item is a very strong match (exact prefix), don't penalize as much.
-     */
-    protected void applyStaticPenalty(AutocompleteItem item, boolean isMemberAccess, boolean isStaticContext) {
-        // Only apply penalty in member access contexts (after dot)
-        if (!isMemberAccess) {
-            return;
-        }
-        
-        // Only penalize when we're in an instance context (not static)
-        if (isStaticContext) {
-            return;
-        }
-        
-        boolean isStatic = item.isStatic();
-   
-        // Apply penalty to static members in instance context
-        if (isStatic) {
-            int matchScore = item.getMatchScore();
-            // Strong prefix matches (score >= 800) get a lighter penalty
-            // Weaker matches get pushed down more aggressively
-            if (matchScore >= 800) {
-                // Light penalty for exact prefix matches - just deprioritize slightly
-                item.addScoreBoost(-200);
-            } else {
-                // Heavy penalty for fuzzy/substring matches - push to bottom
-                item.addScoreBoost(-matchScore);
-            }
-        }
-    }
-    
-    /**
-     * Apply penalty to inherited Object methods to push them to bottom.
-     * Strong matches get lighter penalty, weak matches get pushed all the way down.
-     */
-    protected void applyObjectMethodPenalty(AutocompleteItem item) {
-        if (!item.isInheritedObjectMethod()) {
-            return;
-        }
-        
-        int matchScore = item.getMatchScore();
-        // Strong prefix matches (score >= 900) get a moderate penalty
-        // Everything else gets pushed to the very bottom
-        if (matchScore >= 900) {
-            // Strong match - moderate penalty to keep it visible but below normal methods
-            item.addScoreBoost(-500);
-        } else {
-            // Weak match - heavy penalty to push to bottom
-            item.addScoreBoost(-10000);
-        }
-    }
 
-    /**
-     * Push keywords below non-keywords unless user typed a longer prefix.
-     */
-    protected void applyKeywordPenalty(AutocompleteItem item, String prefix) {
-        if (item.getKind() != AutocompleteItem.Kind.KEYWORD) {
-            return;
-        }
+        ScoringContext context = new ScoringContext(
+            prefix, isMemberAccess, isStaticContext,
+            ownerFullName, getUsageTracker(), requirePrefix
+        );
 
-        if (prefix == null || prefix.length() < 2) {
-            item.addScoreBoost(-10000);
-        }
-    }
-    
-    /**
-     * Builder class for AutocompleteItem to handle cases without source data.
-     */
-    private static class AutocompleteItemBuilder {
-        // This would be needed if AutocompleteItem had a builder pattern
+        WeigherChain weigherChain = getWeigherChain();
+        Comparator<AutocompleteItem> comparator = weigherChain.buildComparator(context);
+        items.sort(comparator);
     }
 }

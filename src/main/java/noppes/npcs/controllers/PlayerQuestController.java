@@ -1,7 +1,7 @@
 package noppes.npcs.controllers;
 
 import kamkeel.npcs.controllers.ProfileController;
-import kamkeel.npcs.controllers.data.profile.Profile;
+import noppes.npcs.client.ProfileClientConfig;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import net.minecraft.entity.player.EntityPlayer;
@@ -131,14 +131,12 @@ public class PlayerQuestController {
         boolean finishedLocally = data.finishedQuests.containsKey(quest.id);
         boolean completedShared = false;
         boolean hasCooldownShared = false;
-        if (ConfigMain.ProfilesEnabled && quest.profileOptions.enableOptions) {
-            Profile profile = ProfileController.Instance.getProfile(player);
-            if (profile != null && profile.sharedQuestTimestamps.containsKey(quest.id)) {
-                if (quest.profileOptions.completeControl == EnumProfileSync.Shared)
-                    completedShared = true;
-                if (quest.profileOptions.cooldownControl == EnumProfileSync.Shared)
-                    hasCooldownShared = true;
-            }
+        if (ProfileClientConfig.isProfilesEnabled() && quest.profileOptions.enableOptions
+                && ProfileClientConfig.hasSharedQuest(player, quest.id)) {
+            if (quest.profileOptions.completeControl == EnumProfileSync.Shared)
+                completedShared = true;
+            if (quest.profileOptions.cooldownControl == EnumProfileSync.Shared)
+                hasCooldownShared = true;
         }
 
         boolean isFinished = finishedLocally || completedShared;

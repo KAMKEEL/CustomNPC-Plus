@@ -10,6 +10,7 @@ import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -152,32 +153,12 @@ public class ScriptTypeInfo extends TypeInfo {
         return super.getTypeParam(name);
     }
 
-    private static MethodInfo substituteMethod(MethodInfo m, GenericContext ctx) {
-        TypeInfo retType = m.getReturnType();
-        TypeInfo subRet = ctx.substitute(retType);
-        List<FieldInfo> params = new ArrayList<>(m.getParameters());
-        boolean changed = subRet != retType;
-        for (int i = 0; i < params.size(); i++) {
-            FieldInfo p = params.get(i);
-            TypeInfo subP = ctx.substitute(p.getTypeInfo());
-            if (subP != p.getTypeInfo()) {
-                params.set(i, FieldInfo.reflectionParam(p.getName(), subP));
-                changed = true;
-            }
-        }
-        return changed ? MethodInfo.external(m.getName(), subRet, m.getContainingType(),
-                params, m.getModifiers(), m.getDocumentation()) : m;
-    }
-
-
     @Override
     public TypeInfo parameterize(List<TypeInfo> typeArgs) {
         if (typeArgs == null || typeArgs.isEmpty()) return this;
 
         Set<ScriptTypeInfo> active = PARAMETERIZING.get();
         if (!active.add(this)) {
-            // Re-entrant call on the same raw type — fall back to shallow parameterization
-            // (no method/field substitution) to break the infinite recursion.
             return super.parameterize(typeArgs);
         }
 
@@ -199,17 +180,14 @@ public class ScriptTypeInfo extends TypeInfo {
             // Parameterize methods, constructors, and fields with the generic context of this type. 
             for (Map.Entry<String, List<MethodInfo>> entry : this.methods.entrySet()) {
                 List<MethodInfo> substituted = new ArrayList<>();
-                for (MethodInfo m : entry.getValue()) substituted.add(substituteMethod(m, ctx));
+                for (MethodInfo m : entry.getValue()) substituted.add(m.substituteTypeParams(ctx));
                 result.methods.put(entry.getKey(), substituted);
             }
             for (MethodInfo ctor : this.constructors) {
-                result.constructors.add(substituteMethod(ctor, ctx));
+                result.constructors.add(ctor.substituteTypeParams(ctx));
             }
             for (Map.Entry<String, FieldInfo> entry : this.fields.entrySet()) {
-                FieldInfo f = entry.getValue();
-                TypeInfo subType = ctx.substitute(f.getTypeInfo());
-                result.fields.put(entry.getKey(), subType != f.getTypeInfo()
-                        ? FieldInfo.external(f.getName(), subType, null, f.getModifiers()) : f);
+                result.fields.put(entry.getKey(), entry.getValue().substituteTypeParams(ctx));
             }
             return result;
         } finally {
@@ -310,7 +288,11 @@ public class ScriptTypeInfo extends TypeInfo {
         
         if (enumConstants.containsKey(fieldName))
             return true;
-        
+
+        for (FieldInfo f : getSyntheticFields())
+            if (f.getName().equals(fieldName))
+                return true;
+
         return false;
     }
     
@@ -324,6 +306,10 @@ public class ScriptTypeInfo extends TypeInfo {
             if (enumConst != null)
                 return enumConst.getFieldInfo();
         }
+
+        for (FieldInfo f : getSyntheticFields())
+            if (f.getName().equals(fieldName))
+                return f;
 
         return null;
     }
@@ -361,6 +347,7 @@ public class ScriptTypeInfo extends TypeInfo {
     /**
      * Get all enum constants.
      */
+    @Override
     public Map<String, EnumConstantInfo> getEnumConstants() {
         return new HashMap<>(enumConstants);
     }
@@ -380,32 +367,51 @@ public class ScriptTypeInfo extends TypeInfo {
     
     @Override
     public boolean hasMethod(String methodName) {
-        return methods.containsKey(methodName);
+        if (methods.containsKey(methodName))
+            return true;
+        for (MethodInfo m : getSyntheticMethods())
+            if (m.getName().equals(methodName))
+                return true;
+        return false;
     }
     
     @Override
     public boolean hasMethod(String methodName, int paramCount) {
         List<MethodInfo> overloads = methods.get(methodName);
-        if (overloads == null) return false;
-        for (MethodInfo m : overloads) {
-            if (m.getParameterCount() == paramCount) {
-                return true;
+        if (overloads != null) {
+            for (MethodInfo m : overloads) {
+                if (m.getParameterCount() == paramCount) {
+                    return true;
+                }
             }
         }
+        for (MethodInfo m : getSyntheticMethods())
+            if (m.getName().equals(methodName) && m.getParameterCount() == paramCount)
+                return true;
         return false;
     }
     
     @Override
     public MethodInfo getMethodInfo(String methodName) {
         List<MethodInfo> overloads = methods.get(methodName);
-        return (overloads != null && !overloads.isEmpty()) ? overloads.get(0) : null;
+        if (overloads != null && !overloads.isEmpty())
+            return overloads.get(0);
+        for (MethodInfo m : getSyntheticMethods())
+            if (m.getName().equals(methodName))
+                return m;
+        return null;
     }
     
     /**
      * Get all method overloads with the given name.
      */
+    @Override
     public List<MethodInfo> getAllMethodOverloads(String methodName) {
-        return methods.getOrDefault(methodName, new ArrayList<>());
+        List<MethodInfo> result = new ArrayList<>(methods.getOrDefault(methodName, Collections.emptyList()));
+        for (MethodInfo m : getSyntheticMethods())
+            if (m.getName().equals(methodName))
+                result.add(m);
+        return result;
     }
     
     /**
@@ -432,7 +438,26 @@ public class ScriptTypeInfo extends TypeInfo {
             allMethods.addAll(overloads);
         }
         return allMethods;
-    }       
+    }
+
+    @Override
+    public List<MethodInfo> getAllMethods() {
+        List<MethodInfo> result = getAllMethodsFlat();
+        result.addAll(getSyntheticMethods());
+        return result;
+    }
+
+    @Override
+    public List<FieldInfo> getAllFields() {
+        List<FieldInfo> result = new ArrayList<>(getFields().values());
+        result.addAll(getSyntheticFields());
+        return result;
+    }
+
+    @Override
+    public List<TypeInfo> getAllNestedTypes() {
+        return new ArrayList<>(innerClasses);
+    }
     
     // ==================== CONSTRUCTOR MANAGEMENT ====================
     

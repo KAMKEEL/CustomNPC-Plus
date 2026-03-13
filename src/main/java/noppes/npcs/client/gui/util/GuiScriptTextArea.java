@@ -19,6 +19,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
+import noppes.npcs.client.gui.util.script.interpreter.token.ScriptColorScheme;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.hover.GutterIconRenderer;
 import noppes.npcs.client.gui.util.script.interpreter.hover.HoverState;
@@ -556,9 +557,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 int cursorCol = 0;
                 if (container != null && container.lines != null && cursorLine < container.lines.size()) {
                     LineData ld = container.lines.get(cursorLine);
-                    String lineText = ld.text;
                     int cursorOffset = selection.getCursorPosition() - ld.start;
-                    cursorCol = ClientProxy.Font.width(lineText.substring(0, Math.min(cursorOffset, lineText.length())));
+                    ScriptLine sl = container.getDocument() != null ? container.getDocument().getLine(cursorLine) : null;
+                    if (sl != null) {
+                        cursorCol = sl.getRenderedWidth(0, Math.min(cursorOffset, ld.text.length()));
+                    } else {
+                        cursorCol = ClientProxy.Font.width(ld.text.substring(0, Math.min(cursorOffset, ld.text.length())));
+                    }
                 }
                 
                 int screenX = GuiScriptTextArea.this.x + LINE_NUMBER_GUTTER_WIDTH + 1 + cursorCol;
@@ -597,18 +602,18 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Draw outer border around entire area
         int offset = fullscreen() ? 2 : 1;
         drawRect(x - offset, y - offset - searchBar.getTotalHeight(), x + width + offset, y + height + offset,
-                0xffa0a0a0);
+                ScriptColorScheme.getBackgroundStyle().getBorderColor());
 
         int searchHeight = searchBar.getTotalHeight();
 
 
         // Draw line number gutter background
         int viewportX = x + LINE_NUMBER_GUTTER_WIDTH;
-        drawRect(x, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, 0xff000000);
+        drawRect(x, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, ScriptColorScheme.getBackgroundStyle().getGutterColor());
         // Draw text viewport background (starts after gutter)
-        drawRect(x + LINE_NUMBER_GUTTER_WIDTH, y, x + width, y + height, 0xff000000);
+        drawRect(x + LINE_NUMBER_GUTTER_WIDTH, y, x + width, y + height, ScriptColorScheme.getBackgroundStyle().getBackgroundColor());
         // Draw separator line between gutter and text area
-        drawRect(x + LINE_NUMBER_GUTTER_WIDTH-1, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, 0xff3c3f41);
+        drawRect(x + LINE_NUMBER_GUTTER_WIDTH-1, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, ScriptColorScheme.getBackgroundStyle().getGutterSeparatorColor());
 
         // Enable scissor test to clip drawing to the TEXT viewport rectangle (excludes gutter)
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
@@ -624,9 +629,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
 
             // Intercept wheel scroll for tooltip (highest priority)
-            if (wheelDelta != 0 && hoverState.isTooltipVisible() && hoverState.isMouseOverTooltip(xMouse, yMouse)) {
-                hoverState.scrollTooltip(wheelDelta);
-                wheelDelta = 0;
+            // Only consume the wheel event when the tooltip actually has content to scroll;
+            // otherwise let it fall through to the editor so non-scrollable tooltips don't eat input.
+            if (wheelDelta != 0 && hoverState.isTooltipVisible()) {
+                if (hoverState.isMouseOverTooltip(xMouse, yMouse)) {
+                    hoverState.scrollTooltip(wheelDelta);
+                    wheelDelta = 0;
+                } else {
+                    hoverState.clearHover();
+                }
             }
 
             // Let autocomplete menu consume scroll first if visible
@@ -833,13 +844,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             int lineNumX = x + LINE_NUMBER_GUTTER_WIDTH - lineNumWidth - 5 - GutterIconRenderer.ICON_GUTTER_WIDTH; // right-align before icon space
             int lineNumY = posY + 1;
             // Highlight current line number
-            int lineNumColor = 0xFF606366;
+            int lineNumColor = ScriptColorScheme.getBackgroundStyle().getLineNumberColor();
             if (active && isEnabled()) {
                 for (int li = 0; li < list.size(); li++) {
                     LineData ld = list.get(li);
                     if (selection.getCursorPosition() >= ld.start && selection.getCursorPosition() < ld.end || (li == list.size() - 1 && selection.getCursorPosition() == text.length())) {
                         if (li == i) {
-                            lineNumColor = 0xFFb9c7d6;
+                            lineNumColor = ScriptColorScheme.getBackgroundStyle().getLineNumberActiveColor();
                             break;
                         }
                     }
@@ -860,13 +871,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 //Highlight braces the cursor position is on
                 if (startBracket != endBracket) {
                     if (startBracket >= data.start && startBracket < data.end) {
-                        int s = ClientProxy.Font.width(line.substring(0, startBracket - data.start));
-                        int e = ClientProxy.Font.width(line.substring(0, startBracket - data.start + 1)) + 1;
+                        int s = scriptLine.getRenderedWidth(0, startBracket - data.start);
+                        int e = scriptLine.getRenderedWidth(0, startBracket - data.start + 1) + 1;
                         drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
                     }
                     if (endBracket >= data.start && endBracket < data.end) {
-                        int s = ClientProxy.Font.width(line.substring(0, endBracket - data.start));
-                        int e = ClientProxy.Font.width(line.substring(0, endBracket - data.start + 1)) + 1;
+                        int s = scriptLine.getRenderedWidth(0, endBracket - data.start);
+                        int e = scriptLine.getRenderedWidth(0, endBracket - data.start + 1) + 1;
                         drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
                     }
                 }
@@ -876,8 +887,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     for (int ubPos : unmatchedBraces) {
                         if (ubPos >= data.start && ubPos < data.end) {
                             int rel = ubPos - data.start;
-                            int s = ClientProxy.Font.width(line.substring(0, rel));
-                            int e = ClientProxy.Font.width(line.substring(0, rel + 1)) + 1;
+                            int s = scriptLine.getRenderedWidth(0, rel);
+                            int e = scriptLine.getRenderedWidth(0, rel + 1) + 1;
                             drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, 0xffcc0000);
                         }
                     }
@@ -887,8 +898,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     Matcher m = container.regexWord.matcher(line);
                     while (m.find()) {
                         if (line.substring(m.start(), m.end()).equals(highlightedWord)) {
-                            int s = ClientProxy.Font.width(line.substring(0, m.start()));
-                            int e = ClientProxy.Font.width(line.substring(0, m.end())) + 1;
+                            int s = scriptLine.getRenderedWidth(0, m.start());
+                            int e = scriptLine.getRenderedWidth(0, m.end()) + 1;
                             drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, 0x99004c00);
                         }
                     }
@@ -905,8 +916,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                             int matchStart = Math.max(match[0] - data.start, 0);
                             int matchEnd = Math.min(match[1] - data.start, line.length());
                             if (matchStart < matchEnd) {
-                                int s = ClientProxy.Font.width(line.substring(0, matchStart));
-                                int e = ClientProxy.Font.width(line.substring(0, matchEnd)) + 1;
+                                int s = scriptLine.getRenderedWidth(0, matchStart);
+                                int e = scriptLine.getRenderedWidth(0, matchEnd) + 1;
                                 boolean isExcluded = searchBar.isMatchExcluded(mi);
                                 // Current match gets brighter highlight, others get dimmer
                                 int highlightColor = (mi == currentMatchIdx) ? 0xBB4488ff : 0x662266aa;
@@ -940,9 +951,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                             boolean isEmpty = (occ[0] == occ[1]);
 
                             if (occStart <= occEnd) {  // Changed from < to <= to handle empty case
-                                int s = ClientProxy.Font.width(line.substring(0, occStart));
-                                int e = isEmpty ? s + 2 : ClientProxy.Font.width(
-                                        line.substring(0, occEnd)) + 1; // 2px wide for empty
+                                int s = scriptLine.getRenderedWidth(0, occStart);
+                                int e = isEmpty ? s + 2 : scriptLine.getRenderedWidth(
+                                        0, occEnd) + 1; // 2px wide for empty
                                 int occX = x + LINE_NUMBER_GUTTER_WIDTH  + s;
                                 int occEndX = x + LINE_NUMBER_GUTTER_WIDTH + 2 + e;
                                 boolean isPrimary = renameHandler.isPrimaryOccurrence(occ[0]);
@@ -974,7 +985,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                                         if (currentWord != null && cursorInWord >= 0 && cursorInWord <= currentWord.length()) {
                                             String beforeCursor = currentWord.substring(0,
                                                     Math.min(cursorInWord, currentWord.length()));
-                                            int cursorX = occX + ClientProxy.Font.width(beforeCursor);
+                                            int cursorX = occX + scriptLine.getRenderedWidth(occStart, occStart + beforeCursor.length());
                                             // drawRect(cursorX, posY + 1, cursorX + 1, posY + container.lineHeight - 1,
                                             //    0xFFFFFFFF);
                                         }
@@ -992,10 +1003,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 // Highlight selection
                 if (selection.hasSelection() && selection.getEndSelection() > data.start && selection.getStartSelection() <= data.end) {
                     if (selection.getStartSelection() < data.end) {
-                        int s = ClientProxy.Font.width(
-                                line.substring(0, Math.max(selection.getStartSelection() - data.start, 0)));
-                        int e = ClientProxy.Font.width(
-                                line.substring(0, Math.min(selection.getEndSelection() - data.start, w))) + 1;
+                        int s = scriptLine.getRenderedWidth(
+                                0, Math.max(selection.getStartSelection() - data.start, 0));
+                        int e = scriptLine.getRenderedWidth(
+                                0, Math.min(selection.getEndSelection() - data.start, w)) + 1;
                         drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, 0x992172ff);
                     }
                 }
@@ -1050,9 +1061,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 // Draw cursor: pause blinking while user is active recently
                 boolean recentInput = selection.hadRecentInput();
                 if (active && isEnabled() && (recentInput || (cursorCounter / 10) % 2 == 0) && (selection.getCursorPosition() >= data.start && selection.getCursorPosition() < data.end || (i == list.size() - 1 && selection.getCursorPosition() == text.length()))) {
-                    int posX = x + LINE_NUMBER_GUTTER_WIDTH + ClientProxy.Font.width(
-                            line.substring(0, Math.min(selection.getCursorPosition() - data.start, line.length())));
-                    drawRect(posX + 1, posY, posX + 2, posY  + container.lineHeight, 0xffffffff);
+                    int posX = x + LINE_NUMBER_GUTTER_WIDTH + scriptLine.getRenderedWidth(
+                            0, Math.min(selection.getCursorPosition() - data.start, line.length()));
+                    drawRect(posX + 1, posY, posX + 2, posY  + container.lineHeight, ScriptColorScheme.getBackgroundStyle().getCaretColor());
                 }
             }
         }
@@ -1078,7 +1089,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             double linesCount = (double) effLines;
             int posY = (int) (y + 1f * scroll.getScrollPos() / linesCount * (height - 4)) + 1;
 
-            drawRect(posX, posY, posX + 5, posY + sbSize + 2, 0xFFe0e0e0);
+            drawRect(posX, posY, posX + 5, posY + sbSize + 2, ScriptColorScheme.getBackgroundStyle().getScrollbarColor());
         }
 
         if (parent != null)
@@ -1143,11 +1154,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (i >= scroll.getScrolledLine() && i <= scroll.getScrolledLine() + this.container.visibleLines +1) {
                 double yPos = (i - scroll.getScrolledLine()) * this.container.lineHeight;
                 if (yMouseD >= yPos && yMouseD < yPos + this.container.lineHeight) {
+                    ScriptLine scriptLine = container.getDocument() != null ? container.getDocument().getLine(i) : null;
                     int lineWidth = 0;
                     char[] chars = data.text.toCharArray();
 
                     for (int j = 1; j <= chars.length; ++j) {
-                        int w = ClientProxy.Font.width(data.text.substring(0, j));
+                        int w = scriptLine != null
+                                ? scriptLine.getRenderedWidth(0, j)
+                                : ClientProxy.Font.width(data.text.substring(0, j));
                         if (xMouse < lineWidth + (w - lineWidth) / 2) {
                             return data.start + j - 1;
                         }
@@ -1225,9 +1239,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         tokenLocalStart = Math.max(0, Math.min(tokenLocalStart, lineText.length()));
         tokenLocalEnd = Math.max(0, Math.min(tokenLocalEnd, lineText.length()));
         
-        int tokenScreenX = viewportX + ClientProxy.Font.width(lineText.substring(0, tokenLocalStart));
+        int tokenScreenX = viewportX + lineData.getRenderedWidth(0, tokenLocalStart);
         int tokenScreenY = y + (lineIdx - scroll.getScrolledLine()) * container.lineHeight - (int)fracPixels;
-        int tokenWidth = ClientProxy.Font.width(lineText.substring(tokenLocalStart, tokenLocalEnd));
+        int tokenWidth = lineData.getRenderedWidth(tokenLocalStart, tokenLocalEnd);
         
         return new Object[] { token, tokenScreenX, tokenScreenY, tokenWidth };
     }
@@ -2570,6 +2584,34 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             String after = getSelectionAfterText();
             int cursorPos = selection.getCursorPosition();
 
+            // Diamond/generic angle bracket handling
+            if (c == '<') {
+                if (!container.getDocument().isExcludedInclusive(cursorPos) && isGenericContext(before)) {
+                    if (hasUnmatchedCloserAhead(after, '<', '>')) {
+                        // There's already an unmatched '>' ahead — just insert '<'
+                        setText(before + "<" + after, true);
+                        selection.reset(before.length() + 1);
+                    } else {
+                        setText(before + "<>" + after, true);
+                        selection.reset(before.length() + 1);
+                    }
+                    scrollToCursor();
+                    autocompleteManager.onCharTyped(c, text, cursorPos);
+                    return true;
+                }
+            }
+
+            if (c == '>') {
+                if (after.length() > 0 && after.charAt(0) == '>') {
+                    if (shouldSkipAngleBracketClose(before)) {
+                        selection.reset(before.length() + 1);
+                        scrollToCursor();
+                        autocompleteManager.onCharTyped(c, text, cursorPos);
+                        return true;
+                    }
+                }
+            }
+
             if ((c == ')' || c == ']' || c == '}') && after.length() > 0 && after.charAt(0) == c) {
                 selection.reset(before.length() + 1);
                 scrollToCursor();
@@ -2686,6 +2728,86 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             backslashes++;
         }
         return (backslashes % 2) == 1;
+    }
+
+    private boolean isGenericContext(String before) {
+        if (before == null || before.isEmpty()) return false;
+
+        int i = before.length() - 1;
+        while (i >= 0 && (before.charAt(i) == ' ' || before.charAt(i) == '\t')) {
+            i--;
+        }
+        if (i < 0) return false;
+
+        char last = before.charAt(i);
+
+        if (last == '>' || last == ')' || last == ']') return true;
+        if (last == ',') return true;
+
+        if (Character.isJavaIdentifierPart(last)) {
+            int end = i + 1;
+            while (i >= 0 && Character.isJavaIdentifierPart(before.charAt(i))) {
+                i--;
+            }
+            String word = before.substring(i + 1, end);
+
+            if (isComparisonKeyword(word)) return false;
+            if (isNumericLiteral(word)) return false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isComparisonKeyword(String word) {
+        return "if".equals(word) || "while".equals(word) || "for".equals(word)
+                || "return".equals(word) || "else".equals(word) || "case".equals(word)
+                || "assert".equals(word) || "throw".equals(word) || "true".equals(word)
+                || "false".equals(word) || "null".equals(word);
+    }
+
+    private boolean isNumericLiteral(String word) {
+        if (word.isEmpty()) return false;
+        char first = word.charAt(0);
+        return first >= '0' && first <= '9';
+    }
+
+    private boolean shouldSkipAngleBracketClose(String before) {
+        if (before == null || before.isEmpty()) return false;
+        int depth = 0;
+        boolean inLineComment = false;
+        boolean inBlockComment = false;
+        boolean inString = false;
+        boolean escape = false;
+        char stringDelimiter = 0;
+
+        for (int i = 0; i < before.length(); i++) {
+            char c = before.charAt(i);
+            char next = i + 1 < before.length() ? before.charAt(i + 1) : 0;
+
+            if (inString) {
+                if (escape) { escape = false; }
+                else if (c == '\\') { escape = true; }
+                else if (c == stringDelimiter || c == '\n') { inString = false; }
+                continue;
+            }
+            if (inBlockComment) {
+                if (c == '*' && next == '/') { inBlockComment = false; i++; }
+                continue;
+            }
+            if (inLineComment) {
+                if (c == '\n') { inLineComment = false; }
+                continue;
+            }
+            if (c == '/' && next == '/') { inLineComment = true; i++; continue; }
+            if (c == '/' && next == '*') { inBlockComment = true; i++; continue; }
+            if (c == '"' || c == '\'') { inString = true; stringDelimiter = c; escape = false; continue; }
+
+            if (c == '<') depth++;
+            else if (c == '>') depth--;
+        }
+        return depth > 0;
     }
 
     private boolean hasUnmatchedCloserAhead(String after, char opener, char closer) {

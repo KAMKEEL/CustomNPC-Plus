@@ -168,6 +168,13 @@ public interface IScriptUnit {
      */
     IScriptUnit createInstanceScope(IScriptHandler instanceHandler);
 
+    /**
+     * Check if the given function name is known to be absent from this script unit.
+     */
+    default boolean isUnknownFunction(String type) {
+        return false;
+    }
+
     // ==================== EXECUTION ====================
 
     /**

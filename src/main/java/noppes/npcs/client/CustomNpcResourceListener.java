@@ -10,12 +10,12 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
+import noppes.npcs.client.gui.util.script.interpreter.token.ScriptColorScheme;
 
 import javax.imageio.ImageIO;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.InputStream;
+import java.io.*;
 
 public class CustomNpcResourceListener implements
     IResourceManagerReloadListener {
@@ -30,7 +30,10 @@ public class CustomNpcResourceListener implements
             SimpleReloadableResourceManager simplemanager = (SimpleReloadableResourceManager) var1;
 
             FolderResourcePack pack = new FolderResourcePack(CustomNpcs.Dir);
+            LogWriter.info("[ResourceListener] Adding FolderResourcePack (as fallback): " + CustomNpcs.Dir.getAbsolutePath());
             simplemanager.reloadResourcePack(pack);
+            
+            ScriptColorScheme.reloadColorScheme(var1);
             
             // Reload scripting .d.ts files 
             JSTypeRegistry registry = JSTypeRegistry.getInstance();

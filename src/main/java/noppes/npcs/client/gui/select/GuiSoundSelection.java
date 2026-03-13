@@ -145,7 +145,8 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
             scrollSounds.resetScroll();
             getTextField(66).setText("");
             soundSearch = "";
-            initGui();
+            scrollSounds.setList(domains.get(selectedDomain));
+            getButton(1).enabled = false;
         }
         if (guiCustomScroll.id == 1) {
             selectedResource = new ResourceLocation(selectedDomain, guiCustomScroll.getSelected());

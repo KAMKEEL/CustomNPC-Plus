@@ -58,10 +58,6 @@ public class Token {
         return new Token(text, start, end, TokenType.KEYWORD);
     }
 
-    public static Token modifier(String text, int start, int end) {
-        return new Token(text, start, end, TokenType.MODIFIER);
-    }
-
     public static Token comment(String text, int start, int end) {
         return new Token(text, start, end, TokenType.COMMENT);
     }
@@ -196,8 +192,7 @@ public class Token {
     // ==================== TYPE CHECKS ====================
 
     public boolean isKeyword() {
-        return type == TokenType.KEYWORD || type == TokenType.MODIFIER || 
-               type == TokenType.CLASS_KEYWORD || type == TokenType.IMPORT_KEYWORD;
+        return type == TokenType.KEYWORD;
     }
 
     public boolean isTypeReference() {
@@ -262,6 +257,18 @@ public class Token {
         if (type.isBold()) sb.append('\u00A7').append('l');
         if (type.isItalic()) sb.append('\u00A7').append('o');
         return sb.toString();
+    }
+
+    /**
+     * Get the java.awt.Font style bitmask for this token.
+     * Returns a combination of {@link java.awt.Font#PLAIN}, {@link java.awt.Font#BOLD},
+     * and {@link java.awt.Font#ITALIC}.
+     */
+    public int getFontStyle() {
+        int style = java.awt.Font.PLAIN;
+        if (type.isBold()) style |= java.awt.Font.BOLD;
+        if (type.isItalic()) style |= java.awt.Font.ITALIC;
+        return style;
     }
 
     @Override
