@@ -44,19 +44,32 @@ public class ErrorUnderlineRenderer {
             ScriptDocument doc,
             int lineStartX, int baselineY,
             String lineText, int lineStart, int lineEnd) {
+        drawErrorUnderlines(doc, null, lineStartX, baselineY, lineText, lineStart, lineEnd);
+    }
+
+    /**
+     * Draw error underlines for all validation errors in the document that intersect the given line.
+     * When a ScriptLine is provided, uses style-aware width calculation so underlines align
+     * correctly under bold/italic tokens.
+     */
+    public static void drawErrorUnderlines(
+            ScriptDocument doc, ScriptLine line,
+            int lineStartX, int baselineY,
+            String lineText, int lineStart, int lineEnd) {
 
         if (doc == null)
             return;
 
         for (DocumentError error : doc.getErrors()) {
             drawUnderlineForSpan(error.getStartPos(), error.getEndPos(),
-                    lineStartX, baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
+                    lineStartX, baselineY, lineText, lineStart, lineEnd, ERROR_COLOR, line);
         }
     }
 
     /**
      * Calculate underline position for a span of text within a line.
      * Handles clipping to line boundaries and pixel width calculation.
+     * When a ScriptLine is provided, uses style-aware width calculation.
      *
      * @param spanStart Global offset where the span starts
      * @param spanEnd Global offset where the span ends
@@ -64,11 +77,13 @@ public class ErrorUnderlineRenderer {
      * @param lineText The text content of the line
      * @param lineStart Global offset where this line starts
      * @param lineEnd Global offset where this line ends
+     * @param line Optional ScriptLine for style-aware width; null falls back to plain width
      * @return UnderlinePosition with x and width, or null if span doesn't intersect line
      */
     private static UnderlinePosition calculateUnderlinePosition(
             int spanStart, int spanEnd,
-            int lineStartX, String lineText, int lineStart, int lineEnd) {
+            int lineStartX, String lineText, int lineStart, int lineEnd,
+            ScriptLine line) {
 
         // Skip if span doesn't intersect this line
         if (spanEnd < lineStart || spanStart > lineEnd)
@@ -89,18 +104,24 @@ public class ErrorUnderlineRenderer {
         if (lineLocalStart < 0 || lineLocalStart >= lineText.length())
             return null;
 
-        // Compute pixel position
-        String beforeSpan = lineText.substring(0, lineLocalStart);
-        int beforeWidth = ClientProxy.Font.width(beforeSpan);
-
+        // Compute pixel position using style-aware width when available
+        int beforeWidth;
         int spanWidth;
-        if (lineLocalEnd > lineText.length()) {
-            // Span extends past line end
-            spanWidth = ClientProxy.Font.width(lineText.substring(lineLocalStart));
+
+        if (line != null) {
+            beforeWidth = line.getRenderedWidth(0, lineLocalStart);
+            int clampedEnd = Math.min(lineLocalEnd, lineText.length());
+            spanWidth = line.getRenderedWidth(lineLocalStart, clampedEnd);
         } else {
-            // Span is fully on this line (or clipped)
-            String spanTextOnLine = lineText.substring(lineLocalStart, lineLocalEnd);
-            spanWidth = ClientProxy.Font.width(spanTextOnLine);
+            String beforeSpan = lineText.substring(0, lineLocalStart);
+            beforeWidth = ClientProxy.Font.width(beforeSpan);
+
+            if (lineLocalEnd > lineText.length()) {
+                spanWidth = ClientProxy.Font.width(lineText.substring(lineLocalStart));
+            } else {
+                String spanTextOnLine = lineText.substring(lineLocalStart, lineLocalEnd);
+                spanWidth = ClientProxy.Font.width(spanTextOnLine);
+            }
         }
 
         return new UnderlinePosition(lineStartX + beforeWidth, spanWidth);
@@ -123,9 +144,22 @@ public class ErrorUnderlineRenderer {
             int lineStartX, int baselineY,
             String lineText, int lineStart, int lineEnd,
             int color) {
+        drawUnderlineForSpan(spanStart, spanEnd, lineStartX, baselineY,
+                lineText, lineStart, lineEnd, color, null);
+    }
+
+    /**
+     * Draw an underline for a simple span if it intersects the line.
+     * When a ScriptLine is provided, uses style-aware width calculation.
+     */
+    public static void drawUnderlineForSpan(
+            int spanStart, int spanEnd,
+            int lineStartX, int baselineY,
+            String lineText, int lineStart, int lineEnd,
+            int color, ScriptLine line) {
 
         UnderlinePosition pos = calculateUnderlinePosition(
-                spanStart, spanEnd, lineStartX, lineText, lineStart, lineEnd);
+                spanStart, spanEnd, lineStartX, lineText, lineStart, lineEnd, line);
 
         if (pos != null && pos.isValid()) {
             drawCurlyUnderline(pos.x, baselineY, pos.width, color);

@@ -302,6 +302,7 @@ public class HoverState {
 
     /**
      * Get the character index within a line at the given X pixel position.
+     * Uses style-aware width calculation to account for bold/italic tokens.
      */
     private int getCharacterIndexAtX(ScriptLine line, int x) {
         String text = line.getText();
@@ -309,7 +310,7 @@ public class HoverState {
         
         int accumWidth = 0;
         for (int i = 0; i < text.length(); i++) {
-            int charWidth = noppes.npcs.client.ClientProxy.Font.width(String.valueOf(text.charAt(i)));
+            int charWidth = line.getRenderedWidth(i, i + 1);
             if (accumWidth + charWidth / 2 > x) {
                 return i;
             }
@@ -324,20 +325,19 @@ public class HoverState {
     private void calculateTokenPosition(ScriptLine line, Token token, 
                                         int viewportX, int viewportY,
                                         float scrollOffset, int lineHeight) {
-        // X position: calculate width of text before the token
-        String lineText = line.getText();
+        // X position: calculate width of text before the token (style-aware)
         int tokenLocalStart = token.getGlobalStart() - line.getGlobalStart();
-        tokenLocalStart = Math.max(0, Math.min(tokenLocalStart, lineText.length()));
+        tokenLocalStart = Math.max(0, Math.min(tokenLocalStart, line.getText().length()));
         
-        String textBefore = lineText.substring(0, tokenLocalStart);
-        tokenScreenX = viewportX + noppes.npcs.client.ClientProxy.Font.width(textBefore);
+        tokenScreenX = viewportX + line.getRenderedWidth(0, tokenLocalStart);
         
         // Y position: line position minus scroll
         int lineY = line.getLineIndex();
         tokenScreenY = viewportY + (int) ((lineY - scrollOffset) * lineHeight);
         
-        // Token width
-        tokenWidth = noppes.npcs.client.ClientProxy.Font.width(token.getText());
+        // Token width (style-aware)
+        int tokenLocalEnd = tokenLocalStart + token.getText().length();
+        tokenWidth = line.getRenderedWidth(tokenLocalStart, tokenLocalEnd);
     }
 
     public void setTooltipBounds(int x, int y, int width, int height) {

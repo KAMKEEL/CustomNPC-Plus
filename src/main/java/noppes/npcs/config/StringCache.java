@@ -763,6 +763,43 @@ public class StringCache {
     }
 
     /**
+     * Return the width of a string in pixels when rendered with the specified font style.
+     * This is needed when measuring text that will be rendered with bold/italic formatting,
+     * since bold glyphs are wider than plain glyphs.
+     *
+     * <p>The font style is applied by prepending the appropriate Minecraft formatting codes
+     * (§l for bold, §o for italic) to the string before measuring. This causes cacheString()
+     * to lay out the entire string using the specified font style.
+     *
+     * @param str       compute the width of this string
+     * @param fontStyle combination of {@link java.awt.Font#BOLD} and {@link java.awt.Font#ITALIC}
+     * @return the width in pixels (in the scaled GUI coordinate system)
+     */
+    public int getStringWidth(String str, int fontStyle) {
+        /* Check for invalid arguments */
+        if (str == null || str.isEmpty()) {
+            return 0;
+        }
+
+        /* If plain style, delegate to the normal method (no prefix needed) */
+        if (fontStyle == Font.PLAIN) {
+            return getStringWidth(str);
+        }
+
+        /* Build the style prefix: §l for bold, §o for italic */
+        StringBuilder sb = new StringBuilder();
+        if ((fontStyle & Font.BOLD) != 0) {
+            sb.append('\u00A7').append('l');
+        }
+        if ((fontStyle & Font.ITALIC) != 0) {
+            sb.append('\u00A7').append('o');
+        }
+        sb.append(str);
+
+        return getStringWidth(sb.toString());
+    }
+
+    /**
      * Return the number of characters in a string that will completly fit inside the specified width when rendered, with
      * or without prefering to break the line at whitespace instead of breaking in the middle of a word. This private provides
      * the real implementation of both sizeStringToWidth() and trimStringToWidth().

@@ -132,15 +132,22 @@ public class ScriptLine {
         clearTokens();
         int cursor = globalStart;
 
+        /*
+         * globalEnd includes the newline character position (lineEnd = lineStart + text.length() + 1),
+         * but the line's text field does NOT include the newline.  We must clamp all token boundaries
+         * to the displayable text end so that '\n' never leaks into rendered token text.
+         */
+        int displayEnd = Math.min(globalStart + text.length(), fullText.length());
+
         for (Mark mark : marks) {
-            // Skip marks that don't overlap this line
-            if (mark.end <= globalStart || mark.start >= globalEnd) {
+            // Skip marks that don't overlap the displayable portion of this line
+            if (mark.end <= globalStart || mark.start >= displayEnd) {
                 continue;
             }
 
-            // Clamp mark to line boundaries
+            // Clamp mark to displayable line boundaries (excludes trailing newline)
             int tokenStart = Math.max(mark.start, globalStart);
-            int tokenEnd = Math.min(mark.end, globalEnd);
+            int tokenEnd = Math.min(mark.end, displayEnd);
 
             // Validate bounds
             tokenStart = Math.max(0, Math.min(tokenStart, fullText.length()));
@@ -168,13 +175,10 @@ public class ScriptLine {
             cursor = tokenEnd;
         }
 
-        // Add trailing default token if needed
-        if (cursor < globalEnd) {
-            int end = Math.min(globalEnd, fullText.length());
-            if (cursor < end) {
-                String trailingText = fullText.substring(cursor, end);
-                addToken(Token.defaultToken(trailingText, cursor, end));
-            }
+        // Add trailing default token if needed (clamped to displayable text, excluding newline)
+        if (cursor < displayEnd) {
+            String trailingText = fullText.substring(cursor, displayEnd);
+            addToken(Token.defaultToken(trailingText, cursor, displayEnd));
         }
     }
 
@@ -183,12 +187,7 @@ public class ScriptLine {
             token.setTypeInfo((TypeInfo) metadata);
         } else if (metadata instanceof TypeParamInfo) {
             TypeParamInfo typeParam = (TypeParamInfo) metadata;
-            TypeInfo boundType = typeParam.getBoundTypeInfo();
-            if (boundType != null) {
-                token.setTypeInfo(TypeInfo.typeParameter(typeParam.getName(), boundType));
-            } else {
-                token.setTypeInfo(TypeInfo.typeParameter(typeParam.getName()));
-            }
+            token.setTypeInfo(TypeInfo.typeParameter(typeParam.getName(), typeParam));
         } else if (metadata instanceof MethodCallInfo) {
             MethodCallInfo callInfo = (MethodCallInfo) metadata;
             if (callInfo.isConstructor()) {
@@ -235,6 +234,59 @@ public class ScriptLine {
     // ==================== RENDERING ====================
 
     /**
+     * Compute the rendered pixel width of a substring of this line, accounting for
+     * bold/italic token styles. Characters covered by bold or italic tokens will be
+     * measured with the appropriate font style, producing the same widths as the
+     * actual rendered output.
+     *
+     * @param localStart start index within the line text (inclusive)
+     * @param localEnd   end index within the line text (exclusive)
+     * @return pixel width matching the rendered output
+     */
+    public int getRenderedWidth(int localStart, int localEnd) {
+        localStart = Math.max(0, Math.min(localStart, text.length()));
+        localEnd = Math.max(localStart, Math.min(localEnd, text.length()));
+        if (localStart >= localEnd) return 0;
+
+        int width = 0;
+        int cursor = localStart;
+
+        for (Token t : tokens) {
+            if (cursor >= localEnd) break;
+
+            int tokenLocalStart = t.getGlobalStart() - globalStart;
+            int tokenLocalEnd = tokenLocalStart + t.getText().length();
+
+            // Gap before this token (rendered as plain text)
+            if (cursor < tokenLocalStart) {
+                int gapEnd = Math.min(tokenLocalStart, localEnd);
+                if (gapEnd > cursor) {
+                    width += ClientProxy.Font.width(text.substring(cursor, gapEnd));
+                    cursor = gapEnd;
+                }
+            }
+
+            if (cursor >= localEnd) break;
+
+            // Token overlap with [localStart, localEnd)
+            int overlapStart = Math.max(cursor, tokenLocalStart);
+            int overlapEnd = Math.min(tokenLocalEnd, localEnd);
+            if (overlapEnd > overlapStart) {
+                String substr = text.substring(overlapStart, overlapEnd);
+                width += ClientProxy.Font.width(substr, t.getFontStyle());
+                cursor = overlapEnd;
+            }
+        }
+
+        // Trailing text after last token (plain)
+        if (cursor < localEnd) {
+            width += ClientProxy.Font.width(text.substring(cursor, localEnd));
+        }
+
+        return width;
+    }
+
+    /**
      * Draw this line with syntax highlighting using Minecraft color codes.
      * Compatible with the existing rendering system.
      * Also draws curly underlines for tokens with errors (method call validation failures).
@@ -249,7 +301,7 @@ public class ScriptLine {
 
         for (Token t : tokens) {
             int tokenStart = t.getGlobalStart() - globalStart; // relative position in line
-            int tokenWidth = ClientProxy.Font.width(t.getText());
+            int tokenWidth = ClientProxy.Font.width(t.getText(), t.getFontStyle());
 
             // Calculate gap width before this token
             if (tokenStart > lastIndex && tokenStart <= text.length()) {
@@ -293,12 +345,9 @@ public class ScriptLine {
      * Also draws wavy underlines for tokens with errors.
      */
     public void drawStringHex(int x, int y) {
-        // Build the complete text with all tokens and gaps, draw it as ONE string
-        // to match the spacing behavior of drawString which draws everything at once
-        StringBuilder fullText = new StringBuilder();
         int lastIndex = 0;
-        
-        // Build segments with token position info
+
+        // Build segments with token position info and compute positions using style-aware widths
         java.util.List<TextSegment> segments = new java.util.ArrayList<>();
 
         for (Token t : tokens) {
@@ -307,37 +356,29 @@ public class ScriptLine {
             // Add any gap before this token
             if (tokenStart > lastIndex && tokenStart <= text.length()) {
                 String gap = text.substring(lastIndex, tokenStart);
-                segments.add(new TextSegment(fullText.length(), gap, 0xFFFFFFFF, false));
-                fullText.append(gap);
+                segments.add(new TextSegment(lastIndex, gap, 0xFFFFFFFF, false));
             }
 
-            // Add the colored token
+            // Add the colored token (with style prefix for rendering)
             String styledText = t.getStylePrefix() + t.getText();
-            segments.add(new TextSegment(fullText.length(), styledText, t.getHexColor(), true));
-            fullText.append(styledText);
-            
-            lastIndex = tokenStart + styledText.length();
+            segments.add(new TextSegment(tokenStart, styledText, t.getHexColor(), true));
+
+            lastIndex = tokenStart + t.getText().length();
         }
 
         // Add any remaining text after the last token
         if (lastIndex < text.length()) {
             String remaining = text.substring(lastIndex);
-            segments.add(new TextSegment(fullText.length(), remaining, 0xFFFFFFFF, false));
-            fullText.append(remaining);
+            segments.add(new TextSegment(lastIndex, remaining, 0xFFFFFFFF, false));
         }
 
-        // Draw each segment at the correct position
-        // Calculate positions based on the full string to match drawString's spacing
+        // Draw each segment at the correct position using style-aware width
         for (TextSegment seg : segments) {
             if (!seg.text.isEmpty()) {
-                // Get the width of everything before this segment
-                String prefix = fullText.substring(0, seg.startPos);
-                int prefixWidth = ClientProxy.Font.width(prefix);
-                int color =  seg.color;
+                int prefixWidth = getRenderedWidth(0, seg.startPos);
+                int color = seg.color;
 
-                // Draw this segment at the correct position
                 ClientProxy.Font.drawString(seg.text, x + prefixWidth, y, color);
-                // Minecraft.getMinecraft().fontRenderer.drawString(seg.text, x + prefixWidth, y, color);
             }
         }
         
@@ -354,6 +395,7 @@ public class ScriptLine {
 
         ErrorUnderlineRenderer.drawErrorUnderlines(
                 parent,
+                this,
                 lineStartX,
                 baselineY,
                 getText(),

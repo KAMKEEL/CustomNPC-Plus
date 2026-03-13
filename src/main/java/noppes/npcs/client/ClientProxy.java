@@ -930,6 +930,28 @@ public class ClientProxy extends CommonProxy {
             return Minecraft.getMinecraft().fontRenderer.getStringWidth(text);
         }
 
+        /**
+         * Return the width of a string when rendered with the specified font style (bold/italic).
+         *
+         * @param text      the string to measure
+         * @param fontStyle combination of {@link java.awt.Font#BOLD} and {@link java.awt.Font#ITALIC},
+         *                  or {@link java.awt.Font#PLAIN} for normal style
+         * @return the width in pixels
+         */
+        public int width(String text, int fontStyle) {
+            if (useCustomFont)
+                return textFont.getStringWidth(text, fontStyle);
+            if (fontStyle == java.awt.Font.PLAIN)
+                return Minecraft.getMinecraft().fontRenderer.getStringWidth(text);
+            StringBuilder sb = new StringBuilder();
+            if ((fontStyle & java.awt.Font.BOLD) != 0)
+                sb.append('\u00A7').append('l');
+            if ((fontStyle & java.awt.Font.ITALIC) != 0)
+                sb.append('\u00A7').append('o');
+            sb.append(text);
+            return Minecraft.getMinecraft().fontRenderer.getStringWidth(sb.toString());
+        }
+
         public FontContainer copy() {
             FontContainer font = new FontContainer();
             font.textFont = textFont;
