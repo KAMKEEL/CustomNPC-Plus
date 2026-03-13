@@ -482,6 +482,8 @@ public class AutocompleteMenu extends Gui {
                 return TokenType.getColor(item.getTypeInfo());
             case VARIABLE:
                 return TokenType.LOCAL_FIELD.getHexColor();
+            case PARAMETER:
+                return TokenType.PARAMETER.getHexColor();
             case KEYWORD:
                 return TokenType.KEYWORD.getHexColor();
             default:
