@@ -165,7 +165,7 @@ public class AutocompleteManager {
      */
     public void onCharTyped(char c, String text, int cursorPosition) {
         // Check if we should close autocomplete
-        if (CLOSE_CHARS.indexOf(c) >= 0) {
+        if (CLOSE_CHARS.indexOf(c) >= 0 || document.isExcludedInclusive(cursorPosition)) {
             dismiss();
             return;
         }
