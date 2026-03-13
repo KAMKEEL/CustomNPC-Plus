@@ -10211,7 +10211,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         int i = position - 1;
         while (i >= 0 && Character.isWhitespace(text.charAt(i)))
             i--;
-        return i >= 0 && text.charAt(i) == '.';
+        return i >= 0 && text.charAt(i) == '.' && !isExcluded(i);
     }
 
     boolean isInImportOrPackage(int position) {
