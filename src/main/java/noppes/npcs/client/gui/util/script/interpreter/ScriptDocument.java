@@ -6467,7 +6467,7 @@ public class ScriptDocument {
         while (pos >= 0 && Character.isWhitespace(text.charAt(pos)))
             pos--;
         
-        if (pos < 0 || text.charAt(pos) != '.')
+        if (pos < 0 || isExcluded(pos) || text.charAt(pos) != '.')
             return false;
         
         // Skip the dot and any whitespace
@@ -6475,7 +6475,7 @@ public class ScriptDocument {
         while (pos >= 0 && Character.isWhitespace(text.charAt(pos)))
             pos--;
         
-        if (pos < 0)
+        if (pos < 0 || isExcluded(pos))
             return false;
         
         // Check what's before the dot - could be:
@@ -6506,7 +6506,7 @@ public class ScriptDocument {
             pos--;
 
         // If preceded by a dot, this is part of a chain - treat as instance for now
-        if (pos >= 0 && text.charAt(pos) == '.') {
+        if (pos >= 0 && !isExcluded(pos) && text.charAt(pos) == '.') {
             return false;
         }
 
@@ -7199,7 +7199,8 @@ public class ScriptDocument {
         while (scanPos >= 0 && Character.isWhitespace(text.charAt(scanPos)))
             scanPos--;
 
-        if (scanPos < 0 || text.charAt(scanPos) != '.') {
+        // Guard: dot inside a comment/string must not be treated as a receiver chain separator
+        if (scanPos < 0 || isExcluded(scanPos) || text.charAt(scanPos) != '.') {
             return null; // No receiver
         }
 
@@ -8130,11 +8131,24 @@ public class ScriptDocument {
 
             if (Character.isJavaIdentifierPart(c)) {
                 while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) pos--;
-                // Skip whitespace to check for chained identifier (preceded by a dot)
+                // Skip whitespace AND excluded ranges to check for chained identifier (preceded by a dot).
+                // Without skipping excluded ranges, a dot inside a comment (e.g. "//event.\n    player")
+                // would be mistaken for a chain continuation dot.
                 int checkPos = pos;
-                while (checkPos >= 0 && Character.isWhitespace(text.charAt(checkPos))) checkPos--;
-                // If it's part of a chained identifier (preceded by a dot), continue
-                if (checkPos >= 0 && text.charAt(checkPos) == '.') { pos = checkPos - 1; continue; }
+                while (checkPos >= 0) {
+                    if (isExcluded(checkPos)) {
+                        for (int[] range : excludedRanges) {
+                            if (checkPos >= range[0] && checkPos < range[1]) {
+                                checkPos = range[0] - 1;
+                                break;
+                            }
+                        }
+                        continue;
+                    }
+                    if (Character.isWhitespace(text.charAt(checkPos))) { checkPos--; continue; }
+                    break;
+                }
+                if (checkPos >= 0 && !isExcluded(checkPos) && text.charAt(checkPos) == '.') { pos = checkPos - 1; continue; }
                 break;
             }
 
