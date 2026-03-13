@@ -419,7 +419,7 @@ public class AutocompleteMenu extends Gui {
             GL11.glPushMatrix();
             float scale = 0.5f;
             GL11.glScalef(scale, scale, scale);
-            int col = TokenType.MODIFIER.getHexColor();
+            int col = TokenType.KEYWORD.getHexColor();
             
             if (isStatic)
                 font.drawString("s", (int) (textX / scale), (int) (textY / scale), col);

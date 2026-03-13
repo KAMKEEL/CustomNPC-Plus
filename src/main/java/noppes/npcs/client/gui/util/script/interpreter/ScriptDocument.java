@@ -4586,7 +4586,7 @@ public class ScriptDocument {
 
         // Modifiers - Java only
         if (!isJavaScript()) {
-            addPatternMarks(marks, MODIFIER_PATTERN, TokenType.MODIFIER);
+            addPatternMarks(marks, MODIFIER_PATTERN, TokenType.KEYWORD);
         }
 
         // Type declarations and usages - Java only (JS doesn't have explicit types)
@@ -5297,7 +5297,7 @@ public class ScriptDocument {
                 continue;
             
             // Mark 'import' keyword
-            marks.add(new ScriptLine.Mark(imp.getStartOffset(), imp.getStartOffset() + 6, TokenType.IMPORT_KEYWORD, imp));
+            marks.add(new ScriptLine.Mark(imp.getStartOffset(), imp.getStartOffset() + 6, TokenType.KEYWORD, imp));
 
             // Parse path tokens
             int pathStart = imp.getPathStartOffset();
@@ -5477,7 +5477,7 @@ public class ScriptDocument {
             if (isExcluded(m.start()))
                 continue;
 
-            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.CLASS_KEYWORD));
+            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.KEYWORD));
 
             String kind = m.group(1);
             TokenType nameType;
@@ -5541,7 +5541,7 @@ public class ScriptDocument {
             int extIdx = indexOfAtDepthZero(betweenParamsAndBrace, "extends");
             if (extIdx >= 0) {
                 int extendsAbsStart = scanPos + extIdx;
-                marks.add(new ScriptLine.Mark(extendsAbsStart, extendsAbsStart + 7, TokenType.IMPORT_KEYWORD));
+                marks.add(new ScriptLine.Mark(extendsAbsStart, extendsAbsStart + 7, TokenType.KEYWORD));
 
                 // Extract parent name after 'extends '
                 String afterExtends = betweenParamsAndBrace.substring(extIdx + 7).trim();
@@ -5574,7 +5574,7 @@ public class ScriptDocument {
             int implIdx = indexOfAtDepthZero(betweenParamsAndBrace, "implements");
             if (implIdx >= 0) {
                 int implAbsStart = scanPos + implIdx;
-                marks.add(new ScriptLine.Mark(implAbsStart, implAbsStart + 10, TokenType.IMPORT_KEYWORD));
+                marks.add(new ScriptLine.Mark(implAbsStart, implAbsStart + 10, TokenType.KEYWORD));
 
                 String afterImpl = betweenParamsAndBrace.substring(implIdx + 10).trim();
                 int implListStart = implAbsStart + 10;
@@ -8201,7 +8201,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                 superClass, parentConstructor, false).setConstructor(true);
         callInfo.validate();
         methodCalls.add(callInfo);
-        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.IMPORT_KEYWORD,
+        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.KEYWORD,
                 errorMsg != null ? errorMsg : callInfo));
     }
 

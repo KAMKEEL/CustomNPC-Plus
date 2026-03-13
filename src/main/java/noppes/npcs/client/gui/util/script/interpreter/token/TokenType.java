@@ -22,10 +22,7 @@ public enum TokenType {
     UNUSED_IMPORT(0xFF666666, 119),       // unused import statements (gray)
     
     // Keywords and modifiers
-    CLASS_KEYWORD(0xFFFF5555, 115),      // 'class', 'interface', 'enum' keywords
-    IMPORT_KEYWORD(0xFFFFAA00, 110),     // 'import' keyword
-    KEYWORD(0xFFFF5555, 100),            // control flow: if, else, for, while, etc.
-    MODIFIER(0xFFFFAA00, 90),            // public, private, static, final, etc.
+    KEYWORD(0xFFFF5555, 100,true, false),            // control flow: if, else, for, while, etc.
     
     // Type declarations and references
     INTERFACE_DECL(0xFF55FFFF, 85),      // interface names (aqua)
@@ -133,12 +130,8 @@ public enum TokenType {
                 return '6'; // gold
             case JSDOC_TYPE:
                 return '3'; // dark aqua (like types)
-            case CLASS_KEYWORD:
             case KEYWORD:
                 return 'c'; // red
-            case IMPORT_KEYWORD:
-            case MODIFIER:
-                return '6'; // gold
             case ENUM_DECL:
             case STATIC_FINAL_FIELD:
                 return 'd'; // magenta
