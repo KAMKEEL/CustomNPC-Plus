@@ -3504,9 +3504,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public void setLanguage(String language) {
         if (this.container != null) {
             this.container.setLanguage(language);
-            if (this.enableCodeHighlighting) {
-                this.container.formatCodeText();
-            }
         }
     }
     

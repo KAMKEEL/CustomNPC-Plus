@@ -190,6 +190,9 @@ public class ScriptTextContainer extends JavaTextContainer {
     }
 
     /**
+     * 1. initScriptEditor.setLanguage
+     * 2. initScriptEditorTab.enableCodeHighlighting
+     * 3. initScriptEditor.updateScriptDocumentImports
      * Main formatting entry point - matches JavaTextContainer signature.
      */
     @Override
@@ -199,7 +202,9 @@ public class ScriptTextContainer extends JavaTextContainer {
             return;
         }
         
+        ScriptProfiler.setEnabled(true);
         document.formatCodeText();
+        ScriptProfiler.setEnabled(false);
         rebuildLineData();
     }
 

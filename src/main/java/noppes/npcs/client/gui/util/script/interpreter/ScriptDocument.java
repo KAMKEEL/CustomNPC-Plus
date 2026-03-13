@@ -368,45 +368,53 @@ public class ScriptDocument {
      * fieldAccesses, etc.) are shared between languages.
      */
     public void formatCodeText() {
-        // Clear previous state (same for both languages)
-        errors.clear();
-        imports.clear();
-        methods.clear();
-        globalFields.clear();
-        wildcardPackages.clear();
-        excludedRanges.clear();
-        methodLocals.clear();
-        topLevelLocals.clear();
-        scriptTypes.clear();
-        scriptTypesByFullName.clear();
-        scriptTypesByDotName.clear();
-        innerScopes.clear();
-        methodCalls.clear();
-        externalFieldAssignments.clear();
-        declarationErrors.clear();
-        scriptMethodSamContexts.clear();
-        objectLiterals.clear();
-        lambdaCache.clear();
-        
-        // Unified pipeline for both languages
-        List<ScriptLine.Mark> marks = formatUnified();
+        ScriptProfiler.begin("formatCodeText");
+        try {
+            errors.clear();
+            imports.clear();
+            methods.clear();
+            globalFields.clear();
+            wildcardPackages.clear();
+            excludedRanges.clear();
+            methodLocals.clear();
+            topLevelLocals.clear();
+            scriptTypes.clear();
+            scriptTypesByFullName.clear();
+            scriptTypesByDotName.clear();
+            innerScopes.clear();
+            methodCalls.clear();
+            externalFieldAssignments.clear();
+            declarationErrors.clear();
+            scriptMethodSamContexts.clear();
+            objectLiterals.clear();
+            lambdaCache.clear();
 
-        // Phase 5: Resolve conflicts and sort
-        marks = resolveConflicts(marks);
+            List<ScriptLine.Mark> marks = formatUnified();
 
-        // Phase 6: Build tokens for each line
-        for (ScriptLine line : lines) {
-            line.buildTokensFromMarks(marks, text, this);
+            ScriptProfiler.begin("resolveConflicts");
+            marks = resolveConflicts(marks);
+            ScriptProfiler.end("resolveConflicts");
+
+            ScriptProfiler.begin("buildTokensPerLine");
+            for (ScriptLine line : lines) {
+                line.buildTokensFromMarks(marks, text, this);
+            }
+            ScriptProfiler.end("buildTokensPerLine");
+
+            ScriptProfiler.begin("removeUnusedImplicitImports");
+            removeUnusedImplicitImports();
+            ScriptProfiler.end("removeUnusedImplicitImports");
+
+            ScriptProfiler.begin("computeIndentGuides");
+            computeIndentGuides(marks);
+            ScriptProfiler.end("computeIndentGuides");
+
+            ScriptProfiler.begin("populateErrors");
+            populateErrors();
+            ScriptProfiler.end("populateErrors");
+        } finally {
+            ScriptProfiler.end("formatCodeText");
         }
-
-        // Phase 6.5: Now that tokens are built, remove implicit imports that aren't actually used
-        removeUnusedImplicitImports();
-
-        // Phase 7: Compute indent guides
-        computeIndentGuides(marks);
-
-        // Phase 8: Populate centralized error list from all error sources
-        populateErrors();
     }
 
     // Store the last JS analyzer for autocomplete (deprecated - use methods/globalFields/methodLocals instead)
@@ -428,17 +436,23 @@ public class ScriptDocument {
     private List<ScriptLine.Mark> formatUnified() {
         TypeChecker.enterTypeCheckingContext(isJavaScript());
         
-        // Phase 1: Find excluded regions (strings/comments) - same for both
+        ScriptProfiler.begin("findExcludedRanges");
         findExcludedRanges();
+        ScriptProfiler.end("findExcludedRanges");
 
-        // Phase 2: Parse imports (Java only, JS skips this)
+        ScriptProfiler.begin("parseImports");
         parseImports();
+        ScriptProfiler.end("parseImports");
 
-        // Phase 3: Parse structure (methods, fields, locals) - language aware
+        ScriptProfiler.begin("parseStructure");
         parseStructure();
+        ScriptProfiler.end("parseStructure");
 
-        // Phase 4: Build marks - language aware
-        return buildMarks();
+        ScriptProfiler.begin("buildMarks");
+        List<ScriptLine.Mark> result = buildMarks();
+        ScriptProfiler.end("buildMarks");
+        
+        return result;
     }
     
     /**
@@ -737,41 +751,48 @@ public class ScriptDocument {
      * Uses the SAME logic and data structures for both Java and JavaScript.
      */
     private void parseStructure() {
-        // Clear import references before re-parsing
         for (ImportData imp : imports) {
             imp.clearReferences();
         }
         
-        // Parse script-defined types (classes, interfaces, enums) - Java only
         if (!isJavaScript()) {
+            ScriptProfiler.begin("parseScriptTypes");
             parseScriptTypes();
+            ScriptProfiler.end("parseScriptTypes");
         }
         
-        // Parse methods/functions - UNIFIED for both languages
+        ScriptProfiler.begin("parseMethodDeclarations");
         parseMethodDeclarations();
+        ScriptProfiler.end("parseMethodDeclarations");
 
-        // Parse inner callable scopes (lambdas, JS function expressions)
+        ScriptProfiler.begin("parseInnerCallableScopes");
         parseInnerCallableScopes();
+        ScriptProfiler.end("parseInnerCallableScopes");
 
-        // Parse local variables inside methods/functions - UNIFIED for both languages
+        ScriptProfiler.begin("parseLocalVariables");
         parseLocalVariables();
+        ScriptProfiler.end("parseLocalVariables");
 
-        // Parse global fields (outside methods) - UNIFIED for both languages
+        ScriptProfiler.begin("parseGlobalFields");
         parseGlobalFields();
+        ScriptProfiler.end("parseGlobalFields");
 
-        // Must run before parseAssignments: sets inferredType on lambda params so that
-        // body variable resolution (e.g. "act" in "int x = act.getData()") works correctly.
+        ScriptProfiler.begin("inferLambdaParameterTypes");
         inferLambdaParameterTypes();
+        ScriptProfiler.end("inferLambdaParameterTypes");
         
-        // Parse and validate assignments (reassignments) - UNIFIED for both languages
+        ScriptProfiler.begin("parseAssignments");
         parseAssignments();
+        ScriptProfiler.end("parseAssignments");
 
-        // Cache object literals after globals/locals are available for accurate value-type inference
+        ScriptProfiler.begin("parseObjectLiterals");
         parseObjectLiterals();
+        ScriptProfiler.end("parseObjectLiterals");
 
-        // Detect method overrides and interface implementations for script types - Java only
         if (!isJavaScript()) {
+            ScriptProfiler.begin("detectMethodInheritance");
             detectMethodInheritance();
+            ScriptProfiler.end("detectMethodInheritance");
         }
     }
 
@@ -4593,80 +4614,91 @@ public class ScriptDocument {
     private List<ScriptLine.Mark> buildMarks() {
         List<ScriptLine.Mark> marks = new ArrayList<>();
 
-        // Strings first to protect their content
+        ScriptProfiler.begin("markStrings");
         addPatternMarks(marks, STRING_PATTERN, TokenType.STRING);
+        ScriptProfiler.end("markStrings");
         
-        // JSDoc comments with fragmented marking (avoids conflicts with @tags and {Type})
+        ScriptProfiler.begin("markJSDocElements");
         markJSDocElements(marks);
+        ScriptProfiler.end("markJSDocElements");
         
-        // Regular comments (non-JSDoc)
+        ScriptProfiler.begin("markComments");
         markNonJSDocComments(marks);
+        ScriptProfiler.end("markComments");
         
-        // Keywords - same for both languages (KEYWORD_PATTERN includes JS keywords like function, var, let, const)
+        ScriptProfiler.begin("markKeywords");
         addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
         if(isJavaScript())
             addPatternMarks(marks, KEYWORD_JS_PATTERN, TokenType.KEYWORD);
+        ScriptProfiler.end("markKeywords");
             
-        // Numbers - same for both languages
         addPatternMarks(marks, NUMBER_PATTERN, TokenType.LITERAL);
 
         if (isJavaScript()) {
             markObjectLiteralKeys(marks);
         }
          
-        // Import statements - Java only
         if (!isJavaScript()) {
             markImports(marks);
         }
 
-        // Class/interface/enum declarations - Java only
         if (!isJavaScript()) {
             markClassDeclarations(marks);
             markEnumConstants(marks);
         }
 
-        // Modifiers - Java only
         if (!isJavaScript()) {
             addPatternMarks(marks, MODIFIER_PATTERN, TokenType.KEYWORD);
         }
 
-        // Type declarations and usages - Java only (JS doesn't have explicit types)
         if (!isJavaScript()) {
+            ScriptProfiler.begin("markTypeDeclarations");
             markTypeDeclarations(marks);
+            ScriptProfiler.end("markTypeDeclarations");
         }
 
-        // Methods/functions - UNIFIED (uses shared 'methods' list)
+        ScriptProfiler.begin("markMethodDeclarations");
         markMethodDeclarations(marks);
+        ScriptProfiler.end("markMethodDeclarations");
 
-        // Method calls - UNIFIED (stores in shared 'methodCalls' list)
+        ScriptProfiler.begin("markMethodCalls");
         markMethodCalls(marks);
+        ScriptProfiler.end("markMethodCalls");
 
-        // Variables and fields - UNIFIED (uses shared globalFields, methodLocals)
+        ScriptProfiler.begin("markVariables");
         markVariables(marks);
+        ScriptProfiler.end("markVariables");
 
-        // Chained field accesses - UNIFIED (uses resolveVariable which handles both)
+        ScriptProfiler.begin("markChainedFieldAccesses");
         markChainedFieldAccesses(marks);
+        ScriptProfiler.end("markChainedFieldAccesses");
+        
+        ScriptProfiler.begin("markImportedClassUsages");
         markImportedClassUsages(marks);
+        ScriptProfiler.end("markImportedClassUsages");
 
-        // Java-specific final passes
         if (!isJavaScript()) {
+            ScriptProfiler.begin("markCastTypes");
             markCastTypes(marks);
+            ScriptProfiler.end("markCastTypes");
+            
             markUnusedImports(marks);
-            // Mark method reference expressions (target::methodName)
             markMethodReferences(marks);
         }
         
-        // Mark lambda and method reference operators (-> and ::)
         markLambdaOperators(marks);
         
-        // Mark lambda/function parameters with type info
+        ScriptProfiler.begin("markInnerScopeParams");
         markInnerScopeParameters(marks);
+        ScriptProfiler.end("markInnerScopeParams");
         
-        // Validate lambda return types
+        ScriptProfiler.begin("validateLambdaReturnTypes");
         validateLambdaReturnTypes(marks);
+        ScriptProfiler.end("validateLambdaReturnTypes");
         
-        // Final pass: Mark any remaining unmarked identifiers as undefined
+        ScriptProfiler.begin("markUndefinedIdentifiers");
         markUndefinedIdentifiers(marks);
+        ScriptProfiler.end("markUndefinedIdentifiers");
 
         return marks;
     }
