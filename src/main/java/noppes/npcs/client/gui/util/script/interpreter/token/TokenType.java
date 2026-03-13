@@ -6,8 +6,9 @@ import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
  * Defines all token types for syntax highlighting with hex colors and priorities.
  * Priority determines which token type wins when marks overlap.
  * Higher priority = wins conflicts.
- *
- * Style properties (color, priority, bold, italic) can be overridden at runtime
+ * <p>
+ * Priority is defined exclusively by the enum and never stored elsewhere.
+ * Visual style properties (color, bold, italic) can be overridden at runtime
  * via {@link ScriptColorScheme}. The enum constructor values serve as compile-time defaults.
  */
 public enum TokenType {
@@ -16,7 +17,7 @@ public enum TokenType {
     STRING(0xFFCC8855, 130),
     
     // JSDoc elements - lower priority but will fill gaps left by fragmented comment marking
-    JSDOC_TAG(0xFFCC9933, 125),           // @param, @type, @return etc. (gold/orange)
+    JSDOC_TAG(0xFFCC9933, 125,true, true),           // @param, @type, @return etc. (gold/orange)
     JSDOC_TYPE(0xFF00AAAA, 124),          // {TypeName} in JSDoc (aqua like types)
     
     UNUSED_IMPORT(0xFF666666, 119),       // unused import statements (gray)
@@ -52,7 +53,7 @@ public enum TokenType {
     DEFAULT(0xFFFFFFFF, 0);              // default text color (white)
 
     private final int defaultHexColor;
-    private final int defaultPriority;
+    private final int priority;
     private final boolean defaultBold;
     private final boolean defaultItalic;
 
@@ -62,7 +63,7 @@ public enum TokenType {
 
     TokenType(int hexColor, int priority, boolean bold, boolean italic) {
         this.defaultHexColor = hexColor;
-        this.defaultPriority = priority;
+        this.priority = priority;
         this.defaultBold = bold;
         this.defaultItalic = italic;
     }
@@ -72,7 +73,7 @@ public enum TokenType {
     }
 
     public int getPriority() {
-        return ScriptColorScheme.styles[ordinal()].priority;
+        return priority;
     }
 
     public boolean isBold() {
@@ -86,11 +87,7 @@ public enum TokenType {
     int getDefaultHexColor() {
         return defaultHexColor;
     }
-
-    int getDefaultPriority() {
-        return defaultPriority;
-    }
-
+    
     boolean getDefaultBold() {
         return defaultBold;
     }

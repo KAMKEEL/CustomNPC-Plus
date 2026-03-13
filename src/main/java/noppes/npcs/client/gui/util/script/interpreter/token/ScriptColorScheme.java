@@ -13,8 +13,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
- * Manages reloadable style overrides (color, priority, bold, italic) for {@link TokenType},
+ * Manages reloadable style overrides (color, bold, italic) for {@link TokenType},
  * plus editor background/gutter/scrollbar colors via {@link BackgroundStyleEntry}.
+ * <p>
+ * Priority is always determined internally by {@link TokenType#getPriority()} ()}
+ * and is never exposed to or loaded from user-facing JSON files.
  * <p>
  * Loaded from {@code assets/customnpcs/colorscheme/script_editor_scheme.json} on resource reload.
  * Styles are cached in a flat array indexed by {@link TokenType#ordinal()} for zero-cost lookups.
@@ -67,7 +70,7 @@ public final class ScriptColorScheme {
         for (TokenType tt : samples) {
             StyleEntry e = current[tt.ordinal()];
             LogWriter.info("[ColorScheme]   " + tt.name() + " -> color=#" + String.format("%08X", e.hexColor)
-                    + ", priority=" + e.priority + ", bold=" + e.bold + ", italic=" + e.italic);
+                    + ", bold=" + e.bold + ", italic=" + e.italic);
         }
 
         BackgroundStyleEntry bg = background;
@@ -77,7 +80,7 @@ public final class ScriptColorScheme {
 
     /**
      * Parse a color scheme JSON and install it as the active scheme.
-     * Expected format: {@code { "TOKEN_NAME": { "color": "#RRGGBB", "priority": int, "bold": bool, "italic": bool }, ... }}
+     * Expected format: {@code { "TOKEN_NAME": { "color": "#RRGGBB", "bold": bool, "italic": bool }, ... }}
      * Missing properties per token fall back to the enum default. Parse errors are logged per-token.
      */
     public static void loadFromJson(Reader reader) {
@@ -129,11 +132,10 @@ public final class ScriptColorScheme {
             int color = entry.has("color")
                     ? parseColor(entry.get("color"), defaultColor, tt.name())
                     : defaultColor;
-            int priority = entry.has("priority") ? entry.get("priority").getAsInt() : tt.getDefaultPriority();
             boolean bold = entry.has("bold") ? entry.get("bold").getAsBoolean() : tt.getDefaultBold();
             boolean italic = entry.has("italic") ? entry.get("italic").getAsBoolean() : tt.getDefaultItalic();
 
-            return new StyleEntry(color, priority, bold, italic);
+            return new StyleEntry(color, bold, italic);
         } catch (Exception e) {
             LogWriter.error("[ColorScheme] Error parsing token " + tt.name() + ", using defaults: " + e.getMessage());
             return defaultEntry(tt);
@@ -145,7 +147,7 @@ public final class ScriptColorScheme {
         if ((color & 0xFF000000) == 0) {
             color |= 0xFF000000;
         }
-        return new StyleEntry(color, tt.getDefaultPriority(), tt.getDefaultBold(), tt.getDefaultItalic());
+        return new StyleEntry(color, tt.getDefaultBold(), tt.getDefaultItalic());
     }
 
     private static BackgroundStyleEntry parseBackground(JsonObject root) {
@@ -212,13 +214,11 @@ public final class ScriptColorScheme {
 
     static final class StyleEntry {
         final int hexColor;
-        final int priority;
         final boolean bold;
         final boolean italic;
 
-        StyleEntry(int hexColor, int priority, boolean bold, boolean italic) {
+        StyleEntry(int hexColor, boolean bold, boolean italic) {
             this.hexColor = hexColor;
-            this.priority = priority;
             this.bold = bold;
             this.italic = italic;
         }
