@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public class ForgeDataScript extends MultiScriptHandler {
@@ -32,6 +33,7 @@ public class ForgeDataScript extends MultiScriptHandler {
     private static List<String> cachedHooks;
 
     private long lastForgeUpdate = -1L;
+    private final HashSet<String> globalUnknownEvents = new HashSet<>();
 
     public ForgeDataScript() {
     }
@@ -59,6 +61,7 @@ public class ForgeDataScript extends MultiScriptHandler {
     protected void reInitScripts() {
         lastInited = ScriptController.Instance.lastLoaded;
         lastForgeUpdate = ScriptController.Instance.lastForgeUpdate;
+        globalUnknownEvents.clear();
 
         for (IScriptUnit script : this.scripts) {
             if (script instanceof ScriptContainer)
@@ -79,10 +82,25 @@ public class ForgeDataScript extends MultiScriptHandler {
             }
         }
 
+        // Skip events that no script tab handles
+        if (globalUnknownEvents.contains(type)) {
+            return;
+        }
+
+        boolean anyHandled = false;
         for (IScriptUnit script : this.scripts) {
             if (script == null || script.hasErrored() || !script.hasCode())
                 continue;
+            boolean wasUnknown = script.isUnknownFunction(type);
             script.run(type, event);
+            if (!wasUnknown || !script.isUnknownFunction(type)) {
+                anyHandled = true;
+            }
+        }
+
+        // If no script tab handled this event type, cache it globally
+        if (!anyHandled) {
+            globalUnknownEvents.add(type);
         }
     }
 

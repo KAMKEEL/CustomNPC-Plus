@@ -46,6 +46,7 @@ public class ScriptContainer implements IScriptUnit {
     private static Method luaCall;
     private CompiledScript compScript = null;
     private final HashMap<String, ScriptObjectMirror> cachedFunctions = new HashMap<>();
+    private long lastGlobalsVersion = -1;
 
     /**
      * Persisted per-container language. Null means inherit from handler default.
@@ -224,6 +225,7 @@ public class ScriptContainer implements IScriptUnit {
         if (ScriptController.Instance.lastLoaded > this.lastCreated) {
             this.lastCreated = ScriptController.Instance.lastLoaded;
             evaluated = false;
+            lastGlobalsVersion = -1;
         }
 
         synchronized (lock) {
@@ -236,18 +238,24 @@ public class ScriptContainer implements IScriptUnit {
             engine.getContext().setWriter(pw);
             engine.getContext().setErrorWriter(pw);
 
-            // Populate bindings with API objects
+            // Populate bindings with API objects (skip if globals unchanged)
+            long currentGlobalsVersion = NpcAPI.engineObjectsVersion;
+            boolean globalsChanged = lastGlobalsVersion != currentGlobalsVersion;
             if (instanceBindings != null) {
-                instanceBindings.put("API", NpcAPI.Instance());
-                HashMap<String, Object> engineEntries = new HashMap<>(NpcAPI.engineObjects);
-                for (Map.Entry<String, Object> objectEntry : engineEntries.entrySet()) {
-                    instanceBindings.put(objectEntry.getKey(), objectEntry.getValue());
+                if (globalsChanged) {
+                    instanceBindings.put("API", NpcAPI.Instance());
+                    for (Map.Entry<String, Object> objectEntry : NpcAPI.engineObjects.entrySet()) {
+                        instanceBindings.put(objectEntry.getKey(), objectEntry.getValue());
+                    }
+                    lastGlobalsVersion = currentGlobalsVersion;
                 }
             } else {
-                engine.put("API", NpcAPI.Instance());
-                HashMap<String, Object> engineEntries = new HashMap<>(NpcAPI.engineObjects);
-                for (Map.Entry<String, Object> objectEntry : engineEntries.entrySet()) {
-                    engine.put(objectEntry.getKey(), objectEntry.getValue());
+                if (globalsChanged) {
+                    engine.put("API", NpcAPI.Instance());
+                    for (Map.Entry<String, Object> objectEntry : NpcAPI.engineObjects.entrySet()) {
+                        engine.put(objectEntry.getKey(), objectEntry.getValue());
+                    }
+                    lastGlobalsVersion = currentGlobalsVersion;
                 }
             }
 
@@ -326,6 +334,11 @@ public class ScriptContainer implements IScriptUnit {
         if (!scripts.isEmpty())
             return true;
         return !this.getFullCode().isEmpty();
+    }
+
+    @Override
+    public boolean isUnknownFunction(String type) {
+        return unknownFunctions.contains(type);
     }
 
     public void setEngine(String scriptLanguage) {
