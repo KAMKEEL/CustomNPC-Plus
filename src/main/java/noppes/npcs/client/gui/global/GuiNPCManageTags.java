@@ -22,6 +22,7 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -113,7 +114,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData, I
             Tag tag = new Tag(-1, name, 0x00FF00);
 
             NBTTagCompound compound = new NBTTagCompound();
-            tag.writeNBT(compound);
+            tag.writeNBT(new MC1710NBTCompound(compound));
             PacketClient.sendClient(new TagSavePacket(compound));
         }
         if (button.id == 1) {
@@ -135,7 +136,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData, I
     @Override
     public void setGuiData(NBTTagCompound compound) {
         this.tag = new Tag();
-        tag.readNBT(compound);
+        tag.readNBT(new MC1710NBTCompound(compound));
 
         setSelected(tag.name);
         initGui();
@@ -170,7 +171,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData, I
     public void save() {
         if (selected != null && data.containsKey(selected) && tag != null) {
             NBTTagCompound compound = new NBTTagCompound();
-            tag.writeNBT(compound);
+            tag.writeNBT(new MC1710NBTCompound(compound));
 
             PacketClient.sendClient(new TagSavePacket(compound));
         }

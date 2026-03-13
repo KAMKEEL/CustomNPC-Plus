@@ -102,7 +102,7 @@ public class DataDisplay {
         nbttagcompound = skinOverlayData.writeToNBT(nbttagcompound);
 
         nbttagcompound = animationData.writeToNBT(nbttagcompound);
-        nbttagcompound = hitboxData.writeToNBT(nbttagcompound);
+        nbttagcompound = ((MC1710NBTCompound) hitboxData.writeToNBT(new MC1710NBTCompound(nbttagcompound))).getMCTag();
         nbttagcompound = ((MC1710NBTCompound) tintData.writeToNBT(new MC1710NBTCompound(nbttagcompound))).getMCTag();
 
         if (this.playerProfile != null) {
@@ -175,7 +175,7 @@ public class DataDisplay {
             NBTTagCompound compound = new NBTTagCompound();
             compound.setInteger("SkinOverlayID", 0); //unique glow texture ID
 
-            (new SkinOverlay(glowTexture)).writeToNBT(compound);
+            (new SkinOverlay(glowTexture)).writeToNBT(new MC1710NBTCompound(compound));
 
             if (!nbttagcompound.hasKey("SkinOverlayData")) {
                 NBTTagList tagList = new NBTTagList();
@@ -190,7 +190,7 @@ public class DataDisplay {
         skinOverlayData.readFromNBT(nbttagcompound);
 
         animationData.readFromNBT(nbttagcompound);
-        hitboxData.readFromNBT(nbttagcompound);
+        hitboxData.readFromNBT(new MC1710NBTCompound(nbttagcompound));
         tintData.readFromNBT(new MC1710NBTCompound(nbttagcompound));
 
         modelSize = ValueUtil.clamp(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);

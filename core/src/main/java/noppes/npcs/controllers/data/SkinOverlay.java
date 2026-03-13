@@ -1,11 +1,10 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.ISkinOverlay;
-import noppes.npcs.entity.data.DataSkinOverlays;
+import noppes.npcs.platform.nbt.INBTCompound;
 
 public class SkinOverlay implements ISkinOverlay {
-    public DataSkinOverlays parent;
+    private Runnable onChanged;
     public String texture;
 
     public boolean glow = true;
@@ -35,9 +34,13 @@ public class SkinOverlay implements ISkinOverlay {
         this.texture = texture;
     }
 
+    public void setOnChanged(Runnable onChanged) {
+        this.onChanged = onChanged;
+    }
+
     public void setTexture(String texture) {
         this.texture = texture;
-        this.updateClient();
+        this.notifyChanged();
     }
 
     public String getTexture() {
@@ -46,7 +49,7 @@ public class SkinOverlay implements ISkinOverlay {
 
     public void setGlow(boolean glow) {
         this.glow = glow;
-        this.updateClient();
+        this.notifyChanged();
     }
 
     public boolean getGlow() {
@@ -55,7 +58,7 @@ public class SkinOverlay implements ISkinOverlay {
 
     public void setBlend(boolean blend) {
         this.blend = blend;
-        this.updateClient();
+        this.notifyChanged();
     }
 
     public boolean getBlend() {
@@ -64,7 +67,7 @@ public class SkinOverlay implements ISkinOverlay {
 
     public void setAlpha(float alpha) {
         this.alpha = alpha;
-        this.updateClient();
+        this.notifyChanged();
     }
 
     public float getAlpha() {
@@ -73,7 +76,7 @@ public class SkinOverlay implements ISkinOverlay {
 
     public void setSize(float size) {
         this.size = size;
-        this.updateClient();
+        this.notifyChanged();
     }
 
     public float getSize() {
@@ -82,7 +85,7 @@ public class SkinOverlay implements ISkinOverlay {
 
     public void setColor(int color) {
         this.color = Math.max(0, color);
-        this.updateClient();
+        this.notifyChanged();
     }
 
     public int getColor() {
@@ -92,7 +95,7 @@ public class SkinOverlay implements ISkinOverlay {
     public void setTextureScale(float scaleX, float scaleY) {
         this.scaleX = scaleX;
         this.scaleY = scaleY;
-        this.updateClient();
+        this.notifyChanged();
     }
 
     public float getTextureScaleX() {
@@ -106,7 +109,7 @@ public class SkinOverlay implements ISkinOverlay {
     public void setSpeed(float speedX, float speedY) {
         this.speedX = speedX;
         this.speedY = speedY;
-        this.updateClient();
+        this.notifyChanged();
     }
 
     public float getSpeedX() {
@@ -121,7 +124,7 @@ public class SkinOverlay implements ISkinOverlay {
         this.offsetX = offsetX;
         this.offsetY = offsetY;
         this.offsetZ = offsetZ;
-        this.updateClient();
+        this.notifyChanged();
     }
 
     public float getOffsetX() {
@@ -136,13 +139,13 @@ public class SkinOverlay implements ISkinOverlay {
         return offsetZ;
     }
 
-    public void readFromNBT(NBTTagCompound compound) {
+    public void readFromNBT(INBTCompound compound) {
         this.texture = compound.getString("SkinOverlayTexture");
         this.glow = compound.getBoolean("SkinOverlayGlow");
         this.blend = compound.getBoolean("SkinOverlayBlend");
         this.alpha = compound.getFloat("SkinOverlayAlpha");
         this.size = compound.getFloat("SkinOverlaySize");
-        if(compound.hasKey("SkinOverlayColor")){
+        if (compound.hasKey("SkinOverlayColor")) {
             this.color = compound.getInteger("SkinOverlayColor");
         } else {
             this.color = 0xFFFFFF;
@@ -156,7 +159,7 @@ public class SkinOverlay implements ISkinOverlay {
         this.offsetZ = compound.getFloat("SkinOverlayOffsetZ");
     }
 
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+    public INBTCompound writeToNBT(INBTCompound compound) {
         compound.setString("SkinOverlayTexture", this.getTexture());
         compound.setBoolean("SkinOverlayGlow", this.getGlow());
         compound.setBoolean("SkinOverlayBlend", this.getBlend());
@@ -174,16 +177,9 @@ public class SkinOverlay implements ISkinOverlay {
         return compound;
     }
 
-    public static ISkinOverlay overlayFromNBT(NBTTagCompound compound) {
-        SkinOverlay overlay = new SkinOverlay();
-        overlay.readFromNBT(compound);
-        return overlay;
-    }
-
-    private void updateClient() {
-        if (this.parent != null) {
-            this.parent.updateClient();
-            this.parent.save();
+    private void notifyChanged() {
+        if (this.onChanged != null) {
+            this.onChanged.run();
         }
     }
 }

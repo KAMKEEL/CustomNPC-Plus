@@ -1,10 +1,9 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.handler.data.ITransportLocation;
-import noppes.npcs.controllers.TransportController;
-import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
 
 public class TransportLocation implements ITransportLocation {
     public int id = -1;
@@ -18,7 +17,13 @@ public class TransportLocation implements ITransportLocation {
 
     public TransportCategory category;
 
-    public void readNBT(NBTTagCompound compound) {
+    private Runnable saveHandler;
+
+    public void setSaveHandler(Runnable saveHandler) {
+        this.saveHandler = saveHandler;
+    }
+
+    public void readNBT(INBTCompound compound) {
         if (compound == null)
             return;
         id = compound.getInteger("Id");
@@ -30,8 +35,8 @@ public class TransportLocation implements ITransportLocation {
         name = compound.getString("Name");
     }
 
-    public NBTTagCompound writeNBT() {
-        NBTTagCompound compound = new NBTTagCompound();
+    public INBTCompound writeNBT() {
+        INBTCompound compound = NBT.compound();
         compound.setInteger("Id", id);
         compound.setDouble("PosX", posX);
         compound.setDouble("PosY", posY);
@@ -87,7 +92,7 @@ public class TransportLocation implements ITransportLocation {
     }
 
     public IPos getPos() {
-        return NpcAPI.Instance().getIPos(this.posX, this.posY, this.posZ);
+        return null; // Overridden in version-specific code
     }
 
     public double getX() {
@@ -103,6 +108,7 @@ public class TransportLocation implements ITransportLocation {
     }
 
     public void save() {
-        TransportController.getInstance().saveLocation(this.category.id, this);
+        if (saveHandler != null)
+            saveHandler.run();
     }
 }

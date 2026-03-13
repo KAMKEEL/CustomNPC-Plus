@@ -16,6 +16,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Tag;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -53,7 +54,7 @@ public final class CloneAllTagsPacket extends AbstractPacket {
         NBTTagList validTagList = new NBTTagList();
         for (Tag tag : validTags) {
             NBTTagCompound tagCompound = new NBTTagCompound();
-            tag.writeNBT(tagCompound);
+            tag.writeNBT(new MC1710NBTCompound(tagCompound));
             validTagList.appendTag(tagCompound);
         }
         compound.setTag("AllTags", validTagList);

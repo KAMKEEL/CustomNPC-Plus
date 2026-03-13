@@ -16,6 +16,7 @@ import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.util.HashMap;
 import java.util.Vector;
@@ -70,7 +71,7 @@ public class GuiNpcTransporter extends GuiNPCInterface2 implements IScrollData, 
         location.dimension = player.dimension;
 
         int cat = data.get(scroll.getSelected());
-        PacketClient.sendClient(new TransportSavePacket(cat, location.writeNBT()));
+        PacketClient.sendClient(new TransportSavePacket(cat, ((MC1710NBTCompound) location.writeNBT()).getMCTag()));
     }
 
     @Override
@@ -87,7 +88,7 @@ public class GuiNpcTransporter extends GuiNPCInterface2 implements IScrollData, 
     @Override
     public void setGuiData(NBTTagCompound compound) {
         TransportLocation loc = new TransportLocation();
-        loc.readNBT(compound);
+        loc.readNBT(new MC1710NBTCompound(compound));
         location = loc;
         initGui();
     }

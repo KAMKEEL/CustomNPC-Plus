@@ -1,7 +1,5 @@
 package noppes.npcs.constants;
 
-import net.minecraft.util.StatCollector;
-
 public enum EnumAuctionSort {
     NEWEST("auction.sort.newest"),
     ENDING_SOON("auction.sort.endingSoon"),
@@ -20,7 +18,7 @@ public enum EnumAuctionSort {
     }
 
     public String getDisplayName() {
-        return StatCollector.translateToLocal(langKey);
+        return langKey;
     }
 
     public static String[] getDisplayNames() {

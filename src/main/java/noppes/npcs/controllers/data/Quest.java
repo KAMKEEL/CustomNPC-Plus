@@ -93,7 +93,7 @@ public class Quest implements ICompatibilty, IQuest {
         questInterface.readEntityFromNBT(compound);
 
         factionOptions.readFromNBT(compound.getCompoundTag("QuestFactionPoints"));
-        partyOptions.readFromNBT(compound.getCompoundTag("PartyOptions"));
+        partyOptions.readFromNBT(new MC1710NBTCompound(compound.getCompoundTag("PartyOptions")));
         profileOptions.readFromNBT(new MC1710NBTCompound(compound.getCompoundTag("ProfileOptions")));
 
         mail.readNBT(compound.getCompoundTag("QuestMail"));
@@ -141,7 +141,7 @@ public class Quest implements ICompatibilty, IQuest {
 
         this.questInterface.writeEntityToNBT(compound);
         compound.setTag("QuestFactionPoints", factionOptions.writeToNBT(new NBTTagCompound()));
-        compound.setTag("PartyOptions", partyOptions.writeToNBT());
+        compound.setTag("PartyOptions", ((MC1710NBTCompound) partyOptions.writeToNBT()).getMCTag());
         compound.setTag("ProfileOptions", ((MC1710NBTCompound) profileOptions.writeToNBT()).getMCTag());
         compound.setTag("QuestMail", mail.writeNBT());
 

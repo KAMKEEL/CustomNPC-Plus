@@ -17,6 +17,7 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Tag;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.io.IOException;
 
@@ -65,7 +66,7 @@ public final class TagRemovePacket extends AbstractPacket {
         TagController.getInstance().delete(id);
         NoppesUtilServer.sendTagDataAll((EntityPlayerMP) player);
         NBTTagCompound comp = new NBTTagCompound();
-        (new Tag()).writeNBT(comp);
+        (new Tag()).writeNBT(new MC1710NBTCompound(comp));
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, comp);
     }
 }

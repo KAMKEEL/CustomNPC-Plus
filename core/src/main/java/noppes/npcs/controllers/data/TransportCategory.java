@@ -1,10 +1,10 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.ITransportCategory;
 import noppes.npcs.api.handler.data.ITransportLocation;
-import noppes.npcs.controllers.TransportController;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.core.NBT;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,30 +27,30 @@ public class TransportCategory implements ITransportCategory {
         return list;
     }
 
-    public void readNBT(NBTTagCompound compound) {
+    public void readNBT(INBTCompound compound) {
         id = compound.getInteger("CategoryId");
         title = compound.getString("CategoryTitle");
 
-        NBTTagList locs = compound.getTagList("CategoryLocations", 10);
-        if (locs == null || locs.tagCount() == 0)
+        INBTList locs = compound.getList("CategoryLocations", 10);
+        if (locs == null || locs.size() == 0)
             return;
 
-        for (int ii = 0; ii < locs.tagCount(); ii++) {
+        for (int ii = 0; ii < locs.size(); ii++) {
             TransportLocation location = new TransportLocation();
-            location.readNBT(locs.getCompoundTagAt(ii));
+            location.readNBT(locs.getCompound(ii));
             location.category = this;
             locations.put(location.id, location);
         }
     }
 
-    public void writeNBT(NBTTagCompound compound) {
+    public void writeNBT(INBTCompound compound) {
         compound.setInteger("CategoryId", id);
         compound.setString("CategoryTitle", title);
-        NBTTagList locs = new NBTTagList();
+        INBTList locs = NBT.list();
         for (TransportLocation location : locations.values()) {
-            locs.appendTag(location.writeNBT());
+            locs.addCompound(location.writeNBT());
         }
-        compound.setTag("CategoryLocations", locs);
+        compound.setList("CategoryLocations", locs);
     }
 
     public int getId() {
@@ -66,13 +66,7 @@ public class TransportCategory implements ITransportCategory {
     }
 
     public void addLocation(String name) {
-        int id = TransportController.getInstance().getUniqueIdLocation();
-        TransportLocation location = new TransportLocation();
-        location.id = id;
-        location.name = name;
-        location.category = this;
-
-        TransportController.getInstance().setLocation(location);
+        // Overridden in version-specific code
     }
 
     public ITransportLocation getLocation(String name) {
@@ -88,18 +82,6 @@ public class TransportCategory implements ITransportCategory {
     }
 
     public void removeLocation(String name) {
-        int id = -1;
-        for (Map.Entry<Integer, TransportLocation> entry : locations.entrySet()) {
-            if (entry.getValue().getName().equals(name)) {
-                id = entry.getKey();
-                ;
-                locations.remove(entry.getKey());
-                break;
-            }
-        }
-
-        if (id >= 0) {
-            TransportController.getInstance().removeLocation(id);
-        }
+        // Overridden in version-specific code
     }
 }

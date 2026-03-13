@@ -15,6 +15,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Tag;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.io.IOException;
 
@@ -53,7 +54,7 @@ public final class TagGetPacket extends AbstractPacket {
 
         NBTTagCompound compound = new NBTTagCompound();
         Tag tag = TagController.getInstance().get(in.readInt());
-        tag.writeNBT(compound);
+        tag.writeNBT(new MC1710NBTCompound(compound));
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 

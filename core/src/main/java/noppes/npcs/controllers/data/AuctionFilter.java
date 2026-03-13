@@ -1,14 +1,17 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumChatFormatting;
+import noppes.npcs.platform.nbt.INBTCompound;
 import noppes.npcs.constants.EnumAuctionSort;
+
+import java.util.regex.Pattern;
 
 /**
  * Filter for auction listings.
  * Supports search by item name or seller name and sorting options.
  */
 public class AuctionFilter {
+    private static final Pattern FORMATTING_PATTERN = Pattern.compile("\u00a7.");
+
     private String searchText;
     public EnumAuctionSort sortBy;
 
@@ -30,8 +33,8 @@ public class AuctionFilter {
      */
     public static String normalizeForSearch(String input) {
         if (input == null || input.isEmpty()) return "";
-        String stripped = EnumChatFormatting.getTextWithoutFormattingCodes(input);
-        return stripped != null ? stripped.toLowerCase().trim() : input.toLowerCase().trim();
+        String stripped = FORMATTING_PATTERN.matcher(input).replaceAll("");
+        return stripped.toLowerCase().trim();
     }
 
     /**
@@ -84,22 +87,16 @@ public class AuctionFilter {
         normalizedSearch = "";
     }
 
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+    public INBTCompound writeToNBT(INBTCompound compound) {
         compound.setString("SearchText", searchText != null ? searchText : "");
         compound.setInteger("SortBy", sortBy.ordinal());
         return compound;
     }
 
-    public void readFromNBT(NBTTagCompound compound) {
+    public void readFromNBT(INBTCompound compound) {
         searchText = compound.getString("SearchText");
         normalizedSearch = normalizeForSearch(searchText);
         sortBy = EnumAuctionSort.fromOrdinal(compound.getInteger("SortBy"));
-    }
-
-    public static AuctionFilter fromNBT(NBTTagCompound compound) {
-        AuctionFilter filter = new AuctionFilter();
-        filter.readFromNBT(compound);
-        return filter;
     }
 
     public AuctionFilter copy() {

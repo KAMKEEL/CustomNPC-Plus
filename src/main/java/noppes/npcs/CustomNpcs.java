@@ -67,6 +67,7 @@ import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.platform.PlatformServiceHolder;
 import noppes.npcs.wrapper.MC1710PlatformService;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.core.CoreConfig;
 import noppes.npcs.config.LoadConfiguration;
 import noppes.npcs.config.legacy.LegacyConfig;
 import noppes.npcs.controllers.APIRegistry;
@@ -249,6 +250,12 @@ public class CustomNpcs {
         }
         configPath += File.separator;
         LoadConfiguration.init(configPath);
+
+        // Sync config values to core module
+        CoreConfig.HitBoxScaleMax = ConfigMain.HitBoxScaleMax;
+        CoreConfig.DefaultMinPartySize = ConfigMain.DefaultMinPartySize;
+        CoreConfig.DefaultMaxPartySize = ConfigMain.DefaultMaxPartySize;
+        CoreConfig.DialogImageLimit = ConfigMain.DialogImageLimit;
 
         EnchantInterface.load();
         CustomItems.load();

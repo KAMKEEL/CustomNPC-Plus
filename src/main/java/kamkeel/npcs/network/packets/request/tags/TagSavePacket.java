@@ -18,6 +18,7 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Tag;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.io.IOException;
 
@@ -63,11 +64,11 @@ public final class TagSavePacket extends AbstractPacket {
             return;
 
         Tag tag = new Tag();
-        tag.readNBT(ByteBufUtils.readNBT(in));
+        tag.readNBT(new MC1710NBTCompound(ByteBufUtils.readNBT(in)));
         TagController.getInstance().saveTag(tag);
         NoppesUtilServer.sendTagDataAll((EntityPlayerMP) player);
         NBTTagCompound comp = new NBTTagCompound();
-        tag.writeNBT(comp);
+        tag.writeNBT(new MC1710NBTCompound(comp));
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, comp);
     }
 }

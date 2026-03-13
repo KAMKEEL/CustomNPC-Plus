@@ -24,6 +24,7 @@ import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.data.AuctionClaim;
 import noppes.npcs.controllers.data.AuctionFilter;
 import noppes.npcs.controllers.data.AuctionListing;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.io.IOException;
 import java.util.List;
@@ -127,7 +128,7 @@ public class AuctionActionPacket extends AbstractPacket {
     public static void requestListings(AuctionFilter filter, int page) {
         AuctionActionPacket packet = new AuctionActionPacket(Action.RequestListings);
         packet.amount = page;
-        packet.data = filter.writeToNBT(new NBTTagCompound());
+        packet.data = ((MC1710NBTCompound) filter.writeToNBT(new MC1710NBTCompound(new NBTTagCompound()))).getMCTag();
         PacketClient.sendClient(packet);
     }
 
@@ -412,7 +413,7 @@ public class AuctionActionPacket extends AbstractPacket {
 
         AuctionFilter filter = new AuctionFilter();
         if (filterNBT != null) {
-            filter.readFromNBT(filterNBT);
+            filter.readFromNBT(new MC1710NBTCompound(filterNBT));
         }
 
         // Get listings for this page

@@ -606,7 +606,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData, ICust
                 for (int j = 0; j < validTags.tagCount(); j++) {
                     NBTTagCompound tagStructure = validTags.getCompoundTagAt(j);
                     Tag tag = new Tag();
-                    tag.readNBT(tagStructure);
+                    tag.readNBT(new MC1710NBTCompound(tagStructure));
                     tagsUpdate.put(tag.uuid, tag);
                     tagNamesUpdate.put(tag.name, tag.uuid);
                 }

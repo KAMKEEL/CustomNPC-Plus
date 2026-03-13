@@ -317,7 +317,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
                 for (int j = 0; j < validTags.tagCount(); j++) {
                     NBTTagCompound tagStructure = validTags.getCompoundTagAt(j);
                     Tag tag = new Tag();
-                    tag.readShortNBT(tagStructure);
+                    tag.readShortNBT(new MC1710NBTCompound(tagStructure));
                     tagMap.put(tag.name, tag.uuid);
                     addTagUUIDs.add(tag.uuid);
                 }

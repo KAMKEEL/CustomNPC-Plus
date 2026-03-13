@@ -61,7 +61,8 @@ public class NoppesUtil {
 
         for (int i = 0; i < skinOverlayList.tagCount(); i++) {
             int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
-            SkinOverlay overlay = (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i));
+            SkinOverlay overlay = new SkinOverlay();
+            overlay.readFromNBT(new MC1710NBTCompound(skinOverlayList.getCompoundTagAt(i)));
             if (oldOverlays.containsKey(tagID)) {
                 overlay.ticks = oldOverlays.get(tagID).ticks;
             }

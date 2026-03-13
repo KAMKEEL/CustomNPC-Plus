@@ -311,7 +311,7 @@ public class ServerEventsHandler {
                 EntityNPCInterface npc = (EntityNPCInterface) event.source.getEntity();
                 Line line = npc.advanced.getKillLine();
                 if (line != null)
-                    npc.saySurrounding(line.formatTarget(event.entityLiving));
+                    npc.saySurrounding(NoppesUtilServer.formatLineTarget(line, event.entityLiving));
 
                 EventHooks.onNPCKilledEntity(npc, event.entityLiving);
             }

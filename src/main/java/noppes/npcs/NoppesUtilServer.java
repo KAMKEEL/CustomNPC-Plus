@@ -87,6 +87,7 @@ import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
+import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.controllers.data.TransportCategory;
 import noppes.npcs.controllers.data.TransportLocation;
@@ -1264,5 +1265,21 @@ public class NoppesUtilServer {
         if (pl != null) {
             SyncController.syncPlayer((EntityPlayerMP) pl);
         }
+    }
+
+    /**
+     * Formats a Line's @target placeholder using a vanilla EntityLivingBase.
+     * This bridges the gap between the core Line class (which only has formatTarget(IEntityLivingBase))
+     * and mc1710 callers that have a raw EntityLivingBase.
+     */
+    public static Line formatLineTarget(Line line, EntityLivingBase entity) {
+        if (line == null || entity == null)
+            return line;
+        Line formatted = (Line) line.copy();
+        if (entity instanceof EntityPlayer)
+            formatted.text = formatted.text.replace("@target", ((EntityPlayer) entity).getDisplayName());
+        else
+            formatted.text = formatted.text.replace("@target", entity.getCommandSenderName());
+        return formatted;
     }
 }

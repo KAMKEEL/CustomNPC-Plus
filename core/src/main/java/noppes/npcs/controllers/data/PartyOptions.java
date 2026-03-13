@@ -1,8 +1,9 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IPartyOptions;
-import noppes.npcs.config.ConfigMain;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
+import noppes.npcs.core.CoreConfig;
 import noppes.npcs.constants.EnumPartyExchange;
 import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumPartyRequirements;
@@ -21,10 +22,10 @@ public class PartyOptions implements IPartyOptions {
 
     public EnumPartyObjectives objectiveRequirement = EnumPartyObjectives.Shared;
 
-    public int minPartySize = ConfigMain.DefaultMinPartySize;
-    public int maxPartySize = ConfigMain.DefaultMaxPartySize;
+    public int minPartySize = CoreConfig.DefaultMinPartySize;
+    public int maxPartySize = CoreConfig.DefaultMaxPartySize;
 
-    public void readFromNBT(NBTTagCompound compound) {
+    public void readFromNBT(INBTCompound compound) {
         // Party Management
         allowParty = compound.getBoolean("AllowParty");
         if (allowParty) {
@@ -67,14 +68,14 @@ public class PartyOptions implements IPartyOptions {
             rewardControl = EnumPartyExchange.Leader;
             completeFor = EnumPartyExchange.Leader;
             executeCommand = EnumPartyExchange.Leader;
-            minPartySize = ConfigMain.DefaultMinPartySize;
-            maxPartySize = ConfigMain.DefaultMaxPartySize;
+            minPartySize = CoreConfig.DefaultMinPartySize;
+            maxPartySize = CoreConfig.DefaultMaxPartySize;
             objectiveRequirement = EnumPartyObjectives.Shared;
         }
     }
 
-    public NBTTagCompound writeToNBT() {
-        NBTTagCompound compound = new NBTTagCompound();
+    public INBTCompound writeToNBT() {
+        INBTCompound compound = NBT.compound();
         compound.setBoolean("AllowParty", allowParty);
         if (allowParty) {
             compound.setBoolean("OnlyParty", onlyParty);

@@ -1,8 +1,5 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.handler.data.ILine;
 
 
@@ -25,21 +22,6 @@ public class Line implements ILine {
         line.sound = sound;
         line.hideText = hideText;
         return line;
-    }
-
-    public ILine formatTarget(EntityLivingBase entity) {
-        if (entity == null)
-            return this;
-        Line line = (Line) copy();
-        if (entity instanceof EntityPlayer)
-            line.text = line.text.replace("@target", ((EntityPlayer) entity).getDisplayName());
-        else
-            line.text = line.text.replace("@target", entity.getCommandSenderName());
-        return line;
-    }
-
-    public ILine formatTarget(IEntityLivingBase entityLivingBase) {
-        return this.formatTarget(entityLivingBase.getMCEntity());
     }
 
     @Override

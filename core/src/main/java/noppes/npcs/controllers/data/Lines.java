@@ -1,9 +1,10 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.ILine;
 import noppes.npcs.api.handler.data.ILines;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.core.NBT;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,30 +17,30 @@ public class Lines implements ILines {
 
     public HashMap<Integer, Line> lines = new HashMap<Integer, Line>();
 
-    public NBTTagCompound writeToNBT() {
-        NBTTagCompound compound = new NBTTagCompound();
+    public INBTCompound writeToNBT() {
+        INBTCompound compound = NBT.compound();
 
-        NBTTagList nbttaglist = new NBTTagList();
+        INBTList nbttaglist = NBT.list();
         for (int slot : lines.keySet()) {
             Line line = lines.get(slot);
-            NBTTagCompound nbttagcompound = new NBTTagCompound();
+            INBTCompound nbttagcompound = NBT.compound();
             nbttagcompound.setInteger("Slot", slot);
             nbttagcompound.setString("Line", line.text);
             nbttagcompound.setString("Song", line.sound);
 
-            nbttaglist.appendTag(nbttagcompound);
+            nbttaglist.addCompound(nbttagcompound);
         }
 
-        compound.setTag("Lines", nbttaglist);
+        compound.setList("Lines", nbttaglist);
         return compound;
     }
 
-    public void readNBT(NBTTagCompound compound) {
-        NBTTagList nbttaglist = compound.getTagList("Lines", 10);
+    public void readNBT(INBTCompound compound) {
+        INBTList nbttaglist = compound.getList("Lines", 10);
 
         HashMap<Integer, Line> map = new HashMap<Integer, Line>();
-        for (int i = 0; i < nbttaglist.tagCount(); i++) {
-            NBTTagCompound nbttagcompound = nbttaglist.getCompoundTagAt(i);
+        for (int i = 0; i < nbttaglist.size(); i++) {
+            INBTCompound nbttagcompound = nbttaglist.getCompound(i);
             Line line = new Line();
             line.text = nbttagcompound.getString("Line");
             line.sound = nbttagcompound.getString("Song");

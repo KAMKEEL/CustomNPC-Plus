@@ -821,7 +821,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             if (entity != null && entity != this && ais.onAttack != 3 && !isAttacking()) {
                 Line line = advanced.getAttackLine();
                 if (line != null)
-                    saySurrounding(line.formatTarget(entity));
+                    saySurrounding(NoppesUtilServer.formatLineTarget(line, entity));
             }
         }
 
@@ -1545,7 +1545,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             }
             Line line = advanced.getKilledLine();
             if (line != null)
-                saySurrounding(line.formatTarget(attackingEntity));
+                saySurrounding(NoppesUtilServer.formatLineTarget(line, attackingEntity));
         }
         super.onDeath(damagesource);
     }

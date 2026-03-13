@@ -1015,7 +1015,7 @@ public class GuiNpcMobSpawnerFullscreen extends GuiDirectory implements IGuiData
                 for (int j = 0; j < validTags.tagCount(); j++) {
                     NBTTagCompound tagStructure = validTags.getCompoundTagAt(j);
                     Tag tag = new Tag();
-                    tag.readNBT(tagStructure);
+                    tag.readNBT(new MC1710NBTCompound(tagStructure));
                     tagsUpdate.put(tag.uuid, tag);
                     tagNamesUpdate.put(tag.name, tag.uuid);
                 }

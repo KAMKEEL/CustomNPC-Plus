@@ -9,6 +9,7 @@ import noppes.npcs.api.handler.IOverlayHandler;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.SkinOverlay;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;
@@ -27,8 +28,9 @@ public class DataSkinOverlays implements IOverlayHandler {
         NBTTagList skinOverlayList = nbtTagCompound.getTagList("SkinOverlayData", 10);
         for (int i = 0; i < skinOverlayList.tagCount(); i++) {
             int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
-            SkinOverlay skinOverlay = (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i));
-            skinOverlay.parent = this;
+            SkinOverlay skinOverlay = new SkinOverlay();
+            skinOverlay.readFromNBT(new MC1710NBTCompound(skinOverlayList.getCompoundTagAt(i)));
+            skinOverlay.setOnChanged(() -> { updateClient(); save(); });
             skinOverlays.put(tagID, skinOverlay);
         }
         this.overlayList = skinOverlays;
@@ -41,7 +43,7 @@ public class DataSkinOverlays implements IOverlayHandler {
             for (Map.Entry<Integer, ISkinOverlay> overlayData : this.overlayList.entrySet()) {
                 NBTTagCompound compound = new NBTTagCompound();
                 compound.setInteger("SkinOverlayID", overlayData.getKey());
-                compound = ((SkinOverlay) overlayData.getValue()).writeToNBT(compound);
+                ((SkinOverlay) overlayData.getValue()).writeToNBT(new MC1710NBTCompound(compound));
                 overlayList.appendTag(compound);
             }
         }
@@ -72,7 +74,7 @@ public class DataSkinOverlays implements IOverlayHandler {
             return;
         }
 
-        ((SkinOverlay) data).parent = this;
+        ((SkinOverlay) data).setOnChanged(() -> { updateClient(); save(); });
         this.overlayList.put(id, data);
         updateClient();
         save();

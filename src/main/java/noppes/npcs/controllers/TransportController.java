@@ -12,6 +12,7 @@ import noppes.npcs.controllers.data.TransportCategory;
 import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -78,7 +79,7 @@ public class TransportController implements ITransportHandler {
         for (int i = 0; i < list.tagCount(); i++) {
             TransportCategory category = new TransportCategory();
             NBTTagCompound compound = list.getCompoundTagAt(i);
-            category.readNBT(compound);
+            category.readNBT(new MC1710NBTCompound(compound));
 
             for (TransportLocation location : category.locations.values())
                 locations.put(location.id, location);
@@ -93,7 +94,7 @@ public class TransportController implements ITransportHandler {
         NBTTagList list = new NBTTagList();
         for (TransportCategory category : categories.values()) {
             NBTTagCompound compound = new NBTTagCompound();
-            category.writeNBT(compound);
+            category.writeNBT(new MC1710NBTCompound(compound));
             list.appendTag(compound);
         }
         NBTTagCompound nbttagcompound = new NBTTagCompound();
@@ -259,7 +260,7 @@ public class TransportController implements ITransportHandler {
             return null;
         RoleTransporter role = (RoleTransporter) npc.roleInterface;
         TransportLocation location = new TransportLocation();
-        location.readNBT(compound);
+        location.readNBT(new MC1710NBTCompound(compound));
         location.category = category;
         if (role.hasTransport())
             location.id = role.transportId;

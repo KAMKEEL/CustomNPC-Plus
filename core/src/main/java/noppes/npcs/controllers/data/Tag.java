@@ -1,8 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.ITag;
-import noppes.npcs.controllers.TagController;
+import noppes.npcs.platform.nbt.INBTCompound;
 
 import java.util.UUID;
 
@@ -15,6 +14,8 @@ public class Tag implements ITag {
     public UUID uuid = randomUUID();
     public boolean hideTag = false;
 
+    private Runnable saveHandler;
+
     public Tag() {
     }
 
@@ -24,12 +25,16 @@ public class Tag implements ITag {
         this.id = id;
     }
 
+    public void setSaveHandler(Runnable saveHandler) {
+        this.saveHandler = saveHandler;
+    }
+
     public static String formatName(String name) {
         name = name.toLowerCase().trim();
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
-    public void readNBT(NBTTagCompound compound) {
+    public void readNBT(INBTCompound compound) {
         name = compound.getString("Name");
         color = compound.getInteger("Color");
         id = compound.getInteger("Slot");
@@ -37,7 +42,7 @@ public class Tag implements ITag {
         uuid = UUID.fromString(compound.getString("Uuid"));
     }
 
-    public void writeNBT(NBTTagCompound compound) {
+    public void writeNBT(INBTCompound compound) {
         compound.setInteger("Slot", id);
         compound.setString("Name", name);
         compound.setInteger("Color", color);
@@ -45,12 +50,12 @@ public class Tag implements ITag {
         compound.setBoolean("HideTag", hideTag);
     }
 
-    public void readShortNBT(NBTTagCompound compound) {
+    public void readShortNBT(INBTCompound compound) {
         name = compound.getString("Name");
         uuid = UUID.fromString(compound.getString("Uuid"));
     }
 
-    public void writeShortNBT(NBTTagCompound compound) {
+    public void writeShortNBT(INBTCompound compound) {
         compound.setString("Name", name);
         compound.setString("Uuid", uuid.toString());
     }
@@ -88,6 +93,7 @@ public class Tag implements ITag {
     }
 
     public void save() {
-        TagController.getInstance().saveTag(this);
+        if (saveHandler != null)
+            saveHandler.run();
     }
 }
