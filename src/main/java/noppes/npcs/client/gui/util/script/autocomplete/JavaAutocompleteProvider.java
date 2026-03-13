@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
+import noppes.npcs.client.gui.util.script.autocomplete.weighter.ScoringContext;
+import noppes.npcs.client.gui.util.script.autocomplete.weighter.WeigherChain;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
@@ -81,11 +83,8 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             }
         }
         
-        // Filter and score by prefix, then apply usage boosts and static penalties
+        // Filter by prefix, then sort using weigher chain
         filterAndScore(items, context.prefix, context.isMemberAccess, isStaticContext, ownerFullName);
-        
-        // Sort by score
-        Collections.sort(items);
         
         return items;
     }
@@ -315,8 +314,6 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 if (existingSimpleNames.contains(type.getSimpleName())) {
                     continue;
                 }
-                
-                // Create an item that requires import
                 AutocompleteItem item = new AutocompleteItem.Builder()
                     .name(type.getSimpleName())
                     .insertText(type.getSimpleName())
@@ -371,126 +368,31 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         return UsageTracker.getJavaInstance();
     }
     
-    /**
-     * Filter items by prefix, calculate match scores, apply usage boosts, and penalize static members in instance contexts.
-     */
-    protected void filterAndScore(List<AutocompleteItem> items, String prefix, 
+    protected WeigherChain getWeigherChain() {
+        return CompletionWeigherChains.javaChain();
+    }
+
+    protected void filterAndScore(List<AutocompleteItem> items, String prefix,
                                  boolean isMemberAccess, boolean isStaticContext, String ownerFullName) {
-        UsageTracker tracker = getUsageTracker();
-        
-        if (prefix == null || prefix.isEmpty()) {
-            // No filtering needed, all items get a base score + usage boost
-            for (AutocompleteItem item : items) {
-                item.calculateMatchScore("", false);
-                applyUsageBoost(item, tracker, ownerFullName);
-                applyStaticPenalty(item, isMemberAccess, isStaticContext);
-                applyObjectMethodPenalty(item);
-                applyKeywordPenalty(item, prefix);
-            }
-            return;
-        }
-        
-        // For non-member access (first word), require strict prefix matching
-        // For member access (after dot), allow fuzzy/contains matching
         boolean requirePrefix = !isMemberAccess;
-        
-        // Filter, score, apply usage boosts, and apply penalties
+
         Iterator<AutocompleteItem> iter = items.iterator();
         while (iter.hasNext()) {
             AutocompleteItem item = iter.next();
-            int score = item.calculateMatchScore(prefix, requirePrefix);
+            int score = item.calculateMatchScore(
+                    prefix != null ? prefix : "", requirePrefix);
             if (score < 0) {
                 iter.remove();
-            } else {
-                applyUsageBoost(item, tracker, ownerFullName);
-                applyStaticPenalty(item, isMemberAccess, isStaticContext);
-                applyObjectMethodPenalty(item);
-                applyKeywordPenalty(item, prefix);
             }
         }
-    }
-    
-    /**
-     * Apply usage-based score boost to an item.
-     */
-    protected void applyUsageBoost(AutocompleteItem item, UsageTracker tracker, String ownerFullName) {
-        int usageCount = tracker.getUsageCount(item, ownerFullName);
-        int boost = UsageTracker.calculateUsageBoost(usageCount);
-        item.addScoreBoost(boost);
-    }
-    
-    /**
-     * Apply penalty to static members when accessed in a non-static (instance) context.
-     * This matches IntelliJ's behavior where static members are deprioritized when
-     * accessing through an instance (e.g., Minecraft.getMinecraft().getMinecraft()).
-     * However, if the item is a very strong match (exact prefix), don't penalize as much.
-     */
-    protected void applyStaticPenalty(AutocompleteItem item, boolean isMemberAccess, boolean isStaticContext) {
-        // Only apply penalty in member access contexts (after dot)
-        if (!isMemberAccess) {
-            return;
-        }
-        
-        // Only penalize when we're in an instance context (not static)
-        if (isStaticContext) {
-            return;
-        }
-        
-        boolean isStatic = item.isStatic();
-   
-        // Apply penalty to static members in instance context
-        if (isStatic) {
-            int matchScore = item.getMatchScore();
-            // Strong prefix matches (score >= 800) get a lighter penalty
-            // Weaker matches get pushed down more aggressively
-            if (matchScore >= 800) {
-                // Light penalty for exact prefix matches - just deprioritize slightly
-                item.addScoreBoost(-200);
-            } else {
-                // Heavy penalty for fuzzy/substring matches - push to bottom
-                item.addScoreBoost(-matchScore);
-            }
-        }
-    }
-    
-    /**
-     * Apply penalty to inherited Object methods to push them to bottom.
-     * Strong matches get lighter penalty, weak matches get pushed all the way down.
-     */
-    protected void applyObjectMethodPenalty(AutocompleteItem item) {
-        if (!item.isInheritedObjectMethod()) {
-            return;
-        }
-        
-        int matchScore = item.getMatchScore();
-        // Strong prefix matches (score >= 900) get a moderate penalty
-        // Everything else gets pushed to the very bottom
-        if (matchScore >= 900) {
-            // Strong match - moderate penalty to keep it visible but below normal methods
-            item.addScoreBoost(-500);
-        } else {
-            // Weak match - heavy penalty to push to bottom
-            item.addScoreBoost(-10000);
-        }
-    }
 
-    /**
-     * Push keywords below non-keywords unless user typed a longer prefix.
-     */
-    protected void applyKeywordPenalty(AutocompleteItem item, String prefix) {
-        if (item.getKind() != AutocompleteItem.Kind.KEYWORD) {
-            return;
-        }
+        ScoringContext context = new ScoringContext(
+            prefix, isMemberAccess, isStaticContext,
+            ownerFullName, getUsageTracker(), requirePrefix
+        );
 
-        if (prefix == null || prefix.length() < 2) {
-            item.addScoreBoost(-10000);
-        }
-    }
-    
-    /**
-     * Builder class for AutocompleteItem to handle cases without source data.
-     */
-    private static class AutocompleteItemBuilder {
-        // This would be needed if AutocompleteItem had a builder pattern
+        WeigherChain weigherChain = getWeigherChain();
+        Comparator<AutocompleteItem> comparator = weigherChain.buildComparator(context);
+        items.sort(comparator);
     }
 }
