@@ -43,9 +43,10 @@ public final class ScriptColorScheme {
     public static void reloadColorScheme(IResourceManager resourceManager) {
         ResourceLocation loc = new ResourceLocation("customnpcs", "colorscheme/script_editor_scheme.json");
         try {
-            IResource resource = resourceManager.getResource(loc);
+            List<IResource> resources = resourceManager.getAllResources(loc);
+            IResource top =  resources.get(resources.size() - 1);
 
-            try (InputStream is = resource.getInputStream();
+            try (InputStream is = top.getInputStream();
                  InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
                 loadFromJson(reader);
                 LogWriter.info("[ColorScheme] Loaded script_editor_scheme.json successfully");
@@ -58,17 +59,6 @@ public final class ScriptColorScheme {
             LogWriter.error("[ColorScheme] Failed to load script_editor_scheme.json: " + e.getMessage());
             resetToDefaults();
         }
-    }
-
-    private static String peekResourceContent(IResource res) {
-        try (InputStream peekIs = res.getInputStream()) {
-            byte[] buf = new byte[120];
-            int read = peekIs.read(buf);
-            if (read > 0) {
-                return new String(buf, 0, read, "UTF-8").replaceAll("\\s+", " ").trim();
-            }
-        } catch (Exception ignored) {}
-        return "<could not peek>";
     }
 
     private static void logLoadedSample() {

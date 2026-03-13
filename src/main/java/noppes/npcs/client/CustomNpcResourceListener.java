@@ -30,7 +30,7 @@ public class CustomNpcResourceListener implements
             SimpleReloadableResourceManager simplemanager = (SimpleReloadableResourceManager) var1;
 
             FolderResourcePack pack = new FolderResourcePack(CustomNpcs.Dir);
-            LogWriter.info("[ResourceListener] Adding FolderResourcePack: " + CustomNpcs.Dir.getAbsolutePath());
+            LogWriter.info("[ResourceListener] Adding FolderResourcePack (as fallback): " + CustomNpcs.Dir.getAbsolutePath());
             simplemanager.reloadResourcePack(pack);
             
             ScriptColorScheme.reloadColorScheme(var1);
