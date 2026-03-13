@@ -153,24 +153,6 @@ public class ScriptTypeInfo extends TypeInfo {
         return super.getTypeParam(name);
     }
 
-    private static MethodInfo substituteMethod(MethodInfo m, GenericContext ctx) {
-        TypeInfo retType = m.getReturnType();
-        TypeInfo subRet = ctx.substitute(retType);
-        List<FieldInfo> params = new ArrayList<>(m.getParameters());
-        boolean changed = subRet != retType;
-        for (int i = 0; i < params.size(); i++) {
-            FieldInfo p = params.get(i);
-            TypeInfo subP = ctx.substitute(p.getTypeInfo());
-            if (subP != p.getTypeInfo()) {
-                params.set(i, FieldInfo.reflectionParam(p.getName(), subP));
-                changed = true;
-            }
-        }
-        return changed ? MethodInfo.external(m.getName(), subRet, m.getContainingType(),
-                params, m.getModifiers(), m.getDocumentation()) : m;
-    }
-
-
     @Override
     public TypeInfo parameterize(List<TypeInfo> typeArgs) {
         if (typeArgs == null || typeArgs.isEmpty()) return this;
@@ -198,17 +180,14 @@ public class ScriptTypeInfo extends TypeInfo {
             // Parameterize methods, constructors, and fields with the generic context of this type. 
             for (Map.Entry<String, List<MethodInfo>> entry : this.methods.entrySet()) {
                 List<MethodInfo> substituted = new ArrayList<>();
-                for (MethodInfo m : entry.getValue()) substituted.add(substituteMethod(m, ctx));
+                for (MethodInfo m : entry.getValue()) substituted.add(m.substituteTypeParams(ctx));
                 result.methods.put(entry.getKey(), substituted);
             }
             for (MethodInfo ctor : this.constructors) {
-                result.constructors.add(substituteMethod(ctor, ctx));
+                result.constructors.add(ctor.substituteTypeParams(ctx));
             }
             for (Map.Entry<String, FieldInfo> entry : this.fields.entrySet()) {
-                FieldInfo f = entry.getValue();
-                TypeInfo subType = ctx.substitute(f.getTypeInfo());
-                result.fields.put(entry.getKey(), subType != f.getTypeInfo()
-                        ? FieldInfo.external(f.getName(), subType, null, f.getModifiers()) : f);
+                result.fields.put(entry.getKey(), entry.getValue().substituteTypeParams(ctx));
             }
             return result;
         } finally {

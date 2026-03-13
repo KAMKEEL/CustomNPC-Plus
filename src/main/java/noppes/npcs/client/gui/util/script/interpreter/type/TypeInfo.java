@@ -796,14 +796,12 @@ public class TypeInfo {
         if (rawType != null && rawType != this) {
             List<MethodInfo> rawMethods = rawType.getAllMethods();
             if (!rawMethods.isEmpty() && isParameterized()) {
-                Map<String, TypeInfo> bindings = TypeSubstitutor.createBindingsFromReceiver(this);
-                if (!bindings.isEmpty()) {
-                    List<MethodInfo> substituted = new ArrayList<>(rawMethods.size());
-                    for (MethodInfo m : rawMethods) {
-                        substituted.add(m.substituteTypeParams(bindings));
-                    }
-                    return substituted;
+                GenericContext ctx = GenericContext.forReceiver(this);
+                List<MethodInfo> substituted = new ArrayList<>(rawMethods.size());
+                for (MethodInfo m : rawMethods) {
+                    substituted.add(m.substituteTypeParams(ctx));
                 }
+                return substituted;
             }
             return rawMethods;
         }
@@ -840,14 +838,12 @@ public class TypeInfo {
         if (rawType != null && rawType != this) {
             List<FieldInfo> rawFields = rawType.getAllFields();
             if (!rawFields.isEmpty() && isParameterized()) {
-                Map<String, TypeInfo> bindings = TypeSubstitutor.createBindingsFromReceiver(this);
-                if (!bindings.isEmpty()) {
-                    List<FieldInfo> substituted = new ArrayList<>(rawFields.size());
-                    for (FieldInfo f : rawFields) {
-                        substituted.add(f.substituteTypeParams(bindings));
-                    }
-                    return substituted;
+                GenericContext ctx = GenericContext.forReceiver(this);
+                List<FieldInfo> substituted = new ArrayList<>(rawFields.size());
+                for (FieldInfo f : rawFields) {
+                    substituted.add(f.substituteTypeParams(ctx));
                 }
+                return substituted;
             }
             return rawFields;
         }
@@ -1170,8 +1166,8 @@ public class TypeInfo {
         } else if (rawType != null && rawType != this) {
             MethodInfo rawMethod = rawType.getMethodInfo(methodName);
             if (rawMethod != null && isParameterized()) {
-                Map<String, TypeInfo> bindings = TypeSubstitutor.createBindingsFromReceiver(this);
-                if (!bindings.isEmpty()) return rawMethod.substituteTypeParams(bindings);
+                GenericContext ctx = GenericContext.forReceiver(this);
+                return rawMethod.substituteTypeParams(ctx);
             }
             return rawMethod;
         }
@@ -1213,13 +1209,11 @@ public class TypeInfo {
         } else if (rawType != null && rawType != this) {
             java.util.List<MethodInfo> rawOverloads = rawType.getAllMethodOverloads(methodName);
             if (!rawOverloads.isEmpty() && isParameterized()) {
-                Map<String, TypeInfo> bindings = TypeSubstitutor.createBindingsFromReceiver(this);
-                if (!bindings.isEmpty()) {
-                    for (MethodInfo m : rawOverloads) {
-                        overloads.add(m.substituteTypeParams(bindings));
-                    }
-                    return overloads;
+                GenericContext ctx = GenericContext.forReceiver(this);
+                for (MethodInfo m : rawOverloads) {
+                    overloads.add(m.substituteTypeParams(ctx));
                 }
+                return overloads;
             }
             return rawOverloads;
         }
@@ -1303,8 +1297,8 @@ public class TypeInfo {
         if (rawType != null && rawType != this) {
             FieldInfo rawField = rawType.getFieldInfo(fieldName);
             if (rawField != null && isParameterized()) {
-                Map<String, TypeInfo> bindings = TypeSubstitutor.createBindingsFromReceiver(this);
-                if (!bindings.isEmpty()) return rawField.substituteTypeParams(bindings);
+                GenericContext ctx = GenericContext.forReceiver(this);
+                return rawField.substituteTypeParams(ctx);
             }
             return rawField;
         }
@@ -1429,11 +1423,9 @@ public class TypeInfo {
             if (rawType != null && rawType != this) {
                 MethodInfo rawSAM = rawType.getSingleAbstractMethod();
                 if (rawSAM != null && isParameterized()) {
-                    Map<String, TypeInfo> bindings = TypeSubstitutor.createBindingsFromReceiver(this);
-                    if (!bindings.isEmpty()) {
-                        cachedSAM = rawSAM.substituteTypeParams(bindings);
-                        return cachedSAM;
-                    }
+                    GenericContext ctx = GenericContext.forReceiver(this);
+                    cachedSAM = rawSAM.substituteTypeParams(ctx);
+                    return cachedSAM;
                 }
                 cachedSAM = rawSAM;
                 return cachedSAM;

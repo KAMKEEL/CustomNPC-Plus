@@ -4309,6 +4309,54 @@ public class ScriptDocument {
     }
 
     /**
+     * Recursively resolve any unresolved type names inside a TypeInfo using position-aware resolution.
+     *
+     * This handles a different concern than {@link GenericContext#substitute(TypeInfo)} —
+     * it does not replace type variables with concrete bindings. Instead, it re-resolves
+     * unresolved simple names (e.g., inner class names like "Node" or script-declared type
+     * parameters like "T") that appear as type arguments in parameterized types.
+     *
+     * For example, if a type resolves to {@code List<Node>} but "Node" is still unresolved,
+     * this will attempt to resolve "Node" using the position-aware
+     * {@link #resolveType(String, int)} which can find inner classes and type parameters
+     * visible at the given position.
+     *
+     * @param type     the type whose unresolved components should be re-resolved
+     * @param position the script text offset for scope-aware resolution
+     * @return the type with all resolvable components resolved, or the original if nothing changed
+     */
+    private TypeInfo substituteTypeParams(TypeInfo type, int position) {
+        if (type == null)
+            return null;
+
+        if (!type.isResolved() && type.getSimpleName() != null
+                && !type.getSimpleName().contains(".")) {
+            TypeInfo sub = resolveType(type.getSimpleName(), position);
+            return (sub != null && sub.isResolved()) ? sub : type;
+        }
+
+        if (type.isParameterized()) {
+            List<TypeInfo> args = type.getAppliedTypeArgs();
+            if (args != null && !args.isEmpty()) {
+                List<TypeInfo> substituted = new ArrayList<>(args.size());
+                boolean anyChanged = false;
+                for (TypeInfo arg : args) {
+                    TypeInfo sub = substituteTypeParams(arg, position);
+                    if (sub != arg)
+                        anyChanged = true;
+                    substituted.add(sub);
+                }
+                if (anyChanged) {
+                    TypeInfo raw = type.getRawType();
+                    return raw != null ? raw.parameterize(substituted) : type.parameterize(substituted);
+                }
+            }
+        }
+
+        return type;
+    }
+
+    /**
      * Position-aware type resolution overload.
      * Resolves a type name with positional context so that an unqualified inner class name
      * (e.g., just "Inner") resolves correctly when the cursor/position is inside the body
@@ -4330,7 +4378,7 @@ public class ScriptDocument {
 
         // If already resolved, no need for positional fallback
         if (resolved != null && resolved.isResolved()) {
-            return resolved;
+            return substituteTypeParams(resolved, position);
         }
 
         if (typeName != null && !typeName.contains(".")) {

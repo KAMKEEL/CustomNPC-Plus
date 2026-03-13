@@ -8,12 +8,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A context for resolving and substituting declared type parameters (T, E, K, V...)
- * based on a receiver type.
+ * Single source of truth for generic type variable substitution.
  *
- * Policy:
- * - Prefer applied type arguments when present (e.g. List<String> binds E -> String).
- * - Fall back to declared bounds when no applied argument exists (e.g. T extends Entity -> Entity).
+ * Resolves type parameters (T, E, K, V...) to concrete types using:
+ * 1. Applied type arguments (e.g., List&lt;String&gt; binds E &rarr; String) — priority
+ * 2. Declared bounds fallback (e.g., &lt;T extends Entity&gt; binds T &rarr; Entity) — fallback
+ *
+ * Usage patterns:
+ * - {@link #forReceiver(TypeInfo)} — build context from a parameterized receiver type
+ * - {@link #fromBindings(List, List)} — build context from explicit params/args (anti-recursion safe)
+ * - {@link #substitute(TypeInfo)} — instance method with two-tier resolution
  */
 public final class GenericContext {
 
