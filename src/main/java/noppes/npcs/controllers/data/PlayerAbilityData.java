@@ -237,9 +237,19 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
     @Override
     protected void rollChainCooldown(ChainedAbility chain) {
+        if (chain.isIgnoreCooldown()) return;
+
         int duration = chain.getCooldownTicks();
-        cooldownEndTime = getWorldTime() + duration;
-        globalCooldownDuration = duration;
+        long endTime = getWorldTime() + duration;
+
+        if (chain.isPerAbilityCooldown()) {
+            if (currentAbilityKey != null) {
+                setPerAbilityCooldown(currentAbilityKey, endTime, duration);
+            }
+        } else {
+            cooldownEndTime = endTime;
+            globalCooldownDuration = duration;
+        }
     }
 
     @Override
@@ -403,7 +413,14 @@ public class PlayerAbilityData extends AbstractDataAbilities implements IPlayerA
 
         // Dispatch: chain vs ability
         if (action.isChain()) {
-            if (isOnCooldown()) return false;
+            ChainedAbility chain = (ChainedAbility) action;
+            if (!chain.isIgnoreCooldown()) {
+                if (chain.isPerAbilityCooldown()) {
+                    if (isOnPerAbilityCooldown(key)) return false;
+                } else {
+                    if (isOnCooldown()) return false;
+                }
+            }
 
             currentAbilityKey = key;
             currentTarget = null;

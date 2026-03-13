@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
+import noppes.npcs.client.gui.util.script.autocomplete.weighter.CompletionWeigher;
+import noppes.npcs.client.gui.util.script.autocomplete.weighter.WeigherChain;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
@@ -142,7 +144,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             signature,
             method.getDocumentation(),
             method,
-            false, // TODO: Check for @Deprecated annotation
+            method.getJavaMethod() != null && method.getJavaMethod().isAnnotationPresent(Deprecated.class),
             false, // Methods don't require imports
             null,
             -1 // Java methods don't use inheritance depth sorting
@@ -578,8 +580,12 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     }
     
     /**
-     * Add a boost to the match score (e.g., from usage tracking).
+     * @deprecated Use {@link WeigherChain} instead. This method is no longer
+     * called by the autocomplete system. Score boosts are now handled by
+     * individual {@link CompletionWeigher} implementations that return
+     * independent comparable values per scoring dimension.
      */
+    @Deprecated
     public void addScoreBoost(int boost) {
         this.matchScore += boost;
     }
@@ -600,6 +606,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public String getImportPath() { return importPath; }
     public int getMatchScore() { return matchScore; }
     public int[] getMatchIndices() { return matchIndices; }
+    public int getInheritanceDepth() { return inheritanceDepth; }
     public int getColor() { return color; };
     public AutocompleteItem setColor(int col){ this.color = col;return this; }
     /**
@@ -723,6 +730,10 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         }
     }
     
+    /**
+     * Note: No longer used for autocomplete sorting (weigher chain used instead).
+     * Kept for backward compatibility and collections sorting.
+     */
     @Override
     public int compareTo(AutocompleteItem other) {
         // First by match score (descending) - this includes all penalties and boosts

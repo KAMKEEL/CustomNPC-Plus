@@ -28,6 +28,7 @@ public final class JobSpawnerAddPacket extends AbstractPacket {
 
     private String selected;
     private int activeTab;
+    private String folderName;
     private int slot;
 
     private NBTTagCompound compound;
@@ -39,6 +40,15 @@ public final class JobSpawnerAddPacket extends AbstractPacket {
         this.isServer = isServer;
         this.selected = selected;
         this.activeTab = activeTab;
+        this.folderName = null;
+        this.slot = slot;
+    }
+
+    public JobSpawnerAddPacket(boolean isServer, String selected, String folderName, int slot) {
+        this.isServer = isServer;
+        this.selected = selected;
+        this.activeTab = -1;
+        this.folderName = folderName;
         this.slot = slot;
     }
 
@@ -75,6 +85,9 @@ public final class JobSpawnerAddPacket extends AbstractPacket {
         if (this.isServer) {
             ByteBufUtils.writeString(out, selected);
             out.writeInt(this.activeTab);
+            if (this.activeTab == -1) {
+                ByteBufUtils.writeString(out, folderName != null ? folderName : "");
+            }
             out.writeInt(this.slot);
         } else {
             out.writeInt(this.slot);
@@ -96,7 +109,15 @@ public final class JobSpawnerAddPacket extends AbstractPacket {
         JobSpawner job = (JobSpawner) npc.jobInterface;
         boolean useServerClone = in.readBoolean();
         if (useServerClone) {
-            NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, ByteBufUtils.readString(in), in.readInt());
+            String selected = ByteBufUtils.readString(in);
+            int tab = in.readInt();
+            NBTTagCompound compound;
+            if (tab == -1) {
+                String folder = ByteBufUtils.readString(in);
+                compound = ServerCloneController.Instance.getCloneData(null, selected, folder);
+            } else {
+                compound = ServerCloneController.Instance.getCloneData(null, selected, tab);
+            }
             job.setJobCompound(in.readInt(), compound);
         } else {
             job.setJobCompound(in.readInt(), ByteBufUtils.readNBT(in));

@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
+import noppes.npcs.client.gui.util.script.autocomplete.weighter.WeigherChain;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.*;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
@@ -8,7 +9,6 @@ import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.*;
 import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
-import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 import noppes.npcs.config.ConfigScript;
 
 import java.lang.reflect.Modifier;
@@ -348,6 +348,11 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
 
     protected UsageTracker getUsageTracker() {
         return UsageTracker.getJSInstance();
+    }
+
+    @Override
+    protected WeigherChain getWeigherChain() {
+        return CompletionWeigherChains.jsChain();
     }
 
     public String[] getKeywords() {

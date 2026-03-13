@@ -1736,6 +1736,7 @@ ability.weight=Weight
 ability.windUpTicks=Wind Up
 ability.cooldownTicks=Cooldown
 ability.perAbilityCooldown=Per-Ability
+ability.ignoreCooldown=Ignore Cooldown
 ability.freeOnCast=Free on Cast
 ability.hover.freeOnCast=Ability enters cooldown immediately after entities are spawned, allowing the caster to use other abilities while summoned entities remain active
 ability.freeAim=Free Aim

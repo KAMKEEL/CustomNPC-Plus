@@ -199,11 +199,19 @@ public class DataAbilities extends AbstractDataAbilities {
 
     @Override
     protected void rollChainCooldown(ChainedAbility chain) {
-        int baseCooldown = minCooldown;
-        if (maxCooldown > minCooldown) {
-            baseCooldown = minCooldown + random.nextInt(maxCooldown - minCooldown + 1);
+        if (!chain.isIgnoreCooldown()) {
+            int baseCooldown = minCooldown;
+            if (maxCooldown > minCooldown) {
+                baseCooldown = minCooldown + random.nextInt(maxCooldown - minCooldown + 1);
+            }
+            cooldownEndTime = npc.worldObj.getTotalWorldTime() + baseCooldown + chain.getCooldownTicks();
         }
-        cooldownEndTime = npc.worldObj.getTotalWorldTime() + baseCooldown + chain.getCooldownTicks();
+
+        // Additionally set per-ability cooldown if enabled
+        if (chain.isPerAbilityCooldown() && chain.getCooldownTicks() > 0) {
+            long endTime = npc.worldObj.getTotalWorldTime() + chain.getCooldownTicks();
+            setPerAbilityCooldown(chain.getName(), endTime, chain.getCooldownTicks());
+        }
     }
 
     @Override
@@ -471,10 +479,15 @@ public class DataAbilities extends AbstractDataAbilities {
             return false;
         }
 
-        // Per-ability cooldown filter: ability may have its own independent cooldown
+        // Per-ability cooldown filter: ability/chain may have its own independent cooldown
         if (!action.isChain()) {
             Ability ab = (Ability) action;
             if (ab.isPerAbilityCooldown() && isOnPerAbilityCooldown(ab.getName())) {
+                return false;
+            }
+        } else {
+            ChainedAbility ch = (ChainedAbility) action;
+            if (ch.isPerAbilityCooldown() && isOnPerAbilityCooldown(ch.getName())) {
                 return false;
             }
         }
