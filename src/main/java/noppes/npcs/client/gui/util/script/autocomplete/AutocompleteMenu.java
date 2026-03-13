@@ -639,6 +639,9 @@ public class AutocompleteMenu extends Gui {
     
     private void drawTypeLabel(AutocompleteItem item, String typeLabel, int x, int y, int typeColor, TypeInfo typeInfo) {
         if (typeInfo == null || item.getKind() == AutocompleteItem.Kind.CLASS) { //draw package on right
+            // draw default package color instead of interface/enum colors
+            if (typeInfo != null && !typeInfo.isClass())
+                typeColor = TokenType.getPackageColor();
             drawSimpleTypeWithArraySuffix(typeLabel, x, y, typeColor);
             return;
         }

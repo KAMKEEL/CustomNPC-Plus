@@ -604,6 +604,7 @@ public class TypeInfo {
     public boolean isInnerClass() { return enclosingType != null; }
     public boolean isInterface() {return kind == Kind.INTERFACE;}
     public boolean isEnum() {return kind == Kind.ENUM;}
+    public boolean isClass() {return kind == Kind.CLASS;}
     public boolean isPrimitive() {return this.isPrimitive || javaClass != null && javaClass.isPrimitive();}
     private TypeInfo setPrimitive(boolean value) { this.isPrimitive = value; return this;}
     
