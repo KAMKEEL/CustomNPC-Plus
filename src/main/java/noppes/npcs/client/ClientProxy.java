@@ -961,7 +961,7 @@ public class ClientProxy extends CommonProxy {
 
         public void drawString(String text, int x, int y, int color) {
             if (useCustomFont) {
-                textFont.renderString(text, x, y, color, true);
+               // textFont.renderString(text, x, y, color, true);
                 textFont.renderString(text, x, y, color, false);
             } else {
                 Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(text, x, y, color);
