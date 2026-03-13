@@ -4308,37 +4308,6 @@ public class ScriptDocument {
         return resolveTypeAndTrackUsage(typeName);
     }
 
-    private TypeInfo substituteTypeParams(TypeInfo type, int position) {
-        if (type == null)
-            return null;
-
-        if (!type.isResolved() && type.getSimpleName() != null
-                && !type.getSimpleName().contains(".")) {
-            TypeInfo sub = resolveType(type.getSimpleName(), position);
-            return (sub != null && sub.isResolved()) ? sub : type;
-        }
-
-        if (type.isParameterized()) {
-            List<TypeInfo> args = type.getAppliedTypeArgs();
-            if (args != null && !args.isEmpty()) {
-                List<TypeInfo> substituted = new ArrayList<>(args.size());
-                boolean anyChanged = false;
-                for (TypeInfo arg : args) {
-                    TypeInfo sub = substituteTypeParams(arg, position);
-                    if (sub != arg)
-                        anyChanged = true;
-                    substituted.add(sub);
-                }
-                if (anyChanged) {
-                    TypeInfo raw = type.getRawType();
-                    return raw != null ? raw.parameterize(substituted) : type.parameterize(substituted);
-                }
-            }
-        }
-
-        return type;
-    }
-
     /**
      * Recursively resolve any unresolved type names inside a TypeInfo using position-aware resolution.
      *
