@@ -16,17 +16,17 @@
     "italic": false
   },
   "STRING": {
-    "color": "#FFCC8855",
+    "color": "#FF16c57d",
     "bold": false,
     "italic": false
   },
   "JSDOC_TAG": {
-    "color": "#FFCC9933",
-    "bold": false,
+    "color": "#FF8E8070",
+    "bold": true,
     "italic": false
   },
   "JSDOC_TYPE": {
-    "color": "#FF00AAAA",
+    "color": "#FF9A8C7C",
     "bold": false,
     "italic": false
   },
@@ -35,28 +35,13 @@
     "bold": false,
     "italic": false
   },
-  "CLASS_KEYWORD": {
-    "color": "#FFFF5555",
-    "bold": false,
-    "italic": false
-  },
-  "IMPORT_KEYWORD": {
-    "color": "#FFFFAA00",
-    "bold": false,
-    "italic": false
-  },
   "KEYWORD": {
     "color": "#FFFF5555",
     "bold": false,
     "italic": false
   },
-  "MODIFIER": {
-    "color": "#FFFFAA00",
-    "bold": false,
-    "italic": false
-  },
   "INTERFACE_DECL": {
-    "color": "#FF55FFFF",
+    "color": "#FF80F2F6",
     "bold": false,
     "italic": false
   },
@@ -68,7 +53,7 @@
   "ENUM_CONSTANT": {
     "color": "#FF55FFFF",
     "bold": true,
-    "italic": false
+    "italic": true
   },
   "CLASS_DECL": {
     "color": "#FF00AAAA",
@@ -121,12 +106,12 @@
     "italic": false
   },
   "STATIC_FINAL_FIELD": {
-    "color": "#FFFF55FF",
-    "bold": false,
+    "color": "#FF8DDAF8",
+    "bold": true,
     "italic": true
   },
   "LITERAL": {
-    "color": "#FF777777",
+    "color": "#FF79C0FF",
     "bold": false,
     "italic": false
   },

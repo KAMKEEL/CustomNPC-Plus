@@ -14,11 +14,11 @@ import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 public enum TokenType {
     // Comments and strings have highest priority - they override everything inside them
     COMMENT(0xFF777777, 140),
-    STRING(0xFFCC8855, 130),
+    STRING(0xFF17C6A3, 130),
     
     // JSDoc elements - lower priority but will fill gaps left by fragmented comment marking
-    JSDOC_TAG(0xFFCC9933, 125,true, true),           // @param, @type, @return etc. (gold/orange)
-    JSDOC_TYPE(0xFF00AAAA, 124),          // {TypeName} in JSDoc (aqua like types)
+    JSDOC_TAG(0xFF8E8070, 125,true, true),           // @param, @type, @return etc. (gold/orange)
+    JSDOC_TYPE(0xFF9A8C7C, 124),          // {TypeName} in JSDoc (aqua like types)
     
     UNUSED_IMPORT(0xFF666666, 119),       // unused import statements (gray)
     
@@ -26,9 +26,9 @@ public enum TokenType {
     KEYWORD(0xFFFF5555, 100,true, false),            // control flow: if, else, for, while, etc.
     
     // Type declarations and references
-    INTERFACE_DECL(0xFF55FFFF, 85),      // interface names (aqua)
+    INTERFACE_DECL(0xFF80F2F6, 85),      // interface names (aqua)
     ENUM_DECL(0xFFFF55FF, 85),           // enum names (magenta)
-    ENUM_CONSTANT(0xFF55FFFF, 84, true, false),  // enum constant values (blue, bold+italic) - like IntelliJ
+    ENUM_CONSTANT(0xFF55FFFF, 84, true, true),  // enum constant values (blue, bold+italic) - like IntelliJ
     CLASS_DECL(0xFF00AAAA, 85),          // class names in declarations
     IMPORTED_CLASS(0xFF00AAAA, 75),      // imported class usages
     GENERIC_TYPE_PARAM(0xFF00FA9A, 76), // generic type parameters like T, E, K, V (light green)
@@ -43,10 +43,10 @@ public enum TokenType {
     PARAMETER(0xFF5555FF, 36),           // method parameters (blue)
     GLOBAL_FIELD(0xFF55FFFF, 35),        // class-level fields (aqua)
     LOCAL_FIELD(0xFFFFFF55, 25),         // local variables (yellow)
-    STATIC_FINAL_FIELD(0xFFFF55FF, 36, false, true), // static final fields (magenta, italic)
+    STATIC_FINAL_FIELD(0xFFFF55FF, 36, true, true), // static final fields (magenta, italic)
 
     // Literals
-    LITERAL(0xFF777777, 40),             // numeric and boolean literals
+    LITERAL(0xFF79C0FF, 40),             // numeric and boolean literals
 
     // Default
     VARIABLE(0xFFFFFFFF, 30),            // generic variables
