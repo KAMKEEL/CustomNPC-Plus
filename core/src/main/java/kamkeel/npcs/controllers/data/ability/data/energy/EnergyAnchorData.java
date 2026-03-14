@@ -2,7 +2,7 @@ package kamkeel.npcs.controllers.data.ability.data.energy;
 
 import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
 import noppes.npcs.api.ability.data.IEnergyAnchorData;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 public class EnergyAnchorData implements IEnergyAnchorData {
     public AnchorPoint anchorPoint = AnchorPoint.FRONT;
@@ -94,7 +94,7 @@ public class EnergyAnchorData implements IEnergyAnchorData {
         this.launchFromAnchor = launchFromAnchor;
     }
 
-    public void writeNBT(INBTCompound nbt) {
+    public void writeNBT(INbt nbt) {
         nbt.setInteger("anchorPoint", anchorPoint.ordinal());
         nbt.setFloat("anchorOffsetX", anchorOffsetX);
         nbt.setFloat("anchorOffsetY", anchorOffsetY);
@@ -102,7 +102,7 @@ public class EnergyAnchorData implements IEnergyAnchorData {
         nbt.setBoolean("launchFromAnchor", launchFromAnchor);
     }
 
-    public void readNBT(INBTCompound nbt) {
+    public void readNBT(INbt nbt) {
         this.anchorPoint = AnchorPoint.fromOrdinal(nbt.getInteger("anchorPoint"));
         this.anchorOffsetX = nbt.getFloat("anchorOffsetX");
         this.anchorOffsetY = nbt.getFloat("anchorOffsetY");

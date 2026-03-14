@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.ISkinOverlay;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 public class SkinOverlay implements ISkinOverlay {
     private Runnable onChanged;
@@ -139,7 +139,7 @@ public class SkinOverlay implements ISkinOverlay {
         return offsetZ;
     }
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         this.texture = compound.getString("SkinOverlayTexture");
         this.glow = compound.getBoolean("SkinOverlayGlow");
         this.blend = compound.getBoolean("SkinOverlayBlend");
@@ -159,7 +159,7 @@ public class SkinOverlay implements ISkinOverlay {
         this.offsetZ = compound.getFloat("SkinOverlayOffsetZ");
     }
 
-    public INBTCompound writeToNBT(INBTCompound compound) {
+    public INbt writeToNBT(INbt compound) {
         compound.setString("SkinOverlayTexture", this.getTexture());
         compound.setBoolean("SkinOverlayGlow", this.getGlow());
         compound.setBoolean("SkinOverlayBlend", this.getBlend());

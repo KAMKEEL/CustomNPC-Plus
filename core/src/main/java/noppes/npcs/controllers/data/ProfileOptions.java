@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.handler.data.IProfileOptions;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 import noppes.npcs.constants.EnumProfileSync;
 
@@ -11,7 +11,7 @@ public class ProfileOptions implements IProfileOptions {
     public EnumProfileSync cooldownControl = EnumProfileSync.Individual;
     public EnumProfileSync completeControl = EnumProfileSync.Individual;
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         // Party Management
         enableOptions = compound.getBoolean("EnableProfiles");
         if (enableOptions) {
@@ -30,8 +30,8 @@ public class ProfileOptions implements IProfileOptions {
         }
     }
 
-    public INBTCompound writeToNBT() {
-        INBTCompound compound = NBT.compound();
+    public INbt writeToNBT() {
+        INbt compound = NBT.compound();
         compound.setBoolean("EnableProfiles", enableOptions);
         if (enableOptions) {
             compound.setInteger("CooldownControl", cooldownControl.ordinal());

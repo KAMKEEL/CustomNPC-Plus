@@ -2,7 +2,7 @@ package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.handler.data.IFramePart;
 import noppes.npcs.constants.EnumAnimationPart;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 
 public class FramePart implements IFramePart {
@@ -111,7 +111,7 @@ public class FramePart implements IFramePart {
         return this;
     }
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         part = EnumAnimationPart.valueOf(compound.getString("Part"));
         for (int i = 0; i < 3; i++) {
             rotation[i] = compound.getFloat("Rotation" + i);
@@ -131,8 +131,8 @@ public class FramePart implements IFramePart {
         }
     }
 
-    public INBTCompound writeToNBT() {
-        INBTCompound compound = NBT.compound();
+    public INbt writeToNBT() {
+        INbt compound = NBT.compound();
         compound.setString("Part", part.toString());
         for (int i = 0; i < 3; i++) {
             compound.setFloat("Rotation" + i, rotation[i]);

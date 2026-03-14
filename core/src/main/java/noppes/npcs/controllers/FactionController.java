@@ -2,9 +2,9 @@ package noppes.npcs.controllers;
 
 import noppes.npcs.core.NBT;
 import noppes.npcs.controllers.data.Faction;
-import noppes.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 
 import java.io.File;
 import java.util.HashMap;
@@ -70,18 +70,18 @@ public class FactionController {
         // OLD: DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
         // OLD: loadFactions(var1);
         // OLD: var1.close();
-        INBTCompound nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
+        INbt nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
         loadFactions(nbttagcompound1);
     }
 
-    public void loadFactions(INBTCompound nbttagcompound1) {
+    public void loadFactions(INbt nbttagcompound1) {
         HashMap<Integer, Faction> factions = new HashMap<Integer, Faction>();
         lastUsedID = nbttagcompound1.getInteger("lastID");
-        INBTList list = nbttagcompound1.getList("NPCFactions", 10);
+        INbtList list = nbttagcompound1.getTagList("NPCFactions", 10);
 
         if (list != null) {
             for (int i = 0; i < list.size(); i++) {
-                INBTCompound nbttagcompound = list.getCompound(i);
+                INbt nbttagcompound = list.getCompound(i);
                 Faction faction = new Faction();
                 faction.readNBT(nbttagcompound);
                 factions.put(faction.id, faction);
@@ -90,17 +90,17 @@ public class FactionController {
         this.factions = factions;
     }
 
-    public INBTCompound getNBT() {
-        INBTList list = NBT.list();
+    public INbt getNBT() {
+        INbtList list = NBT.list();
         for (int slot : factions.keySet()) {
             Faction faction = factions.get(slot);
-            INBTCompound nbtfactions = NBT.compound();
+            INbt nbtfactions = NBT.compound();
             faction.writeNBT(nbtfactions);
             list.addCompound(nbtfactions);
         }
-        INBTCompound nbttagcompound = NBT.compound();
+        INbt nbttagcompound = NBT.compound();
         nbttagcompound.setInteger("lastID", lastUsedID);
-        nbttagcompound.setList("NPCFactions", list);
+        nbttagcompound.setTagList("NPCFactions", list);
         return nbttagcompound;
     }
 

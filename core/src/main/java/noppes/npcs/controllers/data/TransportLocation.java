@@ -2,7 +2,7 @@ package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.handler.data.ITransportLocation;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 
 public class TransportLocation implements ITransportLocation {
@@ -23,7 +23,7 @@ public class TransportLocation implements ITransportLocation {
         this.saveHandler = saveHandler;
     }
 
-    public void readNBT(INBTCompound compound) {
+    public void readNBT(INbt compound) {
         if (compound == null)
             return;
         id = compound.getInteger("Id");
@@ -35,8 +35,8 @@ public class TransportLocation implements ITransportLocation {
         name = compound.getString("Name");
     }
 
-    public INBTCompound writeNBT() {
-        INBTCompound compound = NBT.compound();
+    public INbt writeNBT() {
+        INbt compound = NBT.compound();
         compound.setInteger("Id", id);
         compound.setDouble("PosX", posX);
         compound.setDouble("PosY", posY);

@@ -1,6 +1,6 @@
 package noppes.npcs.api.handler.data;
 
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 import java.util.Map;
 
@@ -19,11 +19,11 @@ public interface ISlot {
 
     void setTemporary(boolean temporary);
 
-    Map<String, INBTCompound> getComponents();
+    Map<String, INbt> getComponents();
 
-    void setComponentData(String key, INBTCompound data);
+    void setComponentData(String key, INbt data);
 
-    INBTCompound getComponentData(String key);
+    INbt getComponentData(String key);
 
-    INBTCompound toNBT();
+    INbt toNBT();
 }

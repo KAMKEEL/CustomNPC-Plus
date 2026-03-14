@@ -1,17 +1,25 @@
 package noppes.npcs.wrapper.nbt;
 
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagDouble;
+import net.minecraft.nbt.NBTTagFloat;
+import net.minecraft.nbt.NBTTagInt;
+import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import net.minecraft.nbt.NBTTagString;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.util.NBTJsonUtil;
 
+import java.util.Iterator;
 import java.util.Set;
 
 /**
- * 1.7.10 implementation of INBTCompound.
+ * 1.7.10 implementation of the unified INbt interface.
  * Thin wrapper that delegates to NBTTagCompound.
  */
-public class NBTWrapper implements INBTCompound {
+public class NBTWrapper implements INbt {
 
     private final NBTTagCompound tag;
 
@@ -21,13 +29,13 @@ public class NBTWrapper implements INBTCompound {
 
     /**
      * Direct access to the underlying MC tag.
-     * For use within 1.7.10 code only — avoids the cast from getUnderlyingTag().
+     * For use within 1.7.10 code only — avoids casting from getMCNBT().
      */
     public NBTTagCompound getMCTag() {
         return tag;
     }
 
-    // --- Setters ---
+    // ======================== Setters ========================
 
     @Override
     public void setString(String key, String value) {
@@ -80,21 +88,16 @@ public class NBTWrapper implements INBTCompound {
     }
 
     @Override
-    public void setCompound(String key, INBTCompound compound) {
+    public void setCompound(String key, INbt compound) {
         tag.setTag(key, ((NBTWrapper) compound).getMCTag());
     }
 
     @Override
-    public void setTag(String key, INBTCompound compound) {
-        setCompound(key, compound);
+    public void setTagList(String key, INbtList list) {
+        tag.setTag(key, (NBTTagList) list.getMCTagList());
     }
 
-    @Override
-    public void setList(String key, INBTList list) {
-        tag.setTag(key, (NBTTagList) list.getUnderlyingTag());
-    }
-
-    // --- Getters ---
+    // ======================== Getters ========================
 
     @Override
     public String getString(String key) {
@@ -147,16 +150,71 @@ public class NBTWrapper implements INBTCompound {
     }
 
     @Override
-    public INBTCompound getCompound(String key) {
+    public INbt getCompound(String key) {
         return new NBTWrapper(tag.getCompoundTag(key));
     }
 
     @Override
-    public INBTList getList(String key, int type) {
+    public INbtList getTagList(String key, int type) {
         return new NBTListWrapper(tag.getTagList(key, type));
     }
 
-    // --- Query ---
+    @Override
+    public Object[] getList(String key, int type) {
+        NBTTagList list = tag.getTagList(key, type);
+        Object[] result = new Object[list.tagCount()];
+        for (int i = 0; i < list.tagCount(); i++) {
+            int elemType = list.func_150303_d();
+            if (elemType == 10) {
+                result[i] = new NBTWrapper(list.getCompoundTagAt(i));
+            } else if (elemType == 8) {
+                result[i] = list.getStringTagAt(i);
+            } else if (elemType == 6) {
+                result[i] = list.func_150309_d(i);
+            } else if (elemType == 5) {
+                result[i] = list.func_150308_e(i);
+            } else if (elemType == 3) {
+                result[i] = Integer.parseInt(list.getStringTagAt(i));
+            } else if (elemType == 11) {
+                result[i] = list.func_150306_c(i);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public void setList(String key, Object[] value) {
+        NBTTagList list = new NBTTagList();
+        for (Object nbt : value) {
+            if (nbt instanceof INbt) {
+                list.appendTag((NBTTagCompound) ((INbt) nbt).getMCNBT());
+            } else if (nbt instanceof String) {
+                list.appendTag(new NBTTagString((String) nbt));
+            } else if (nbt instanceof Double) {
+                list.appendTag(new NBTTagDouble((Double) nbt));
+            } else if (nbt instanceof Float) {
+                list.appendTag(new NBTTagFloat((Float) nbt));
+            } else if (nbt instanceof Integer) {
+                list.appendTag(new NBTTagInt((Integer) nbt));
+            } else if (nbt instanceof int[]) {
+                list.appendTag(new NBTTagIntArray((int[]) nbt));
+            }
+        }
+        tag.setTag(key, list);
+    }
+
+    @Override
+    public int getListType(String key) {
+        NBTBase b = tag.getTag(key);
+        if (b == null) {
+            return 0;
+        } else if (b.getId() != 9) {
+            return 0;
+        }
+        return ((NBTTagList) b).func_150303_d();
+    }
+
+    // ======================== Query ========================
 
     @Override
     public boolean hasKey(String key) {
@@ -189,10 +247,10 @@ public class NBTWrapper implements INBTCompound {
         return tag.hasNoTags();
     }
 
-    // --- Interop ---
+    // ======================== Interop ========================
 
     @Override
-    public void merge(INBTCompound other) {
+    public void merge(INbt other) {
         NBTTagCompound otherTag = ((NBTWrapper) other).getMCTag();
         for (Object keyObj : otherTag.func_150296_c()) {
             String key = (String) keyObj;
@@ -201,13 +259,34 @@ public class NBTWrapper implements INBTCompound {
     }
 
     @Override
-    public INBTCompound copy() {
+    public INbt copy() {
         return new NBTWrapper((NBTTagCompound) tag.copy());
     }
 
     @Override
-    public Object getUnderlyingTag() {
+    public NBTTagCompound getMCNBT() {
         return tag;
+    }
+
+    // ======================== Convenience ========================
+
+    @Override
+    public String toJsonString() {
+        return NBTJsonUtil.Convert(tag);
+    }
+
+    @Override
+    public boolean isEqual(INbt nbt) {
+        return nbt != null && tag.equals(nbt.getMCNBT());
+    }
+
+    @Override
+    public void clear() {
+        Iterator<?> it = tag.func_150296_c().iterator();
+        while (it.hasNext()) {
+            it.next();
+            it.remove();
+        }
     }
 
     @Override

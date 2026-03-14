@@ -1,6 +1,6 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 
 public class AbilityHotbarData {
@@ -26,15 +26,15 @@ public class AbilityHotbarData {
         return abilityKey;
     }
 
-    public INBTCompound writeToNBT(INBTCompound compound) {
-        INBTCompound tag = NBT.compound();
+    public INbt writeToNBT(INbt compound) {
+        INbt tag = NBT.compound();
         tag.setInteger("slot", slot);
         tag.setString("abilityKey", abilityKey != null ? abilityKey : "");
         compound.setCompound("AbilityHotbar" + slot, tag);
         return compound;
     }
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         abilityKey = compound.getString("abilityKey");
     }
 

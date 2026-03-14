@@ -2,8 +2,8 @@ package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.handler.data.ILine;
 import noppes.npcs.api.handler.data.ILines;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 import noppes.npcs.core.NBT;
 
 import java.util.ArrayList;
@@ -17,13 +17,13 @@ public class Lines implements ILines {
 
     public HashMap<Integer, Line> lines = new HashMap<Integer, Line>();
 
-    public INBTCompound writeToNBT() {
-        INBTCompound compound = NBT.compound();
+    public INbt writeToNBT() {
+        INbt compound = NBT.compound();
 
-        INBTList nbttaglist = NBT.list();
+        INbtList nbttaglist = NBT.list();
         for (int slot : lines.keySet()) {
             Line line = lines.get(slot);
-            INBTCompound nbttagcompound = NBT.compound();
+            INbt nbttagcompound = NBT.compound();
             nbttagcompound.setInteger("Slot", slot);
             nbttagcompound.setString("Line", line.text);
             nbttagcompound.setString("Song", line.sound);
@@ -31,16 +31,16 @@ public class Lines implements ILines {
             nbttaglist.addCompound(nbttagcompound);
         }
 
-        compound.setList("Lines", nbttaglist);
+        compound.setTagList("Lines", nbttaglist);
         return compound;
     }
 
-    public void readNBT(INBTCompound compound) {
-        INBTList nbttaglist = compound.getList("Lines", 10);
+    public void readNBT(INbt compound) {
+        INbtList nbttaglist = compound.getTagList("Lines", 10);
 
         HashMap<Integer, Line> map = new HashMap<Integer, Line>();
         for (int i = 0; i < nbttaglist.size(); i++) {
-            INBTCompound nbttagcompound = nbttaglist.getCompound(i);
+            INbt nbttagcompound = nbttaglist.getCompound(i);
             Line line = new Line();
             line.text = nbttagcompound.getString("Line");
             line.sound = nbttagcompound.getString("Song");

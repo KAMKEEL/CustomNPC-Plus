@@ -4,8 +4,8 @@ package noppes.npcs.constants;
  * NBT type ID constants, matching Minecraft's internal NBT type numbering.
  * These are stable across all MC versions.
  *
- * Use these instead of magic numbers when calling INBTCompound.hasKey(key, type)
- * or INBTCompound.getList(key, type).
+ * Use these instead of magic numbers when calling INbt.hasKey(key, type)
+ * or INbt.getTagList(key, type).
  */
 public final class NBTTypes {
 

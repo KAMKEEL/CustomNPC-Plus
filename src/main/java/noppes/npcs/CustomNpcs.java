@@ -64,7 +64,7 @@ import nikedemos.markovnames.generators.MarkovSlavic;
 import nikedemos.markovnames.generators.MarkovSpanish;
 import nikedemos.markovnames.generators.MarkovWelsh;
 import noppes.npcs.compat.PixelmonHelper;
-import noppes.npcs.platform.PlatformServiceHolder;
+import kamkeel.npcs.platform.PlatformServiceHolder;
 import noppes.npcs.wrapper.MC1710PlatformService;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.core.CoreConfig;

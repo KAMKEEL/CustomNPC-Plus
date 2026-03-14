@@ -1,6 +1,6 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 public class EnergyChargingData {
 
@@ -61,7 +61,7 @@ public class EnergyChargingData {
         this.maxCharge = Math.max(0, maxCharge);
     }
 
-    public void writeNBT(INBTCompound nbt) {
+    public void writeNBT(INbt nbt) {
         nbt.setInteger("chargeDuration", chargeDuration);
         nbt.setInteger("chargeDelay", chargeDelay);
         nbt.setInteger("maxCharge", maxCharge);
@@ -69,7 +69,7 @@ public class EnergyChargingData {
         nbt.setBoolean("chargeWindUpSync", chargeWindUpSync);
     }
 
-    public void readNBT(INBTCompound nbt) {
+    public void readNBT(INbt nbt) {
         chargeDuration = nbt.hasKey("chargeDuration") ? nbt.getInteger("chargeDuration") : 60;
         chargeDelay = nbt.hasKey("chargeDelay") ? nbt.getInteger("chargeDelay") : 0;
         maxCharge = nbt.hasKey("maxCharge") ? nbt.getInteger("maxCharge") : 100;

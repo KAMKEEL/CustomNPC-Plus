@@ -1,6 +1,6 @@
 package kamkeel.npcs.controllers.data.profile;
 
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 
 public class ProfileInfoEntry {
@@ -27,8 +27,8 @@ public class ProfileInfoEntry {
         this(label, 0xFFFFFF, result, 0xFFFFFF);
     }
 
-    public INBTCompound writeToNBT() {
-        INBTCompound tag = NBT.compound();
+    public INbt writeToNBT() {
+        INbt tag = NBT.compound();
         tag.setString("Label", label);
         tag.setInteger("LabelColor", labelColor);
         tag.setString("Result", result);
@@ -36,7 +36,7 @@ public class ProfileInfoEntry {
         return tag;
     }
 
-    public static ProfileInfoEntry readFromNBT(INBTCompound tag) {
+    public static ProfileInfoEntry readFromNBT(INbt tag) {
         return new ProfileInfoEntry(
             tag.getString("Label"),
             tag.getInteger("LabelColor"),

@@ -1,6 +1,6 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 
 public class ItemDisplayData {
@@ -18,13 +18,13 @@ public class ItemDisplayData {
     public Integer frameCount = 1;
     public Integer frametime = 2;
 
-    public INBTCompound writeToNBT() {
-        INBTCompound compound = NBT.compound();
+    public INbt writeToNBT() {
+        INbt compound = NBT.compound();
         this.writeToNBT(compound);
         return compound;
     }
 
-    public INBTCompound writeToNBT(INBTCompound compound) {
+    public INbt writeToNBT(INbt compound) {
         this.setBoolean(compound, "DurabilityShow", this.durabilityShow);
         this.setInteger(compound, "DurabilityColor", this.durabilityColor);
         this.setInteger(compound, "ItemColor", this.itemColor);
@@ -55,7 +55,7 @@ public class ItemDisplayData {
         return compound;
     }
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         if (compound.hasKey("DurabilityShow")) {
             this.durabilityShow = compound.getBoolean("DurabilityShow");
         }
@@ -119,19 +119,19 @@ public class ItemDisplayData {
         }
     }
 
-    private void setBoolean(INBTCompound compound, String key, Boolean value) {
+    private void setBoolean(INbt compound, String key, Boolean value) {
         if (value != null) {
             compound.setBoolean(key, value);
         }
     }
 
-    private void setInteger(INBTCompound compound, String key, Integer value) {
+    private void setInteger(INbt compound, String key, Integer value) {
         if (value != null) {
             compound.setInteger(key, value);
         }
     }
 
-    private void setFloat(INBTCompound compound, String key, Float value) {
+    private void setFloat(INbt compound, String key, Float value) {
         if (value != null) {
             compound.setFloat(key, value);
         }

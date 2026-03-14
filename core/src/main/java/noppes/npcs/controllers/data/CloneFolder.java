@@ -1,6 +1,6 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 
 public class CloneFolder {
@@ -17,12 +17,12 @@ public class CloneFolder {
         this.createdDate = System.currentTimeMillis();
     }
 
-    public void readNBT(INBTCompound compound) {
+    public void readNBT(INbt compound) {
         name = compound.getString("Name");
         createdDate = compound.getLong("Created");
     }
 
-    public INBTCompound writeNBT(INBTCompound compound) {
+    public INbt writeNBT(INbt compound) {
         compound.setString("Name", name);
         compound.setLong("Created", createdDate);
         return compound;

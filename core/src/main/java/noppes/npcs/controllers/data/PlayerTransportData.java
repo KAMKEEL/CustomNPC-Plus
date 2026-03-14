@@ -2,8 +2,8 @@ package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.handler.IPlayerTransportData;
 import noppes.npcs.api.handler.data.ITransportLocation;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 import noppes.npcs.core.NBT;
 
 import java.util.HashSet;
@@ -14,31 +14,31 @@ public class PlayerTransportData implements IPlayerTransportData {
     public PlayerTransportData() {
     }
 
-    public void loadNBTData(INBTCompound compound) {
+    public void loadNBTData(INbt compound) {
         HashSet<Integer> dialogsRead = new HashSet<Integer>();
         if (compound == null)
             return;
-        INBTList list = compound.getList("TransportData", 10);
+        INbtList list = compound.getTagList("TransportData", 10);
         if (list == null) {
             return;
         }
 
         for (int i = 0; i < list.size(); i++) {
-            INBTCompound nbttagcompound = list.getCompound(i);
+            INbt nbttagcompound = list.getCompound(i);
             dialogsRead.add(nbttagcompound.getInteger("Transport"));
         }
         this.transports = dialogsRead;
     }
 
-    public void saveNBTData(INBTCompound compound) {
-        INBTList list = NBT.list();
+    public void saveNBTData(INbt compound) {
+        INbtList list = NBT.list();
         for (int dia : transports) {
-            INBTCompound nbttagcompound = NBT.compound();
+            INbt nbttagcompound = NBT.compound();
             nbttagcompound.setInteger("Transport", dia);
             list.addCompound(nbttagcompound);
         }
 
-        compound.setList("TransportData", list);
+        compound.setTagList("TransportData", list);
     }
 
     public boolean hasTransport(int id) {

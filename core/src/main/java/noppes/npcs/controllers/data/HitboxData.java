@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.entity.data.IHitboxData;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.CoreConfig;
 
 public class HitboxData implements IHitboxData {
@@ -10,7 +10,7 @@ public class HitboxData implements IHitboxData {
     private float heightScale = 1f;
     private boolean hitboxEnabled = false;
 
-    public INBTCompound writeToNBT(INBTCompound nbttagcompound) {
+    public INbt writeToNBT(INbt nbttagcompound) {
         nbttagcompound.setBoolean("HitboxEnabled", hitboxEnabled);
         if (hitboxEnabled) {
             if (widthScale > CoreConfig.HitBoxScaleMax)
@@ -24,7 +24,7 @@ public class HitboxData implements IHitboxData {
         return nbttagcompound;
     }
 
-    public void readFromNBT(INBTCompound nbttagcompound) {
+    public void readFromNBT(INbt nbttagcompound) {
         hitboxEnabled = nbttagcompound.getBoolean("HitboxEnabled");
         if (hitboxEnabled) {
             widthScale = nbttagcompound.getFloat("HitboxWidthScale");

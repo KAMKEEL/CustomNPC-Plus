@@ -1,6 +1,6 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 
 public class DialogColorData {
@@ -12,7 +12,7 @@ public class DialogColorData {
     private int buttonAcceptColor = 0xfff96605;
     private int buttonRejectColor = 0xfff96605;
 
-    public INBTCompound writeToNBT(INBTCompound compound) {
+    public INbt writeToNBT(INbt compound) {
         compound.setBoolean("ColorSettings", enableColorSettings);
         if (enableColorSettings) {
             compound.setInteger("LineColor1", lineColor1);
@@ -25,7 +25,7 @@ public class DialogColorData {
         return compound;
     }
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         this.enableColorSettings = compound.getBoolean("ColorSettings");
         if (enableColorSettings) {
             lineColor1 = compound.getInteger("LineColor1");

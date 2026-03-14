@@ -5,9 +5,9 @@ import noppes.npcs.core.NBT;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicAssociation;
 import noppes.npcs.controllers.data.MagicCycle;
-import noppes.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 
 import java.io.File;
 import java.util.HashMap;
@@ -185,27 +185,27 @@ public class MagicController {
         // OLD: );
         // OLD: loadMagic(stream);
         // OLD: stream.close();
-        INBTCompound compound = PlatformServiceHolder.get().readCompressedNBT(file);
+        INbt compound = PlatformServiceHolder.get().readCompressedNBT(file);
         loadMagic(compound);
     }
 
-    public void loadMagic(INBTCompound compound) {
+    public void loadMagic(INbt compound) {
         lastUsedMagicID = compound.getInteger("lastID");
         lastUsedCycleID = compound.getInteger("lastCycleID");
 
         magics.clear();
-        INBTList magicList = compound.getList("Magics", 10);
+        INbtList magicList = compound.getTagList("Magics", 10);
         for (int i = 0; i < magicList.size(); i++) {
-            INBTCompound magCompound = magicList.getCompound(i);
+            INbt magCompound = magicList.getCompound(i);
             Magic mag = new Magic();
             mag.readNBT(magCompound);
             magics.put(mag.id, mag);
         }
 
         cycles.clear();
-        INBTList cycleList = compound.getList("Cycles", 10);
+        INbtList cycleList = compound.getTagList("Cycles", 10);
         for (int i = 0; i < cycleList.size(); i++) {
-            INBTCompound catCompound = cycleList.getCompound(i);
+            INbt catCompound = cycleList.getCompound(i);
             MagicCycle cycle = new MagicCycle();
             // OLD: cycle.readNBT(new NBTWrapper(catCompound));
             cycle.readNBT(catCompound);
@@ -213,25 +213,25 @@ public class MagicController {
         }
     }
 
-    public INBTCompound getNBT() {
-        INBTList magicList = NBT.list();
+    public INbt getNBT() {
+        INbtList magicList = NBT.list();
         for (Magic mag : magics.values()) {
-            INBTCompound magCompound = NBT.compound();
+            INbt magCompound = NBT.compound();
             mag.writeNBT(magCompound);
             magicList.addCompound(magCompound);
         }
-        INBTList catList = NBT.list();
+        INbtList catList = NBT.list();
         for (MagicCycle cat : cycles.values()) {
-            INBTCompound catCompound = NBT.compound();
+            INbt catCompound = NBT.compound();
             // OLD: cat.writeNBT(new NBTWrapper(catCompound));
             cat.writeNBT(catCompound);
             catList.addCompound(catCompound);
         }
-        INBTCompound compound = NBT.compound();
+        INbt compound = NBT.compound();
         compound.setInteger("lastID", lastUsedMagicID);
         compound.setInteger("lastCycleID", lastUsedCycleID);
-        compound.setList("Magics", magicList);
-        compound.setList("Cycles", catList);
+        compound.setTagList("Magics", magicList);
+        compound.setTagList("Cycles", catList);
         return compound;
     }
 

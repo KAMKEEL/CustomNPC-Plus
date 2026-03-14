@@ -2,9 +2,9 @@ package noppes.npcs.controllers;
 
 import noppes.npcs.core.NBT;
 import noppes.npcs.controllers.data.Tag;
-import noppes.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 
 import java.io.File;
 import java.util.HashMap;
@@ -59,18 +59,18 @@ public class TagController {
         // OLD: DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
         // OLD: loadTags(var1);
         // OLD: var1.close();
-        INBTCompound nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
+        INbt nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
         loadTags(nbttagcompound1);
     }
 
-    public void loadTags(INBTCompound nbttagcompound1) {
+    public void loadTags(INbt nbttagcompound1) {
         HashMap<Integer, Tag> tags = new HashMap<Integer, Tag>();
         lastUsedID = nbttagcompound1.getInteger("lastID");
-        INBTList list = nbttagcompound1.getList("NPCTags", 10);
+        INbtList list = nbttagcompound1.getTagList("NPCTags", 10);
 
         if (list != null) {
             for (int i = 0; i < list.size(); i++) {
-                INBTCompound nbttagcompound = list.getCompound(i);
+                INbt nbttagcompound = list.getCompound(i);
                 Tag tag = new Tag();
                 // OLD: tag.readNBT(new NBTWrapper(nbttagcompound));
                 tag.readNBT(nbttagcompound);
@@ -80,18 +80,18 @@ public class TagController {
         this.tags = tags;
     }
 
-    public INBTCompound getNBT() {
-        INBTList list = NBT.list();
+    public INbt getNBT() {
+        INbtList list = NBT.list();
         for (int slot : tags.keySet()) {
             Tag tag = tags.get(slot);
-            INBTCompound nbtfactions = NBT.compound();
+            INbt nbtfactions = NBT.compound();
             // OLD: tag.writeNBT(new NBTWrapper(nbtfactions));
             tag.writeNBT(nbtfactions);
             list.addCompound(nbtfactions);
         }
-        INBTCompound nbttagcompound = NBT.compound();
+        INbt nbttagcompound = NBT.compound();
         nbttagcompound.setInteger("lastID", lastUsedID);
-        nbttagcompound.setList("NPCTags", list);
+        nbttagcompound.setTagList("NPCTags", list);
         return nbttagcompound;
     }
 
@@ -218,23 +218,23 @@ public class TagController {
     /**
      * Write a set of tag UUIDs to an NBT compound under the given key.
      */
-    public static void writeTagUUIDs(INBTCompound compound, String key, HashSet<UUID> tagUUIDs) {
+    public static void writeTagUUIDs(INbt compound, String key, HashSet<UUID> tagUUIDs) {
         if (tagUUIDs != null && !tagUUIDs.isEmpty()) {
-            INBTList list = NBT.list();
+            INbtList list = NBT.list();
             for (UUID uuid : tagUUIDs) {
                 list.addString(uuid.toString());
             }
-            compound.setList(key, list);
+            compound.setTagList(key, list);
         }
     }
 
     /**
      * Read a set of tag UUIDs from an NBT compound under the given key.
      */
-    public static HashSet<UUID> readTagUUIDs(INBTCompound compound, String key) {
+    public static HashSet<UUID> readTagUUIDs(INbt compound, String key) {
         HashSet<UUID> uuids = new HashSet<>();
         if (compound.hasKey(key)) {
-            INBTList list = compound.getList(key, 8);
+            INbtList list = compound.getTagList(key, 8);
             for (int i = 0; i < list.size(); i++) {
                 try {
                     uuids.add(UUID.fromString(list.getString(i)));

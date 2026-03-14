@@ -1,8 +1,8 @@
 package noppes.npcs.controllers;
 
 import noppes.npcs.controllers.data.TagMap;
-import noppes.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.platform.nbt.INBTCompound;
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.INbt;
 
 import java.io.File;
 
@@ -58,7 +58,7 @@ public class ServerTagMapController {
         // OLD: NBTTagCompound nbtCompound = CompressedStreamTools.read(var1);
         // OLD: this.tagMap.readNBT(new NBTWrapper(nbtCompound));
         // OLD: var1.close();
-        INBTCompound nbtCompound = PlatformServiceHolder.get().readCompressedNBT(file);
+        INbt nbtCompound = PlatformServiceHolder.get().readCompressedNBT(file);
         this.tagMap.readNBT(nbtCompound);
     }
 

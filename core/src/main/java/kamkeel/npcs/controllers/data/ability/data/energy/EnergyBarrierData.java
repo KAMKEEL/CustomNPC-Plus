@@ -1,7 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
 import noppes.npcs.core.NBT;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -165,7 +165,7 @@ public class EnergyBarrierData {
 
     // ==================== NBT ====================
 
-    public void writeNBT(INBTCompound nbt) {
+    public void writeNBT(INbt nbt) {
         nbt.setFloat("barrierMaxHealth", maxHealth);
         nbt.setBoolean("barrierUseHealth", useHealth);
         nbt.setInteger("barrierDuration", durationTicks);
@@ -182,14 +182,14 @@ public class EnergyBarrierData {
         nbt.setFloat("barrierReflectStrPct", reflectStrengthPct);
         nbt.setBoolean("barrierTargetOwner", targetOwner);
 
-        INBTCompound multNbt = NBT.compound();
+        INbt multNbt = NBT.compound();
         for (Map.Entry<String, Float> entry : damageMultipliers.entrySet()) {
             multNbt.setFloat(entry.getKey(), entry.getValue());
         }
         nbt.setCompound("barrierMultipliers", multNbt);
     }
 
-    public void readNBT(INBTCompound nbt) {
+    public void readNBT(INbt nbt) {
         maxHealth = nbt.hasKey("barrierMaxHealth") ? nbt.getFloat("barrierMaxHealth") : 100.0f;
         useHealth = !nbt.hasKey("barrierUseHealth") || nbt.getBoolean("barrierUseHealth");
         durationTicks = nbt.hasKey("barrierDuration") ? nbt.getInteger("barrierDuration") : 200;
@@ -208,7 +208,7 @@ public class EnergyBarrierData {
 
         damageMultipliers.clear();
         if (nbt.hasKey("barrierMultipliers")) {
-            INBTCompound multNbt = nbt.getCompound("barrierMultipliers");
+            INbt multNbt = nbt.getCompound("barrierMultipliers");
             Set<String> keys = multNbt.getKeySet();
             for (String key : keys) {
                 damageMultipliers.put(key, multNbt.getFloat(key));

@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.handler.data.IMagicData;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 
 import java.util.HashMap;
@@ -9,16 +9,16 @@ import java.util.HashMap;
 public class MagicData implements IMagicData {
     private final HashMap<Integer, MagicEntry> magics = new HashMap<>();
 
-    public void writeToNBT(INBTCompound compound) {
-        INBTCompound magicData = NBT.compound();
+    public void writeToNBT(INbt compound) {
+        INbt magicData = NBT.compound();
         for (int key : magics.keySet()) {
             magicData.setCompound(String.valueOf(key), magics.get(key).writeToNBT());
         }
         compound.setCompound("MagicData", magicData);
     }
 
-    public void readToNBT(INBTCompound compound) {
-        INBTCompound magicData = compound.getCompound("MagicData");
+    public void readToNBT(INbt compound) {
+        INbt magicData = compound.getCompound("MagicData");
         magics.clear();
         if (magicData == null)
             return;

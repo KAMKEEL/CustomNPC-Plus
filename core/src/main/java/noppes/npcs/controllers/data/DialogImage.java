@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.handler.data.IDialogImage;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 public class DialogImage implements IDialogImage {
     public int id;
@@ -29,7 +29,7 @@ public class DialogImage implements IDialogImage {
         this.id = id;
     }
 
-    public INBTCompound writeToNBT(INBTCompound compound) {
+    public INbt writeToNBT(INbt compound) {
         compound.setInteger("ID", id);
         compound.setString("Texture", texture);
         compound.setInteger("PosX", x);
@@ -49,7 +49,7 @@ public class DialogImage implements IDialogImage {
         return compound;
     }
 
-    public void readNBT(INBTCompound compound) {
+    public void readNBT(INbt compound) {
         id = compound.getInteger("ID");
         texture = compound.getString("Texture");
         x = compound.getInteger("PosX");

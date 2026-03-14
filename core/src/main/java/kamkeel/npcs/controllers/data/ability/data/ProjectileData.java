@@ -3,7 +3,7 @@ package kamkeel.npcs.controllers.data.ability.data;
 import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 /**
  * Per-projectile data: anchor point + optional color override.
@@ -35,7 +35,7 @@ public class ProjectileData {
         return resolved;
     }
 
-    public void writeNBT(INBTCompound nbt) {
+    public void writeNBT(INbt nbt) {
         // OLD: anchor.writeNBT(new NBTWrapper(nbt));
         anchor.writeNBT(nbt);
         nbt.setBoolean("colorOverride", colorOverride);
@@ -45,7 +45,7 @@ public class ProjectileData {
         }
     }
 
-    public void readNBT(INBTCompound nbt) {
+    public void readNBT(INbt nbt) {
         // OLD: anchor.readNBT(new NBTWrapper(nbt));
         anchor.readNBT(nbt);
         colorOverride = nbt.getBoolean("colorOverride");

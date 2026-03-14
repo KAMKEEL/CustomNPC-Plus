@@ -7,6 +7,6 @@
  * Rules:
  * - NO imports from net.minecraft.*, cpw.mods.*, net.minecraftforge.*, org.spongepowered.*
  * - Only java.*, javax.*, noppes.npcs.core.*, noppes.npcs.platform.*, kamkeel.npcs.core.*
- * - All MC-specific behavior is accessed through noppes.npcs.platform.PlatformServiceHolder
+ * - All MC-specific behavior is accessed through kamkeel.npcs.platform.PlatformServiceHolder
  */
 package noppes.npcs.core;

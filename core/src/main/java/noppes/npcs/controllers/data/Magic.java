@@ -3,8 +3,8 @@ package noppes.npcs.controllers.data;
 import noppes.npcs.core.NBT;
 import noppes.npcs.constants.EnumTextureType;
 import noppes.npcs.controllers.MagicController;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +37,7 @@ public class Magic {
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
-    public void readNBT(INBTCompound compound) {
+    public void readNBT(INbt compound) {
         name = compound.getString("Name");
         displayName = compound.getString("DisplayName");
         color = compound.getInteger("Color");
@@ -54,9 +54,9 @@ public class Magic {
 
         interactions.clear();
         if (compound.hasKey("Interactions")) {
-            INBTList interactionsList = compound.getList("Interactions", 10);
+            INbtList interactionsList = compound.getTagList("Interactions", 10);
             for (int i = 0; i < interactionsList.size(); i++) {
-                INBTCompound interactionTag = interactionsList.getCompound(i);
+                INbt interactionTag = interactionsList.getCompound(i);
                 int magicId = interactionTag.getInteger("MagicID");
                 float percentage = interactionTag.getFloat("Percentage");
                 interactions.put(magicId, percentage);
@@ -64,21 +64,21 @@ public class Magic {
         }
     }
 
-    public void writeNBT(INBTCompound compound) {
+    public void writeNBT(INbt compound) {
         compound.setInteger("Slot", id);
         compound.setString("Name", name);
         compound.setString("DisplayName", displayName);
         compound.setInteger("Color", color);
         compound.setString("IconTexture", iconTexture);
         compound.setInteger("Type", type.ordinal());
-        INBTList interactionsList = NBT.list();
+        INbtList interactionsList = NBT.list();
         for (Map.Entry<Integer, Float> entry : interactions.entrySet()) {
-            INBTCompound interactionTag = NBT.compound();
+            INbt interactionTag = NBT.compound();
             interactionTag.setInteger("MagicID", entry.getKey());
             interactionTag.setFloat("Percentage", entry.getValue());
             interactionsList.addCompound(interactionTag);
         }
-        compound.setList("Interactions", interactionsList);
+        compound.setTagList("Interactions", interactionsList);
 
         // TODO: mc1710 version resolves ItemStack from GameRegistry here:
         // OLD: if (type == EnumTextureType.ITEM && !iconTexture.isEmpty()) {

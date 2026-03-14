@@ -1,4 +1,4 @@
-package noppes.npcs.platform.config;
+package kamkeel.npcs.platform.config;
 
 /**
  * Version-independent abstraction over Minecraft Forge's Configuration system.

@@ -1,6 +1,6 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.constants.EnumAuctionSort;
 
 import java.util.regex.Pattern;
@@ -87,13 +87,13 @@ public class AuctionFilter {
         normalizedSearch = "";
     }
 
-    public INBTCompound writeToNBT(INBTCompound compound) {
+    public INbt writeToNBT(INbt compound) {
         compound.setString("SearchText", searchText != null ? searchText : "");
         compound.setInteger("SortBy", sortBy.ordinal());
         return compound;
     }
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         searchText = compound.getString("SearchText");
         normalizedSearch = normalizeForSearch(searchText);
         sortBy = EnumAuctionSort.fromOrdinal(compound.getInteger("SortBy"));

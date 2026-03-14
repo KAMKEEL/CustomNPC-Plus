@@ -1,6 +1,6 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 
 /**
@@ -19,12 +19,12 @@ public class Category {
         this.title = title;
     }
 
-    public void readNBT(INBTCompound compound) {
+    public void readNBT(INbt compound) {
         id = compound.getInteger("CatID");
         title = compound.getString("CatTitle");
     }
 
-    public INBTCompound writeNBT(INBTCompound compound) {
+    public INbt writeNBT(INbt compound) {
         compound.setInteger("CatID", id);
         compound.setString("CatTitle", title);
         return compound;

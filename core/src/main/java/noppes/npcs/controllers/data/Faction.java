@@ -1,8 +1,8 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.NBTTags;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 
 import java.util.HashSet;
 
@@ -39,7 +39,7 @@ public class Faction {
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
-    public void readNBT(INBTCompound compound) {
+    public void readNBT(INbt compound) {
         name = compound.getString("Name");
         color = compound.getInteger("Color");
         id = compound.getInteger("Slot");
@@ -52,10 +52,10 @@ public class Faction {
         getsAttacked = compound.getBoolean("GetsAttacked");
         isPassive = compound.getBoolean("IsPassive");
 
-        attackFactions = NBTTags.getIntegerSet(compound.getList("AttackFactions", 10));
+        attackFactions = NBTTags.getIntegerSet(compound.getTagList("AttackFactions", 10));
     }
 
-    public void writeNBT(INBTCompound compound) {
+    public void writeNBT(INbt compound) {
         compound.setInteger("Slot", id);
         compound.setString("Name", name);
         compound.setInteger("Color", color);
@@ -68,7 +68,7 @@ public class Faction {
         compound.setBoolean("GetsAttacked", getsAttacked);
         compound.setBoolean("IsPassive", isPassive);
 
-        compound.setList("AttackFactions", NBTTags.nbtIntegerSet(attackFactions));
+        compound.setTagList("AttackFactions", NBTTags.nbtIntegerSet(attackFactions));
     }
 
     // TODO: mc1710 version implements IFaction and adds:

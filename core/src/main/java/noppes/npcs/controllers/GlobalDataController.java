@@ -1,8 +1,8 @@
 package noppes.npcs.controllers;
 
 import noppes.npcs.core.NBT;
-import noppes.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.platform.nbt.INBTCompound;
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.INbt;
 
 import java.io.File;
 
@@ -42,7 +42,7 @@ public class GlobalDataController {
         // OLD: try (FileInputStream fis = new FileInputStream(file)) {
         // OLD:     nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
         // OLD: }
-        INBTCompound nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
+        INbt nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
         itemGiverId = nbttagcompound1.getInteger("itemGiverId");
     }
 
@@ -52,7 +52,7 @@ public class GlobalDataController {
                 File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
 
                 // OLD: NBTTagCompound nbttagcompound = new NBTTagCompound();
-                INBTCompound nbttagcompound = NBT.compound();
+                INbt nbttagcompound = NBT.compound();
                 nbttagcompound.setInteger("itemGiverId", itemGiverId);
 
                 File file = new File(saveDir, "global.dat_new");

@@ -1,7 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
 import noppes.npcs.api.ability.data.IEnergyLifespanData;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 /**
  * Groups lifespan/range properties for energy projectile abilities.
@@ -39,12 +39,12 @@ public class EnergyLifespanData implements IEnergyLifespanData {
         this.maxLifetime = maxLifetime <= 0 ? 200 : maxLifetime;
     }
 
-    public void writeNBT(INBTCompound nbt) {
+    public void writeNBT(INbt nbt) {
         nbt.setFloat("maxDistance", maxDistance);
         nbt.setInteger("maxLifetime", maxLifetime);
     }
 
-    public void readNBT(INBTCompound nbt) {
+    public void readNBT(INbt nbt) {
         maxDistance = nbt.getFloat("maxDistance");
         maxLifetime = nbt.getInteger("maxLifetime");
 

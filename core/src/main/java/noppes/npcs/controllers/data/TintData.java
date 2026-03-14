@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.entity.data.ITintData;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 public class TintData implements ITintData {
     private boolean tintEnabled = false;
@@ -11,7 +11,7 @@ public class TintData implements ITintData {
     private int generalTint = 0x000000;
     private int generalAlpha = 40;
 
-    public INBTCompound writeToNBT(INBTCompound nbttagcompound) {
+    public INbt writeToNBT(INbt nbttagcompound) {
         nbttagcompound.setBoolean("TintEnabled", tintEnabled);
         if (tintEnabled) {
             nbttagcompound.setBoolean("HurtTintEnabled", hurtTintEnabled);
@@ -23,7 +23,7 @@ public class TintData implements ITintData {
         return nbttagcompound;
     }
 
-    public void readFromNBT(INBTCompound nbttagcompound) {
+    public void readFromNBT(INbt nbttagcompound) {
         tintEnabled = nbttagcompound.getBoolean("TintEnabled");
         if (tintEnabled) {
             hurtTintEnabled = nbttagcompound.getBoolean("HurtTintEnabled");

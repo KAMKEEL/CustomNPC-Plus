@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 import noppes.npcs.core.NBT;
 import noppes.npcs.constants.EnumStockReset;
 
@@ -266,7 +266,7 @@ public class TraderStock {
 
     // ==================== NBT Serialization ====================
 
-    public INBTCompound writeToNBT(INBTCompound compound) {
+    public INbt writeToNBT(INbt compound) {
         compound.setBoolean("EnableStock", enableStock);
         compound.setBoolean("PerPlayer", perPlayer);
         compound.setInteger("ResetType", resetType.ordinal());
@@ -276,19 +276,19 @@ public class TraderStock {
         compound.setLong("LastResetTime", lastResetTime);
 
         // Save per-player stock
-        INBTList playerList = NBT.list();
+        INbtList playerList = NBT.list();
         for (Map.Entry<String, PlayerTraderStock> entry : playerStock.entrySet()) {
-            INBTCompound playerTag = NBT.compound();
+            INbt playerTag = NBT.compound();
             playerTag.setString("Player", entry.getKey());
             entry.getValue().writeToNBT(playerTag);
             playerList.addCompound(playerTag);
         }
-        compound.setList("PlayerStock", playerList);
+        compound.setTagList("PlayerStock", playerList);
 
         return compound;
     }
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         enableStock = compound.getBoolean("EnableStock");
         perPlayer = compound.getBoolean("PerPlayer");
 
@@ -313,9 +313,9 @@ public class TraderStock {
 
         // Load per-player stock
         playerStock.clear();
-        INBTList playerList = compound.getList("PlayerStock", 10);
+        INbtList playerList = compound.getTagList("PlayerStock", 10);
         for (int i = 0; i < playerList.size(); i++) {
-            INBTCompound playerTag = playerList.getCompound(i);
+            INbt playerTag = playerList.getCompound(i);
             String playerName = playerTag.getString("Player");
             PlayerTraderStock pStock = new PlayerTraderStock();
             pStock.readFromNBT(playerTag);
@@ -348,11 +348,11 @@ public class TraderStock {
             return false;
         }
 
-        public void writeToNBT(INBTCompound compound) {
+        public void writeToNBT(INbt compound) {
             compound.setIntArray("Purchased", purchasedAmounts);
         }
 
-        public void readFromNBT(INBTCompound compound) {
+        public void readFromNBT(INbt compound) {
             int[] loaded = compound.getIntArray("Purchased");
             if (loaded != null && loaded.length == 18) {
                 purchasedAmounts = loaded;

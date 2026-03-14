@@ -2,8 +2,8 @@ package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.handler.data.ITransportCategory;
 import noppes.npcs.api.handler.data.ITransportLocation;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 import noppes.npcs.core.NBT;
 
 import java.util.HashMap;
@@ -27,11 +27,11 @@ public class TransportCategory implements ITransportCategory {
         return list;
     }
 
-    public void readNBT(INBTCompound compound) {
+    public void readNBT(INbt compound) {
         id = compound.getInteger("CategoryId");
         title = compound.getString("CategoryTitle");
 
-        INBTList locs = compound.getList("CategoryLocations", 10);
+        INbtList locs = compound.getTagList("CategoryLocations", 10);
         if (locs == null || locs.size() == 0)
             return;
 
@@ -43,14 +43,14 @@ public class TransportCategory implements ITransportCategory {
         }
     }
 
-    public void writeNBT(INBTCompound compound) {
+    public void writeNBT(INbt compound) {
         compound.setInteger("CategoryId", id);
         compound.setString("CategoryTitle", title);
-        INBTList locs = NBT.list();
+        INbtList locs = NBT.list();
         for (TransportLocation location : locations.values()) {
             locs.addCompound(location.writeNBT());
         }
-        compound.setList("CategoryLocations", locs);
+        compound.setTagList("CategoryLocations", locs);
     }
 
     public int getId() {

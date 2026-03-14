@@ -1,4 +1,4 @@
-package noppes.npcs.platform;
+package kamkeel.npcs.platform;
 
 /**
  * Static accessor for the active {@link PlatformService} implementation.

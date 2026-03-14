@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.handler.data.IPartyOptions;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 import noppes.npcs.core.CoreConfig;
 import noppes.npcs.constants.EnumPartyExchange;
@@ -25,7 +25,7 @@ public class PartyOptions implements IPartyOptions {
     public int minPartySize = CoreConfig.DefaultMinPartySize;
     public int maxPartySize = CoreConfig.DefaultMaxPartySize;
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         // Party Management
         allowParty = compound.getBoolean("AllowParty");
         if (allowParty) {
@@ -74,8 +74,8 @@ public class PartyOptions implements IPartyOptions {
         }
     }
 
-    public INBTCompound writeToNBT() {
-        INBTCompound compound = NBT.compound();
+    public INbt writeToNBT() {
+        INbt compound = NBT.compound();
         compound.setBoolean("AllowParty", allowParty);
         if (allowParty) {
             compound.setBoolean("OnlyParty", onlyParty);

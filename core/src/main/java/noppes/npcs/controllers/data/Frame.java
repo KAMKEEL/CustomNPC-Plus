@@ -3,8 +3,8 @@ package noppes.npcs.controllers.data;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.handler.data.IFramePart;
 import noppes.npcs.constants.EnumAnimationPart;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 import noppes.npcs.core.NBT;
 
 import java.util.HashMap;
@@ -124,7 +124,7 @@ public class Frame implements IFrame {
         this.comment = comment;
     }
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         duration = compound.getInteger("Duration");
         if (compound.hasKey("ColorMarker")) {
             this.setColorMarker(compound.getInteger("ColorMarker"));
@@ -149,9 +149,9 @@ public class Frame implements IFrame {
         }
 
         HashMap<EnumAnimationPart, FramePart> frameParts = new HashMap<>();
-        INBTList list = compound.getList("FrameParts", 10);
+        INbtList list = compound.getTagList("FrameParts", 10);
         for (int i = 0; i < list.size(); i++) {
-            INBTCompound item = list.getCompound(i);
+            INbt item = list.getCompound(i);
             FramePart framePart = new FramePart();
             framePart.readFromNBT(item);
             if (!framePart.customized) {
@@ -163,8 +163,8 @@ public class Frame implements IFrame {
         this.frameParts = frameParts;
     }
 
-    public INBTCompound writeToNBT() {
-        INBTCompound compound = NBT.compound();
+    public INbt writeToNBT() {
+        INbt compound = NBT.compound();
         compound.setInteger("Duration", duration);
         compound.setInteger("ColorMarker", this.colorMarker);
         compound.setString("Comment", this.comment);
@@ -174,12 +174,12 @@ public class Frame implements IFrame {
             compound.setByte("Smooth", smooth);
         }
 
-        INBTList list = NBT.list();
+        INbtList list = NBT.list();
         for (FramePart framePart : frameParts.values()) {
-            INBTCompound item = framePart.writeToNBT();
+            INbt item = framePart.writeToNBT();
             list.addCompound(item);
         }
-        compound.setList("FrameParts", list);
+        compound.setTagList("FrameParts", list);
         return compound;
     }
 

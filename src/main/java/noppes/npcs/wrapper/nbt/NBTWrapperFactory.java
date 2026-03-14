@@ -2,8 +2,8 @@ package noppes.npcs.wrapper.nbt;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 import noppes.npcs.platform.nbt.NBTFactory;
 
 /**
@@ -12,17 +12,17 @@ import noppes.npcs.platform.nbt.NBTFactory;
 public class NBTWrapperFactory implements NBTFactory {
 
     @Override
-    public INBTCompound createCompound() {
+    public INbt createCompound() {
         return new NBTWrapper(new NBTTagCompound());
     }
 
     @Override
-    public INBTList createList() {
+    public INbtList createList() {
         return new NBTListWrapper(new NBTTagList());
     }
 
     @Override
-    public INBTCompound wrap(Object mcNBTTagCompound) {
+    public INbt wrap(Object mcNBTTagCompound) {
         if (!(mcNBTTagCompound instanceof NBTTagCompound)) {
             throw new IllegalArgumentException(
                 "Expected NBTTagCompound, got " + mcNBTTagCompound.getClass().getName()
@@ -32,7 +32,7 @@ public class NBTWrapperFactory implements NBTFactory {
     }
 
     @Override
-    public INBTList wrapList(Object mcNBTTagList) {
+    public INbtList wrapList(Object mcNBTTagList) {
         if (!(mcNBTTagList instanceof NBTTagList)) {
             throw new IllegalArgumentException(
                 "Expected NBTTagList, got " + mcNBTTagList.getClass().getName()

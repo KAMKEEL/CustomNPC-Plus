@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.handler.data.ITag;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 import java.util.UUID;
 
@@ -34,7 +34,7 @@ public class Tag implements ITag {
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
-    public void readNBT(INBTCompound compound) {
+    public void readNBT(INbt compound) {
         name = compound.getString("Name");
         color = compound.getInteger("Color");
         id = compound.getInteger("Slot");
@@ -42,7 +42,7 @@ public class Tag implements ITag {
         uuid = UUID.fromString(compound.getString("Uuid"));
     }
 
-    public void writeNBT(INBTCompound compound) {
+    public void writeNBT(INbt compound) {
         compound.setInteger("Slot", id);
         compound.setString("Name", name);
         compound.setInteger("Color", color);
@@ -50,12 +50,12 @@ public class Tag implements ITag {
         compound.setBoolean("HideTag", hideTag);
     }
 
-    public void readShortNBT(INBTCompound compound) {
+    public void readShortNBT(INbt compound) {
         name = compound.getString("Name");
         uuid = UUID.fromString(compound.getString("Uuid"));
     }
 
-    public void writeShortNBT(INBTCompound compound) {
+    public void writeShortNBT(INbt compound) {
         compound.setString("Name", name);
         compound.setString("Uuid", uuid.toString());
     }

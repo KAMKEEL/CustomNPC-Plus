@@ -2,7 +2,7 @@ package noppes.npcs.wrapper.nbt;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.platform.nbt.NBTIO;
 
 import java.io.File;
@@ -17,7 +17,7 @@ import java.io.IOException;
 public class NBTWrapperIO implements NBTIO {
 
     @Override
-    public INBTCompound readCompressed(File file) throws IOException {
+    public INbt readCompressed(File file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         try {
             NBTTagCompound tag = CompressedStreamTools.readCompressed(fis);
@@ -28,7 +28,7 @@ public class NBTWrapperIO implements NBTIO {
     }
 
     @Override
-    public void writeCompressed(INBTCompound compound, File file) throws IOException {
+    public void writeCompressed(INbt compound, File file) throws IOException {
         NBTTagCompound tag = ((NBTWrapper) compound).getMCTag();
         FileOutputStream fos = new FileOutputStream(file);
         try {
@@ -39,15 +39,14 @@ public class NBTWrapperIO implements NBTIO {
     }
 
     @Override
-    public INBTCompound read(File file) throws IOException {
+    public INbt read(File file) throws IOException {
         NBTTagCompound tag = CompressedStreamTools.read(file);
         return new NBTWrapper(tag);
     }
 
     @Override
-    public void safeWrite(INBTCompound compound, File file) throws IOException {
+    public void safeWrite(INbt compound, File file) throws IOException {
         NBTTagCompound tag = ((NBTWrapper) compound).getMCTag();
-        // 1.7.10 doesn't have safeWrite, implement with temp file
         File tempFile = new File(file.getAbsolutePath() + ".tmp");
         FileOutputStream fos = new FileOutputStream(tempFile);
         try {
@@ -55,7 +54,6 @@ public class NBTWrapperIO implements NBTIO {
         } finally {
             fos.close();
         }
-        // Atomic rename
         if (file.exists()) {
             file.delete();
         }

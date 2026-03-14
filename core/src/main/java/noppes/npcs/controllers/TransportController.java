@@ -3,13 +3,12 @@ package noppes.npcs.controllers;
 import noppes.npcs.core.NBT;
 import noppes.npcs.controllers.data.TransportCategory;
 import noppes.npcs.controllers.data.TransportLocation;
-import noppes.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Map;
 
 public class TransportController {
     private HashMap<Integer, TransportLocation> locations = new HashMap<Integer, TransportLocation>();
@@ -68,15 +67,15 @@ public class TransportController {
         // OLD: try (FileInputStream fis = new FileInputStream(file)) {
         // OLD:     nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
         // OLD: }
-        INBTCompound nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
+        INbt nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
         lastUsedID = nbttagcompound1.getInteger("lastID");
-        INBTList list = nbttagcompound1.getList("NPCTransportCategories", 10);
+        INbtList list = nbttagcompound1.getTagList("NPCTransportCategories", 10);
         if (list == null) {
             return;
         }
         for (int i = 0; i < list.size(); i++) {
             TransportCategory category = new TransportCategory();
-            INBTCompound compound = list.getCompound(i);
+            INbt compound = list.getCompound(i);
             // OLD: category.readNBT(new NBTWrapper(compound));
             category.readNBT(compound);
 
@@ -89,16 +88,16 @@ public class TransportController {
         this.categories = categories;
     }
 
-    public INBTCompound getNBT() {
-        INBTList list = NBT.list();
+    public INbt getNBT() {
+        INbtList list = NBT.list();
         for (TransportCategory category : categories.values()) {
-            INBTCompound compound = NBT.compound();
+            INbt compound = NBT.compound();
             category.writeNBT(compound);
             list.addCompound(compound);
         }
-        INBTCompound nbttagcompound = NBT.compound();
+        INbt nbttagcompound = NBT.compound();
         nbttagcompound.setInteger("lastID", lastUsedID);
-        nbttagcompound.setList("NPCTransportCategories", list);
+        nbttagcompound.setTagList("NPCTransportCategories", list);
         return nbttagcompound;
     }
 

@@ -5,14 +5,14 @@ import net.minecraft.nbt.NBTTagFloat;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 
 /**
- * 1.7.10 implementation of INBTList.
+ * 1.7.10 implementation of INbtList.
  * Thin wrapper that delegates to NBTTagList.
  */
-public class NBTListWrapper implements INBTList {
+public class NBTListWrapper implements INbtList {
 
     private final NBTTagList tag;
 
@@ -36,7 +36,7 @@ public class NBTListWrapper implements INBTList {
     }
 
     @Override
-    public INBTCompound getCompound(int index) {
+    public INbt getCompound(int index) {
         return new NBTWrapper(tag.getCompoundTagAt(index));
     }
 
@@ -47,10 +47,6 @@ public class NBTListWrapper implements INBTList {
 
     @Override
     public int getInt(int index) {
-        // 1.7.10 doesn't have a direct getIntAt on NBTTagList.
-        // Parse from the string representation or use the compound approach.
-        // In practice, int lists are stored as compounds with "Slot" keys.
-        // For direct int tag lists, use getStringTagAt and parse.
         return Integer.parseInt(tag.getStringTagAt(index));
     }
 
@@ -77,7 +73,7 @@ public class NBTListWrapper implements INBTList {
     // --- Mutators ---
 
     @Override
-    public void addCompound(INBTCompound compound) {
+    public void addCompound(INbt compound) {
         tag.appendTag(((NBTWrapper) compound).getMCTag());
     }
 
@@ -104,7 +100,7 @@ public class NBTListWrapper implements INBTList {
     // --- Interop ---
 
     @Override
-    public Object getUnderlyingTag() {
+    public Object getMCTagList() {
         return tag;
     }
 }

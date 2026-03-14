@@ -1,7 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
 import noppes.npcs.api.ability.data.IEnergyDisplayData;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 /**
  * Groups visual color properties shared by all energy abilities.
@@ -110,7 +110,7 @@ public class EnergyDisplayData implements IEnergyDisplayData {
         this.rotationSpeed = rotationSpeed;
     }
 
-    public void writeNBT(INBTCompound nbt) {
+    public void writeNBT(INbt nbt) {
         nbt.setInteger("innerColor", innerColor);
         nbt.setInteger("outerColor", outerColor);
         nbt.setBoolean("outerColorEnabled", outerColorEnabled);
@@ -120,7 +120,7 @@ public class EnergyDisplayData implements IEnergyDisplayData {
         nbt.setFloat("rotationSpeed", rotationSpeed);
     }
 
-    public void readNBT(INBTCompound nbt) {
+    public void readNBT(INbt nbt) {
         innerColor = nbt.hasKey("innerColor") ? nbt.getInteger("innerColor") : 0xFFFFFF;
         outerColor = nbt.hasKey("outerColor") ? nbt.getInteger("outerColor") : 0x8888FF;
         outerColorEnabled = !nbt.hasKey("outerColorEnabled") || nbt.getBoolean("outerColorEnabled");

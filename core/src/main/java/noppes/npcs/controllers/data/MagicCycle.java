@@ -1,8 +1,8 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.api.handler.data.IMagicCycle;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 import noppes.npcs.core.NBT;
 import noppes.npcs.constants.EnumDiagramLayout;
 
@@ -22,15 +22,15 @@ public class MagicCycle implements IMagicCycle {
     public MagicCycle() {
     }
 
-    public void readNBT(INBTCompound compound) {
+    public void readNBT(INbt compound) {
         id = compound.getInteger("ID");
         name = compound.getString("Name");
         displayName = compound.getString("DisplayName");
         layout = EnumDiagramLayout.values()[compound.getInteger("Layout")];
         associations.clear();
-        INBTList list = compound.getList("Associations", 10); // compound tags
+        INbtList list = compound.getTagList("Associations", 10); // compound tags
         for (int i = 0; i < list.size(); i++) {
-            INBTCompound assocTag = list.getCompound(i);
+            INbt assocTag = list.getCompound(i);
             MagicAssociation assoc = new MagicAssociation();
             assoc.magicId = assocTag.getInteger("MagicID");
             assoc.index = assocTag.getInteger("Index");
@@ -39,20 +39,20 @@ public class MagicCycle implements IMagicCycle {
         }
     }
 
-    public void writeNBT(INBTCompound compound) {
+    public void writeNBT(INbt compound) {
         compound.setInteger("ID", id);
         compound.setString("Name", name);
         compound.setString("DisplayName", displayName);
         compound.setInteger("Layout", layout.ordinal());
-        INBTList list = NBT.list();
+        INbtList list = NBT.list();
         for (MagicAssociation assoc : associations.values()) {
-            INBTCompound assocTag = NBT.compound();
+            INbt assocTag = NBT.compound();
             assocTag.setInteger("MagicID", assoc.magicId);
             assocTag.setInteger("Index", assoc.index);
             assocTag.setInteger("Priority", assoc.priority);
             list.addCompound(assocTag);
         }
-        compound.setList("Associations", list);
+        compound.setTagList("Associations", list);
     }
 
     public int getId() {

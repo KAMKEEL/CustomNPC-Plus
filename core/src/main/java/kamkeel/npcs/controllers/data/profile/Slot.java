@@ -2,7 +2,7 @@ package kamkeel.npcs.controllers.data.profile;
 
 import noppes.npcs.api.handler.data.ISlot;
 import noppes.npcs.core.NBT;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,14 +13,14 @@ public class Slot implements ISlot {
     private String name;
     private long lastLoaded;
     private boolean temporary;
-    private Map<String, INBTCompound> components = new HashMap<>();
+    private Map<String, INbt> components = new HashMap<>();
 
     public Slot(int id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public Slot(int id, String name, long lastLoaded, boolean temporary, Map<String, INBTCompound> components) {
+    public Slot(int id, String name, long lastLoaded, boolean temporary, Map<String, INbt> components) {
         this.id = id;
         this.name = name;
         this.lastLoaded = lastLoaded;
@@ -68,35 +68,35 @@ public class Slot implements ISlot {
     }
 
     @Override
-    public Map<String, INBTCompound> getComponents() {
+    public Map<String, INbt> getComponents() {
         return components;
     }
 
     @Override
-    public void setComponentData(String key, INBTCompound data) {
+    public void setComponentData(String key, INbt data) {
         components.put(key, data);
     }
 
     @Override
-    public INBTCompound getComponentData(String key) {
+    public INbt getComponentData(String key) {
         return components.get(key);
     }
 
     @Override
-    public INBTCompound toNBT() {
-        INBTCompound slotNBT = NBT.compound();
+    public INbt toNBT() {
+        INbt slotNBT = NBT.compound();
         slotNBT.setString("Name", name);
         slotNBT.setLong("LastLoaded", lastLoaded);
         slotNBT.setBoolean("Temporary", temporary);
-        INBTCompound compCompound = NBT.compound();
-        for (Map.Entry<String, INBTCompound> entry : components.entrySet()) {
+        INbt compCompound = NBT.compound();
+        for (Map.Entry<String, INbt> entry : components.entrySet()) {
             compCompound.setCompound(entry.getKey(), entry.getValue());
         }
         slotNBT.setCompound("Components", compCompound);
         return slotNBT;
     }
 
-    public static Slot fromNBT(int id, INBTCompound slotNBT) {
+    public static Slot fromNBT(int id, INbt slotNBT) {
         String name = slotNBT.getString("Name");
         long lastLoaded = slotNBT.getLong("LastLoaded");
         boolean temporary = slotNBT.getBoolean("Temporary");
@@ -104,7 +104,7 @@ public class Slot implements ISlot {
         slot.setLastLoaded(lastLoaded);
         slot.setTemporary(temporary);
         if (slotNBT.hasKey("Components")) {
-            INBTCompound compCompound = slotNBT.getCompound("Components");
+            INbt compCompound = slotNBT.getCompound("Components");
             Set<String> keys = compCompound.getKeySet();
             for (String key : keys) {
                 slot.setComponentData(key, compCompound.getCompound(key));

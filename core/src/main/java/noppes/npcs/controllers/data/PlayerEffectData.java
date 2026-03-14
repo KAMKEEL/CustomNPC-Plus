@@ -1,8 +1,8 @@
 package noppes.npcs.controllers.data;
 
 import noppes.npcs.constants.NBTTypes;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
 import noppes.npcs.core.NBT;
 
 import java.util.HashSet;
@@ -16,26 +16,26 @@ public class PlayerEffectData {
     public PlayerEffectData() {
     }
 
-    public INBTCompound writeToNBT(INBTCompound compound) {
-        INBTList list = NBT.list();
+    public INbt writeToNBT(INbt compound) {
+        INbtList list = NBT.list();
         for (Map.Entry<EffectKey, PlayerEffect> entry : effects.entrySet()) {
-            INBTCompound effectCompound = NBT.compound();
+            INbt effectCompound = NBT.compound();
             effectCompound.setInteger("id", entry.getKey().getId());
             effectCompound.setInteger("index", entry.getKey().getIndex());
             effectCompound.setInteger("duration", entry.getValue().duration);
             effectCompound.setByte("level", entry.getValue().level);
             list.addCompound(effectCompound);
         }
-        compound.setList("Effects", list);
+        compound.setTagList("Effects", list);
         return compound;
     }
 
-    public void readFromNBT(INBTCompound compound) {
+    public void readFromNBT(INbt compound) {
         HashSet<EffectKey> newKeys = new HashSet<>();
         if (compound.hasKey("Effects")) {
-            INBTList list = compound.getList("Effects", NBTTypes.TAG_COMPOUND);
+            INbtList list = compound.getTagList("Effects", NBTTypes.TAG_COMPOUND);
             for (int i = 0; i < list.size(); i++) {
-                INBTCompound effectCompound = list.getCompound(i);
+                INbt effectCompound = list.getCompound(i);
                 int id = effectCompound.getInteger("id");
                 int index = effectCompound.getInteger("index");
                 int duration = effectCompound.getInteger("duration");

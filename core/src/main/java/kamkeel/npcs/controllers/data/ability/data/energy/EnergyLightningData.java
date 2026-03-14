@@ -1,7 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
 import noppes.npcs.api.ability.data.IEnergyLightningData;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 /**
  * Groups lightning visual effect properties for energy abilities.
@@ -64,14 +64,14 @@ public class EnergyLightningData implements IEnergyLightningData {
         this.lightningFadeTime = Math.max(1, lightningFadeTime);
     }
 
-    public void writeNBT(INBTCompound nbt) {
+    public void writeNBT(INbt nbt) {
         nbt.setBoolean("lightningEffect", lightningEffect);
         nbt.setFloat("lightningDensity", lightningDensity);
         nbt.setFloat("lightningRadius", lightningRadius);
         nbt.setInteger("lightningFadeTime", lightningFadeTime);
     }
 
-    public void readNBT(INBTCompound nbt) {
+    public void readNBT(INbt nbt) {
         lightningEffect = nbt.hasKey("lightningEffect") && nbt.getBoolean("lightningEffect");
         lightningDensity = nbt.hasKey("lightningDensity") ? nbt.getFloat("lightningDensity") : 0.15f;
         lightningRadius = nbt.hasKey("lightningRadius") ? nbt.getFloat("lightningRadius") : 0.5f;

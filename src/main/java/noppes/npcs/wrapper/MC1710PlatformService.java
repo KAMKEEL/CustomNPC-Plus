@@ -8,21 +8,28 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.platform.PlatformService;
-import kamkeel.npcs.platform.entity.*;
-import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.platform.nbt.INBTList;
+import kamkeel.npcs.platform.PlatformService;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.platform.nbt.NBTFactory;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptDamageSource;
+import noppes.npcs.scripted.ScriptWorld;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.wrapper.nbt.NBTWrapperFactory;
 import noppes.npcs.wrapper.nbt.NBTWrapperIO;
-import kamkeel.npcs.wrapper.platform.*;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
  * 1.7.10 implementation of PlatformService.
- * Bridges CORE code to MC 1.7.10 APIs.
+ * Bridges CORE code to MC 1.7.10 APIs via Script* wrappers.
  */
 public class MC1710PlatformService implements PlatformService {
 
@@ -35,12 +42,12 @@ public class MC1710PlatformService implements PlatformService {
     }
 
     @Override
-    public INBTCompound readCompressedNBT(File file) throws IOException {
+    public INbt readCompressedNBT(File file) throws IOException {
         return nbtIO.readCompressed(file);
     }
 
     @Override
-    public void writeCompressedNBT(INBTCompound compound, File file) throws IOException {
+    public void writeCompressedNBT(INbt compound, File file) throws IOException {
         nbtIO.writeCompressed(compound, file);
     }
 
@@ -62,7 +69,6 @@ public class MC1710PlatformService implements PlatformService {
     @Override
     public boolean isPhysicalClient() {
         try {
-            // If Minecraft class is loadable, we're on the client
             Class.forName("net.minecraft.client.Minecraft");
             return true;
         } catch (ClassNotFoundException e) {
@@ -104,33 +110,35 @@ public class MC1710PlatformService implements PlatformService {
     // --- Entity Wrapping ---
 
     @Override
-    public IUser wrapPlayer(Object mcPlayer) {
-        return new PlayerWrapper((EntityPlayerMP) mcPlayer);
+    @SuppressWarnings("unchecked")
+    public IPlayer wrapPlayer(Object mcPlayer) {
+        return (IPlayer) NpcAPI.Instance().getIEntity((Entity) mcPlayer);
     }
 
     @Override
-    public IMob wrapEntity(Object mcEntity) {
-        return new EntityWrapper((Entity) mcEntity);
+    public IEntity wrapEntity(Object mcEntity) {
+        return NpcAPI.Instance().getIEntity((Entity) mcEntity);
     }
 
     @Override
-    public ILiving wrapLiving(Object mcLiving) {
-        return new LivingWrapper((EntityLivingBase) mcLiving);
+    @SuppressWarnings("unchecked")
+    public IEntityLivingBase wrapLiving(Object mcLiving) {
+        return (IEntityLivingBase) NpcAPI.Instance().getIEntity((Entity) mcLiving);
     }
 
     @Override
-    public IStack wrapStack(Object mcStack) {
-        return new StackWrapper((ItemStack) mcStack);
+    public IItemStack wrapStack(Object mcStack) {
+        return NpcAPI.Instance().getIItemStack((ItemStack) mcStack);
     }
 
     @Override
-    public IGameWorld wrapWorld(Object mcWorld) {
-        return new WorldWrapper((World) mcWorld);
+    public IWorld wrapWorld(Object mcWorld) {
+        return NpcAPI.Instance().getIWorld((World) mcWorld);
     }
 
     @Override
-    public IDamage wrapDamageSource(Object mcSource) {
-        return new DamageWrapper((DamageSource) mcSource);
+    public IDamageSource wrapDamageSource(Object mcSource) {
+        return NpcAPI.Instance().getIDamageSource((DamageSource) mcSource);
     }
 
     // --- Scheduling ---
@@ -139,8 +147,6 @@ public class MC1710PlatformService implements PlatformService {
     public void runOnMainThread(Runnable task) {
         MinecraftServer server = MinecraftServer.getServer();
         if (server != null) {
-            // 1.7.10 doesn't have addScheduledTask — just run directly if on main thread
-            // or queue via the server's next tick
             task.run();
         } else {
             task.run();

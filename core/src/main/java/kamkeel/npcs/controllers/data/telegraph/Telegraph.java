@@ -1,6 +1,6 @@
 package kamkeel.npcs.controllers.data.telegraph;
 
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 import noppes.npcs.core.NBT;
 
 /**
@@ -70,8 +70,8 @@ public class Telegraph {
     // NBT SERIALIZATION
     // ═══════════════════════════════════════════════════════════════════
 
-    public INBTCompound writeNBT() {
-        INBTCompound nbt = NBT.compound();
+    public INbt writeNBT() {
+        INbt nbt = NBT.compound();
         nbt.setString("id", id);
         nbt.setString("type", type.name());
         nbt.setFloat("radius", radius);
@@ -93,7 +93,7 @@ public class Telegraph {
         return nbt;
     }
 
-    public void readNBT(INBTCompound nbt) {
+    public void readNBT(INbt nbt) {
         this.id = nbt.getString("id");
         if (nbt.hasKey("type")) {
             try {

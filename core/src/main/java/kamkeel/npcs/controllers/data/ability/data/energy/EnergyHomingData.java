@@ -1,7 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
 import noppes.npcs.api.ability.data.IEnergyHomingData;
-import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.api.INbt;
 
 /**
  * Groups homing/movement properties for energy projectile abilities.
@@ -63,14 +63,14 @@ public class EnergyHomingData implements IEnergyHomingData {
         this.homingRange = homingRange;
     }
 
-    public void writeNBT(INBTCompound nbt) {
+    public void writeNBT(INbt nbt) {
         nbt.setFloat("speed", speed);
         nbt.setBoolean("homing", homing);
         nbt.setFloat("homingStrength", homingStrength);
         nbt.setFloat("homingRange", homingRange);
     }
 
-    public void readNBT(INBTCompound nbt) {
+    public void readNBT(INbt nbt) {
         speed = nbt.hasKey("speed") ? nbt.getFloat("speed") : 0.5f;
         homing = !nbt.hasKey("homing") || nbt.getBoolean("homing");
         homingStrength = nbt.hasKey("homingStrength") ? nbt.getFloat("homingStrength") : 0.15f;
