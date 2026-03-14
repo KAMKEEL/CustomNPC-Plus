@@ -1,6 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
-import bigguy.treesitter.java.*;
+import bigguy.texteditor.treesitter.java.*;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
 import java.util.ArrayList;

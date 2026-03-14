@@ -1,4 +1,4 @@
-package bigguy.treesitter.java;
+package bigguy.texteditor.treesitter.java;
 
 import java.util.Collections;
 import java.util.Map;

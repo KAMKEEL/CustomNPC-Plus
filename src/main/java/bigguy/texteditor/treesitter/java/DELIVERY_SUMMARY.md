@@ -260,7 +260,7 @@ dependencies {
 ### Step 2: Import and Use
 
 ```java
-import bigguy.treesitter.java.*;
+import bigguy.texteditor.treesitter.java.*;
 
 JavaParser parser = new JavaParser();
 JavaQueryEngine engine = new JavaQueryEngine();

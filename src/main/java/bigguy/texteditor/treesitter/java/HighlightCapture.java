@@ -1,4 +1,4 @@
-package bigguy.treesitter.java;
+package bigguy.texteditor.treesitter.java;
 
 /**
  * A single highlight capture result produced by running a highlight query

@@ -1,4 +1,4 @@
-package bigguy.treesitter.java.spi;
+package bigguy.texteditor.treesitter.java.spi;
 
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package bigguy.treesitter.java;
+package bigguy.texteditor.treesitter.java;
 
 /**
  * Configuration for {@link JavaParser} behavior.

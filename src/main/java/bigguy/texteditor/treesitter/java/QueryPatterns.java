@@ -1,4 +1,4 @@
-package bigguy.treesitter.java;
+package bigguy.texteditor.treesitter.java;
 
 /**
  * Tree-sitter S-expression query patterns ported from Zed's Java extension.

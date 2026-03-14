@@ -1,4 +1,4 @@
-package bigguy.treesitter.java;
+package bigguy.texteditor.treesitter.java;
 
 /**
  * Highlight groups corresponding to Zed's capture name conventions.

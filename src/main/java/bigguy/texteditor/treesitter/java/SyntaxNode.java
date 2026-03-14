@@ -1,4 +1,4 @@
-package bigguy.treesitter.java;
+package bigguy.texteditor.treesitter.java;
 
 import org.treesitter.TSNode;
 import org.treesitter.TSPoint;

@@ -1,4 +1,4 @@
-package bigguy.treesitter.java;
+package bigguy.texteditor.treesitter.java;
 
 /**
  * A production-ready utility for printing the complete Concrete Syntax Tree (CST)

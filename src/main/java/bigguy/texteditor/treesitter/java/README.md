@@ -180,7 +180,7 @@ dependencies {
 
 ```java
 
-import bigguy.treesitter.java.*;
+import bigguy.texteditor.treesitter.java.*;
 
 public class NpcScriptAnalyzer {
     private final JavaParser parser = new JavaParser();

@@ -445,7 +445,7 @@ public class ScriptDocument {
         ScriptProfiler.end("parseImports");
 
         ScriptProfiler.begin("parseStructure");
-        parseStructure();
+      //  parseStructure();
         ScriptProfiler.end("parseStructure");
 
         ScriptProfiler.begin("buildMarks");
