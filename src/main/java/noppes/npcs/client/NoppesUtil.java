@@ -28,7 +28,7 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.MagicData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -62,7 +62,7 @@ public class NoppesUtil {
         for (int i = 0; i < skinOverlayList.tagCount(); i++) {
             int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
             SkinOverlay overlay = new SkinOverlay();
-            overlay.readFromNBT(new MC1710NBTCompound(skinOverlayList.getCompoundTagAt(i)));
+            overlay.readFromNBT(new NBTWrapper(skinOverlayList.getCompoundTagAt(i)));
             if (oldOverlays.containsKey(tagID)) {
                 overlay.ticks = oldOverlays.get(tagID).ticks;
             }
@@ -262,7 +262,7 @@ public class NoppesUtil {
         Map<String, Integer> bankData = readMap(data);
         Map<String, Integer> factionData = readMap(data);
         MagicData magicData = new MagicData();
-        magicData.readToNBT(new MC1710NBTCompound(ByteBufUtils.readNBT(data)));
+        magicData.readToNBT(new NBTWrapper(ByteBufUtils.readNBT(data)));
 
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
         if (gui == null)

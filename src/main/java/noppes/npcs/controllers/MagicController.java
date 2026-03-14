@@ -14,7 +14,7 @@ import noppes.npcs.constants.EnumDiagramLayout;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicAssociation;
 import noppes.npcs.controllers.data.MagicCycle;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -214,7 +214,7 @@ public class MagicController implements IMagicHandler {
         for (int i = 0; i < cycleList.tagCount(); i++) {
             NBTTagCompound catCompound = cycleList.getCompoundTagAt(i);
             MagicCycle cycle = new MagicCycle();
-            cycle.readNBT(new MC1710NBTCompound(catCompound));
+            cycle.readNBT(new NBTWrapper(catCompound));
             cycles.put(cycle.id, cycle);
         }
     }
@@ -229,7 +229,7 @@ public class MagicController implements IMagicHandler {
         NBTTagList catList = new NBTTagList();
         for (MagicCycle cat : cycles.values()) {
             NBTTagCompound catCompound = new NBTTagCompound();
-            cat.writeNBT(new MC1710NBTCompound(catCompound));
+            cat.writeNBT(new NBTWrapper(catCompound));
             catList.appendTag(catCompound);
         }
         NBTTagCompound compound = new NBTTagCompound();
@@ -345,7 +345,7 @@ public class MagicController implements IMagicHandler {
         cycles.put(cycle.id, cycle);
 
         NBTTagCompound cycleCompound = new NBTTagCompound();
-        cycle.writeNBT(new MC1710NBTCompound(cycleCompound));
+        cycle.writeNBT(new NBTWrapper(cycleCompound));
         SyncController.syncUpdate(EnumSyncType.MAGIC_CYCLE, -1, cycleCompound);
 
         saveMagicData();

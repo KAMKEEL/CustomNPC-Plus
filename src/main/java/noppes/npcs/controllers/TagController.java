@@ -11,7 +11,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.ITagHandler;
 import noppes.npcs.api.handler.data.ITag;
 import noppes.npcs.controllers.data.Tag;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -93,7 +93,7 @@ public class TagController implements ITagHandler {
             for (int i = 0; i < list.tagCount(); i++) {
                 NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
                 Tag tag = new Tag();
-                tag.readNBT(new MC1710NBTCompound(nbttagcompound));
+                tag.readNBT(new NBTWrapper(nbttagcompound));
                 tags.put(tag.id, tag);
                 tagUUIDs.put(tag.uuid, tag.id);
             }
@@ -106,7 +106,7 @@ public class TagController implements ITagHandler {
         for (int slot : tags.keySet()) {
             Tag tag = tags.get(slot);
             NBTTagCompound nbtfactions = new NBTTagCompound();
-            tag.writeNBT(new MC1710NBTCompound(nbtfactions));
+            tag.writeNBT(new NBTWrapper(nbtfactions));
             list.appendTag(nbtfactions);
         }
         NBTTagCompound nbttagcompound = new NBTTagCompound();

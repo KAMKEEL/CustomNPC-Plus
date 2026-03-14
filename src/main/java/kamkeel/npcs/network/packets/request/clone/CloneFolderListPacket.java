@@ -16,7 +16,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.data.CloneFolder;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.io.IOException;
 
@@ -51,7 +51,7 @@ public final class CloneFolderListPacket extends AbstractPacket {
         NBTTagCompound compound = new NBTTagCompound();
         NBTTagList folderList = new NBTTagList();
         for (CloneFolder folder : ServerCloneController.Instance.getFolderList()) {
-            folderList.appendTag(((MC1710NBTCompound) folder.writeNBT(new MC1710NBTCompound(new NBTTagCompound()))).getMCTag());
+            folderList.appendTag(((NBTWrapper) folder.writeNBT(new NBTWrapper(new NBTTagCompound()))).getMCTag());
         }
         compound.setTag("CloneFolders", folderList);
 

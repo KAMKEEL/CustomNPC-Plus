@@ -7,7 +7,7 @@ import kamkeel.npcs.network.packets.data.ability.AbilityHotbarSyncPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 public class PlayerAbilityHotbarData {
     public AbilityHotbarData[] slots = new AbilityHotbarData[AbilityHotbarData.TOTAL_SLOTS];
@@ -42,14 +42,14 @@ public class PlayerAbilityHotbarData {
 
     public void writeToNBT(NBTTagCompound compound) {
         for (int i = 0; i < slots.length; i++) {
-            slots[i].writeToNBT(new MC1710NBTCompound(compound));
+            slots[i].writeToNBT(new NBTWrapper(compound));
         }
     }
 
     public void readFromNBT(NBTTagCompound compound) {
         for (int i = 0; i < slots.length; i++) {
             NBTTagCompound slotTag = compound.getCompoundTag("AbilityHotbar" + i);
-            slots[i].readFromNBT(new MC1710NBTCompound(slotTag));
+            slots[i].readFromNBT(new NBTWrapper(slotTag));
         }
         validateSlots();
     }

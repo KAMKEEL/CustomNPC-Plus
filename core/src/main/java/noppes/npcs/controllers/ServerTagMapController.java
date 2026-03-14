@@ -56,7 +56,7 @@ public class ServerTagMapController {
     private void loadTagMapFile(File file) throws Exception {
         // OLD: DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
         // OLD: NBTTagCompound nbtCompound = CompressedStreamTools.read(var1);
-        // OLD: this.tagMap.readNBT(new MC1710NBTCompound(nbtCompound));
+        // OLD: this.tagMap.readNBT(new NBTWrapper(nbtCompound));
         // OLD: var1.close();
         INBTCompound nbtCompound = PlatformServiceHolder.get().readCompressedNBT(file);
         this.tagMap.readNBT(nbtCompound);
@@ -92,7 +92,7 @@ public class ServerTagMapController {
             File file = new File(saveDir, "___tagmap.dat_new");
             File file1 = new File(saveDir, "___tagmap.dat_old");
             File file2 = new File(saveDir, "___tagmap.dat");
-            // OLD: CompressedStreamTools.writeCompressed(((MC1710NBTCompound) tagMap.writeNBT()).getMCTag(), new FileOutputStream(file));
+            // OLD: CompressedStreamTools.writeCompressed(((NBTWrapper) tagMap.writeNBT()).getMCTag(), new FileOutputStream(file));
             PlatformServiceHolder.get().writeCompressedNBT(tagMap.writeNBT(), file);
             if (file1.exists()) {
                 file1.delete();

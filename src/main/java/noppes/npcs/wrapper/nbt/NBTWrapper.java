@@ -11,11 +11,11 @@ import java.util.Set;
  * 1.7.10 implementation of INBTCompound.
  * Thin wrapper that delegates to NBTTagCompound.
  */
-public class MC1710NBTCompound implements INBTCompound {
+public class NBTWrapper implements INBTCompound {
 
     private final NBTTagCompound tag;
 
-    public MC1710NBTCompound(NBTTagCompound tag) {
+    public NBTWrapper(NBTTagCompound tag) {
         this.tag = tag;
     }
 
@@ -81,7 +81,7 @@ public class MC1710NBTCompound implements INBTCompound {
 
     @Override
     public void setCompound(String key, INBTCompound compound) {
-        tag.setTag(key, ((MC1710NBTCompound) compound).getMCTag());
+        tag.setTag(key, ((NBTWrapper) compound).getMCTag());
     }
 
     @Override
@@ -148,12 +148,12 @@ public class MC1710NBTCompound implements INBTCompound {
 
     @Override
     public INBTCompound getCompound(String key) {
-        return new MC1710NBTCompound(tag.getCompoundTag(key));
+        return new NBTWrapper(tag.getCompoundTag(key));
     }
 
     @Override
     public INBTList getList(String key, int type) {
-        return new MC1710NBTList(tag.getTagList(key, type));
+        return new NBTListWrapper(tag.getTagList(key, type));
     }
 
     // --- Query ---
@@ -193,7 +193,7 @@ public class MC1710NBTCompound implements INBTCompound {
 
     @Override
     public void merge(INBTCompound other) {
-        NBTTagCompound otherTag = ((MC1710NBTCompound) other).getMCTag();
+        NBTTagCompound otherTag = ((NBTWrapper) other).getMCTag();
         for (Object keyObj : otherTag.func_150296_c()) {
             String key = (String) keyObj;
             tag.setTag(key, otherTag.getTag(key).copy());
@@ -202,7 +202,7 @@ public class MC1710NBTCompound implements INBTCompound {
 
     @Override
     public INBTCompound copy() {
-        return new MC1710NBTCompound((NBTTagCompound) tag.copy());
+        return new NBTWrapper((NBTTagCompound) tag.copy());
     }
 
     @Override
@@ -212,8 +212,8 @@ public class MC1710NBTCompound implements INBTCompound {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof MC1710NBTCompound) {
-            return tag.equals(((MC1710NBTCompound) obj).tag);
+        if (obj instanceof NBTWrapper) {
+            return tag.equals(((NBTWrapper) obj).tag);
         }
         return false;
     }

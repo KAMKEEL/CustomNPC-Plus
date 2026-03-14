@@ -16,7 +16,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.ClientCacheHandler;
 import net.minecraft.client.gui.GuiButton;
@@ -60,7 +60,7 @@ public class GuiLinkedItemDirectory extends GuiDirectoryCategorized {
 
     @Override
     protected void onSaveCategory(Category cat) {
-        PacketClient.sendClient(new CategorySavePacket(EnumCategoryType.LINKED_ITEM, ((MC1710NBTCompound) cat.writeNBT(new MC1710NBTCompound(new NBTTagCompound()))).getMCTag()));
+        PacketClient.sendClient(new CategorySavePacket(EnumCategoryType.LINKED_ITEM, ((NBTWrapper) cat.writeNBT(new NBTWrapper(new NBTTagCompound()))).getMCTag()));
     }
 
     @Override

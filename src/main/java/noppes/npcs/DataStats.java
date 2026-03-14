@@ -6,7 +6,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.controllers.data.MagicData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptParticle;
 import noppes.npcs.util.ValueUtil;
@@ -140,7 +140,7 @@ public class DataStats {
         compound.setBoolean("PlayerSetCanDespawn", playerSetCanDespawn);
         compound.setInteger("CollidesWith", collidesWith);
 
-        magicData.writeToNBT(new MC1710NBTCompound(compound));
+        magicData.writeToNBT(new NBTWrapper(compound));
 
         return compound;
     }
@@ -216,7 +216,7 @@ public class DataStats {
         attackInvisible = compound.getBoolean("AttackInvisible");
         canDespawn = compound.getBoolean("CanDespawn");
         playerSetCanDespawn = compound.getBoolean("PlayerSetCanDespawn");
-        magicData.readToNBT(new MC1710NBTCompound(compound));
+        magicData.readToNBT(new NBTWrapper(compound));
 
         npc.setImmuneToFire(immuneToFire);
 

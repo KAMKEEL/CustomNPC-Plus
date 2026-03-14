@@ -13,7 +13,7 @@ import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.io.IOException;
 
@@ -49,7 +49,7 @@ public final class MagicNpcGetPacket extends AbstractPacket {
             return;
 
         NBTTagCompound compound = new NBTTagCompound();
-        npc.stats.magicData.writeToNBT(new MC1710NBTCompound(compound));
+        npc.stats.magicData.writeToNBT(new NBTWrapper(compound));
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 }

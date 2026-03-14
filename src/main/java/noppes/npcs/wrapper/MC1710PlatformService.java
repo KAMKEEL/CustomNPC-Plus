@@ -13,8 +13,8 @@ import kamkeel.npcs.platform.entity.*;
 import noppes.npcs.platform.nbt.INBTCompound;
 import noppes.npcs.platform.nbt.INBTList;
 import noppes.npcs.platform.nbt.NBTFactory;
-import noppes.npcs.wrapper.nbt.MC1710NBTFactory;
-import noppes.npcs.wrapper.nbt.MC1710NBTIO;
+import noppes.npcs.wrapper.nbt.NBTWrapperFactory;
+import noppes.npcs.wrapper.nbt.NBTWrapperIO;
 import kamkeel.npcs.wrapper.platform.*;
 
 import java.io.File;
@@ -26,8 +26,8 @@ import java.io.IOException;
  */
 public class MC1710PlatformService implements PlatformService {
 
-    private final MC1710NBTFactory nbtFactory = new MC1710NBTFactory();
-    private final MC1710NBTIO nbtIO = new MC1710NBTIO();
+    private final NBTWrapperFactory nbtFactory = new NBTWrapperFactory();
+    private final NBTWrapperIO nbtIO = new NBTWrapperIO();
 
     @Override
     public NBTFactory nbt() {
@@ -104,33 +104,33 @@ public class MC1710PlatformService implements PlatformService {
     // --- Entity Wrapping ---
 
     @Override
-    public IPlatformPlayer wrapPlayer(Object mcPlayer) {
-        return new MC1710PlatformPlayer((EntityPlayerMP) mcPlayer);
+    public IUser wrapPlayer(Object mcPlayer) {
+        return new PlayerWrapper((EntityPlayerMP) mcPlayer);
     }
 
     @Override
-    public IPlatformEntity wrapEntity(Object mcEntity) {
-        return new MC1710PlatformEntity((Entity) mcEntity);
+    public IMob wrapEntity(Object mcEntity) {
+        return new EntityWrapper((Entity) mcEntity);
     }
 
     @Override
-    public IPlatformLiving wrapLiving(Object mcLiving) {
-        return new MC1710PlatformLiving((EntityLivingBase) mcLiving);
+    public ILiving wrapLiving(Object mcLiving) {
+        return new LivingWrapper((EntityLivingBase) mcLiving);
     }
 
     @Override
-    public IPlatformStack wrapStack(Object mcStack) {
-        return new MC1710PlatformStack((ItemStack) mcStack);
+    public IStack wrapStack(Object mcStack) {
+        return new StackWrapper((ItemStack) mcStack);
     }
 
     @Override
-    public IPlatformWorld wrapWorld(Object mcWorld) {
-        return new MC1710PlatformWorld((World) mcWorld);
+    public IGameWorld wrapWorld(Object mcWorld) {
+        return new WorldWrapper((World) mcWorld);
     }
 
     @Override
-    public IPlatformDamageSource wrapDamageSource(Object mcSource) {
-        return new MC1710PlatformDamageSource((DamageSource) mcSource);
+    public IDamage wrapDamageSource(Object mcSource) {
+        return new DamageWrapper((DamageSource) mcSource);
     }
 
     // --- Scheduling ---

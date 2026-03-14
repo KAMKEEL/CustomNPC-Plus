@@ -21,7 +21,7 @@ import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.HitboxData;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.controllers.data.TintData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.util.ValueUtil;
@@ -102,8 +102,8 @@ public class DataDisplay {
         nbttagcompound = skinOverlayData.writeToNBT(nbttagcompound);
 
         nbttagcompound = animationData.writeToNBT(nbttagcompound);
-        nbttagcompound = ((MC1710NBTCompound) hitboxData.writeToNBT(new MC1710NBTCompound(nbttagcompound))).getMCTag();
-        nbttagcompound = ((MC1710NBTCompound) tintData.writeToNBT(new MC1710NBTCompound(nbttagcompound))).getMCTag();
+        nbttagcompound = ((NBTWrapper) hitboxData.writeToNBT(new NBTWrapper(nbttagcompound))).getMCTag();
+        nbttagcompound = ((NBTWrapper) tintData.writeToNBT(new NBTWrapper(nbttagcompound))).getMCTag();
 
         if (this.playerProfile != null) {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
@@ -175,7 +175,7 @@ public class DataDisplay {
             NBTTagCompound compound = new NBTTagCompound();
             compound.setInteger("SkinOverlayID", 0); //unique glow texture ID
 
-            (new SkinOverlay(glowTexture)).writeToNBT(new MC1710NBTCompound(compound));
+            (new SkinOverlay(glowTexture)).writeToNBT(new NBTWrapper(compound));
 
             if (!nbttagcompound.hasKey("SkinOverlayData")) {
                 NBTTagList tagList = new NBTTagList();
@@ -190,8 +190,8 @@ public class DataDisplay {
         skinOverlayData.readFromNBT(nbttagcompound);
 
         animationData.readFromNBT(nbttagcompound);
-        hitboxData.readFromNBT(new MC1710NBTCompound(nbttagcompound));
-        tintData.readFromNBT(new MC1710NBTCompound(nbttagcompound));
+        hitboxData.readFromNBT(new NBTWrapper(nbttagcompound));
+        tintData.readFromNBT(new NBTWrapper(nbttagcompound));
 
         modelSize = ValueUtil.clamp(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
         if (modelSize > ConfigMain.NpcSizeLimit)

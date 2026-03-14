@@ -13,7 +13,7 @@ import noppes.npcs.api.handler.data.IDialogOption;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumOptionType;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.scripted.CustomNPCsException;
@@ -126,7 +126,7 @@ public class Dialog implements ICompatibilty, IDialog {
             NBTTagCompound imageCompound = images.getCompoundTagAt(i);
             int id = imageCompound.getInteger("ID");
             DialogImage image = new DialogImage(id);
-            image.readNBT(new MC1710NBTCompound(imageCompound));
+            image.readNBT(new NBTWrapper(imageCompound));
             newImages.put(id, image);
         }
         this.dialogImages = newImages;
@@ -174,7 +174,7 @@ public class Dialog implements ICompatibilty, IDialog {
 
         availability.readFromNBT(compound);
         factionOptions.readFromNBT(compound);
-        colorData.readFromNBT(new MC1710NBTCompound(compound));
+        colorData.readFromNBT(new NBTWrapper(compound));
     }
 
 
@@ -210,7 +210,7 @@ public class Dialog implements ICompatibilty, IDialog {
 
         availability.writeToNBT(compound);
         factionOptions.writeToNBT(compound);
-        colorData.writeToNBT(new MC1710NBTCompound(compound));
+        colorData.writeToNBT(new NBTWrapper(compound));
         compound.setInteger("ModRev", version);
 
         compound.setInteger("Color", color);
@@ -237,7 +237,7 @@ public class Dialog implements ICompatibilty, IDialog {
 
         NBTTagList images = new NBTTagList();
         for (IDialogImage dialogImage : dialogImages.values()) {
-            NBTTagCompound imageCompound = ((MC1710NBTCompound) ((DialogImage) dialogImage).writeToNBT(new MC1710NBTCompound(new NBTTagCompound()))).getMCTag();
+            NBTTagCompound imageCompound = ((NBTWrapper) ((DialogImage) dialogImage).writeToNBT(new NBTWrapper(new NBTTagCompound()))).getMCTag();
             images.appendTag(imageCompound);
         }
         compound.setTag("Images", images);

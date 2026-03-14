@@ -3,7 +3,7 @@ package kamkeel.npcs.platform.entity;
 /**
  * Platform-independent world abstraction.
  */
-public interface IPlatformWorld {
+public interface IGameWorld {
 
     /**
      * @return the dimension ID (e.g., 0 for overworld, -1 for nether)
@@ -21,7 +21,7 @@ public interface IPlatformWorld {
      * @param id the entity ID
      * @return the entity, or null if not found
      */
-    IPlatformEntity getEntityById(int id);
+    IMob getEntityById(int id);
 
     /**
      * Returns the underlying MC World object.

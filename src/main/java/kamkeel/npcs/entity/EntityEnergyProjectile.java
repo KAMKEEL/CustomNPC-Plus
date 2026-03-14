@@ -47,7 +47,7 @@ import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -2479,10 +2479,10 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.renderCurrentSize = this.size;
         this.prevRenderSize = this.size;
 
-        anchorData.readNBT(new MC1710NBTCompound(nbt));
-        combatData.readNBT(new MC1710NBTCompound(nbt));
-        homingData.readNBT(new MC1710NBTCompound(nbt));
-        lifespanData.readNBT(new MC1710NBTCompound(nbt));
+        anchorData.readNBT(new NBTWrapper(nbt));
+        combatData.readNBT(new NBTWrapper(nbt));
+        homingData.readNBT(new NBTWrapper(nbt));
+        lifespanData.readNBT(new NBTWrapper(nbt));
         syncProjectileColorWatchers();
     }
 
@@ -2514,10 +2514,10 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         nbt.setDouble("MotionY", motionY);
         nbt.setDouble("MotionZ", motionZ);
 
-        anchorData.writeNBT(new MC1710NBTCompound(nbt));
-        combatData.writeNBT(new MC1710NBTCompound(nbt));
-        homingData.writeNBT(new MC1710NBTCompound(nbt));
-        lifespanData.writeNBT(new MC1710NBTCompound(nbt));
+        anchorData.writeNBT(new NBTWrapper(nbt));
+        combatData.writeNBT(new NBTWrapper(nbt));
+        homingData.writeNBT(new NBTWrapper(nbt));
+        lifespanData.writeNBT(new NBTWrapper(nbt));
     }
 
     /**

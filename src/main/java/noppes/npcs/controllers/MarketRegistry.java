@@ -4,7 +4,7 @@ import foxz.utils.Market;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.roles.RoleTrader;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.util.Collections;
 import java.util.Map;
@@ -140,7 +140,7 @@ public class MarketRegistry {
                 for (RoleTrader trader : traders) {
                     // Update stock data from cache
                     if (stockData != null && stockData.hasKey("EnableStock")) {
-                        trader.stock.readFromNBT(new MC1710NBTCompound(stockData));
+                        trader.stock.readFromNBT(new NBTWrapper(stockData));
                     }
                 }
             }

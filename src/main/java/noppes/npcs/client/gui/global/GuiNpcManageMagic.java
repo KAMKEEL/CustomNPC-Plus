@@ -26,7 +26,7 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicCycle;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -398,7 +398,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
                 magicCycle.name = "New";
                 magicCycle.displayName = "New";
                 NBTTagCompound compound = new NBTTagCompound();
-                magicCycle.writeNBT(new MC1710NBTCompound(compound));
+                magicCycle.writeNBT(new NBTWrapper(compound));
                 PacketClient.sendClient(new MagicCycleSavePacket(compound));
             }
             break;
@@ -548,7 +548,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             selectedMagic.readNBT(compound.getCompoundTag("Magic"));
         } else if (compound.hasKey("MagicCycle")) {
             selectedCycle = new MagicCycle();
-            selectedCycle.readNBT(new MC1710NBTCompound(compound.getCompoundTag("MagicCycle")));
+            selectedCycle.readNBT(new NBTWrapper(compound.getCompoundTag("MagicCycle")));
             // Refresh the magic list based on the new cycle.
             updateMagicList();
             selectedMagic = null;

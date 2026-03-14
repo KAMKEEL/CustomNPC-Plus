@@ -13,7 +13,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.controllers.data.MagicData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 /**
  * Universal base class for all energy ability entities (Projectiles, Barriers, Sweeper).
@@ -354,12 +354,12 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
     protected void writeEnergyBaseNBT(NBTTagCompound nbt) {
         nbt.setInteger("OwnerId", ownerEntityId);
         nbt.setBoolean("IgnoreIFrames", ignoreIFrames);
-        displayData.writeNBT(new MC1710NBTCompound(nbt));
-        lightningData.writeNBT(new MC1710NBTCompound(nbt));
+        displayData.writeNBT(new NBTWrapper(nbt));
+        lightningData.writeNBT(new NBTWrapper(nbt));
         if (customDamageData != null) {
             nbt.setTag("CustomDamageData", customDamageData);
         }
-        magicData.writeToNBT(new MC1710NBTCompound(nbt));
+        magicData.writeToNBT(new NBTWrapper(nbt));
     }
 
     /**
@@ -369,12 +369,12 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
     protected void readEnergyBaseNBT(NBTTagCompound nbt) {
         this.ownerEntityId = nbt.getInteger("OwnerId");
         this.ignoreIFrames = nbt.getBoolean("IgnoreIFrames");
-        displayData.readNBT(new MC1710NBTCompound(nbt));
-        lightningData.readNBT(new MC1710NBTCompound(nbt));
+        displayData.readNBT(new NBTWrapper(nbt));
+        lightningData.readNBT(new NBTWrapper(nbt));
         if (nbt.hasKey("CustomDamageData")) {
             this.customDamageData = nbt.getCompoundTag("CustomDamageData");
         }
-        magicData.readToNBT(new MC1710NBTCompound(nbt));
+        magicData.readToNBT(new NBTWrapper(nbt));
     }
 
     // ==================== WORLD NBT (INTENTIONALLY EMPTY) ====================

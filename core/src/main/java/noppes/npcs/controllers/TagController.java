@@ -72,7 +72,7 @@ public class TagController {
             for (int i = 0; i < list.size(); i++) {
                 INBTCompound nbttagcompound = list.getCompound(i);
                 Tag tag = new Tag();
-                // OLD: tag.readNBT(new MC1710NBTCompound(nbttagcompound));
+                // OLD: tag.readNBT(new NBTWrapper(nbttagcompound));
                 tag.readNBT(nbttagcompound);
                 tags.put(tag.id, tag);
             }
@@ -85,7 +85,7 @@ public class TagController {
         for (int slot : tags.keySet()) {
             Tag tag = tags.get(slot);
             INBTCompound nbtfactions = NBT.compound();
-            // OLD: tag.writeNBT(new MC1710NBTCompound(nbtfactions));
+            // OLD: tag.writeNBT(new NBTWrapper(nbtfactions));
             tag.writeNBT(nbtfactions);
             list.addCompound(nbtfactions);
         }

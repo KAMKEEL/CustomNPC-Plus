@@ -77,7 +77,7 @@ public class TransportController {
         for (int i = 0; i < list.size(); i++) {
             TransportCategory category = new TransportCategory();
             INBTCompound compound = list.getCompound(i);
-            // OLD: category.readNBT(new MC1710NBTCompound(compound));
+            // OLD: category.readNBT(new NBTWrapper(compound));
             category.readNBT(compound);
 
             for (TransportLocation location : category.locations.values())

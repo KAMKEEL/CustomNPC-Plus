@@ -9,16 +9,16 @@ import noppes.npcs.platform.nbt.NBTFactory;
 /**
  * 1.7.10 implementation of NBTFactory.
  */
-public class MC1710NBTFactory implements NBTFactory {
+public class NBTWrapperFactory implements NBTFactory {
 
     @Override
     public INBTCompound createCompound() {
-        return new MC1710NBTCompound(new NBTTagCompound());
+        return new NBTWrapper(new NBTTagCompound());
     }
 
     @Override
     public INBTList createList() {
-        return new MC1710NBTList(new NBTTagList());
+        return new NBTListWrapper(new NBTTagList());
     }
 
     @Override
@@ -28,7 +28,7 @@ public class MC1710NBTFactory implements NBTFactory {
                 "Expected NBTTagCompound, got " + mcNBTTagCompound.getClass().getName()
             );
         }
-        return new MC1710NBTCompound((NBTTagCompound) mcNBTTagCompound);
+        return new NBTWrapper((NBTTagCompound) mcNBTTagCompound);
     }
 
     @Override
@@ -38,6 +38,6 @@ public class MC1710NBTFactory implements NBTFactory {
                 "Expected NBTTagList, got " + mcNBTTagList.getClass().getName()
             );
         }
-        return new MC1710NBTList((NBTTagList) mcNBTTagList);
+        return new NBTListWrapper((NBTTagList) mcNBTTagList);
     }
 }

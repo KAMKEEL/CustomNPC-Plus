@@ -34,7 +34,7 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.data.CloneFolder;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.controllers.data.TagMap;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -993,7 +993,7 @@ public class GuiNpcMobSpawnerFullscreen extends GuiDirectory implements IGuiData
             folderNames.clear();
             for (int i = 0; i < folderList.tagCount(); i++) {
                 CloneFolder folder = new CloneFolder();
-                folder.readNBT(new MC1710NBTCompound(folderList.getCompoundTagAt(i)));
+                folder.readNBT(new NBTWrapper(folderList.getCompoundTagAt(i)));
                 folderNames.add(folder.name);
             }
             initGui();
@@ -1006,7 +1006,7 @@ public class GuiNpcMobSpawnerFullscreen extends GuiDirectory implements IGuiData
                 this.tagMap = new TagMap(GuiNpcMobSpawner.activeTab);
             }
             NBTTagCompound cloneTags = compound.getCompoundTag("CloneTags");
-            this.tagMap.readNBT(new MC1710NBTCompound(cloneTags));
+            this.tagMap.readNBT(new NBTWrapper(cloneTags));
         } else if (compound.hasKey("AllTags")) {
             NBTTagList validTags = compound.getTagList("AllTags", 10);
             if (validTags != null) {
@@ -1015,7 +1015,7 @@ public class GuiNpcMobSpawnerFullscreen extends GuiDirectory implements IGuiData
                 for (int j = 0; j < validTags.tagCount(); j++) {
                     NBTTagCompound tagStructure = validTags.getCompoundTagAt(j);
                     Tag tag = new Tag();
-                    tag.readNBT(new MC1710NBTCompound(tagStructure));
+                    tag.readNBT(new NBTWrapper(tagStructure));
                     tagsUpdate.put(tag.uuid, tag);
                     tagNamesUpdate.put(tag.name, tag.uuid);
                 }

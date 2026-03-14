@@ -14,14 +14,14 @@ import java.io.IOException;
  * 1.7.10 implementation of NBTIO.
  * Delegates to CompressedStreamTools.
  */
-public class MC1710NBTIO implements NBTIO {
+public class NBTWrapperIO implements NBTIO {
 
     @Override
     public INBTCompound readCompressed(File file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         try {
             NBTTagCompound tag = CompressedStreamTools.readCompressed(fis);
-            return new MC1710NBTCompound(tag);
+            return new NBTWrapper(tag);
         } finally {
             fis.close();
         }
@@ -29,7 +29,7 @@ public class MC1710NBTIO implements NBTIO {
 
     @Override
     public void writeCompressed(INBTCompound compound, File file) throws IOException {
-        NBTTagCompound tag = ((MC1710NBTCompound) compound).getMCTag();
+        NBTTagCompound tag = ((NBTWrapper) compound).getMCTag();
         FileOutputStream fos = new FileOutputStream(file);
         try {
             CompressedStreamTools.writeCompressed(tag, fos);
@@ -41,12 +41,12 @@ public class MC1710NBTIO implements NBTIO {
     @Override
     public INBTCompound read(File file) throws IOException {
         NBTTagCompound tag = CompressedStreamTools.read(file);
-        return new MC1710NBTCompound(tag);
+        return new NBTWrapper(tag);
     }
 
     @Override
     public void safeWrite(INBTCompound compound, File file) throws IOException {
-        NBTTagCompound tag = ((MC1710NBTCompound) compound).getMCTag();
+        NBTTagCompound tag = ((NBTWrapper) compound).getMCTag();
         // 1.7.10 doesn't have safeWrite, implement with temp file
         File tempFile = new File(file.getAbsolutePath() + ".tmp");
         FileOutputStream fos = new FileOutputStream(tempFile);

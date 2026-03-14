@@ -26,7 +26,7 @@ import net.minecraft.util.Vec3;
 import noppes.npcs.api.ability.type.IAbilityEnergyProjectile;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.controllers.data.MagicData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.util.List;
 
@@ -584,9 +584,9 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
         // Shared data classes
         writeEnergyNBT(nbt);
-        combatData.writeNBT(new MC1710NBTCompound(nbt));
-        homingData.writeNBT(new MC1710NBTCompound(nbt));
-        lifespanData.writeNBT(new MC1710NBTCompound(nbt));
+        combatData.writeNBT(new NBTWrapper(nbt));
+        homingData.writeNBT(new NBTWrapper(nbt));
+        lifespanData.writeNBT(new NBTWrapper(nbt));
 
         // Per-projectile data
         for (int i = 0; i < projectileCount; i++) {
@@ -608,9 +608,9 @@ public abstract class AbilityEnergyProjectile<E extends EntityEnergyProjectile> 
 
         // Shared data classes
         readEnergyNBT(nbt);
-        combatData.readNBT(new MC1710NBTCompound(nbt));
-        homingData.readNBT(new MC1710NBTCompound(nbt));
-        lifespanData.readNBT(new MC1710NBTCompound(nbt));
+        combatData.readNBT(new NBTWrapper(nbt));
+        homingData.readNBT(new NBTWrapper(nbt));
+        lifespanData.readNBT(new NBTWrapper(nbt));
 
         // Per-projectile data
         for (int i = 0; i < projectileCount; i++) {

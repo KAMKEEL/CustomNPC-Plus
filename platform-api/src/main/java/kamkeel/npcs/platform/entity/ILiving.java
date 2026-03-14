@@ -2,9 +2,9 @@ package kamkeel.npcs.platform.entity;
 
 /**
  * Platform-independent living entity abstraction.
- * Extends {@link IPlatformEntity} with health and damage operations.
+ * Extends {@link IMob} with health and damage operations.
  */
-public interface IPlatformLiving extends IPlatformEntity {
+public interface ILiving extends IMob {
 
     float getHealth();
 
@@ -18,5 +18,5 @@ public interface IPlatformLiving extends IPlatformEntity {
      * @param amount the damage amount
      * @param source the damage source, or null for generic damage
      */
-    void damage(float amount, IPlatformDamageSource source);
+    void damage(float amount, IDamage source);
 }

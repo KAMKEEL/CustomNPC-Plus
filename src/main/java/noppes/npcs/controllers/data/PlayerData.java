@@ -27,7 +27,7 @@ import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.IPlayerTradeData;
 import noppes.npcs.api.handler.IPlayerTransportData;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
@@ -141,18 +141,18 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     }
 
     public void setNBT(NBTTagCompound data) {
-        dialogData.loadNBTData(new MC1710NBTCompound(data));
+        dialogData.loadNBTData(new NBTWrapper(data));
         bankData.loadNBTData(data);
         questData.loadNBTData(data);
-        transportData.loadNBTData(new MC1710NBTCompound(data));
+        transportData.loadNBTData(new NBTWrapper(data));
         factionData.loadNBTData(data);
         itemgiverData.loadNBTData(data);
         mailData.loadNBTData(data);
         timers.readFromNBT(data);
         skinOverlays.readFromNBT(data);
         animationData.readFromNBT(data);
-        effectData.readFromNBT(new MC1710NBTCompound(data));
-        magicData.readToNBT(new MC1710NBTCompound(data));
+        effectData.readFromNBT(new NBTWrapper(data));
+        magicData.readToNBT(new NBTWrapper(data));
         tradeData.readFromNBT(data);
         abilityData.readFromNBT(data);
         hotbarData.readFromNBT(data);
@@ -186,18 +186,18 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             uuid = player.getPersistentID().toString();
         }
         NBTTagCompound compound = new NBTTagCompound();
-        dialogData.saveNBTData(new MC1710NBTCompound(compound));
+        dialogData.saveNBTData(new NBTWrapper(compound));
         bankData.saveNBTData(compound);
         questData.saveNBTData(compound);
-        transportData.saveNBTData(new MC1710NBTCompound(compound));
+        transportData.saveNBTData(new NBTWrapper(compound));
         factionData.saveNBTData(compound);
         itemgiverData.saveNBTData(compound);
         mailData.saveNBTData(compound);
         timers.writeToNBT(compound);
         skinOverlays.writeToNBT(compound);
         animationData.writeToNBT(compound);
-        effectData.writeToNBT(new MC1710NBTCompound(compound));
-        magicData.writeToNBT(new MC1710NBTCompound(compound));
+        effectData.writeToNBT(new NBTWrapper(compound));
+        magicData.writeToNBT(new NBTWrapper(compound));
         tradeData.writeToNBT(compound);
         abilityData.writeToNBT(compound);
         hotbarData.writeToNBT(compound);
@@ -219,26 +219,26 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
     public NBTTagCompound getSyncNBT() {
         NBTTagCompound compound = new NBTTagCompound();
-        dialogData.saveNBTData(new MC1710NBTCompound(compound));
+        dialogData.saveNBTData(new NBTWrapper(compound));
         questData.saveNBTData(compound);
         factionData.saveNBTData(compound);
         return compound;
     }
 
     public void setSyncNBT(NBTTagCompound data) {
-        dialogData.loadNBTData(new MC1710NBTCompound(data));
+        dialogData.loadNBTData(new NBTWrapper(data));
         questData.loadNBTData(data);
         factionData.loadNBTData(data);
     }
 
     public NBTTagCompound getPlayerEffects() {
         NBTTagCompound compound = new NBTTagCompound();
-        effectData.writeToNBT(new MC1710NBTCompound(compound));
+        effectData.writeToNBT(new NBTWrapper(compound));
         return compound;
     }
 
     public void setPlayerEffects(NBTTagCompound data) {
-        effectData.readFromNBT(new MC1710NBTCompound(data));
+        effectData.readFromNBT(new NBTWrapper(data));
     }
 
     public NBTTagCompound getSyncNBTFull() {
@@ -247,10 +247,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             uuid = player.getPersistentID().toString();
         }
         NBTTagCompound compound = new NBTTagCompound();
-        dialogData.saveNBTData(new MC1710NBTCompound(compound));
+        dialogData.saveNBTData(new NBTWrapper(compound));
         bankData.saveNBTData(compound);
         questData.saveNBTData(compound);
-        transportData.saveNBTData(new MC1710NBTCompound(compound));
+        transportData.saveNBTData(new NBTWrapper(compound));
         factionData.saveNBTData(compound);
         mailData.saveNBTData(compound);
         tradeData.writeToNBT(compound);
@@ -263,10 +263,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     }
 
     public void setSyncNBTFull(NBTTagCompound data) {
-        dialogData.loadNBTData(new MC1710NBTCompound(data));
+        dialogData.loadNBTData(new NBTWrapper(data));
         bankData.loadNBTData(data);
         questData.loadNBTData(data);
-        transportData.loadNBTData(new MC1710NBTCompound(data));
+        transportData.loadNBTData(new NBTWrapper(data));
         factionData.loadNBTData(data);
         mailData.loadNBTData(data);
         tradeData.readFromNBT(data);

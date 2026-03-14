@@ -13,7 +13,7 @@ import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.MagicCycle;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -170,7 +170,7 @@ public class GuiNpcMagicBook extends GuiNPCInterface implements ICustomScrollLis
     public void setGuiData(NBTTagCompound compound) {
         if (compound.hasKey("MagicCycle")) {
             magicCycle = new MagicCycle();
-            magicCycle.readNBT(new MC1710NBTCompound(compound.getCompoundTag("MagicCycle")));
+            magicCycle.readNBT(new NBTWrapper(compound.getCompoundTag("MagicCycle")));
             initGui();
         }
     }

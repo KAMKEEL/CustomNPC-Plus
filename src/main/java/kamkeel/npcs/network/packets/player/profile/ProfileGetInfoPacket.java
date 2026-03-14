@@ -7,7 +7,7 @@ import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.profile.Profile;
 import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
 import kamkeel.npcs.network.AbstractPacket;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumPlayerPacket;
@@ -73,7 +73,7 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
                 slotCompound.setInteger("ID", slot.getId());
                 List<ProfileInfoEntry> profileInfo = ProfileController.Instance.getProfileInfo(player, slot.getId());
                 for (ProfileInfoEntry profileInfoEntry : profileInfo) {
-                    infoList.appendTag(((MC1710NBTCompound) profileInfoEntry.writeToNBT()).getMCTag());
+                    infoList.appendTag(((NBTWrapper) profileInfoEntry.writeToNBT()).getMCTag());
                 }
                 slotCompound.setTag("INFO", infoList);
                 slotList.appendTag(slotCompound);
@@ -99,7 +99,7 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
             List<ProfileInfoEntry> infoEntries = new ArrayList<>();
             for (int j = 0; j < infoList.tagCount(); j++) {
                 NBTTagCompound infoTag = infoList.getCompoundTagAt(j);
-                infoEntries.add(ProfileInfoEntry.readFromNBT(new MC1710NBTCompound(infoTag))); // Convert back to InfoEntry
+                infoEntries.add(ProfileInfoEntry.readFromNBT(new NBTWrapper(infoTag))); // Convert back to InfoEntry
             }
 
             slotInfoMap.put(slotId, infoEntries);

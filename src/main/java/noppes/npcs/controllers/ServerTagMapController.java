@@ -5,7 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.TagMap;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -70,7 +70,7 @@ public class ServerTagMapController {
 
     public void loadTagMaps(DataInputStream stream) throws IOException {
         NBTTagCompound nbtCompound = CompressedStreamTools.read(stream);
-        this.tagMap.readNBT(new MC1710NBTCompound(nbtCompound));
+        this.tagMap.readNBT(new NBTWrapper(nbtCompound));
     }
 
     public TagMap getTagMap(String folderName) {
@@ -103,7 +103,7 @@ public class ServerTagMapController {
             File file = new File(saveDir, "___tagmap.dat_new");
             File file1 = new File(saveDir, "___tagmap.dat_old");
             File file2 = new File(saveDir, "___tagmap.dat");
-            CompressedStreamTools.writeCompressed(((MC1710NBTCompound) tagMap.writeNBT()).getMCTag(), new FileOutputStream(file));
+            CompressedStreamTools.writeCompressed(((NBTWrapper) tagMap.writeNBT()).getMCTag(), new FileOutputStream(file));
             if (file1.exists()) {
                 file1.delete();
             }

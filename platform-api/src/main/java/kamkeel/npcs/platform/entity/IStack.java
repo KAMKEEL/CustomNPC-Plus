@@ -5,7 +5,7 @@ import noppes.npcs.platform.nbt.INBTCompound;
 /**
  * Platform-independent item stack abstraction.
  */
-public interface IPlatformStack {
+public interface IStack {
 
     /**
      * @return the item's registry ID (e.g., "minecraft:stone")
@@ -38,7 +38,7 @@ public interface IPlatformStack {
     /**
      * @return a deep copy of this stack
      */
-    IPlatformStack copy();
+    IStack copy();
 
     /**
      * Returns the underlying MC ItemStack object.

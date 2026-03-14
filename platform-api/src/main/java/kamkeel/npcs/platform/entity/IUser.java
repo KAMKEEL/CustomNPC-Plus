@@ -2,9 +2,9 @@ package kamkeel.npcs.platform.entity;
 
 /**
  * Platform-independent player abstraction.
- * Extends {@link IPlatformLiving} with player-specific operations.
+ * Extends {@link ILiving} with player-specific operations.
  */
-public interface IPlatformPlayer extends IPlatformLiving {
+public interface IUser extends ILiving {
 
     /**
      * @return the player's username
@@ -32,5 +32,5 @@ public interface IPlatformPlayer extends IPlatformLiving {
     /**
      * @return the item currently held in the player's main hand, or null if empty
      */
-    IPlatformStack getHeldItem();
+    IStack getHeldItem();
 }

@@ -75,7 +75,7 @@ import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicCycle;
 import noppes.npcs.controllers.data.MagicData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.controllers.data.PlayerBankData;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerDialogData;
@@ -1258,7 +1258,7 @@ public class NoppesUtilServer {
             playerdata = PlayerData.get(pl);
 
         if (enumPlayerData == EnumPlayerData.Magic) { // Quest removal
-            playerdata.magicData.readToNBT(new MC1710NBTCompound(compound));
+            playerdata.magicData.readToNBT(new NBTWrapper(compound));
         }
 
         playerdata.save();

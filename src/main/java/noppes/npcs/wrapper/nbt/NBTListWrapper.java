@@ -12,11 +12,11 @@ import noppes.npcs.platform.nbt.INBTList;
  * 1.7.10 implementation of INBTList.
  * Thin wrapper that delegates to NBTTagList.
  */
-public class MC1710NBTList implements INBTList {
+public class NBTListWrapper implements INBTList {
 
     private final NBTTagList tag;
 
-    public MC1710NBTList(NBTTagList tag) {
+    public NBTListWrapper(NBTTagList tag) {
         this.tag = tag;
     }
 
@@ -37,7 +37,7 @@ public class MC1710NBTList implements INBTList {
 
     @Override
     public INBTCompound getCompound(int index) {
-        return new MC1710NBTCompound(tag.getCompoundTagAt(index));
+        return new NBTWrapper(tag.getCompoundTagAt(index));
     }
 
     @Override
@@ -78,7 +78,7 @@ public class MC1710NBTList implements INBTList {
 
     @Override
     public void addCompound(INBTCompound compound) {
-        tag.appendTag(((MC1710NBTCompound) compound).getMCTag());
+        tag.appendTag(((NBTWrapper) compound).getMCTag());
     }
 
     @Override

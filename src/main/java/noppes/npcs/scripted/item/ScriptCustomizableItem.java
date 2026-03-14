@@ -4,7 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.controllers.data.ItemDisplayData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 public abstract class ScriptCustomizableItem extends ScriptItemStack implements IItemCustomizable {
     public final ItemDisplayData itemDisplay = new ItemDisplayData();
@@ -202,12 +202,12 @@ public abstract class ScriptCustomizableItem extends ScriptItemStack implements 
     }
 
     public NBTTagCompound getItemNBT(NBTTagCompound compound) {
-        this.itemDisplay.writeToNBT(new MC1710NBTCompound(compound));
+        this.itemDisplay.writeToNBT(new NBTWrapper(compound));
         return compound;
     }
 
     public void setItemNBT(NBTTagCompound compound) {
-        this.itemDisplay.readFromNBT(new MC1710NBTCompound(compound));
+        this.itemDisplay.readFromNBT(new NBTWrapper(compound));
     }
 
 }

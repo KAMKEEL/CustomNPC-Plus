@@ -57,7 +57,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.controllers.data.MagicEntry;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityMagic;
@@ -1534,7 +1534,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         nbt.setFloat("telegraphHeightOffset", telegraphHeightOffset);
         nbt.setTag("customData", (NBTTagCompound) customData.copy());
         TagController.writeTagUUIDs(nbt, "TagUUIDs", tagUUIDs);
-        magicData.writeToNBT(new MC1710NBTCompound(nbt));
+        magicData.writeToNBT(new NBTWrapper(nbt));
         nbt.setInteger("allowedBy", allowedBy.ordinal());
         nbt.setBoolean("ignoreCooldown", ignoreCooldown);
         nbt.setBoolean("perAbilityCooldown", perAbilityCooldown);
@@ -1634,7 +1634,7 @@ public abstract class Ability implements IAbility, IAbilityAction {
         telegraphHeightOffset = nbt.getFloat("telegraphHeightOffset");
         customData = (NBTTagCompound) nbt.getCompoundTag("customData").copy();
         tagUUIDs = TagController.readTagUUIDs(nbt, "TagUUIDs");
-        magicData.readToNBT(new MC1710NBTCompound(nbt));
+        magicData.readToNBT(new NBTWrapper(nbt));
         allowedBy = UserType.fromOrdinal(nbt.getInteger("allowedBy"));
         ignoreCooldown = nbt.getBoolean("ignoreCooldown");
         perAbilityCooldown = nbt.getBoolean("perAbilityCooldown");

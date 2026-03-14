@@ -1,19 +1,19 @@
 package kamkeel.npcs.wrapper.platform;
 
-import kamkeel.npcs.platform.entity.IPlatformPlayer;
-import kamkeel.npcs.platform.entity.IPlatformStack;
+import kamkeel.npcs.platform.entity.IUser;
+import kamkeel.npcs.platform.entity.IStack;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 
 /**
- * MC 1.7.10 implementation of {@link IPlatformPlayer}.
+ * MC 1.7.10 implementation of {@link IUser}.
  * Wraps a raw {@link EntityPlayerMP} instance.
  */
-public class MC1710PlatformPlayer extends MC1710PlatformLiving implements IPlatformPlayer {
+public class PlayerWrapper extends LivingWrapper implements IUser {
 
     private final EntityPlayerMP player;
 
-    public MC1710PlatformPlayer(EntityPlayerMP player) {
+    public PlayerWrapper(EntityPlayerMP player) {
         super(player);
         this.player = player;
     }
@@ -40,8 +40,8 @@ public class MC1710PlatformPlayer extends MC1710PlatformLiving implements IPlatf
     }
 
     @Override
-    public IPlatformStack getHeldItem() {
+    public IStack getHeldItem() {
         if (player.getHeldItem() == null) return null;
-        return new MC1710PlatformStack(player.getHeldItem());
+        return new StackWrapper(player.getHeldItem());
     }
 }

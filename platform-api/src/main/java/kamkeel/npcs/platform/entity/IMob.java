@@ -7,7 +7,7 @@ package kamkeel.npcs.platform.entity;
  * Each MC version provides an implementation wrapping the native Entity class.
  * Use {@link #getHandle()} to retrieve the underlying MC object in platform code.
  */
-public interface IPlatformEntity {
+public interface IMob {
 
     /**
      * @return the entity's numeric ID in the world
@@ -43,7 +43,7 @@ public interface IPlatformEntity {
     /**
      * @return the dimension/world the entity is in
      */
-    IPlatformWorld getWorld();
+    IGameWorld getWorld();
 
     // --- Escape hatch ---
 

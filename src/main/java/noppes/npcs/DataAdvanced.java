@@ -10,7 +10,7 @@ import noppes.npcs.controllers.data.FactionOptions;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.roles.JobBard;
 import noppes.npcs.roles.JobChunkLoader;
 import noppes.npcs.roles.JobConversation;
@@ -69,11 +69,11 @@ public class DataAdvanced {
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setTag("NpcLines", ((MC1710NBTCompound) worldLines.writeToNBT()).getMCTag());
-        compound.setTag("NpcKilledLines", ((MC1710NBTCompound) killedLines.writeToNBT()).getMCTag());
-        compound.setTag("NpcInteractLines", ((MC1710NBTCompound) interactLines.writeToNBT()).getMCTag());
-        compound.setTag("NpcAttackLines", ((MC1710NBTCompound) attackLines.writeToNBT()).getMCTag());
-        compound.setTag("NpcKillLines", ((MC1710NBTCompound) killLines.writeToNBT()).getMCTag());
+        compound.setTag("NpcLines", ((NBTWrapper) worldLines.writeToNBT()).getMCTag());
+        compound.setTag("NpcKilledLines", ((NBTWrapper) killedLines.writeToNBT()).getMCTag());
+        compound.setTag("NpcInteractLines", ((NBTWrapper) interactLines.writeToNBT()).getMCTag());
+        compound.setTag("NpcAttackLines", ((NBTWrapper) attackLines.writeToNBT()).getMCTag());
+        compound.setTag("NpcKillLines", ((NBTWrapper) killLines.writeToNBT()).getMCTag());
 
         compound.setString("NpcIdleSound", idleSound);
         compound.setString("NpcAngrySound", angrySound);
@@ -110,11 +110,11 @@ public class DataAdvanced {
     }
 
     public void readToNBT(NBTTagCompound compound) {
-        interactLines.readNBT(new MC1710NBTCompound(compound.getCompoundTag("NpcInteractLines")));
-        worldLines.readNBT(new MC1710NBTCompound(compound.getCompoundTag("NpcLines")));
-        attackLines.readNBT(new MC1710NBTCompound(compound.getCompoundTag("NpcAttackLines")));
-        killedLines.readNBT(new MC1710NBTCompound(compound.getCompoundTag("NpcKilledLines")));
-        killLines.readNBT(new MC1710NBTCompound(compound.getCompoundTag("NpcKillLines")));
+        interactLines.readNBT(new NBTWrapper(compound.getCompoundTag("NpcInteractLines")));
+        worldLines.readNBT(new NBTWrapper(compound.getCompoundTag("NpcLines")));
+        attackLines.readNBT(new NBTWrapper(compound.getCompoundTag("NpcAttackLines")));
+        killedLines.readNBT(new NBTWrapper(compound.getCompoundTag("NpcKilledLines")));
+        killLines.readNBT(new NBTWrapper(compound.getCompoundTag("NpcKillLines")));
 
         idleSound = compound.getString("NpcIdleSound");
         angrySound = compound.getString("NpcAngrySound");

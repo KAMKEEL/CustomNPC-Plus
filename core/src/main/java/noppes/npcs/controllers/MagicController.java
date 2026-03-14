@@ -207,7 +207,7 @@ public class MagicController {
         for (int i = 0; i < cycleList.size(); i++) {
             INBTCompound catCompound = cycleList.getCompound(i);
             MagicCycle cycle = new MagicCycle();
-            // OLD: cycle.readNBT(new MC1710NBTCompound(catCompound));
+            // OLD: cycle.readNBT(new NBTWrapper(catCompound));
             cycle.readNBT(catCompound);
             cycles.put(cycle.id, cycle);
         }
@@ -223,7 +223,7 @@ public class MagicController {
         INBTList catList = NBT.list();
         for (MagicCycle cat : cycles.values()) {
             INBTCompound catCompound = NBT.compound();
-            // OLD: cat.writeNBT(new MC1710NBTCompound(catCompound));
+            // OLD: cat.writeNBT(new NBTWrapper(catCompound));
             cat.writeNBT(catCompound);
             catList.addCompound(catCompound);
         }
@@ -341,7 +341,7 @@ public class MagicController {
 
         // TODO: mc1710 version also calls:
         // OLD: NBTTagCompound cycleCompound = new NBTTagCompound();
-        // OLD: cycle.writeNBT(new MC1710NBTCompound(cycleCompound));
+        // OLD: cycle.writeNBT(new NBTWrapper(cycleCompound));
         // OLD: SyncController.syncUpdate(EnumSyncType.MAGIC_CYCLE, -1, cycleCompound);
 
         saveMagicData();

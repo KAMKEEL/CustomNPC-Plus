@@ -5,7 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IFrame;
@@ -226,7 +226,7 @@ public class Animation implements IAnimation {
             Frame frame = new Frame();
             frame.parentSpeed = this.speed;
             frame.parentSmooth = this.smooth;
-            frame.readFromNBT(new MC1710NBTCompound(item));
+            frame.readFromNBT(new NBTWrapper(item));
             frames.add(frame);
         }
         this.frames = frames;
@@ -249,7 +249,7 @@ public class Animation implements IAnimation {
 
         NBTTagList list = new NBTTagList();
         for (Frame frame : frames) {
-            NBTTagCompound item = ((MC1710NBTCompound) frame.writeToNBT()).getMCTag();
+            NBTTagCompound item = ((NBTWrapper) frame.writeToNBT()).getMCTag();
             list.appendTag(item);
         }
         compound.setTag("Frames", list);

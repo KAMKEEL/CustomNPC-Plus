@@ -36,7 +36,7 @@ public class ProjectileData {
     }
 
     public void writeNBT(INBTCompound nbt) {
-        // OLD: anchor.writeNBT(new MC1710NBTCompound(nbt));
+        // OLD: anchor.writeNBT(new NBTWrapper(nbt));
         anchor.writeNBT(nbt);
         nbt.setBoolean("colorOverride", colorOverride);
         if (colorOverride) {
@@ -46,7 +46,7 @@ public class ProjectileData {
     }
 
     public void readNBT(INBTCompound nbt) {
-        // OLD: anchor.readNBT(new MC1710NBTCompound(nbt));
+        // OLD: anchor.readNBT(new NBTWrapper(nbt));
         anchor.readNBT(nbt);
         colorOverride = nbt.getBoolean("colorOverride");
         if (colorOverride) {

@@ -22,7 +22,7 @@ import noppes.npcs.api.handler.data.IQuestInterface;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.api.handler.data.ISlot;
 import noppes.npcs.constants.EnumProfileSync;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
@@ -93,8 +93,8 @@ public class Quest implements ICompatibilty, IQuest {
         questInterface.readEntityFromNBT(compound);
 
         factionOptions.readFromNBT(compound.getCompoundTag("QuestFactionPoints"));
-        partyOptions.readFromNBT(new MC1710NBTCompound(compound.getCompoundTag("PartyOptions")));
-        profileOptions.readFromNBT(new MC1710NBTCompound(compound.getCompoundTag("ProfileOptions")));
+        partyOptions.readFromNBT(new NBTWrapper(compound.getCompoundTag("PartyOptions")));
+        profileOptions.readFromNBT(new NBTWrapper(compound.getCompoundTag("ProfileOptions")));
 
         mail.readNBT(compound.getCompoundTag("QuestMail"));
     }
@@ -141,8 +141,8 @@ public class Quest implements ICompatibilty, IQuest {
 
         this.questInterface.writeEntityToNBT(compound);
         compound.setTag("QuestFactionPoints", factionOptions.writeToNBT(new NBTTagCompound()));
-        compound.setTag("PartyOptions", ((MC1710NBTCompound) partyOptions.writeToNBT()).getMCTag());
-        compound.setTag("ProfileOptions", ((MC1710NBTCompound) profileOptions.writeToNBT()).getMCTag());
+        compound.setTag("PartyOptions", ((NBTWrapper) partyOptions.writeToNBT()).getMCTag());
+        compound.setTag("ProfileOptions", ((NBTWrapper) profileOptions.writeToNBT()).getMCTag());
         compound.setTag("QuestMail", mail.writeNBT());
 
         return compound;

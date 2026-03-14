@@ -14,7 +14,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.controllers.data.MagicData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.io.IOException;
 
@@ -55,7 +55,7 @@ public final class MagicNpcSavePacket extends AbstractPacket {
     public void sendData(ByteBuf out) throws IOException {
         NBTTagCompound compound = new NBTTagCompound();
         if (magicData != null) {
-            magicData.writeToNBT(new MC1710NBTCompound(compound));
+            magicData.writeToNBT(new NBTWrapper(compound));
         }
         ByteBufUtils.writeNBT(out, compound);
     }
@@ -66,6 +66,6 @@ public final class MagicNpcSavePacket extends AbstractPacket {
             return;
 
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
-        npc.stats.magicData.readToNBT(new MC1710NBTCompound(compound));
+        npc.stats.magicData.readToNBT(new NBTWrapper(compound));
     }
 }

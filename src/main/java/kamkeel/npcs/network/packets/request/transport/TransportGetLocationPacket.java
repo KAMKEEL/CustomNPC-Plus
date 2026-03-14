@@ -15,7 +15,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.roles.RoleTransporter;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.io.IOException;
 
@@ -58,7 +58,7 @@ public final class TransportGetLocationPacket extends AbstractPacket {
 
         RoleTransporter role = (RoleTransporter) npc.roleInterface;
         if (role.hasTransport()) {
-            GuiDataPacket.sendGuiData((EntityPlayerMP) player, ((MC1710NBTCompound) role.getLocation().writeNBT()).getMCTag());
+            GuiDataPacket.sendGuiData((EntityPlayerMP) player, ((NBTWrapper) role.getLocation().writeNBT()).getMCTag());
             ScrollSelectedPacket.setSelectedList((EntityPlayerMP) player, role.getLocation().category.title);
         }
     }

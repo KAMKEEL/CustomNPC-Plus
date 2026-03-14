@@ -1,19 +1,19 @@
 package kamkeel.npcs.wrapper.platform;
 
-import kamkeel.npcs.platform.entity.IPlatformDamageSource;
-import kamkeel.npcs.platform.entity.IPlatformLiving;
+import kamkeel.npcs.platform.entity.IDamage;
+import kamkeel.npcs.platform.entity.ILiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
 
 /**
- * MC 1.7.10 implementation of {@link IPlatformLiving}.
+ * MC 1.7.10 implementation of {@link ILiving}.
  * Wraps a raw {@link EntityLivingBase} instance.
  */
-public class MC1710PlatformLiving extends MC1710PlatformEntity implements IPlatformLiving {
+public class LivingWrapper extends EntityWrapper implements ILiving {
 
     protected final EntityLivingBase living;
 
-    public MC1710PlatformLiving(EntityLivingBase living) {
+    public LivingWrapper(EntityLivingBase living) {
         super(living);
         this.living = living;
     }
@@ -34,7 +34,7 @@ public class MC1710PlatformLiving extends MC1710PlatformEntity implements IPlatf
     }
 
     @Override
-    public void damage(float amount, IPlatformDamageSource source) {
+    public void damage(float amount, IDamage source) {
         DamageSource mcSource = source != null ? (DamageSource) source.getHandle() : DamageSource.generic;
         living.attackEntityFrom(mcSource, amount);
     }

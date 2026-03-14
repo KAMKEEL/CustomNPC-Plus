@@ -8,7 +8,7 @@ import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.ModelRotate;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.util.Collection;
 import java.util.List;
@@ -72,7 +72,7 @@ public class VersionCompatibility {
                 line.text = (String) interactLines.toArray()[i];
                 lines.lines.put(i, line);
             }
-            compound.setTag("NpcInteractLines", ((MC1710NBTCompound) lines.writeToNBT()).getMCTag());
+            compound.setTag("NpcInteractLines", ((NBTWrapper) lines.writeToNBT()).getMCTag());
 
             List<String> worldLines = NBTTags.getStringList(compound.getTagList("NpcLines", 10));
             lines = new Lines();
@@ -81,7 +81,7 @@ public class VersionCompatibility {
                 line.text = (String) worldLines.toArray()[i];
                 lines.lines.put(i, line);
             }
-            compound.setTag("NpcLines", ((MC1710NBTCompound) lines.writeToNBT()).getMCTag());
+            compound.setTag("NpcLines", ((NBTWrapper) lines.writeToNBT()).getMCTag());
 
             List<String> attackLines = NBTTags.getStringList(compound.getTagList("NpcAttackLines", 10));
             lines = new Lines();
@@ -90,7 +90,7 @@ public class VersionCompatibility {
                 line.text = (String) attackLines.toArray()[i];
                 lines.lines.put(i, line);
             }
-            compound.setTag("NpcAttackLines", ((MC1710NBTCompound) lines.writeToNBT()).getMCTag());
+            compound.setTag("NpcAttackLines", ((NBTWrapper) lines.writeToNBT()).getMCTag());
 
             List<String> killedLines = NBTTags.getStringList(compound.getTagList("NpcKilledLines", 10));
             lines = new Lines();
@@ -99,7 +99,7 @@ public class VersionCompatibility {
                 line.text = (String) killedLines.toArray()[i];
                 lines.lines.put(i, line);
             }
-            compound.setTag("NpcKilledLines", ((MC1710NBTCompound) lines.writeToNBT()).getMCTag());
+            compound.setTag("NpcKilledLines", ((NBTWrapper) lines.writeToNBT()).getMCTag());
 
         }
         if (npc.npcVersion == 12) {

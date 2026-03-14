@@ -18,7 +18,7 @@ import noppes.npcs.api.handler.ITelegraphHandler;
 import noppes.npcs.scripted.ScriptTelegraph;
 import noppes.npcs.scripted.ScriptTelegraphInstance;
 import noppes.npcs.util.NBTJsonUtil;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.io.File;
 import java.util.HashMap;
@@ -253,7 +253,7 @@ public class TelegraphController implements ITelegraphHandler {
             if (!file.isFile() || !file.getName().endsWith(".json")) continue;
             try {
                 Telegraph telegraph = new Telegraph();
-                telegraph.readNBT(new MC1710NBTCompound(NBTJsonUtil.LoadFile(file)));
+                telegraph.readNBT(new NBTWrapper(NBTJsonUtil.LoadFile(file)));
                 String name = file.getName().substring(0, file.getName().length() - 5);
                 telegraph.setId(name);
                 savedTelegraphs.put(name, telegraph);
@@ -275,7 +275,7 @@ public class TelegraphController implements ITelegraphHandler {
             File file = new File(dir, name + ".json_new");
             File file2 = new File(dir, name + ".json");
 
-            NBTJsonUtil.SaveFile(file, ((MC1710NBTCompound) telegraph.writeNBT()).getMCTag());
+            NBTJsonUtil.SaveFile(file, ((NBTWrapper) telegraph.writeNBT()).getMCTag());
             if (file2.exists()) {
                 file2.delete();
             }

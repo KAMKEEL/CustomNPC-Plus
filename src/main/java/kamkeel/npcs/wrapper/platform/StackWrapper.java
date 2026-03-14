@@ -1,20 +1,20 @@
 package kamkeel.npcs.wrapper.platform;
 
-import kamkeel.npcs.platform.entity.IPlatformStack;
+import kamkeel.npcs.platform.entity.IStack;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.platform.nbt.INBTCompound;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 /**
- * MC 1.7.10 implementation of {@link IPlatformStack}.
+ * MC 1.7.10 implementation of {@link IStack}.
  * Wraps a raw {@link ItemStack} instance.
  */
-public class MC1710PlatformStack implements IPlatformStack {
+public class StackWrapper implements IStack {
 
     private final ItemStack stack;
 
-    public MC1710PlatformStack(ItemStack stack) {
+    public StackWrapper(ItemStack stack) {
         this.stack = stack;
     }
 
@@ -47,13 +47,13 @@ public class MC1710PlatformStack implements IPlatformStack {
     @Override
     public INBTCompound getTag() {
         if (stack == null || stack.stackTagCompound == null) return null;
-        return new MC1710NBTCompound(stack.stackTagCompound);
+        return new NBTWrapper(stack.stackTagCompound);
     }
 
     @Override
     public void setTag(INBTCompound tag) {
         if (stack != null) {
-            stack.stackTagCompound = tag != null ? ((MC1710NBTCompound) tag).getMCTag() : null;
+            stack.stackTagCompound = tag != null ? ((NBTWrapper) tag).getMCTag() : null;
         }
     }
 
@@ -63,9 +63,9 @@ public class MC1710PlatformStack implements IPlatformStack {
     }
 
     @Override
-    public IPlatformStack copy() {
-        if (stack == null) return new MC1710PlatformStack(null);
-        return new MC1710PlatformStack(stack.copy());
+    public IStack copy() {
+        if (stack == null) return new StackWrapper(null);
+        return new StackWrapper(stack.copy());
     }
 
     @Override

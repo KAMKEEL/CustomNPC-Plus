@@ -14,7 +14,7 @@ import kamkeel.npcs.entity.EntityEnergyPanel;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -142,12 +142,12 @@ public class AbilityWall extends AbilityBarrier {
 
     @Override
     protected void writeBarrierTypeNBT(NBTTagCompound nbt) {
-        panelData.writeNBT(new MC1710NBTCompound(nbt));
+        panelData.writeNBT(new NBTWrapper(nbt));
     }
 
     @Override
     protected void readBarrierTypeNBT(NBTTagCompound nbt) {
-        panelData.readNBT(new MC1710NBTCompound(nbt));
+        panelData.readNBT(new NBTWrapper(nbt));
         // Migrate legacy heightOffset → base class offsetY
         if (!nbt.hasKey("barrierOffsetY") && panelData.heightOffset != 0.0f) {
             offsetY = panelData.heightOffset;

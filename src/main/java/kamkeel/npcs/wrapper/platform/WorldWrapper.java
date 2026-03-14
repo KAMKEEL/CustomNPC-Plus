@@ -1,19 +1,19 @@
 package kamkeel.npcs.wrapper.platform;
 
-import kamkeel.npcs.platform.entity.IPlatformEntity;
-import kamkeel.npcs.platform.entity.IPlatformWorld;
+import kamkeel.npcs.platform.entity.IMob;
+import kamkeel.npcs.platform.entity.IGameWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 
 /**
- * MC 1.7.10 implementation of {@link IPlatformWorld}.
+ * MC 1.7.10 implementation of {@link IGameWorld}.
  * Wraps a raw {@link World} instance.
  */
-public class MC1710PlatformWorld implements IPlatformWorld {
+public class WorldWrapper implements IGameWorld {
 
     private final World world;
 
-    public MC1710PlatformWorld(World world) {
+    public WorldWrapper(World world) {
         this.world = world;
     }
 
@@ -28,10 +28,10 @@ public class MC1710PlatformWorld implements IPlatformWorld {
     }
 
     @Override
-    public IPlatformEntity getEntityById(int id) {
+    public IMob getEntityById(int id) {
         Entity entity = world.getEntityByID(id);
         if (entity == null) return null;
-        return new MC1710PlatformEntity(entity);
+        return new EntityWrapper(entity);
     }
 
     @Override

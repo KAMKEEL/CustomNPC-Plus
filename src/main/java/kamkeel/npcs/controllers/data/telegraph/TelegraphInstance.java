@@ -4,7 +4,7 @@ import kamkeel.npcs.controllers.data.ability.Ability;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.util.UUID;
 
@@ -215,7 +215,7 @@ public class TelegraphInstance {
         nbt.setString("instanceId", instanceId);
 
         if (telegraph != null) {
-            nbt.setTag("telegraph", ((MC1710NBTCompound) telegraph.writeNBT()).getMCTag());
+            nbt.setTag("telegraph", ((NBTWrapper) telegraph.writeNBT()).getMCTag());
         }
 
         nbt.setDouble("x", x);
@@ -241,7 +241,7 @@ public class TelegraphInstance {
 
         if (nbt.hasKey("telegraph")) {
             this.telegraph = new Telegraph();
-            this.telegraph.readNBT(new MC1710NBTCompound(nbt.getCompoundTag("telegraph")));
+            this.telegraph.readNBT(new NBTWrapper(nbt.getCompoundTag("telegraph")));
         }
 
         this.x = nbt.getDouble("x");

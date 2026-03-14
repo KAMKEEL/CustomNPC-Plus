@@ -10,7 +10,7 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.controllers.LinkedItemController;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 import noppes.npcs.scripted.item.ScriptLinkedItem;
 
 import java.util.HashSet;
@@ -58,7 +58,7 @@ public class LinkedItem implements ILinkedItem {
         compound.setInteger("Version", this.version);
         compound.setString("Name", this.name);
 
-        compound.setTag("Display", ((MC1710NBTCompound) this.display.writeToNBT()).getMCTag());
+        compound.setTag("Display", ((NBTWrapper) this.display.writeToNBT()).getMCTag());
 
         compound.setDouble("DurabilityValue", this.durabilityValue);
         compound.setInteger("MaxStackSize", this.stackSize);
@@ -91,7 +91,7 @@ public class LinkedItem implements ILinkedItem {
         this.name = compound.getString("Name");
         this.version = compound.getInteger("Version");
 
-        this.display.readFromNBT(new MC1710NBTCompound(compound.getCompoundTag("Display")));
+        this.display.readFromNBT(new NBTWrapper(compound.getCompoundTag("Display")));
 
         this.durabilityValue = compound.getDouble("DurabilityValue");
         this.stackSize = compound.getInteger("MaxStackSize");

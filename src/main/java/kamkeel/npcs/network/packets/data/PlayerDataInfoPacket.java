@@ -11,7 +11,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.controllers.data.MagicData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.io.IOException;
 import java.util.Map;
@@ -87,7 +87,7 @@ public final class PlayerDataInfoPacket extends LargeAbstractPacket {
         writeMap(buffer, factionData);
 
         NBTTagCompound compound = new NBTTagCompound();
-        playerMagicData.writeToNBT(new MC1710NBTCompound(compound));
+        playerMagicData.writeToNBT(new NBTWrapper(compound));
         ByteBufUtils.writeNBT(buffer, compound);
 
         byte[] bytes = new byte[buffer.readableBytes()];

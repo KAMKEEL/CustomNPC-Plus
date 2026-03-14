@@ -16,7 +16,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.ServerTagMapController;
 import noppes.npcs.controllers.data.TagMap;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.io.IOException;
 
@@ -74,7 +74,7 @@ public final class CloneTagListPacket extends AbstractPacket {
             tagMap = ServerTagMapController.Instance.getTagMap(tab);
         }
         NBTTagCompound compound = new NBTTagCompound();
-        compound.setTag("CloneTags", ((MC1710NBTCompound) tagMap.writeNBT()).getMCTag());
+        compound.setTag("CloneTags", ((NBTWrapper) tagMap.writeNBT()).getMCTag());
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 }

@@ -14,7 +14,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.AbilityHotbarData;
 import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
+import noppes.npcs.wrapper.nbt.NBTWrapper;
 
 import java.io.IOException;
 
@@ -62,7 +62,7 @@ public final class AbilityHotbarSavePacket extends AbstractPacket {
         AbilityHotbarData slotData = data.hotbarData.getSlot(slot);
         if (slotData == null) return;
 
-        slotData.readFromNBT(new MC1710NBTCompound(compound.getCompoundTag("AbilityHotbar" + slot)));
+        slotData.readFromNBT(new NBTWrapper(compound.getCompoundTag("AbilityHotbar" + slot)));
 
         // Validate the ability key
         boolean valid = true;
