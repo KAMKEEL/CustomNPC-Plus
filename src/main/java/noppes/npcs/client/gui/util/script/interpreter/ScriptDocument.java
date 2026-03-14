@@ -4608,50 +4608,59 @@ public class ScriptDocument {
     // ==================== PHASE 4: BUILD MARKS ====================
 
     /**
-     * Build syntax highlighting marks - UNIFIED for both Java and JavaScript.
-     * Uses the SAME mark methods for both languages since they share data structures.
+     * Build syntax highlighting marks using tree-sitter for visual tokens
+     * and existing semantic passes for type-resolved coloring.
+     *
+     * Layer 1 (tree-sitter): strings, comments, keywords, numbers, type names,
+     *   method names, operators, punctuation — via highlights.scm query.
+     * Layer 2 (semantic): method calls with resolution, variables with scope,
+     *   field accesses with type info, imports, casts, lambdas, errors.
+     *
+     * The priority system in TokenType ensures semantic marks override
+     * tree-sitter base marks when they overlap.
      */
     private List<ScriptLine.Mark> buildMarks() {
         List<ScriptLine.Mark> marks = new ArrayList<>();
 
-        ScriptProfiler.begin("markStrings");
-        addPatternMarks(marks, STRING_PATTERN, TokenType.STRING);
-        ScriptProfiler.end("markStrings");
-        
-        ScriptProfiler.begin("markJSDocElements");
-        markJSDocElements(marks);
-        ScriptProfiler.end("markJSDocElements");
-        
-        ScriptProfiler.begin("markComments");
-        markNonJSDocComments(marks);
-        ScriptProfiler.end("markComments");
-        
-        ScriptProfiler.begin("markKeywords");
-        addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
-        if(isJavaScript())
-            addPatternMarks(marks, KEYWORD_JS_PATTERN, TokenType.KEYWORD);
-        ScriptProfiler.end("markKeywords");
-            
-        addPatternMarks(marks, NUMBER_PATTERN, TokenType.LITERAL);
+        // Layer 1: Tree-sitter visual highlighting (replaces all regex-based passes)
+        if (!isJavaScript()) {
+            ScriptProfiler.begin("treeSitterHighlights");
+            TreeSitterMarkBuilder tsBuilder = new TreeSitterMarkBuilder(this);
+            marks.addAll(tsBuilder.buildMarks(text));
+            ScriptProfiler.end("treeSitterHighlights");
+            return marks;
+        } else {
+            // JavaScript: tree-sitter-java grammar doesn't parse JS,
+            // so fall back to regex-based visual highlighting for JS
+            ScriptProfiler.begin("markStrings");
+            addPatternMarks(marks, STRING_PATTERN, TokenType.STRING);
+            ScriptProfiler.end("markStrings");
 
-        if (isJavaScript()) {
+            ScriptProfiler.begin("markJSDocElements");
+            markJSDocElements(marks);
+            ScriptProfiler.end("markJSDocElements");
+
+            ScriptProfiler.begin("markComments");
+            markNonJSDocComments(marks);
+            ScriptProfiler.end("markComments");
+
+            ScriptProfiler.begin("markKeywords");
+            addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
+            addPatternMarks(marks, KEYWORD_JS_PATTERN, TokenType.KEYWORD);
+            ScriptProfiler.end("markKeywords");
+
+            addPatternMarks(marks, NUMBER_PATTERN, TokenType.LITERAL);
             markObjectLiteralKeys(marks);
         }
-         
+
+        // Layer 2: Semantic passes (shared by both Java and JS)
+        // These produce higher-priority marks that override tree-sitter base marks.
+
         if (!isJavaScript()) {
             markImports(marks);
-        }
-
-        if (!isJavaScript()) {
             markClassDeclarations(marks);
             markEnumConstants(marks);
-        }
 
-        if (!isJavaScript()) {
-            addPatternMarks(marks, MODIFIER_PATTERN, TokenType.KEYWORD);
-        }
-
-        if (!isJavaScript()) {
             ScriptProfiler.begin("markTypeDeclarations");
             markTypeDeclarations(marks);
             ScriptProfiler.end("markTypeDeclarations");
@@ -4672,7 +4681,7 @@ public class ScriptDocument {
         ScriptProfiler.begin("markChainedFieldAccesses");
         markChainedFieldAccesses(marks);
         ScriptProfiler.end("markChainedFieldAccesses");
-        
+
         ScriptProfiler.begin("markImportedClassUsages");
         markImportedClassUsages(marks);
         ScriptProfiler.end("markImportedClassUsages");
@@ -4681,27 +4690,125 @@ public class ScriptDocument {
             ScriptProfiler.begin("markCastTypes");
             markCastTypes(marks);
             ScriptProfiler.end("markCastTypes");
-            
+
             markUnusedImports(marks);
             markMethodReferences(marks);
         }
-        
+
         markLambdaOperators(marks);
-        
+
         ScriptProfiler.begin("markInnerScopeParams");
         markInnerScopeParameters(marks);
         ScriptProfiler.end("markInnerScopeParams");
-        
+
         ScriptProfiler.begin("validateLambdaReturnTypes");
         validateLambdaReturnTypes(marks);
         ScriptProfiler.end("validateLambdaReturnTypes");
-        
+
         ScriptProfiler.begin("markUndefinedIdentifiers");
         markUndefinedIdentifiers(marks);
         ScriptProfiler.end("markUndefinedIdentifiers");
 
         return marks;
     }
+
+    /*
+     * ==================== OLD buildMarks() — COMMENTED OUT ====================
+     * Replaced by tree-sitter-based highlighting via TreeSitterMarkBuilder.
+     * Kept for reference during transition. Remove once tree-sitter path is validated.
+     *
+     * private List<ScriptLine.Mark> buildMarks_legacy() {
+     *     List<ScriptLine.Mark> marks = new ArrayList<>();
+     *
+     *     ScriptProfiler.begin("markStrings");
+     *     addPatternMarks(marks, STRING_PATTERN, TokenType.STRING);
+     *     ScriptProfiler.end("markStrings");
+     *
+     *     ScriptProfiler.begin("markJSDocElements");
+     *     markJSDocElements(marks);
+     *     ScriptProfiler.end("markJSDocElements");
+     *
+     *     ScriptProfiler.begin("markComments");
+     *     markNonJSDocComments(marks);
+     *     ScriptProfiler.end("markComments");
+     *
+     *     ScriptProfiler.begin("markKeywords");
+     *     addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
+     *     if(isJavaScript())
+     *         addPatternMarks(marks, KEYWORD_JS_PATTERN, TokenType.KEYWORD);
+     *     ScriptProfiler.end("markKeywords");
+     *
+     *     addPatternMarks(marks, NUMBER_PATTERN, TokenType.LITERAL);
+     *
+     *     if (isJavaScript()) {
+     *         markObjectLiteralKeys(marks);
+     *     }
+     *
+     *     if (!isJavaScript()) {
+     *         markImports(marks);
+     *     }
+     *
+     *     if (!isJavaScript()) {
+     *         markClassDeclarations(marks);
+     *         markEnumConstants(marks);
+     *     }
+     *
+     *     if (!isJavaScript()) {
+     *         addPatternMarks(marks, MODIFIER_PATTERN, TokenType.KEYWORD);
+     *     }
+     *
+     *     if (!isJavaScript()) {
+     *         ScriptProfiler.begin("markTypeDeclarations");
+     *         markTypeDeclarations(marks);
+     *         ScriptProfiler.end("markTypeDeclarations");
+     *     }
+     *
+     *     ScriptProfiler.begin("markMethodDeclarations");
+     *     markMethodDeclarations(marks);
+     *     ScriptProfiler.end("markMethodDeclarations");
+     *
+     *     ScriptProfiler.begin("markMethodCalls");
+     *     markMethodCalls(marks);
+     *     ScriptProfiler.end("markMethodCalls");
+     *
+     *     ScriptProfiler.begin("markVariables");
+     *     markVariables(marks);
+     *     ScriptProfiler.end("markVariables");
+     *
+     *     ScriptProfiler.begin("markChainedFieldAccesses");
+     *     markChainedFieldAccesses(marks);
+     *     ScriptProfiler.end("markChainedFieldAccesses");
+     *
+     *     ScriptProfiler.begin("markImportedClassUsages");
+     *     markImportedClassUsages(marks);
+     *     ScriptProfiler.end("markImportedClassUsages");
+     *
+     *     if (!isJavaScript()) {
+     *         ScriptProfiler.begin("markCastTypes");
+     *         markCastTypes(marks);
+     *         ScriptProfiler.end("markCastTypes");
+     *
+     *         markUnusedImports(marks);
+     *         markMethodReferences(marks);
+     *     }
+     *
+     *     markLambdaOperators(marks);
+     *
+     *     ScriptProfiler.begin("markInnerScopeParams");
+     *     markInnerScopeParameters(marks);
+     *     ScriptProfiler.end("markInnerScopeParams");
+     *
+     *     ScriptProfiler.begin("validateLambdaReturnTypes");
+     *     validateLambdaReturnTypes(marks);
+     *     ScriptProfiler.end("validateLambdaReturnTypes");
+     *
+     *     ScriptProfiler.begin("markUndefinedIdentifiers");
+     *     markUndefinedIdentifiers(marks);
+     *     ScriptProfiler.end("markUndefinedIdentifiers");
+     *
+     *     return marks;
+     * }
+     */
 
     private void markObjectLiteralKeys(List<ScriptLine.Mark> marks) {
         for (ObjectLiteralParser.ObjectLiteralAnalysis analysis : objectLiterals.values()) {
