@@ -29,17 +29,7 @@ import kamkeel.npcs.controllers.TelegraphController;
 import kamkeel.npcs.controllers.data.energycharge.EnergyChargeTracker;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
-import kamkeel.npcs.entity.EntityEnergyBarrier;
-import kamkeel.npcs.entity.EntityAbilityBeam;
-import kamkeel.npcs.entity.EntityAbilityDisc;
-import kamkeel.npcs.entity.EntityAbilityLaser;
-import kamkeel.npcs.entity.EntityAbilityOrb;
-import kamkeel.npcs.entity.EntityEnergyPanel;
-import kamkeel.npcs.entity.EntityEnergySweeper;
-import kamkeel.npcs.entity.EntityAbilityZone;
-import kamkeel.npcs.entity.EntityEnergyDome;
-import kamkeel.npcs.entity.EntityEnergyProjectile;
-import kamkeel.npcs.entity.EntityEnergySlicer;
+import kamkeel.npcs.entity.*;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.util.BukkitUtil;
 import net.minecraft.block.Block;
@@ -304,6 +294,7 @@ public class CustomNpcs {
         registerNewEntity(EntityEnergyDome.class, "energydome", 64, 3, true);
         registerNewEntity(EntityEnergyPanel.class, "energypanel", 64, 3, true);
         registerNewEntity(EntityEnergySlicer.class, "energyslicer", 64, 1, true);
+        registerNewEntity(EntityAbilityPillar.class, "abilitypillar", 64, 1, true);
 
         new RecipeController();
 
