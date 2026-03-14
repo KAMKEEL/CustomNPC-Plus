@@ -32,14 +32,7 @@ import kamkeel.npcs.controllers.data.ability.type.AbilitySlam;
 import kamkeel.npcs.controllers.data.ability.type.AbilityTeleport;
 import kamkeel.npcs.controllers.data.ability.type.AbilityTrap;
 import kamkeel.npcs.controllers.data.ability.type.AbilityVortex;
-import kamkeel.npcs.controllers.data.ability.type.energy.AbilityBeam;
-import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDisc;
-import kamkeel.npcs.controllers.data.ability.type.energy.AbilityDome;
-import kamkeel.npcs.controllers.data.ability.type.energy.AbilityLaser;
-import kamkeel.npcs.controllers.data.ability.type.energy.AbilityOrb;
-import kamkeel.npcs.controllers.data.ability.type.energy.AbilityShield;
-import kamkeel.npcs.controllers.data.ability.type.energy.AbilitySweeper;
-import kamkeel.npcs.controllers.data.ability.type.energy.AbilityWall;
+import kamkeel.npcs.controllers.data.ability.type.energy.*;
 import net.minecraftforge.common.util.Constants;
 import noppes.npcs.controllers.data.AbilityScript;
 import noppes.npcs.controllers.data.ChainedAbilityScript;
@@ -177,6 +170,8 @@ public class AbilityController implements IAbilityHandler {
         registerType(AbilityDome::new);
         registerType(AbilityWall::new);
         registerType(AbilityShield::new);
+
+        registerType(AbilityPillar::new);
     }
 
     private void registerBuiltinConditionTypes() {
