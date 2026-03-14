@@ -45,7 +45,9 @@ dependencies {
 
     shadowImplementation(project.files("tools/standalone-JaninoLoader-1.0.2.jar"))
     annotationProcessor(project.files("tools/standalone-JaninoLoader-1.0.2.jar"))
-    
+
+    shadowImplementation(project.files("tools/tree-sitter-0.26.6-java-js.jar"))
+
     testImplementation("junit:junit:4.13.2")
 
     if(embedMixin){
