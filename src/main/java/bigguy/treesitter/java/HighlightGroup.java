@@ -12,14 +12,17 @@ package bigguy.treesitter.java;
  */
 public enum HighlightGroup {
 
+    PROPERTY("property"),
     VARIABLE("variable"),
+    PARAMETER("parameter"),
     FUNCTION("function"),
-    FUNCTION_METHOD("function.method"),
-    FUNCTION_BUILTIN("function.builtin"),
+    FUNCTION_CALL("function.call"),
+    SUPER("function.builtin"),
     TYPE("type"),
+    TYPE_PARAMETER("type.parameter"),
+    INTERFACE("interface"),
     TYPE_BUILTIN("type.builtin"),
     CONSTRUCTOR("constructor"),
-    PROPERTY("property"),
     CONSTANT("constant"),
     CONSTANT_BUILTIN("constant.builtin"),
     KEYWORD("keyword"),

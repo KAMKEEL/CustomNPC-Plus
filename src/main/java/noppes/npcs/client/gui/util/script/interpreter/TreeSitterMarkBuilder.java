@@ -1,11 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
-import bigguy.treesitter.java.HighlightCapture;
-import bigguy.treesitter.java.HighlightGroup;
-import bigguy.treesitter.java.JavaParser;
-import bigguy.treesitter.java.JavaQueryEngine;
-import bigguy.treesitter.java.SyntaxTree;
-import bigguy.treesitter.java.TextSpan;
+import bigguy.treesitter.java.*;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
 import java.util.ArrayList;
@@ -40,16 +35,19 @@ public final class TreeSitterMarkBuilder {
     static {
         Map<HighlightGroup, TokenType> m = new EnumMap<>(HighlightGroup.class);
 
-        m.put(HighlightGroup.VARIABLE,              TokenType.DEFAULT);
         m.put(HighlightGroup.PROPERTY,              TokenType.GLOBAL_FIELD);
-        m.put(HighlightGroup.FUNCTION,              TokenType.METHOD_CALL);
-        m.put(HighlightGroup.FUNCTION_METHOD,       TokenType.METHOD_CALL);
-        m.put(HighlightGroup.FUNCTION_BUILTIN,      TokenType.METHOD_CALL);
+        m.put(HighlightGroup.VARIABLE,              TokenType.LOCAL_FIELD);
+        m.put(HighlightGroup.PARAMETER,             TokenType.PARAMETER);
+        m.put(HighlightGroup.FUNCTION,              TokenType.METHOD_DECL);
+        m.put(HighlightGroup.FUNCTION_CALL,         TokenType.METHOD_CALL);
+        m.put(HighlightGroup.SUPER,                 TokenType.KEYWORD);
         m.put(HighlightGroup.CONSTRUCTOR,           TokenType.METHOD_DECL);
         m.put(HighlightGroup.TYPE,                  TokenType.IMPORTED_CLASS);
+        m.put(HighlightGroup.INTERFACE,             TokenType.INTERFACE_DECL);
         m.put(HighlightGroup.TYPE_BUILTIN,          TokenType.KEYWORD);
         m.put(HighlightGroup.ENUM,                  TokenType.ENUM_DECL);
         m.put(HighlightGroup.CONSTANT,              TokenType.STATIC_FINAL_FIELD);
+        m.put(HighlightGroup.TYPE_PARAMETER,        TokenType.GENERIC_TYPE_PARAM);
         m.put(HighlightGroup.CONSTANT_BUILTIN,      TokenType.LITERAL);
         m.put(HighlightGroup.KEYWORD,               TokenType.KEYWORD);
         m.put(HighlightGroup.KEYWORD_CONTROL,       TokenType.KEYWORD);
@@ -97,7 +95,7 @@ public final class TreeSitterMarkBuilder {
         SyntaxTree tree;
         try {
             tree = parser.parse(sourceText);
-            System.out.println(tree.getRootNode().toString());
+            System.out.println(SyntaxTreeDebugger.printTree(tree));
         } catch (Exception e) {
             return marks;
         }
@@ -146,18 +144,12 @@ public final class TreeSitterMarkBuilder {
 
         switch (group) {
             case FUNCTION:
-                if ("identifier".equals(nodeType)) {
-                    // pattern 0 = method_declaration name → decl, pattern 1 = method_invocation name → call
-                    return capture.getPatternIndex() == 0 ? TokenType.METHOD_DECL : TokenType.METHOD_CALL;
-                }
-                break;
-
+              return TokenType.METHOD_DECL;
             case TYPE:
                 if ("identifier".equals(nodeType)) {
                     return TokenType.CLASS_DECL;
                 }
                 return TokenType.IMPORTED_CLASS;
-
             case ENUM:
                 return TokenType.ENUM_DECL;
 

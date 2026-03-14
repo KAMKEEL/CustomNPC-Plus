@@ -20,21 +20,29 @@ public final class QueryPatterns {
     public static final String HIGHLIGHTS =
         // Identifiers: methods, constructors, types
         "(method_declaration name: (identifier) @function)\n" +
-        "(method_invocation name: (identifier) @function)\n" +
-        "(super) @function.builtin\n" +
+        "(method_invocation name: (identifier) @function.call)\n" +
         "\n" +
         "(type_identifier) @type\n" +
         "(class_declaration name: (identifier) @type)\n" +
-        "(interface_declaration name: (identifier) @type)\n" +
+        "(interface_declaration name: (identifier) @interface)\n" +
         "(record_declaration name: (identifier) @type)\n" +
         "(enum_declaration name: (identifier) @enum)\n" +
         "(enum_constant name: (identifier) @constant)\n" +
         "(constructor_declaration name: (identifier) @constructor)\n" +
         "\n" +
+        // Type parameters: class Foo<T>, <E> E method(), <T extends Comparable<T>>
+        "(type_parameter (type_identifier) @type.parameter)\n" +
+        "(wildcard \"?\" @type.parameter)\n" +
+        "\n" +
         // Field access
         "(field_access field: (identifier) @property)\n" +
         "(field_declaration declarator: (variable_declarator name: (identifier) @property))\n" +
+        // Janino - global fields outside of class
+        "(program (local_variable_declaration declarator: (variable_declarator name: (identifier) @property)))\n" +
         "\n" +
+        // Local variables
+        "(local_variable_declaration declarator: (variable_declarator name: (identifier) @variable))\n" +
+        "(formal_parameter name: (identifier) @parameter)\n" +
         // Literals
         "(string_literal) @string\n" +
         "(string_fragment) @string\n" +
@@ -45,7 +53,6 @@ public final class QueryPatterns {
         "[(decimal_floating_point_literal) (hex_floating_point_literal)] @number\n" +
         "(true) @boolean\n" +
         "(false) @boolean\n" +
-        "(null_literal) @constant.builtin\n" +
         "\n" +
         // Annotations
         "(annotation name: (identifier) @attribute)\n" +
@@ -56,8 +63,10 @@ public final class QueryPatterns {
         "(block_comment) @comment\n" +
         "\n" +
         // Keywords
+        "(super) @keyword\n" +
+        "(this) @keyword\n" +
         "[\n" +
-        "  \"abstract\" \"assert\" \"break\" \"case\" \"catch\"\n" +
+        "  \"null\" \"abstract\" \"assert\" \"break\" \"case\" \"catch\"\n" +
         "  \"class\" \"continue\" \"default\" \"do\" \"else\"\n" +
         "  \"enum\" \"extends\" \"final\" \"finally\" \"for\"\n" +
         "  \"if\" \"implements\" \"import\" \"instanceof\" \"interface\"\n" +
@@ -68,6 +77,14 @@ public final class QueryPatterns {
         "  \"volatile\" \"while\" \"yield\"\n" +
         "] @keyword\n" +
         "\n" +
+        // Primitive types (int, short, long, byte, char → integral_type;
+        // float, double → floating_point_type;
+        // boolean → boolean_type; void → void_type)
+        "(integral_type) @keyword\n" +
+        "(floating_point_type) @keyword\n" +
+        "(boolean_type) @keyword\n" +
+        "(void_type) @keyword\n" +
+        "\n" +        
         // Operators
         "[\n" +
         "  \"=\" \">\" \"<\" \"!\" \"~\" \"?\" \":\" \"->\" \"==\" \">=\" \"<=\"\n" +
