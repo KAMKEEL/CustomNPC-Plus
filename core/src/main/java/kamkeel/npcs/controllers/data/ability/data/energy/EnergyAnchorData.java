@@ -1,8 +1,8 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
 import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.ability.data.IEnergyAnchorData;
+import noppes.npcs.platform.nbt.INBTCompound;
 
 public class EnergyAnchorData implements IEnergyAnchorData {
     public AnchorPoint anchorPoint = AnchorPoint.FRONT;
@@ -94,7 +94,7 @@ public class EnergyAnchorData implements IEnergyAnchorData {
         this.launchFromAnchor = launchFromAnchor;
     }
 
-    public void writeNBT(NBTTagCompound nbt) {
+    public void writeNBT(INBTCompound nbt) {
         nbt.setInteger("anchorPoint", anchorPoint.ordinal());
         nbt.setFloat("anchorOffsetX", anchorOffsetX);
         nbt.setFloat("anchorOffsetY", anchorOffsetY);
@@ -102,7 +102,7 @@ public class EnergyAnchorData implements IEnergyAnchorData {
         nbt.setBoolean("launchFromAnchor", launchFromAnchor);
     }
 
-    public void readNBT(NBTTagCompound nbt) {
+    public void readNBT(INBTCompound nbt) {
         this.anchorPoint = AnchorPoint.fromOrdinal(nbt.getInteger("anchorPoint"));
         this.anchorOffsetX = nbt.getFloat("anchorOffsetX");
         this.anchorOffsetY = nbt.getFloat("anchorOffsetY");

@@ -1,6 +1,6 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.platform.nbt.INBTCompound;
 
 public class EnergyChargingData {
 
@@ -61,7 +61,7 @@ public class EnergyChargingData {
         this.maxCharge = Math.max(0, maxCharge);
     }
 
-    public void writeNBT(NBTTagCompound nbt) {
+    public void writeNBT(INBTCompound nbt) {
         nbt.setInteger("chargeDuration", chargeDuration);
         nbt.setInteger("chargeDelay", chargeDelay);
         nbt.setInteger("maxCharge", maxCharge);
@@ -69,7 +69,7 @@ public class EnergyChargingData {
         nbt.setBoolean("chargeWindUpSync", chargeWindUpSync);
     }
 
-    public void readNBT(NBTTagCompound nbt) {
+    public void readNBT(INBTCompound nbt) {
         chargeDuration = nbt.hasKey("chargeDuration") ? nbt.getInteger("chargeDuration") : 60;
         chargeDelay = nbt.hasKey("chargeDelay") ? nbt.getInteger("chargeDelay") : 0;
         maxCharge = nbt.hasKey("maxCharge") ? nbt.getInteger("maxCharge") : 100;

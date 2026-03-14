@@ -18,6 +18,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.client.gui.SubGuiZonePresetSelector;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.constants.EnumPotionType;
 
@@ -381,7 +382,7 @@ public abstract class AbilityZone extends Ability {
         nbt.setFloat("particleScale", particleScale);
         nbt.setFloat("animSpeed", animSpeed);
         nbt.setFloat("lightningDensity", lightningDensity);
-        colorData.writeNBT(nbt);
+        colorData.writeNBT(new MC1710NBTCompound(nbt));
 
         nbt.setBoolean("groundFill", groundFill);
         nbt.setFloat("groundAlpha", groundAlpha);
@@ -413,7 +414,7 @@ public abstract class AbilityZone extends Ability {
         this.particleScale = nbt.getFloat("particleScale");
         this.animSpeed = nbt.getFloat("animSpeed");
         this.lightningDensity = nbt.getFloat("lightningDensity");
-        colorData.readNBT(nbt);
+        colorData.readNBT(new MC1710NBTCompound(nbt));
 
         this.groundFill = nbt.getBoolean("groundFill");
         this.groundAlpha = nbt.getFloat("groundAlpha");

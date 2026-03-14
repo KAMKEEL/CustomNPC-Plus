@@ -11,6 +11,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.client.gui.builder.FieldDef;
 import noppes.npcs.controllers.data.MagicData;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.util.List;
 
@@ -176,7 +177,7 @@ public abstract class AbilityBarrier extends AbilityEnergy {
     public final void writeTypeNBT(NBTTagCompound nbt) {
         writeBarrierTypeNBT(nbt);
         writeEnergyNBT(nbt);
-        barrierData.writeNBT(nbt);
+        barrierData.writeNBT(new MC1710NBTCompound(nbt));
         nbt.setFloat("barrierOffsetX", offsetX);
         nbt.setFloat("barrierOffsetY", offsetY);
         nbt.setFloat("barrierOffsetZ", offsetZ);
@@ -189,7 +190,7 @@ public abstract class AbilityBarrier extends AbilityEnergy {
         offsetZ = nbt.hasKey("barrierOffsetZ") ? nbt.getFloat("barrierOffsetZ") : 0.0f;
         readBarrierTypeNBT(nbt);
         readEnergyNBT(nbt);
-        barrierData.readNBT(nbt);
+        barrierData.readNBT(new MC1710NBTCompound(nbt));
     }
 
     // ==================== API GETTERS & SETTERS ====================

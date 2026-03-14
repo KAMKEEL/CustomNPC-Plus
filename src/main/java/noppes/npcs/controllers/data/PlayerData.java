@@ -57,7 +57,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
     public PlayerMailData mailData = new PlayerMailData(this);
     public AnimationData animationData = new AnimationData(this);
-    public PlayerEffectData effectData = new PlayerEffectData(this);
+    public PlayerEffectData effectData = new PlayerEffectData();
     public DataTimers timers = new DataTimers(this);
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
@@ -151,7 +151,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         timers.readFromNBT(data);
         skinOverlays.readFromNBT(data);
         animationData.readFromNBT(data);
-        effectData.readFromNBT(data);
+        effectData.readFromNBT(new MC1710NBTCompound(data));
         magicData.readToNBT(new MC1710NBTCompound(data));
         tradeData.readFromNBT(data);
         abilityData.readFromNBT(data);
@@ -196,7 +196,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         timers.writeToNBT(compound);
         skinOverlays.writeToNBT(compound);
         animationData.writeToNBT(compound);
-        effectData.writeToNBT(compound);
+        effectData.writeToNBT(new MC1710NBTCompound(compound));
         magicData.writeToNBT(new MC1710NBTCompound(compound));
         tradeData.writeToNBT(compound);
         abilityData.writeToNBT(compound);
@@ -233,12 +233,12 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
     public NBTTagCompound getPlayerEffects() {
         NBTTagCompound compound = new NBTTagCompound();
-        effectData.writeToNBT(compound);
+        effectData.writeToNBT(new MC1710NBTCompound(compound));
         return compound;
     }
 
     public void setPlayerEffects(NBTTagCompound data) {
-        effectData.readFromNBT(data);
+        effectData.readFromNBT(new MC1710NBTCompound(data));
     }
 
     public NBTTagCompound getSyncNBTFull() {

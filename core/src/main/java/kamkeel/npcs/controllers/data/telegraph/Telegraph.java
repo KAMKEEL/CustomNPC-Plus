@@ -1,6 +1,7 @@
 package kamkeel.npcs.controllers.data.telegraph;
 
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.core.NBT;
 
 /**
  * Telegraph configuration - defines a visual warning shape.
@@ -69,8 +70,8 @@ public class Telegraph {
     // NBT SERIALIZATION
     // ═══════════════════════════════════════════════════════════════════
 
-    public NBTTagCompound writeNBT() {
-        NBTTagCompound nbt = new NBTTagCompound();
+    public INBTCompound writeNBT() {
+        INBTCompound nbt = NBT.compound();
         nbt.setString("id", id);
         nbt.setString("type", type.name());
         nbt.setFloat("radius", radius);
@@ -92,7 +93,7 @@ public class Telegraph {
         return nbt;
     }
 
-    public void readNBT(NBTTagCompound nbt) {
+    public void readNBT(INBTCompound nbt) {
         this.id = nbt.getString("id");
         if (nbt.hasKey("type")) {
             try {

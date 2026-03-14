@@ -1,7 +1,9 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.constants.NBTTypes;
+import noppes.npcs.platform.nbt.INBTCompound;
+import noppes.npcs.platform.nbt.INBTList;
+import noppes.npcs.core.NBT;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -9,33 +11,31 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerEffectData {
-    private final PlayerData parent;
     private ConcurrentHashMap<EffectKey, PlayerEffect> effects = new ConcurrentHashMap<>();
 
-    public PlayerEffectData(PlayerData playerData) {
-        this.parent = playerData;
+    public PlayerEffectData() {
     }
 
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        NBTTagList list = new NBTTagList();
+    public INBTCompound writeToNBT(INBTCompound compound) {
+        INBTList list = NBT.list();
         for (Map.Entry<EffectKey, PlayerEffect> entry : effects.entrySet()) {
-            NBTTagCompound effectCompound = new NBTTagCompound();
+            INBTCompound effectCompound = NBT.compound();
             effectCompound.setInteger("id", entry.getKey().getId());
             effectCompound.setInteger("index", entry.getKey().getIndex());
             effectCompound.setInteger("duration", entry.getValue().duration);
             effectCompound.setByte("level", entry.getValue().level);
-            list.appendTag(effectCompound);
+            list.addCompound(effectCompound);
         }
-        compound.setTag("Effects", list);
+        compound.setList("Effects", list);
         return compound;
     }
 
-    public void readFromNBT(NBTTagCompound compound) {
+    public void readFromNBT(INBTCompound compound) {
         HashSet<EffectKey> newKeys = new HashSet<>();
         if (compound.hasKey("Effects")) {
-            NBTTagList list = compound.getTagList("Effects", 10);
-            for (int i = 0; i < list.tagCount(); i++) {
-                NBTTagCompound effectCompound = list.getCompoundTagAt(i);
+            INBTList list = compound.getList("Effects", NBTTypes.TAG_COMPOUND);
+            for (int i = 0; i < list.size(); i++) {
+                INBTCompound effectCompound = list.getCompound(i);
                 int id = effectCompound.getInteger("id");
                 int index = effectCompound.getInteger("index");
                 int duration = effectCompound.getInteger("duration");

@@ -18,6 +18,7 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.controllers.data.MagicData;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -869,7 +870,7 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         nbt.setBoolean("Charging", charging);
         nbt.setInteger("ChargeTick", chargeTick);
         nbt.setInteger("ChargeDuration", chargeDuration);
-        barrierData.writeNBT(nbt);
+        barrierData.writeNBT(new MC1710NBTCompound(nbt));
     }
 
     /**
@@ -885,7 +886,7 @@ public abstract class EntityEnergyBarrier extends EntityEnergyAbility {
         this.chargeTick = nbt.getInteger("ChargeTick");
         this.chargeDuration = nbt.getInteger("ChargeDuration");
         this.dataWatcher.updateObject(DW_CHARGING, (byte) (charging ? 1 : 0));
-        barrierData.readNBT(nbt);
+        barrierData.readNBT(new MC1710NBTCompound(nbt));
     }
 
     // ==================== DEBUG LOGGING ====================

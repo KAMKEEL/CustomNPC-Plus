@@ -1,8 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.ability.data.IEnergyHomingData;
-
+import noppes.npcs.platform.nbt.INBTCompound;
 
 /**
  * Groups homing/movement properties for energy projectile abilities.
@@ -64,14 +63,14 @@ public class EnergyHomingData implements IEnergyHomingData {
         this.homingRange = homingRange;
     }
 
-    public void writeNBT(NBTTagCompound nbt) {
+    public void writeNBT(INBTCompound nbt) {
         nbt.setFloat("speed", speed);
         nbt.setBoolean("homing", homing);
         nbt.setFloat("homingStrength", homingStrength);
         nbt.setFloat("homingRange", homingRange);
     }
 
-    public void readNBT(NBTTagCompound nbt) {
+    public void readNBT(INBTCompound nbt) {
         speed = nbt.hasKey("speed") ? nbt.getFloat("speed") : 0.5f;
         homing = !nbt.hasKey("homing") || nbt.getBoolean("homing");
         homingStrength = nbt.hasKey("homingStrength") ? nbt.getFloat("homingStrength") : 0.15f;

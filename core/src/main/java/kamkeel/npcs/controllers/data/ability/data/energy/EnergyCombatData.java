@@ -1,8 +1,8 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
 import kamkeel.npcs.controllers.data.ability.enums.HitType;
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.ability.data.IEnergyCombatData;
+import noppes.npcs.platform.nbt.INBTCompound;
 
 /**
  * Groups combat properties shared by energy projectile abilities.
@@ -124,7 +124,7 @@ public class EnergyCombatData implements IEnergyCombatData {
         this.maxHits = clampMaxHits(maxHits);
     }
 
-    public void writeNBT(NBTTagCompound nbt) {
+    public void writeNBT(INBTCompound nbt) {
         nbt.setFloat("damage", damage);
         nbt.setFloat("knockback", knockback);
         nbt.setFloat("knockbackUp", knockbackUp);
@@ -136,7 +136,7 @@ public class EnergyCombatData implements IEnergyCombatData {
         nbt.setInteger("maxHits", maxHits);
     }
 
-    public void readNBT(NBTTagCompound nbt) {
+    public void readNBT(INBTCompound nbt) {
         damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 7.0f;
         knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.0f;
         knockbackUp = nbt.hasKey("knockbackUp") ? nbt.getFloat("knockbackUp") : 0.1f;

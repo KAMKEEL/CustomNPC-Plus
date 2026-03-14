@@ -4,6 +4,7 @@ import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 /**
  * Per-projectile data: anchor point + optional color override.
@@ -36,7 +37,7 @@ public class ProjectileData {
     }
 
     public void writeNBT(NBTTagCompound nbt) {
-        anchor.writeNBT(nbt);
+        anchor.writeNBT(new MC1710NBTCompound(nbt));
         nbt.setBoolean("colorOverride", colorOverride);
         if (colorOverride) {
             nbt.setInteger("overrideInnerColor", innerColor);
@@ -45,7 +46,7 @@ public class ProjectileData {
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        anchor.readNBT(nbt);
+        anchor.readNBT(new MC1710NBTCompound(nbt));
         colorOverride = nbt.getBoolean("colorOverride");
         if (colorOverride) {
             innerColor = nbt.getInteger("overrideInnerColor");

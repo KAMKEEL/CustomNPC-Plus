@@ -354,8 +354,8 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
     protected void writeEnergyBaseNBT(NBTTagCompound nbt) {
         nbt.setInteger("OwnerId", ownerEntityId);
         nbt.setBoolean("IgnoreIFrames", ignoreIFrames);
-        displayData.writeNBT(nbt);
-        lightningData.writeNBT(nbt);
+        displayData.writeNBT(new MC1710NBTCompound(nbt));
+        lightningData.writeNBT(new MC1710NBTCompound(nbt));
         if (customDamageData != null) {
             nbt.setTag("CustomDamageData", customDamageData);
         }
@@ -369,8 +369,8 @@ public abstract class EntityEnergyAbility extends Entity implements IEntityAddit
     protected void readEnergyBaseNBT(NBTTagCompound nbt) {
         this.ownerEntityId = nbt.getInteger("OwnerId");
         this.ignoreIFrames = nbt.getBoolean("IgnoreIFrames");
-        displayData.readNBT(nbt);
-        lightningData.readNBT(nbt);
+        displayData.readNBT(new MC1710NBTCompound(nbt));
+        lightningData.readNBT(new MC1710NBTCompound(nbt));
         if (nbt.hasKey("CustomDamageData")) {
             this.customDamageData = nbt.getCompoundTag("CustomDamageData");
         }

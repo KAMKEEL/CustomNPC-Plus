@@ -1,6 +1,6 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.platform.nbt.INBTCompound;
 
 /**
  * Groups panel-specific properties for energy wall/shield abilities.
@@ -88,7 +88,7 @@ public class EnergyPanelData {
 
     // ==================== NBT ====================
 
-    public void writeNBT(NBTTagCompound nbt) {
+    public void writeNBT(INBTCompound nbt) {
         nbt.setFloat("panelWidth", panelWidth);
         nbt.setFloat("panelHeight", panelHeight);
         nbt.setFloat("panelHeightOffset", heightOffset);
@@ -100,7 +100,7 @@ public class EnergyPanelData {
         nbt.setFloat("panelLaunchKnockback", launchKnockback);
     }
 
-    public void readNBT(NBTTagCompound nbt) {
+    public void readNBT(INBTCompound nbt) {
         panelWidth = nbt.hasKey("panelWidth") ? nbt.getFloat("panelWidth") : 3.0f;
         panelHeight = nbt.hasKey("panelHeight") ? nbt.getFloat("panelHeight") : 3.0f;
         heightOffset = nbt.hasKey("panelHeightOffset") ? nbt.getFloat("panelHeightOffset") : 0.0f;

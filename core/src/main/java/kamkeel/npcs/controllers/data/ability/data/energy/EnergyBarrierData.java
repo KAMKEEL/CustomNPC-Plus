@@ -1,17 +1,19 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.core.NBT;
+import noppes.npcs.platform.nbt.INBTCompound;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Groups barrier properties shared by energy barrier abilities (Dome, Wall, Shield).
  * Handles health/durability, duration, and per-projectile-type damage multipliers.
  *
  * Properties:
- * - Solid: Hard wall — entities cannot pass through the barrier boundary (either direction)
- * - Knockback: Repulsion field — entities near the surface get pushed away
+ * - Solid: Hard wall - entities cannot pass through the barrier boundary (either direction)
+ * - Knockback: Repulsion field - entities near the surface get pushed away
  * - Absorbing: Caster's incoming damage is redirected to the barrier
  * - Allows Melee: Barrier can be hit by melee attacks (punching)
  */
@@ -163,7 +165,7 @@ public class EnergyBarrierData {
 
     // ==================== NBT ====================
 
-    public void writeNBT(NBTTagCompound nbt) {
+    public void writeNBT(INBTCompound nbt) {
         nbt.setFloat("barrierMaxHealth", maxHealth);
         nbt.setBoolean("barrierUseHealth", useHealth);
         nbt.setInteger("barrierDuration", durationTicks);
@@ -180,14 +182,14 @@ public class EnergyBarrierData {
         nbt.setFloat("barrierReflectStrPct", reflectStrengthPct);
         nbt.setBoolean("barrierTargetOwner", targetOwner);
 
-        NBTTagCompound multNbt = new NBTTagCompound();
+        INBTCompound multNbt = NBT.compound();
         for (Map.Entry<String, Float> entry : damageMultipliers.entrySet()) {
             multNbt.setFloat(entry.getKey(), entry.getValue());
         }
-        nbt.setTag("barrierMultipliers", multNbt);
+        nbt.setCompound("barrierMultipliers", multNbt);
     }
 
-    public void readNBT(NBTTagCompound nbt) {
+    public void readNBT(INBTCompound nbt) {
         maxHealth = nbt.hasKey("barrierMaxHealth") ? nbt.getFloat("barrierMaxHealth") : 100.0f;
         useHealth = !nbt.hasKey("barrierUseHealth") || nbt.getBoolean("barrierUseHealth");
         durationTicks = nbt.hasKey("barrierDuration") ? nbt.getInteger("barrierDuration") : 200;
@@ -206,9 +208,8 @@ public class EnergyBarrierData {
 
         damageMultipliers.clear();
         if (nbt.hasKey("barrierMultipliers")) {
-            NBTTagCompound multNbt = nbt.getCompoundTag("barrierMultipliers");
-            @SuppressWarnings("unchecked")
-            java.util.Set<String> keys = multNbt.func_150296_c();
+            INBTCompound multNbt = nbt.getCompound("barrierMultipliers");
+            Set<String> keys = multNbt.getKeySet();
             for (String key : keys) {
                 damageMultipliers.put(key, multNbt.getFloat(key));
             }

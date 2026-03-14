@@ -1,5 +1,11 @@
 package noppes.npcs.platform;
 
+import kamkeel.npcs.platform.entity.IPlatformDamageSource;
+import kamkeel.npcs.platform.entity.IPlatformEntity;
+import kamkeel.npcs.platform.entity.IPlatformLiving;
+import kamkeel.npcs.platform.entity.IPlatformPlayer;
+import kamkeel.npcs.platform.entity.IPlatformStack;
+import kamkeel.npcs.platform.entity.IPlatformWorld;
 import noppes.npcs.platform.nbt.INBTCompound;
 import noppes.npcs.platform.nbt.INBTList;
 import noppes.npcs.platform.nbt.NBTFactory;
@@ -93,4 +99,64 @@ public interface PlatformService {
      * Logs at DEBUG level.
      */
     void logDebug(String message);
+
+    // --- Entity Wrapping ---
+
+    /**
+     * Wraps a raw MC player entity into a platform-independent player.
+     *
+     * @param mcPlayer the MC player object (e.g., EntityPlayerMP on 1.7.10)
+     * @return a platform player wrapper
+     */
+    IPlatformPlayer wrapPlayer(Object mcPlayer);
+
+    /**
+     * Wraps a raw MC entity into a platform-independent entity.
+     *
+     * @param mcEntity the MC entity object
+     * @return a platform entity wrapper
+     */
+    IPlatformEntity wrapEntity(Object mcEntity);
+
+    /**
+     * Wraps a raw MC living entity into a platform-independent living entity.
+     *
+     * @param mcLiving the MC living entity object (e.g., EntityLivingBase on 1.7.10)
+     * @return a platform living wrapper
+     */
+    IPlatformLiving wrapLiving(Object mcLiving);
+
+    /**
+     * Wraps a raw MC item stack into a platform-independent stack.
+     *
+     * @param mcStack the MC ItemStack object
+     * @return a platform stack wrapper
+     */
+    IPlatformStack wrapStack(Object mcStack);
+
+    /**
+     * Wraps a raw MC world into a platform-independent world.
+     *
+     * @param mcWorld the MC World object
+     * @return a platform world wrapper
+     */
+    IPlatformWorld wrapWorld(Object mcWorld);
+
+    /**
+     * Wraps a raw MC damage source into a platform-independent damage source.
+     *
+     * @param mcSource the MC DamageSource object
+     * @return a platform damage source wrapper
+     */
+    IPlatformDamageSource wrapDamageSource(Object mcSource);
+
+    // --- Scheduling ---
+
+    /**
+     * Runs a task on the main server thread.
+     * Safe to call from any thread.
+     *
+     * @param task the task to run
+     */
+    void runOnMainThread(Runnable task);
 }

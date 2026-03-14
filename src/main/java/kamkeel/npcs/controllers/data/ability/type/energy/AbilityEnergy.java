@@ -7,6 +7,7 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.builder.FieldDef;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.util.List;
 
@@ -119,13 +120,13 @@ public abstract class AbilityEnergy extends Ability {
     // ==================== NBT HELPERS ====================
 
     protected void writeEnergyNBT(NBTTagCompound nbt) {
-        displayData.writeNBT(nbt);
-        lightningData.writeNBT(nbt);
+        displayData.writeNBT(new MC1710NBTCompound(nbt));
+        lightningData.writeNBT(new MC1710NBTCompound(nbt));
     }
 
     protected void readEnergyNBT(NBTTagCompound nbt) {
-        displayData.readNBT(nbt);
-        lightningData.readNBT(nbt);
+        displayData.readNBT(new MC1710NBTCompound(nbt));
+        lightningData.readNBT(new MC1710NBTCompound(nbt));
     }
 
     // ==================== GUI HELPERS ====================

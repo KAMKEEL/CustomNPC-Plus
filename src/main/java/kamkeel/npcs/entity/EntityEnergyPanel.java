@@ -18,6 +18,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.wrapper.nbt.MC1710NBTCompound;
 
 import java.util.List;
 
@@ -738,7 +739,7 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         nbt.setInteger("PanelMode", mode.ordinal());
         nbt.setFloat("TargetPanelWidth", targetPanelWidth);
         nbt.setFloat("TargetPanelHeight", targetPanelHeight);
-        panelData.writeNBT(nbt);
+        panelData.writeNBT(new MC1710NBTCompound(nbt));
     }
 
     @Override
@@ -748,7 +749,7 @@ public class EntityEnergyPanel extends EntityEnergyBarrier {
         int modeOrdinal = nbt.getInteger("PanelMode");
         this.mode = (modeOrdinal >= 0 && modeOrdinal < PanelMode.values().length)
             ? PanelMode.values()[modeOrdinal] : PanelMode.PLACED;
-        panelData.readNBT(nbt);
+        panelData.readNBT(new MC1710NBTCompound(nbt));
         panelData.panelWidth = sanitize(panelData.panelWidth, 3.0f, MAX_ENTITY_SIZE);
         panelData.panelHeight = sanitize(panelData.panelHeight, 3.0f, MAX_ENTITY_SIZE);
         this.targetPanelWidth = sanitize(nbt.hasKey("TargetPanelWidth") ? nbt.getFloat("TargetPanelWidth") : panelData.panelWidth, 3.0f, MAX_ENTITY_SIZE);
