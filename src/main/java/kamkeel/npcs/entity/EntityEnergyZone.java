@@ -20,7 +20,12 @@ import net.minecraft.world.World;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract base class for all energy zone entities.
@@ -50,7 +55,7 @@ public abstract class EntityEnergyZone extends EntityEnergyAbility {
 
     protected static final float MAX_ZONE_RADIUS = 64.0f;
     protected static final float MAX_ZONE_HEIGHT = 64.0f;
-    protected static final double GROUND_OFFSET = 0.005;
+    protected static final double GROUND_OFFSET = 0.05;
 
     // ==================== LIFESPAN ====================
 

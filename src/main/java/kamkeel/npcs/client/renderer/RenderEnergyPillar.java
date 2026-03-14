@@ -2,12 +2,13 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
 import kamkeel.npcs.entity.EntityAbilityPillar;
 import kamkeel.npcs.entity.EntityAbilityPillar.PillarOrigin;
 import kamkeel.npcs.entity.EntityAbilityPillar.PillarShape;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
-import noppes.npcs.LogWriter;
+import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -17,12 +18,13 @@ import org.lwjgl.opengl.GL11;
  * - CIRCLE: cylindrical pillar rendered with triangulated segments.
  * - SQUARE: rectangular prism pillar.
  *
- * Both modes render three color layers (outer glow, mid, inner core)
- * following the same pattern as RenderEnergyLaser.
+ * Both modes render three color layers (outer glow, mid, inner core).
  *
  * Origin modes:
- * - FROM_GROUND: base at posY, tip grows upward.
- * - FROM_ABOVE:  base at posY + height, tip grows downward.
+ * - FROM_GROUND: base at posY, pillar grows upward toward posY + height.
+ * - FROM_ABOVE:  pillar falls from above, tip at posY, grows downward.
+ *               The entity posY is always the ground anchor point.
+ *               Visually: base = posY + targetHeight, tip grows down toward posY.
  */
 @SideOnly(Side.CLIENT)
 public class RenderEnergyPillar extends RenderEnergy {
@@ -33,12 +35,6 @@ public class RenderEnergyPillar extends RenderEnergy {
     @Override
     public void doRender(Entity entity, double x, double y, double z, float yaw, float partialTicks) {
         EntityAbilityPillar pillar = (EntityAbilityPillar) entity;
-
-        noppes.npcs.LogWriter.info("RenderEnergyPillar: tick=" + pillar.ticksExisted
-            + " charging=" + pillar.isCharging()
-            + " growing=" + pillar.isGrowing()
-            + " radius=" + pillar.getPillarRadius()
-            + " height=" + pillar.getPillarHeight());
 
         if (shouldSkipInitialActiveRender(pillar)) return;
 
@@ -60,17 +56,22 @@ public class RenderEnergyPillar extends RenderEnergy {
             return;
         }
 
-        // Resolve Y extents based on origin
+        // FROM_GROUND: base at y, tip at y+height (grows up).
+        // FROM_ABOVE:  pillar descends from above. The entity's posY is the ground anchor.
+        //              The full column height is targetHeight. The current height is how far
+        //              it has grown. So the visible column spans from:
+        //              tip = posY + targetHeight - height  (starts high, descends)
+        //              base = posY + targetHeight          (fixed ceiling)
         float baseY, tipY;
+        float targetHeight = pillar.getPillarData().targetHeight;
         if (pillar.getPillarOrigin() == PillarOrigin.FROM_ABOVE) {
-            baseY = (float) y + height;
-            tipY = (float) y;
+            baseY = (float) y + targetHeight;
+            tipY = (float) y + targetHeight - height;
         } else {
             baseY = (float) y;
             tipY = (float) y + height;
         }
 
-        // Rotation around Y axis
         float rotationAngle = 0f;
         float rotationSpeed = pillar.getRotationSpeed();
         if (rotationSpeed != 0f) {
@@ -88,15 +89,12 @@ public class RenderEnergyPillar extends RenderEnergy {
             float midRadius = innerRadius + (outerRadius - innerRadius) * 0.5f;
 
             GL11.glDepthMask(false);
-            renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z,
-                outerRadius, outerColor, outerAlpha * 0.4f, rotationAngle);
-            renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z,
-                midRadius, outerColor, outerAlpha * 0.7f, rotationAngle);
+            renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z, outerRadius, outerColor, outerAlpha * 0.4f, rotationAngle);
+            renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z, midRadius, outerColor, outerAlpha * 0.7f, rotationAngle);
             GL11.glDepthMask(true);
         }
 
-        renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z,
-            innerRadius, innerColor, innerAlpha, rotationAngle);
+        renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z, innerRadius, innerColor, innerAlpha, rotationAngle);
 
         if (pillar.hasLightningEffect()) {
             float midWorldY = (baseY + tipY) * 0.5f;
@@ -119,14 +117,13 @@ public class RenderEnergyPillar extends RenderEnergy {
 
         if (renderRadius <= 0.01f) return;
 
-        // Pulse effect
         float pulseTime = pillar.ticksExisted + partialTicks;
         float pulse = (float) Math.sin(pulseTime * 0.2f) * 0.08f;
         renderRadius *= (1.0f + pulse);
 
-        float height = 0.05f; // MIN_HEIGHT — flat disc during charging
+        // During charging, render a flat disc at ground level
         float baseY = (float) y;
-        float tipY = baseY + height;
+        float tipY = baseY + 0.05f;
 
         float rotationAngle = pillar.getRotationSpeed() != 0f
             ? (pillar.ticksExisted + partialTicks) * pillar.getRotationSpeed()
@@ -139,7 +136,7 @@ public class RenderEnergyPillar extends RenderEnergy {
 
         if (pillar.hasLightningEffect()) {
             GL11.glPushMatrix();
-            GL11.glTranslated(x, y + height * 0.5f, z);
+            GL11.glTranslated(x, y + 0.025f, z);
             renderAttachedLightning(pillar, INNER_SCALE, renderRadius);
             GL11.glPopMatrix();
         }
@@ -150,15 +147,12 @@ public class RenderEnergyPillar extends RenderEnergy {
             float midRadius = innerRadius + (outerRadius - innerRadius) * 0.5f;
 
             GL11.glDepthMask(false);
-            renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z,
-                outerRadius, outerColor, outerAlpha * 0.4f, rotationAngle);
-            renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z,
-                midRadius, outerColor, outerAlpha * 0.7f, rotationAngle);
+            renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z, outerRadius, outerColor, outerAlpha * 0.4f, rotationAngle);
+            renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z, midRadius, outerColor, outerAlpha * 0.7f, rotationAngle);
             GL11.glDepthMask(true);
         }
 
-        renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z,
-            innerRadius, innerColor, innerAlpha, rotationAngle);
+        renderPillarShape(pillar.getPillarShape(), x, baseY, tipY, z, innerRadius, innerColor, innerAlpha, rotationAngle);
     }
 
     // ==================== SHAPE DISPATCH ====================
@@ -175,10 +169,6 @@ public class RenderEnergyPillar extends RenderEnergy {
 
     // ==================== CYLINDER ====================
 
-    /**
-     * Render a cylindrical pillar with lateral faces and top/bottom caps.
-     * Rotation is applied around Y axis.
-     */
     private void renderCylinderPillar(double cx, float baseY, float tipY, double cz,
                                       float radius, int color, float alpha, float rotationAngle) {
         float[] rgb = extractRGB(color);
@@ -203,11 +193,9 @@ public class RenderEnergyPillar extends RenderEnergy {
             float z1 = (float) cz + sinTable[i] * radius;
             float x2 = (float) cx + cosTable[i + 1] * radius;
             float z2 = (float) cz + sinTable[i + 1] * radius;
-
             float nx = (cosTable[i] + cosTable[i + 1]) * 0.5f;
             float nz = (sinTable[i] + sinTable[i + 1]) * 0.5f;
             tess.setNormal(nx, 0, nz);
-
             tess.addVertex(x1, baseY, z1);
             tess.addVertex(x2, baseY, z2);
             tess.addVertex(x2, tipY, z2);
@@ -250,24 +238,18 @@ public class RenderEnergyPillar extends RenderEnergy {
 
     // ==================== SQUARE ====================
 
-    /**
-     * Render a rectangular prism pillar with four lateral faces and top/bottom caps.
-     * Rotation is applied around Y axis.
-     */
     private void renderSquarePillar(double cx, float baseY, float tipY, double cz,
                                     float radius, int color, float alpha, float rotationAngle) {
         float[] rgb = extractRGB(color);
         float r = rgb[0], g = rgb[1], b = rgb[2];
 
-        // Four corners of the square, rotated around Y
         double rotRad = Math.toRadians(rotationAngle);
         float cosA = (float) Math.cos(rotRad);
         float sinA = (float) Math.sin(rotRad);
 
-        // Local corners before rotation: (±radius, ±radius)
-        float[][] corners = new float[4][2];
         float[] lx = {-radius, radius, radius, -radius};
         float[] lz = {-radius, -radius, radius, radius};
+        float[][] corners = new float[4][2];
         for (int i = 0; i < 4; i++) {
             corners[i][0] = (float) cx + lx[i] * cosA - lz[i] * sinA;
             corners[i][1] = (float) cz + lx[i] * sinA + lz[i] * cosA;
@@ -277,19 +259,15 @@ public class RenderEnergyPillar extends RenderEnergy {
         tess.startDrawingQuads();
         tess.setColorRGBA_F(r, g, b, alpha);
 
-        // Four lateral faces
         for (int i = 0; i < 4; i++) {
             int next = (i + 1) % 4;
             float x1 = corners[i][0], z1 = corners[i][1];
             float x2 = corners[next][0], z2 = corners[next][1];
-
-            // Outward normal (midpoint of edge, normalized)
             float nx = (x1 + x2) * 0.5f - (float) cx;
             float nz = (z1 + z2) * 0.5f - (float) cz;
             float nlen = (float) Math.sqrt(nx * nx + nz * nz);
             if (nlen > 0) { nx /= nlen; nz /= nlen; }
             tess.setNormal(nx, 0, nz);
-
             tess.addVertex(x1, baseY, z1);
             tess.addVertex(x2, baseY, z2);
             tess.addVertex(x2, tipY, z2);
@@ -314,7 +292,7 @@ public class RenderEnergyPillar extends RenderEnergy {
     }
 
     @Override
-    protected net.minecraft.util.ResourceLocation getEntityTexture(Entity entity) {
+    protected ResourceLocation getEntityTexture(Entity entity) {
         return WHITE_TEXTURE;
     }
 }
