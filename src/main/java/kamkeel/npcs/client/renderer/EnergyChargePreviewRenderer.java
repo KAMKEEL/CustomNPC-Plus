@@ -2,6 +2,7 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import kamkeel.npcs.controllers.data.energycharge.EnergyChargePreviewManager;
+import kamkeel.npcs.entity.EntityEnergyAbility;
 import kamkeel.npcs.entity.EntityEnergyProjectile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -25,7 +26,7 @@ public class EnergyChargePreviewRenderer {
 
         float partialTicks = event.partialTicks;
 
-        for (EntityEnergyProjectile entity : EnergyChargePreviewManager.ClientInstance.getPreviews()) {
+        for (EntityEnergyAbility entity : EnergyChargePreviewManager.ClientInstance.getPreviews()) {
             if (entity == null || entity.isDead) continue;
 
             double x = entity.prevPosX + (entity.posX - entity.prevPosX) * partialTicks - RenderManager.renderPosX;

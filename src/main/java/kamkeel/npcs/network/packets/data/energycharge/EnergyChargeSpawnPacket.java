@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.data.energycharge.EnergyChargePreviewManager;
-import kamkeel.npcs.entity.EntityEnergyProjectile;
+import kamkeel.npcs.entity.EntityEnergyAbility;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
@@ -68,7 +68,7 @@ public final class EnergyChargeSpawnPacket extends AbstractPacket {
         World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return;
 
-        EntityEnergyProjectile preview = createPreviewEntity(className, world);
+        EntityEnergyAbility preview = createPreviewEntity(className, world);
         if (preview == null) return;
 
         preview.setPreviewMode(true);
@@ -84,22 +84,22 @@ public final class EnergyChargeSpawnPacket extends AbstractPacket {
     }
 
     @SideOnly(Side.CLIENT)
-    private static EntityEnergyProjectile createPreviewEntity(String className, World world) {
+    private static EntityEnergyAbility createPreviewEntity(String className, World world) {
         try {
             Class<?> clazz = Class.forName(className);
-            if (!EntityEnergyProjectile.class.isAssignableFrom(clazz)) {
+            if (!EntityEnergyAbility.class.isAssignableFrom(clazz)) {
                 return null;
             }
 
             Constructor<?> constructor = clazz.getConstructor(World.class);
             Object instance = constructor.newInstance(world);
-            return (EntityEnergyProjectile) instance;
+            return (EntityEnergyAbility) instance;
         } catch (Exception ignored) {
             return null;
         }
     }
 
-    public static void sendToTracking(String instanceId, EntityEnergyProjectile previewEntity, Entity trackingEntity) {
+    public static void sendToTracking(String instanceId, EntityEnergyAbility previewEntity, Entity trackingEntity) {
         if (previewEntity == null || trackingEntity == null) return;
         String className = previewEntity.getClass().getName();
         NBTTagCompound nbt = previewEntity.exportSpawnNBT();

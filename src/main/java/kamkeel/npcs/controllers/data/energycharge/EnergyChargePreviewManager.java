@@ -1,6 +1,6 @@
 package kamkeel.npcs.controllers.data.energycharge;
 
-import kamkeel.npcs.entity.EntityEnergyProjectile;
+import kamkeel.npcs.entity.EntityEnergyAbility;
 import net.minecraft.world.World;
 
 import java.util.Collection;
@@ -18,13 +18,13 @@ public class EnergyChargePreviewManager {
 
     public static EnergyChargePreviewManager ClientInstance;
 
-    private final ConcurrentHashMap<String, EntityEnergyProjectile> previews = new ConcurrentHashMap<String, EntityEnergyProjectile>();
+    private final ConcurrentHashMap<String, EntityEnergyAbility> previews = new ConcurrentHashMap<String, EntityEnergyAbility>();
 
     public static void initClient() {
         ClientInstance = new EnergyChargePreviewManager();
     }
 
-    public void addPreview(String instanceId, EntityEnergyProjectile entity) {
+    public void addPreview(String instanceId, EntityEnergyAbility entity) {
         if (instanceId == null || entity == null) return;
         previews.put(instanceId, entity);
     }
@@ -34,7 +34,7 @@ public class EnergyChargePreviewManager {
         previews.remove(instanceId);
     }
 
-    public Collection<EntityEnergyProjectile> getPreviews() {
+    public Collection<EntityEnergyAbility> getPreviews() {
         return previews.values();
     }
 
@@ -55,9 +55,9 @@ public class EnergyChargePreviewManager {
             return;
         }
 
-        Iterator<EntityEnergyProjectile> iterator = previews.values().iterator();
+        Iterator<EntityEnergyAbility> iterator = previews.values().iterator();
         while (iterator.hasNext()) {
-            EntityEnergyProjectile entity = iterator.next();
+            EntityEnergyAbility entity = iterator.next();
             if (entity == null || entity.isDead || entity.worldObj != world) {
                 iterator.remove();
                 continue;
