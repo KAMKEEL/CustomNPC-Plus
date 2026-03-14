@@ -202,7 +202,7 @@ public class ScriptTextContainer extends JavaTextContainer {
             return;
         }
         
-        ScriptProfiler.setEnabled(true);
+        //ScriptProfiler.setEnabled(true);
         document.formatCodeText();
         ScriptProfiler.setEnabled(false);
         rebuildLineData();
