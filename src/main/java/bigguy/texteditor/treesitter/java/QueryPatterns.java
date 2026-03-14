@@ -287,6 +287,10 @@ public final class QueryPatterns {
         "(local_variable_declaration\n" +
         "  declarator: (variable_declarator\n" +
         "    name: (identifier) @local.definition.var))\n" +
+        "(program\n" +
+        "  (local_variable_declaration\n" +
+        "    declarator: (variable_declarator)\n" +
+        "      name: (identifier) @variable)))\n" +
         "(formal_parameter\n" +
         "  name: (identifier) @local.definition.parameter)\n" +
         "(field_declaration\n" +
