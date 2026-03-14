@@ -18,32 +18,36 @@ public final class QueryPatterns {
     // ─── HIGHLIGHTS (from highlights.scm, 3912B) ──────────────────────
 
     public static final String HIGHLIGHTS =
-        // Identifiers: methods, constructors, types
+        // ── Identifiers: methods, constructors, declarations ──
         "(method_declaration name: (identifier) @function)\n" +
         "(method_invocation name: (identifier) @function.call)\n" +
+        "(constructor_declaration name: (identifier) @constructor)\n" +
         "\n" +
+        // ── Types ──
         "(type_identifier) @type\n" +
         "(class_declaration name: (identifier) @type)\n" +
         "(interface_declaration name: (identifier) @interface)\n" +
         "(record_declaration name: (identifier) @type)\n" +
         "(enum_declaration name: (identifier) @enum)\n" +
         "(enum_constant name: (identifier) @constant)\n" +
-        "(constructor_declaration name: (identifier) @constructor)\n" +
         "\n" +
-        // Type parameters: class Foo<T>, <E> E method(), <T extends Comparable<T>>
-        "(type_parameter (type_identifier) @type.parameter)\n" +
-        "(wildcard \"?\" @type.parameter)\n" +
-        "\n" +
-        // Field access
+        // ── Fields ──
         "(field_access field: (identifier) @property)\n" +
         "(field_declaration declarator: (variable_declarator name: (identifier) @property))\n" +
-        // Janino - global fields outside of class
+        "\n" +
+        // ── Variables & parameters (general, overridden by specifics below) ──
+        "(local_variable_declaration declarator: (variable_declarator name: (identifier) @variable))\n" +
+        "(enhanced_for_statement name: (identifier) @variable)\n" +
+        "(formal_parameter name: (identifier) @parameter)\n" +
+        "(catch_formal_parameter name: (identifier) @parameter)\n" +
+        "(lambda_expression parameters: (identifier) @parameter)\n" +
+        "(inferred_parameters (identifier) @parameter)\n" +
+        "(method_invocation object: (identifier) @variable)\n" +
+        "\n" +
+        // Janino — global fields outside of class (overrides @variable for program-level)
         "(program (local_variable_declaration declarator: (variable_declarator name: (identifier) @property)))\n" +
         "\n" +
-        // Local variables
-        "(local_variable_declaration declarator: (variable_declarator name: (identifier) @variable))\n" +
-        "(formal_parameter name: (identifier) @parameter)\n" +
-        // Literals
+        // ── Literals ──
         "(string_literal) @string\n" +
         "(string_fragment) @string\n" +
         "(multiline_string_fragment) @string\n" +
@@ -51,22 +55,25 @@ public final class QueryPatterns {
         "(escape_sequence) @string.escape\n" +
         "[(decimal_integer_literal) (hex_integer_literal) (octal_integer_literal) (binary_integer_literal)] @number\n" +
         "[(decimal_floating_point_literal) (hex_floating_point_literal)] @number\n" +
+        "(null_literal) @constant.builtin\n" +
         "(true) @boolean\n" +
         "(false) @boolean\n" +
         "\n" +
-        // Annotations
+        // ── Annotations ──
+        "(annotation \"@\" @punctuation.special)\n" +
         "(annotation name: (identifier) @attribute)\n" +
+        "(marker_annotation \"@\" @punctuation.special)\n" +
         "(marker_annotation name: (identifier) @attribute)\n" +
         "\n" +
-        // Comments
+        // ── Comments ──
         "(line_comment) @comment\n" +
         "(block_comment) @comment\n" +
         "\n" +
-        // Keywords
+        // ── Keywords ──
         "(super) @keyword\n" +
         "(this) @keyword\n" +
         "[\n" +
-        "  \"null\" \"abstract\" \"assert\" \"break\" \"case\" \"catch\"\n" +
+        "  \"abstract\" \"assert\" \"break\" \"case\" \"catch\"\n" +
         "  \"class\" \"continue\" \"default\" \"do\" \"else\"\n" +
         "  \"enum\" \"extends\" \"final\" \"finally\" \"for\"\n" +
         "  \"if\" \"implements\" \"import\" \"instanceof\" \"interface\"\n" +
@@ -76,16 +83,12 @@ public final class QueryPatterns {
         "  \"throw\" \"throws\" \"transient\" \"try\"\n" +
         "  \"volatile\" \"while\" \"yield\"\n" +
         "] @keyword\n" +
-        "\n" +
-        // Primitive types (int, short, long, byte, char → integral_type;
-        // float, double → floating_point_type;
-        // boolean → boolean_type; void → void_type)
         "(integral_type) @keyword\n" +
         "(floating_point_type) @keyword\n" +
         "(boolean_type) @keyword\n" +
         "(void_type) @keyword\n" +
-        "\n" +        
-        // Operators
+        "\n" +
+        // ── Operators ──
         "[\n" +
         "  \"=\" \">\" \"<\" \"!\" \"~\" \"?\" \":\" \"->\" \"==\" \">=\" \"<=\"\n" +
         "  \"!=\" \"&&\" \"||\" \"++\" \"--\" \"+\" \"-\" \"*\" \"/\" \"&\"\n" +
@@ -93,13 +96,21 @@ public final class QueryPatterns {
         "  \"&=\" \"|=\" \"^=\" \"%=\" \"<<=\" \">>=\" \">>>=\" \"...\"\n" +
         "] @operator\n" +
         "\n" +
-        // Punctuation
+        // ── Punctuation ──
         "[\"(\" \")\" ] @punctuation.bracket\n" +
         "[\"[\" \"]\" ] @punctuation.bracket\n" +
         "[\"{\" \"}\" ] @punctuation.bracket\n" +
+        "(type_arguments \"<\" @punctuation.bracket)\n" +
+        "(type_arguments \">\" @punctuation.bracket)\n" +
         "[\".\" \";\" \",\"] @punctuation.delimiter\n" +
         "\n" +
-        // Constants: uppercase identifiers (SCREAMING_CASE)
+        // ── Type parameters (after operators so @type.parameter overrides @operator for \"?\") ──
+        "(type_parameter (type_identifier) @type.parameter)\n" +
+        "(wildcard \"?\" @type.parameter)\n" +
+        "(wildcard \"extends\" @keyword)\n" +
+        "(wildcard (super) @keyword)\n" +
+        "\n" +
+        // ── Constants: SCREAMING_CASE identifiers ──
         "((identifier) @constant\n" +
         "  (#match? @constant \"^[A-Z_$][A-Z\\\\d_$]*$\"))\n";
 
