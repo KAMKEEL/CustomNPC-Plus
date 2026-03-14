@@ -101,8 +101,8 @@ public final class TreeSitterMarkBuilder {
         } catch (Exception e) {
             return marks;
         }
-        
-        
+
+
 
         try {
             List<HighlightCapture> captures = ENGINE.highlights(tree, sourceText);
@@ -147,8 +147,7 @@ public final class TreeSitterMarkBuilder {
         switch (group) {
             case FUNCTION:
                 if ("identifier".equals(nodeType)) {
-                    // pattern 0 = method_declaration name → decl, pattern 1 = method_invocation name → call
-                    return capture.getPatternIndex() == 0 ? TokenType.METHOD_DECL : TokenType.METHOD_CALL;
+                    return TokenType.METHOD_CALL;
                 }
                 break;
 
