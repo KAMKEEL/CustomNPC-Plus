@@ -1,4 +1,68 @@
 ________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+## ⚠️ MIGRATION ORCHESTRATION RULES (APPLY TO ALL MIGRATION WORK)
+
+These rules govern how ALL agents operate during the multi-version migration. Every delegated task MUST follow them.
+
+### 1. Self-Review Protocol
+Every agent completing migration work MUST self-review before reporting completion:
+- **Compile check**: Does `./gradlew build` still succeed? (or at minimum, do the affected modules compile?)
+- **Pattern check**: Does the change follow existing codebase conventions? (split-package shadow, naming, etc.)
+- **Regression check**: Did the change break any existing behavior or imports?
+- **Completeness check**: Are there any loose ends, missed files, or incomplete stubs?
+
+### 2. Orchestrator Verification
+The orchestrating agent (Sisyphus) will manually verify ALL delegated work:
+- Read key changed files to confirm correctness
+- Run `./gradlew build` after each phase
+- Check that no forbidden practices were introduced (see FORBIDDEN_PRACTICES.md)
+- Verify the deliverables match the expected outcome exactly
+
+### 3. Incremental Commits
+- Each sub-phase (0A, 0B, 0C, 0D) gets its own commit upon successful verification
+- Never combine multiple phases into one commit
+- Commit messages follow: `migration(phase-X): <concise description>`
+
+### 4. Fail-Safe Rules
+- If a build breaks during any phase, STOP and fix before proceeding
+- If a change would affect >100 files, get orchestrator approval first
+- If uncertain about a pattern, check 2-3 existing examples before proceeding
+- NEVER delete or modify files outside the stated scope without explicit approval
+
+### 5. Context Passing
+- Every delegated agent MUST receive the full content of SESSION_MEMORY.md in their prompt
+- This ensures every agent understands the vision, architecture, constraints, and forbidden practices
+
+### 6. Phase Reports
+- Upon completing a phase, the agent MUST create `.AGENTS/PHASE_0X_REPORT.md` (e.g., `PHASE_0A_REPORT.md`)
+- Report format:
+  ```
+  # Phase 0X Report — [Title]
+  **Date:** YYYY-MM-DD
+  **Agent:** [agent type]
+  
+  ## What Was Done
+  - [list of concrete changes]
+  
+  ## Files Changed
+  - [file paths with brief description of change]
+  
+  ## Files Created
+  - [new file paths]
+  
+  ## Verification
+  - Build status: [PASS/FAIL]
+  - Tests: [PASS/FAIL/N/A]
+  - Self-review findings: [any issues found and fixed]
+  
+  ## Discoveries / Notes
+  - [anything unexpected, deviations from plan, or future considerations]
+  ```
+
+### 7. Documentation Updates
+- Update AGENTS.md, SESSION_MEMORY.md, and MIGRATION_ROADMAP.md checkboxes as phases complete
+- Record any discoveries, surprises, or deviations in SESSION_MEMORY.md
+
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 CURRENT USER PROMPT:
 
 ## 1) MINECRAFT/FORGE PLATFORM ABSTRACTION:
