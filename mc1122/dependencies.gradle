@@ -1,0 +1,8 @@
+// MC 1.12.2 dependencies
+// See mc1710/dependencies.gradle for the full dependency pattern.
+// Phase 1B will add core/platform-api dependencies once source porting begins.
+dependencies {
+    // CNPC+ Core: version-independent game logic (data classes, controllers, constants)
+    // Transitively includes platform-api (bridge interfaces for NBT, config, etc.)
+    implementation project(':core')
+}

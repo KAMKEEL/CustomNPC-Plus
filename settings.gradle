@@ -46,4 +46,5 @@ includeBuild 'gradle-plugins'
 // - platform-api: MC-free interfaces (plain Java 8 library)
 // - core: MC-free game logic (plain Java 8 library, depends on platform-api)
 // - mc1710: Minecraft 1.7.10 module (Forge mod, depends on core)
-include 'platform-api', 'core', 'mc1710'
+// - mc1122: Minecraft 1.12.2 module (Forge mod, depends on core)
+include 'platform-api', 'core', 'mc1710', 'mc1122'

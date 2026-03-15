@@ -1,0 +1,14 @@
+plugins {
+    id 'com.gtnewhorizons.gtnhconvention'
+}
+
+version = "1.11.1"
+group = "kamkeel.customnpc-plus"
+archivesBaseName = "CustomNPC-Plus-1.12.2"
+
+// Javadoc configuration
+javadoc {
+    options.encoding     = 'UTF-8'
+    options.charSet      = 'UTF-8'
+    options.docEncoding  = 'UTF-8'
+}

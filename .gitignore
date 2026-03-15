@@ -67,5 +67,11 @@ mc1710/build/
 mc1710/run/
 mc1710/bin/
 
+# mc1122
+mc1122/src/main/resources/mixins.*([!.]).json
+mc1122/src/main/resources/assets/customnpcs/api
+mc1122/build/
+mc1122/run/
+mc1122/bin/
 
 

@@ -47,13 +47,13 @@ tasks.create('runServerNoNashorn', Exec) {
 }
 
 sourceSets.main.java {
-    def apiDir = file('src/api/java')
-
-    if (!apiDir.exists()) {
-        throw new GradleException("Missing API sources: Run './gradlew updateAPI' or enable checkout submodules in CI.")
-    }
-
-    srcDirs += apiDir
+//    def apiDir = file('src/api/java')
+//
+//    if (!apiDir.exists()) {
+//        throw new GradleException("Missing API sources: Run './gradlew updateAPI' or enable checkout submodules in CI.")
+//    }
+//
+//    srcDirs += apiDir
 }
 
 // ============================================================================
