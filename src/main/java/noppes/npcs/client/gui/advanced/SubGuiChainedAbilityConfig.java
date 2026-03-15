@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 import static kamkeel.npcs.controllers.data.ability.conditions.AbilityCondition.MAX_CONDITIONS;
 
@@ -153,7 +154,11 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         fieldDefs.add(FieldDef.boolField("gui.enabled", chain::isEnabled, chain::setEnabled).tab("General"));
         fieldDefs.add(FieldDef.intField("ability.weight", chain::getWeight, chain::setWeight).range(1, 100).tab("General"));
         fieldDefs.add(FieldDef.boolField("ability.windUpAll", chain::isWindUpAll, chain::setWindUpAll).tab("General"));
-        fieldDefs.add(FieldDef.intField("ability.cooldown", chain::getCooldownTicks, chain::setCooldownTicks).range(0, 12000).tab("General"));
+        fieldDefs.add(FieldDef.row(
+            FieldDef.intField("ability.cooldown", chain::getCooldownTicks, chain::setCooldownTicks).range(0, 12000),
+            FieldDef.boolField("ability.perAbilityCooldown", chain::isPerAbilityCooldown, chain::setPerAbilityCooldown)
+        ).tab("General"));
+        fieldDefs.add(FieldDef.boolField("ability.ignoreCooldown", chain::isIgnoreCooldown, chain::setIgnoreCooldown).tab("General"));
 
         // ── Target tab ───────────────────────────────────────────────
         fieldDefs.add(FieldDef.row(
@@ -163,16 +168,20 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
 
         // ── Icon tab ──────────────────────────────────────────────
         AbilityIconData chainIcon = AbilityIconData.fromChainedAbility(chain);
+        BooleanSupplier isCustomIcon = chainIcon::isEnabled;
+
+        fieldDefs.add(FieldDef.section("ability.section.icon").tab("Icon"));
+        fieldDefs.add(FieldDef.boolField("ability.hasIcon", chainIcon::isEnabled, chainIcon::setEnabled).tab("Icon"));
         fieldDefs.add(FieldDef.row(
             FieldDef.intField("gui.width", chainIcon::getWidth, chainIcon::setWidth).range(1, 256),
             FieldDef.intField("gui.height", chainIcon::getHeight, chainIcon::setHeight).range(1, 256)
-        ).tab("Icon"));
-        fieldDefs.add(FieldDef.floatField("gui.scale", chainIcon::getScale, chainIcon::setScale).tab("Icon").range(0.1f, 10.0f));
+        ).tab("Icon").visibleWhen(isCustomIcon));
+        fieldDefs.add(FieldDef.floatField("gui.scale", chainIcon::getScale, chainIcon::setScale).tab("Icon").range(0.1f, 10.0f).visibleWhen(isCustomIcon));
         fieldDefs.add(FieldDef.intField("ability.icon.layers", chainIcon::getLayerCount, chainIcon::setLayerCount)
-            .tab("Icon").range(1, AbilityIconData.MAX_LAYERS));
+            .tab("Icon").range(1, AbilityIconData.MAX_LAYERS).visibleWhen(isCustomIcon));
         for (int i = 0; i < AbilityIconData.MAX_LAYERS; i++) {
             final int idx = i;
-            java.util.function.BooleanSupplier layerVisible = () -> chainIcon.getLayerCount() > idx;
+            java.util.function.BooleanSupplier layerVisible = () -> isCustomIcon.getAsBoolean() && chainIcon.getLayerCount() > idx;
             String sectionLabel = net.minecraft.util.StatCollector.translateToLocal("ability.icon.layer") + " " + (idx + 1);
             fieldDefs.add(FieldDef.section(sectionLabel).tab("Icon").visibleWhen(layerVisible));
             fieldDefs.add(FieldDef.textureSubGui("gui.texture",
@@ -194,12 +203,12 @@ public class SubGuiChainedAbilityConfig extends SubGuiInterface implements IText
         }
 
         // Animation
-        fieldDefs.add(FieldDef.section("Animation").tab("Icon"));
-        fieldDefs.add(FieldDef.boolField("gui.animated", chainIcon::isAnimated, chainIcon::setAnimated).tab("Icon").hover("gui.animated.hover"));
+        fieldDefs.add(FieldDef.section("Animation").tab("Icon").visibleWhen(isCustomIcon));
+        fieldDefs.add(FieldDef.boolField("gui.animated", chainIcon::isAnimated, chainIcon::setAnimated).tab("Icon").hover("gui.animated.hover").visibleWhen(isCustomIcon));
         fieldDefs.add(FieldDef.intField("gui.frameCount", chainIcon::getFrameCount, chainIcon::setFrameCount)
-            .tab("Icon").range(1, 256).visibleWhen(chainIcon::isAnimated));
+            .tab("Icon").range(1, 256).visibleWhen(() -> isCustomIcon.getAsBoolean() && chainIcon.isAnimated()));
         fieldDefs.add(FieldDef.intField("gui.frameTime", chainIcon::getFrameTime, chainIcon::setFrameTime)
-            .tab("Icon").range(1, 100).visibleWhen(chainIcon::isAnimated));
+            .tab("Icon").range(1, 100).visibleWhen(() -> isCustomIcon.getAsBoolean() && chainIcon.isAnimated()));
 
         // External field providers (e.g., DBC Addon injecting a "DBC" tab)
         if (AbilityController.Instance != null) {

@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.data.ChainedAbility;
 import kamkeel.npcs.controllers.data.ability.data.IAbilityAction;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.player.ability.AbilityHotbarSelectPacket;
@@ -638,8 +639,11 @@ public class AbilityHotbarComponent extends HudComponent {
 
         String key = slots[slotIndex].abilityKey;
         Ability ability = slots[slotIndex].ability;
+        IAbilityAction action = slots[slotIndex].action;
 
         if (ability != null && ability.isPerAbilityCooldown()) {
+            return playerData.abilityData.getPerAbilityCooldownProgress(key);
+        } else if (action instanceof ChainedAbility && ((ChainedAbility) action).isPerAbilityCooldown()) {
             return playerData.abilityData.getPerAbilityCooldownProgress(key);
         } else {
             return playerData.abilityData.getGlobalCooldownProgress();

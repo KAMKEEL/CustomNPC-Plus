@@ -184,8 +184,13 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
         GuiNpcMobSpawnerSelector selector = (GuiNpcMobSpawnerSelector) gui;
         if (selector.isServer) {
             String selected = selector.getSelected();
-            if (selected != null)
-                PacketClient.sendClient(new JobSpawnerAddPacket(selector.isServer, selected, selector.activeTab, slot));
+            if (selected != null) {
+                if (selector.activeFolder != null) {
+                    PacketClient.sendClient(new JobSpawnerAddPacket(selector.isServer, selected, selector.activeFolder, slot));
+                } else {
+                    PacketClient.sendClient(new JobSpawnerAddPacket(selector.isServer, selected, selector.activeTab, slot));
+                }
+            }
         } else {
             NBTTagCompound compound = selector.getCompound();
             if (compound != null) {

@@ -52,6 +52,16 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
     private int cooldownTicks = 100;
 
     /**
+     * If true, only this chain goes on cooldown (not the global cooldown).
+     */
+    private boolean perAbilityCooldown = false;
+
+    /**
+     * If true, skip cooldown entirely after chain completes.
+     */
+    private boolean ignoreCooldown = false;
+
+    /**
      * Minimum range for NPC eligibility check.
      */
     private float minRange = 0;
@@ -157,6 +167,22 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
 
     public void setCooldownTicks(int cooldownTicks) {
         this.cooldownTicks = Math.max(0, cooldownTicks);
+    }
+
+    public boolean isPerAbilityCooldown() {
+        return perAbilityCooldown;
+    }
+
+    public void setPerAbilityCooldown(boolean perAbilityCooldown) {
+        this.perAbilityCooldown = perAbilityCooldown;
+    }
+
+    public boolean isIgnoreCooldown() {
+        return ignoreCooldown;
+    }
+
+    public void setIgnoreCooldown(boolean ignoreCooldown) {
+        this.ignoreCooldown = ignoreCooldown;
     }
 
     public float getMinRange() {
@@ -402,6 +428,8 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         nbt.setInteger("Weight", weight);
         nbt.setBoolean("WindUpAll", windUpAll);
         nbt.setInteger("CooldownTicks", cooldownTicks);
+        nbt.setBoolean("PerAbilityCooldown", perAbilityCooldown);
+        nbt.setBoolean("IgnoreCooldown", ignoreCooldown);
         nbt.setFloat("MinRange", minRange);
         nbt.setFloat("MaxRange", maxRange);
 
@@ -443,6 +471,8 @@ public class ChainedAbility implements IChainedAbility, IAbilityAction {
         weight = nbt.hasKey("Weight") ? nbt.getInteger("Weight") : 10;
         windUpAll = !nbt.hasKey("WindUpAll") || nbt.getBoolean("WindUpAll");
         cooldownTicks = nbt.hasKey("CooldownTicks") ? nbt.getInteger("CooldownTicks") : 100;
+        perAbilityCooldown = nbt.getBoolean("PerAbilityCooldown");
+        ignoreCooldown = nbt.getBoolean("IgnoreCooldown");
         minRange = nbt.getFloat("MinRange");
         maxRange = nbt.hasKey("MaxRange") ? nbt.getFloat("MaxRange") : 20;
         // AllowedBy is computed from child abilities

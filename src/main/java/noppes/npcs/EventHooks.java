@@ -975,6 +975,11 @@ public class EventHooks {
         return postAbilityEvent(ability, event);
     }
 
+    public static boolean onAbilityDefend(Ability ability, AbilityEvent.DefendEvent event) {
+        if (ability == null || event == null) return false;
+        return postAbilityEvent(ability, event);
+    }
+
     public static boolean onAbilityToggle(Ability ability, EntityLivingBase entity, int oldState, int newState) {
         if (ability == null || entity == null) return false;
         return postAbilityEvent(ability, new AbilityEvent.ToggleEvent(entity, ability, oldState, newState));

@@ -8,22 +8,26 @@ import net.minecraft.nbt.NBTTagDouble;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.GuiMenuSideButton;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.controllers.data.CloneFolder;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiData {
+public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiData, ICustomScrollListener {
 
     private GuiCustomScroll scroll;
+    private GuiCustomScroll navScroll;
     private List<String> list;
+    private List<String> navList = new ArrayList<String>();
 
     private static String search = "";
     public int activeTab = 1;
+    public String activeFolder = null;
     public boolean isServer = false;
 
     public GuiNpcMobSpawnerSelector() {
@@ -50,24 +54,39 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
         addButton(new GuiNpcButton(0, guiLeft + 171, guiTop + 80, 80, 20, "gui.done"));
         addButton(new GuiNpcButton(1, guiLeft + 171, guiTop + 103, 80, 20, "gui.cancel"));
 
-        addSideButton(new GuiMenuSideButton(21, guiLeft - 90, this.guiTop + 2, 90, 22, "1"));
-        addSideButton(new GuiMenuSideButton(22, guiLeft - 90, this.guiTop + 23, 90, 22, "2"));
-        addSideButton(new GuiMenuSideButton(23, guiLeft - 90, this.guiTop + 44, 90, 22, "3"));
-        addSideButton(new GuiMenuSideButton(24, guiLeft - 90, this.guiTop + 65, 90, 22, "4"));
-        addSideButton(new GuiMenuSideButton(25, guiLeft - 90, this.guiTop + 86, 90, 22, "5"));
-        addSideButton(new GuiMenuSideButton(26, guiLeft - 45, this.guiTop + 107, 45, 22, "6"));
-        addSideButton(new GuiMenuSideButton(27, guiLeft - 90, this.guiTop + 107, 45, 22, "7"));
-        addSideButton(new GuiMenuSideButton(28, guiLeft - 45, this.guiTop + 128, 45, 22, "8"));
-        addSideButton(new GuiMenuSideButton(29, guiLeft - 90, this.guiTop + 128, 45, 22, "9"));
-        addSideButton(new GuiMenuSideButton(30, guiLeft - 45, this.guiTop + 149, 45, 22, "10"));
-        addSideButton(new GuiMenuSideButton(31, guiLeft - 90, this.guiTop + 149, 45, 22, "11"));
-        addSideButton(new GuiMenuSideButton(32, guiLeft - 45, this.guiTop + 170, 45, 22, "12"));
-        addSideButton(new GuiMenuSideButton(33, guiLeft - 90, this.guiTop + 170, 45, 22, "13"));
-        addSideButton(new GuiMenuSideButton(34, guiLeft - 45, this.guiTop + 191, 45, 22, "14"));
-        addSideButton(new GuiMenuSideButton(35, guiLeft - 90, this.guiTop + 191, 45, 22, "15"));
+        // Navigation scroll (tabs + folders) replacing hardcoded side buttons
+        buildNavList();
+        if (navScroll == null) {
+            navScroll = new GuiCustomScroll(this, 1);
+        } else {
+            navScroll.clear();
+        }
+        navScroll.setSize(90, 210);
+        navScroll.guiLeft = guiLeft - 94;
+        navScroll.guiTop = guiTop + 2;
+        navScroll.setList(navList);
+        navScroll.setSelected(getNavSelection());
+        addScroll(navScroll);
 
-        getSideButton(20 + activeTab).active = true;
         showClones();
+    }
+
+    private void buildNavList() {
+        navList.clear();
+        for (int i = 1; i <= 15; i++) {
+            navList.add("Tab " + i);
+        }
+        if (ClientCloneController.Instance != null) {
+            for (CloneFolder folder : ClientCloneController.Instance.getFolderList()) {
+                navList.add(folder.name);
+            }
+        }
+    }
+
+    private String getNavSelection() {
+        if (activeFolder != null) return activeFolder;
+        if (activeTab >= 1 && activeTab <= 15) return "Tab " + activeTab;
+        return "Tab 1";
     }
 
     public String getSelected() {
@@ -75,15 +94,22 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
     }
 
     private void showClones() {
-
         if (isServer) {
-            PacketClient.sendClient(new CloneListPacket(activeTab));
+            if (activeFolder != null) {
+                PacketClient.sendClient(new CloneListPacket(activeFolder));
+            } else {
+                PacketClient.sendClient(new CloneListPacket(activeTab));
+            }
             return;
         }
 
-        ArrayList<String> list = new ArrayList<String>();
-
-        this.list = new ArrayList<String>(ClientCloneController.Instance.getClones(activeTab));
+        if (activeFolder != null && ClientCloneController.Instance != null) {
+            this.list = new ArrayList<String>(ClientCloneController.Instance.getClones(activeFolder));
+        } else if (ClientCloneController.Instance != null) {
+            this.list = new ArrayList<String>(ClientCloneController.Instance.getClones(activeTab));
+        } else {
+            this.list = new ArrayList<String>();
+        }
         scroll.setList(getSearchList());
     }
 
@@ -97,6 +123,7 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
     }
 
     private List<String> getSearchList() {
+        if (list == null) list = new ArrayList<String>();
         if (search.isEmpty())
             return new ArrayList<String>(list);
         List<String> list = new ArrayList<String>();
@@ -112,8 +139,15 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
         if (sel == null)
             return null;
 
-        NBTTagCompound compound = ClientCloneController.Instance.getCloneData(player, sel, activeTab);
-        compound.setString("ClonedName", sel);
+        NBTTagCompound compound;
+        if (activeFolder != null && ClientCloneController.Instance != null) {
+            compound = ClientCloneController.Instance.getCloneData(player, sel, activeFolder);
+        } else {
+            compound = ClientCloneController.Instance.getCloneData(player, sel, activeTab);
+        }
+        if (compound != null) {
+            compound.setString("ClonedName", sel);
+        }
         return compound;
     }
 
@@ -126,9 +160,28 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
             scroll.clear();
             close();
         }
-        if (id > 20) {
-            activeTab = id - 20;
-            initGui();
+    }
+
+    @Override
+    public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
+        if (guiCustomScroll.id == 1) {
+            String selected = navScroll.getSelected();
+            if (selected == null) return;
+
+            if (selected.startsWith("Tab ")) {
+                try {
+                    int tabNum = Integer.parseInt(selected.substring(4));
+                    if (tabNum >= 1 && tabNum <= 15) {
+                        activeTab = tabNum;
+                        activeFolder = null;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            } else {
+                activeFolder = selected;
+                activeTab = -1;
+            }
+            showClones();
         }
     }
 
