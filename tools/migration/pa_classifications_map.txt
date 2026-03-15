@@ -1,0 +1,411 @@
+EXISTING:
+NBTTagCompound -> INbt
+EntityPlayer -> IPlayer
+EntityPlayerMP -> IPlayer
+Entity -> IEntity
+ItemStack -> IItemStack
+EntityLivingBase -> IEntityLivingBase
+World -> IWorld
+NBTTagList -> INbtList
+DamageSource -> IDamageSource
+WorldServer -> IWorld
+EntityLiving -> IEntityLiving
+
+INTERFACE:
+ResourceLocation -> IResourceLocation
+Block -> IBlock
+TileEntity -> ITileEntity
+AxisAlignedBB -> IBoundingBox
+ICommandSender -> ICommandSender
+Vec3 -> IVector3
+Slot -> ISlot
+RenderBlocks -> IRenderBlocks
+IInventory -> IIInventory
+IBlockAccess -> IIBlockAccess
+Container -> IContainer
+ChatComponentTranslation -> ITextComponent
+ChatComponentText -> ITextComponent
+EntityItem -> IEntityItem
+MovingObjectPosition -> IRayTraceResult
+ItemArmor -> IItemArmor
+NBTBase -> INbtBase
+BlockPos -> IBlockPos
+IChatComponent -> ITextComponent
+Configuration -> IConfiguration
+RenderItem -> IRenderItem
+EntityMob -> IEntityMob
+EntityCreature -> IEntityLiving
+Potion -> IPotionType
+Property -> IProperty
+PotionEffect -> IPotionEffect
+MerchantRecipeList -> IMerchantRecipeList
+ModContainer -> IModContainer
+InventoryCrafting -> IInventoryCrafting
+AttributeModifier -> IAttributeModifier
+Explosion -> IExplosion
+ChatStyle -> ITextStyle
+SoundHandler -> ISoundHandler
+IAttributeInstance -> IIAttributeInstance
+BlockEvent -> IBlockEvent
+ResourcePackRepository -> IResourcePackRepository
+Ticket -> ITicket
+Enchantment -> IEnchantment
+ScoreObjective -> IScoreObjective
+ScorePlayerTeam -> IScorePlayerTeam
+Scoreboard -> IScoreboard
+FMLEventChannel -> IFMLEventChannel
+IBlockSource -> IIBlockSource
+CommandBlockLogic -> ICommandBlockLogic
+IntHashMap -> IIntHashMap
+MerchantRecipe -> IMerchantRecipe
+
+SERVICE:
+StatCollector -> PlatformService
+Item -> PlatformService
+RenderingRegistry -> PlatformService
+MinecraftServer -> PlatformService
+IIconRegister -> PlatformService
+EntityList -> PlatformService
+FMLCommonHandler -> PlatformService
+CompressedStreamTools -> NBTIO
+Gui -> PlatformService
+CommandBase -> PlatformService
+Loader -> PlatformService
+IItemRenderer -> PlatformService
+IResource -> PlatformService
+I18n -> PlatformService
+FMLLog -> PlatformService
+ItemRenderer -> PlatformService
+ObfuscationReflectionHelper -> PlatformService
+EntityVillager -> PlatformService
+FakePlayer -> PlatformService
+IEntitySelector -> PlatformService
+S35PacketUpdateTileEntity -> PlatformService
+ChatAllowedCharacters -> PlatformService
+EntityXPOrb -> PlatformService
+Achievement -> PlatformService
+BlockColored -> PlatformService
+EnumCreatureAttribute -> PlatformService
+PlayerEvent -> PlatformService
+IResourceManager -> PlatformService
+PositionedSoundRecord -> PlatformService
+NPCRendererHelper -> PlatformService
+GLAllocation -> PlatformService
+RenderBiped -> PlatformService
+ItemEditableBook -> PlatformService
+ItemWritableBook -> PlatformService
+ForgeHooksClient -> PlatformService
+MinecraftForgeClient -> PlatformService
+ForgeChunkManager -> PlatformService
+BiomeGenBase -> PlatformService
+LivingEvent -> PlatformService
+EntityInteractEvent -> PlatformService
+PlayerInteractEvent -> PlatformService
+SimpleReloadableResourceManager -> PlatformService
+KeyBinding -> PlatformService
+ICrafting -> PlatformService
+ItemFood -> PlatformService
+PlayerSelector -> PlatformService
+DimensionManager -> PlatformService
+GameSettings -> PlatformService
+TextureUtil -> PlatformService
+EnumHelper -> PlatformService
+OreDictionary -> PlatformService
+EnchantmentHelper -> PlatformService
+Chunk -> PlatformService
+EntityJoinWorldEvent -> PlatformService
+ItemTossEvent -> PlatformService
+PlayerUseItemEvent -> PlatformService
+LivingAttackEvent -> PlatformService
+LivingHurtEvent -> PlatformService
+IRangedAttackMob -> PlatformService
+NPCResourceHelper -> PlatformService
+ActiveRenderInfo -> PlatformService
+IMerchant -> PlatformService
+BiomeDictionary -> PlatformService
+InventoryCraftResult -> PlatformService
+WeightedRandom -> PlatformService
+WorldProvider -> PlatformService
+BlockDispenser -> PlatformService
+FMLServerAboutToStartEvent -> PlatformService
+NBTUtil -> PlatformService
+StringUtils -> PlatformService
+MobSpawnerBaseLogic -> PlatformService
+TileEntityCommandBlock -> PlatformService
+TileEntityMobSpawner -> PlatformService
+ForgeHooks -> PlatformService
+LivingFallEvent -> PlatformService
+PlayerDropsEvent -> PlatformService
+EntityEnderPearl -> PlatformService
+ITickable -> PlatformService
+MouseEvent -> PlatformService
+ClientRegistry -> PlatformService
+IImageBuffer -> PlatformService
+Util -> PlatformService
+ReflectionHelper -> PlatformService
+SoundRegistry -> PlatformService
+TexturedQuad -> PlatformService
+BossStatus -> PlatformService
+ItemPotion -> PlatformService
+PotionHelper -> PlatformService
+ModelBook -> PlatformService
+NPCEntityHelper -> PlatformService
+FMLLaunchHandler -> PlatformService
+StatList -> PlatformService
+WorldSettings -> PlatformService
+Score -> PlatformService
+FMLClientHandler -> PlatformService
+
+TRANSFORM:
+Side -> (2 patterns)
+SideOnly -> (0 patterns)
+MathHelper -> (7 patterns)
+EnumChatFormatting -> (0 patterns)
+EnumFacing -> (0 patterns)
+
+SUPPRESS:
+GuiButton
+Minecraft
+ModelRenderer
+ModelBase
+GuiScreen
+Tessellator
+RenderHelper
+OpenGlHelper
+TextureManager
+FontRenderer
+IIcon
+RenderManager
+EntityAIBase
+ScaledResolution
+CreativeTabs
+GameRegistry
+Event
+ModelBiped
+SubscribeEvent
+Render
+MinecraftForge
+EntityClientPlayerMP
+InventoryBasic
+Packet
+FMLProxyPacket
+PathEntity
+TileEntitySpecialRenderer
+PacketBuffer
+EntityAITarget
+GuiContainer
+RenderPlayer
+PathNavigate
+PathPoint
+AbstractClientPlayer
+GuiTextField
+InventoryPlayer
+EntityRenderer
+NetworkRegistry
+EntityRegistry
+IResourcePack
+CraftingManager
+FMLInitializationEvent
+FMLPreInitializationEvent
+FMLServerStartingEvent
+ForgeEventFactory
+PathFinder
+MapColor
+RenderGlobal
+IRecipe
+GuiSlot
+RenderLiving
+ShapedRecipes
+DataWatcher
+EntityAITasks
+EventBus
+
+AUTO:
+Blocks
+NBTTagString
+ModelBox
+CommandException
+Items
+Material
+GuiYesNo
+GuiYesNoCallback
+ItemBlock
+Cancelable
+BlockContainer
+EnumAction
+SharedMonsterAttributes
+Constants
+NBTTagDouble
+NBTTagInt
+EntityAnimal
+EntityTameable
+RendererLivingEntity
+ISimpleBlockRenderingHandler
+TickEvent
+TextureMap
+NBTTagFloat
+EntityThrowable
+EntityFX
+EntityDragon
+ChunkCoordinates
+WorldEvent
+EntityArrow
+ItemTooltipEvent
+NetworkManager
+EntitySheep
+NBTTagByte
+ItemBow
+NBTTagIntArray
+BlockIce
+BlockLeavesBase
+BlockVine
+EntityHorse
+RenderWorldLastEvent
+IEntityAdditionalSpawnData
+FMLNetworkEvent
+ArmorMaterial
+EntityEvent
+EntityDamageSource
+ChunkCoordIntPair
+EventPriority
+GuiScreenEvent
+IExtendedEntityProperties
+ItemSword
+EntityGhast
+S12PacketEntityVelocity
+EntityPlayerSP
+ItemRenderType
+EnumCreatureType
+ChunkDataEvent
+ChunkEvent
+ChunkWatchEvent
+ContainerPlayer
+LivingDeathEvent
+Phase
+EntityMoveHelper
+EnumSkyBlock
+AbstractResourcePack
+FallbackResourceManager
+RenderLivingEvent
+RenderPlayerEvent
+EntityPortalFX
+SkinManager
+EntityEnderman
+EntityCreeper
+IMob
+INpc
+EntityFishHook
+NBTPrimitive
+PlayerNotFoundException
+NetHandlerPlayServer
+GuiAchievement
+NBTSizeTracker
+IGuiHandler
+BehaviorDefaultDispenseItem
+ToolMaterial
+ItemFlintAndSteel
+Mod
+EventHandler
+SidedProxy
+FMLLoadCompleteEvent
+FMLServerStartedEvent
+FMLServerStoppedEvent
+Teleporter
+LoaderState
+EntityDamageSourceIndirect
+Result
+ChunkPosition
+AnvilRepairEvent
+PlayerDestroyItemEvent
+EntityStruckByLightningEvent
+PlaySoundAtEntityEvent
+AchievementEvent
+ArrowLooseEvent
+ArrowNockEvent
+BonemealEvent
+FillBucketEvent
+PlayerOpenContainerEvent
+PlayerPickupXpEvent
+PlayerSleepInBedEvent
+PlayerWakeUpEvent
+UseHoeEvent
+PlayerEvent
+Action
+PopulateChunkEvent
+EntityAIDoorInteract
+BlockDoor
+BlockFence
+BlockFenceGate
+BlockRailBase
+BlockWall
+ChunkCache
+EntityAINearestAttackableTarget
+BlockBreakable
+ForgeDirection
+RenderGameOverlayEvent
+RenderHandEvent
+EntityFlameFX
+EntitySmokeFX
+IReloadableResourceManager
+ReportedException
+ClientCommandHandler
+FolderResourcePack
+IResourceManagerReloadListener
+EntityChicken
+SimpleTexture
+InputEvent
+ClickEvent
+Action
+ISound
+ITickableSound
+MovingSound
+EntityConstructing
+C17PacketCustomPayload
+ShaderGroup
+GuiOpenEvent
+GuiConfirmOpenLink
+DefaultResourcePack
+ITextureObject
+PositionTextureVertex
+ImageBufferDownload
+ItemRendererHelper
+SlotCrafting
+S2FPacketSetSlot
+LoadingCallback
+Type
+EnumEnchantmentType
+EntityAIAttackOnCollide
+EntityAIHurtByTarget
+EntityAIOpenDoor
+EntityAIRestrictSun
+EntityAISwimming
+EntityAITaskEntry
+IBossDisplayData
+EntityZombie
+EntityBat
+S0BPacketAnimation
+ServerChatEvent
+S27PacketExplosion
+MovingObjectType
+EntitySkeleton
+S04PacketEntityEquipment
+ItemColored
+FMLMessage
+EntityTrackerEntry
+EnumDifficulty
+CommandHandler
+Type
+Vec3i
+BlockAir
+EntityLightningBolt
+TileEntitySign
+BlockSnapshot
+StatBase
+IPlantable
+IScoreObjectiveCriteria
+NBTTagByteArray
+NBTTagLong
+NBTTagShort
+IWorldAccess
+GuiInventory
+C0DPacketCloseWindow
