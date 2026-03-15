@@ -1,9 +1,21 @@
 package noppes.npcs.api.handler.data;
 
+import noppes.npcs.api.entity.IEntityLivingBase;
+
 /**
  * Represents a single NPC dialog line with text, an optional sound, and target formatting.
  */
 public interface ILine {
+
+    /**
+     * Returns a copy of this line with target-specific placeholders resolved.
+     *
+     * @param entityLivingBase the target entity used for placeholder substitution.
+     * @return the formatted line.
+     */
+    default ILine formatTarget(IEntityLivingBase entityLivingBase) {
+        return this;
+    }
 
     /** @return the text content of this line. */
     String getText();

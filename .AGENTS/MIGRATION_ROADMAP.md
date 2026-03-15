@@ -21,23 +21,23 @@ Phase 3 ░░░░░░░░░░░░░░░░████  Feature pa
 **Goal:** Get the build system working for multi-version and merge the scripting API into platform-api.
 
 #### 0A. Composite Build Setup
-- [ ] Create `mc1710/` directory, move current `src/main/java/` and `src/main/resources/` into it
-- [ ] Create `mc1710/settings.gradle` and `mc1710/build.gradle` with RFG
-- [ ] Update root `settings.gradle` to use `includeBuild 'mc1710'` instead of direct source
-- [ ] Verify `mc1710/` builds and runs identically to current root build
-- [ ] Verify `platform-api` and `core` are consumed correctly via composite build dependency
+- [x] Create `mc1710/` directory, move current `src/main/java/` and `src/main/resources/` into it
+- [x] Create `mc1710/settings.gradle` and `mc1710/build.gradle` with RFG
+- [x] Update root `settings.gradle` to use `includeBuild 'mc1710'` instead of direct source
+- [x] Verify `mc1710/` builds and runs identically to current root build
+- [x] Verify `platform-api` and `core` are consumed correctly via composite build dependency
 
 **Scope:** ~5-10 files (build configs only). No Java changes.
 **Risk:** Medium — build system restructure can surface classpath/dependency issues.
 **Verification:** `./gradlew build` succeeds, `runClient` launches, existing tests pass.
 
 #### 0B. Scripting API → platform-api Merge (Phase 1 of API merge: MC-free interfaces)
-- [ ] Identify the ~131 MC-free interfaces in `src/api/java/` (no `net.minecraft.*` or `cpw.mods.fml.*` imports)
-- [ ] Move them into `platform-api/` retaining exact package structure (`noppes.npcs.api.*`)
-- [ ] Reconcile the 30 existing split-package shadows (platform-api already has MC-free versions of these)
-- [ ] Strip generic type parameters from 5 entity interfaces (`IEntity`, `IEntityLivingBase`, `IEntityLiving`, `ICustomNpc`, `IPlayer`)
-- [ ] Update `core/` imports if any were pointing at the old location
-- [ ] Update `mc1710/` to shadow the moved interfaces where MC-specific extensions are needed
+- [x] Identify the ~131 MC-free interfaces in `src/api/java/` (no `net.minecraft.*` or `cpw.mods.fml.*` imports)
+- [x] Move them into `platform-api/` retaining exact package structure (`noppes.npcs.api.*`)
+- [x] Reconcile the 30 existing split-package shadows (platform-api already has MC-free versions of these)
+- [x] Strip generic type parameters from 5 entity interfaces (`IEntity`, `IEntityLivingBase`, `IEntityLiving`, `ICustomNpc`, `IPlayer`)
+- [x] Update `core/` imports if any were pointing at the old location
+- [x] Update `mc1710/` to shadow the moved interfaces where MC-specific extensions are needed
 
 **Scope:** ~131 file moves + 30 reconciliations + 5 generics strips.
 **Risk:** Low-Medium — package structure preserved, no behavioral changes.
@@ -45,13 +45,13 @@ Phase 3 ░░░░░░░░░░░░░░░░████  Feature pa
 **Dependency:** Phase 0A must be complete (mc1710 is a separate build).
 
 #### 0C. Scripting API → platform-api Merge (Phase 2: MC-contaminated interfaces)
-- [ ] Identify 71 MC-contaminated interfaces in `src/api/java/`
-- [ ] For each, replace MC type references with platform-api equivalents or Object returns
-- [ ] Handle event interfaces: create platform `@Cancelable` annotation (or use the planned custom annotation parser)
-- [ ] Refactor `AbstractNpcAPI` — split into MC-free interface in platform-api + mc1710 implementation class
-- [ ] Move cleaned interfaces to `platform-api/`
-- [ ] Drop the 5 vendored MC class stubs (`net/minecraft/` in api/)
-- [ ] Update all `mc1710/` code importing these interfaces
+- [x] Identify 71 MC-contaminated interfaces in `src/api/java/`
+- [x] For each, replace MC type references with platform-api equivalents or Object returns
+- [x] Handle event interfaces: create platform `@Cancelable` annotation (or use the planned custom annotation parser)
+- [x] Refactor `AbstractNpcAPI` — split into MC-free interface in platform-api + mc1710 implementation class
+- [x] Move cleaned interfaces to `platform-api/`
+- [x] Drop the 5 vendored MC class stubs (`net/minecraft/` in api/)
+- [x] Update all `mc1710/` code importing these interfaces
 
 **Scope:** 71 files, each needs individual review and MC-stripping.
 **Risk:** Medium-High — method signature changes ripple through 276 files in mc1710 that import the API (743 import sites).

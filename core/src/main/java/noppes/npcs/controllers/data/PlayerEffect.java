@@ -1,5 +1,6 @@
 package noppes.npcs.controllers.data;
 
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.IPlayerEffect;
 
 public class PlayerEffect implements IPlayerEffect {
@@ -61,7 +62,10 @@ public class PlayerEffect implements IPlayerEffect {
      * it depends on IPlayer which has MC entity dependencies.
      * Override in mc1710 to restore original behavior.
      */
-    public void performEffect(Object player) {
+    public void performEffect(IPlayer player) {
+        // Base implementation is a no-op. mc1710 shadow overrides to use
+        // CustomEffectController for effect tick logic.
+
         // TODO: Requires CustomEffectController + IPlayer - implement in mc1710 override
         // OLD CODE:
         // if (player != null && player.getMCEntity() != null && player.getMCEntity() instanceof EntityPlayer) {

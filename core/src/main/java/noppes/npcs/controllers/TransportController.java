@@ -8,7 +8,9 @@ import noppes.npcs.api.INbt;
 import noppes.npcs.api.INbtList;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class TransportController {
     private HashMap<Integer, TransportLocation> locations = new HashMap<Integer, TransportLocation>();
@@ -23,7 +25,6 @@ public class TransportController {
     // OLD: public void createCategory(String title)
     // OLD: public ITransportCategory getCategory(String title)
     // OLD: public void removeCategory(String title)
-
     private static TransportController instance;
 
     public TransportController() {
@@ -252,5 +253,31 @@ public class TransportController {
         saveCategories();
 
         return location;
+    }
+
+    public TransportCategory[] categories() {
+        return new ArrayList<>(categories.values()).toArray(new TransportCategory[0]);
+    }
+
+    public void createCategory(String title) {
+        this.saveCategory(title, -1);
+    }
+
+    public TransportCategory getCategory(String title) {
+        for (TransportCategory c : categories.values()) {
+            if (c.title.equals(title)) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    public void removeCategory(String title) {
+        for (Map.Entry<Integer, TransportCategory> entry : categories.entrySet()) {
+            if (entry.getValue().title.equals(title)) {
+                categories.remove(entry.getKey());
+                break;
+            }
+        }
     }
 }

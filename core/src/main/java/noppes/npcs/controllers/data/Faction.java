@@ -3,7 +3,13 @@ package noppes.npcs.controllers.data;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.INbtList;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IPlayerFactionData;
+import noppes.npcs.api.handler.data.IFaction;
+import noppes.npcs.controllers.FactionController;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Faction {
@@ -81,7 +87,6 @@ public class Faction {
     // OLD: public boolean isFriendlyToPlayer(IPlayer player) — delegates to EntityPlayer overload
     // OLD: public boolean isNeutralToPlayer(IPlayer player) — delegates to EntityPlayer overload
     // OLD: public boolean isAggressiveToPlayer(IPlayer player) — delegates to EntityPlayer overload
-
     public int getId() {
         return this.id;
     }
@@ -126,16 +131,50 @@ public class Faction {
         return this.color;
     }
 
+    public int playerStatus(IPlayer player) {
+        IPlayerFactionData data = player.getData().getFactionData();
+        int points = data.getPoints(this.id);
+        if (points >= this.friendlyPoints) {
+            return 1;
+        } else {
+            return points < this.neutralPoints ? -1 : 0;
+        }
+    }
+
+    public boolean isAggressiveToNpc(ICustomNpc npc) {
+        return this.attackFactions.contains(npc.getFaction().getId());
+    }
+
     public boolean isEnemyFaction(int factionId) {
         return this.attackFactions.contains(factionId);
+    }
+
+    public boolean isEnemyFaction(IFaction faction) {
+        return this.attackFactions.contains(faction.getId());
+    }
+
+    public Faction[] getEnemyFactions() {
+        ArrayList<Faction> enemyFactions = new ArrayList<>();
+        for (int id : this.attackFactions) {
+            enemyFactions.add(FactionController.getInstance().get(id));
+        }
+        return enemyFactions.toArray(new Faction[]{});
     }
 
     public void addEnemyFaction(int factionId) {
         this.attackFactions.add(factionId);
     }
 
+    public void addEnemyFaction(IFaction faction) {
+        this.attackFactions.add(faction.getId());
+    }
+
     public void removeEnemyFaction(int factionId) {
         this.attackFactions.remove(factionId);
+    }
+
+    public void removeEnemyFaction(IFaction faction) {
+        this.attackFactions.remove(faction.getId());
     }
 
     public boolean getIsHidden() {
@@ -160,5 +199,9 @@ public class Faction {
 
     public void setAttackedByMobs(boolean bo) {
         this.getsAttacked = bo;
+    }
+
+    public void save() {
+        FactionController.getInstance().saveFaction(this);
     }
 }

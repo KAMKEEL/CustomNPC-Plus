@@ -7,8 +7,10 @@ import noppes.npcs.api.INbt;
 import noppes.npcs.api.INbtList;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,7 +24,6 @@ public class TagController {
     // OLD: public List<ITag> list()
     // OLD: public ITag delete(int id)
     // OLD: public static void sendCategoryTagMap(EntityPlayerMP player, HashMap<String, HashSet<UUID>> itemTags) — uses GuiDataPacket
-
     public TagController() {
         instance = this;
         tags = new HashMap<Integer, Tag>();
@@ -124,6 +125,10 @@ public class TagController {
         return tags.get(tagSlot);
     }
 
+    public List<Tag> list() {
+        return new ArrayList<Tag>(this.tags.values());
+    }
+
     public void saveTag(Tag tag) {
 
         if (tag.id < 0) {
@@ -164,13 +169,19 @@ public class TagController {
         return lastUsedID;
     }
 
-    public void delete(int id) {
+    public Tag delete(int id) {
         if (id >= 0 && this.tags.size() > 1) {
             Tag tag = this.tags.remove(id);
-            if (tag != null) {
+            saveTags();
+            if (tag == null) {
+                return null;
+            } else {
                 this.saveTags();
                 tag.id = -1;
+                return tag;
             }
+        } else {
+            return null;
         }
     }
 

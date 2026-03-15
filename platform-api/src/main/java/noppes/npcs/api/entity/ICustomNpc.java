@@ -1,13 +1,17 @@
 package noppes.npcs.api.entity;
 
-import noppes.npcs.api.INbt;
 import noppes.npcs.api.IPos;
+import noppes.npcs.api.ITimers;
+import noppes.npcs.api.ability.IDataAbilities;
 import noppes.npcs.api.entity.data.IHitboxData;
+import noppes.npcs.api.entity.data.IModelData;
 import noppes.npcs.api.entity.data.ITintData;
-import noppes.npcs.api.handler.data.IAnimationData;
-import noppes.npcs.api.handler.data.ILines;
-import noppes.npcs.api.handler.data.IMagicData;
+import noppes.npcs.api.handler.IActionManager;
+import noppes.npcs.api.handler.IOverlayHandler;
+import noppes.npcs.api.handler.data.*;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.jobs.IJob;
+import noppes.npcs.api.roles.IRole;
 
 /**
  * Represents a customizable NPC with a wide variety of properties such as appearance,
@@ -22,7 +26,6 @@ public interface ICustomNpc extends IEntityLiving, IAnimatable {
      * @return the MC entity as a generic Object.
      */
     Object getMCEntity();
-
     /**
      * Returns the current NPC's size (scale factor) within the range 1–30.
      *
@@ -215,6 +218,13 @@ public interface ICustomNpc extends IEntityLiving, IAnimatable {
     boolean getReturnToHome();
 
     /**
+     * Returns the faction associated with the NPC.
+     *
+     * @return the NPC's faction.
+     */
+    IFaction getFaction();
+
+    /**
      * Sets the NPC's faction by its ID.
      *
      * @param id the faction ID.
@@ -317,12 +327,28 @@ public interface ICustomNpc extends IEntityLiving, IAnimatable {
     void say(IPlayer player, String message);
 
     /**
+     * Retrieves the dialog from the specified slot.
+     *
+     * @param slot the dialog slot.
+     * @return the dialog instance.
+     */
+    IDialog getDialog(int slot);
+
+    /**
      * Returns the dialog ID in the specified slot.
      *
      * @param slot the dialog slot.
      * @return the dialog ID, or -1 if none exists.
      */
     int getDialogId(int slot);
+
+    /**
+     * Sets the dialog for the specified slot.
+     *
+     * @param slot   the dialog slot.
+     * @param dialog the dialog instance.
+     */
+    void setDialog(int slot, IDialog dialog);
 
     /**
      * Sets the dialog for the specified slot by its ID.
@@ -483,11 +509,25 @@ public interface ICustomNpc extends IEntityLiving, IAnimatable {
     IAnimationData getAnimationData();
 
     /**
+     * Returns the NPC's current role.
+     *
+     * @return the role instance.
+     */
+    IRole getRole();
+
+    /**
      * Sets the NPC's role by its ID.
      *
      * @param role the role ID.
      */
     void setRole(int role);
+
+    /**
+     * Returns the NPC's current job.
+     *
+     * @return the job instance.
+     */
+    IJob getJob();
 
     /**
      * Sets the NPC's job by its ID.
@@ -1528,6 +1568,13 @@ public interface ICustomNpc extends IEntityLiving, IAnimatable {
     void executeCommand(String command);
 
     /**
+     * Returns the model data associated with the NPC.
+     *
+     * @return the model data, or null if not available.
+     */
+    IModelData getModelData();
+
+    /**
      * Returns the hitbox data associated with the NPC.
      *
      * @return the hitbox data.
@@ -1778,6 +1825,13 @@ public interface ICustomNpc extends IEntityLiving, IAnimatable {
     long getAge();
 
     /**
+     * Returns the timers associated with the NPC.
+     *
+     * @return the timers.
+     */
+    ITimers getTimers();
+
+    /**
      * Sets the NPC's flying ability.
      *
      * @param fly 1 to enable flying, 0 to disable.
@@ -1936,6 +1990,13 @@ public interface ICustomNpc extends IEntityLiving, IAnimatable {
     void setGlowTexture(String texture);
 
     /**
+     * Returns the NPC's overlay handler.
+     *
+     * @return the overlay handler.
+     */
+    IOverlayHandler getOverlays();
+
+    /**
      * Sets the NPC's collision type.
      *
      * @param type the collision type.
@@ -1960,9 +2021,32 @@ public interface ICustomNpc extends IEntityLiving, IAnimatable {
     void updateAI();
 
     /**
+     * Returns the action manager used for scheduling NPC actions.
+     *
+     * @return the action manager.
+     */
+    IActionManager getActionManager();
+
+    /**
      * Returns the Magic Data of an NPC
      *
      * @return Magic data
      */
     IMagicData getMagicData();
+
+    /**
+     * Returns the Ability Data of an NPC.
+     * Allows access to the NPC's abilities system including
+     * force-starting abilities and executing preset abilities.
+     *
+     * @return Ability data
+     */
+    IDataAbilities getAbilityData();
+
+    /**
+     * Returns all active energy projectiles fired by this NPC.
+     *
+     * @return Array of active energy projectiles, empty array if none
+     */
+    IEnergyProjectile[] getActiveEnergyProjectiles();
 }

@@ -1,10 +1,9 @@
 package noppes.npcs.api.handler.data;
 
+import noppes.npcs.api.entity.IPlayer;
+
 /**
  * Represents an active custom effect instance on a player.
- * <p>
- * Note: performEffect(IPlayer) is omitted from the platform API
- * because IPlayer depends on MC entity types.
  */
 public interface IPlayerEffect {
 
@@ -28,6 +27,14 @@ public interface IPlayerEffect {
 
     /** @return the display name of the effect. */
     String getName();
+
+    /**
+     * Applies this effect's tick logic to the given player.
+     *
+     * @param player the player to apply the effect to.
+     */
+    default void performEffect(IPlayer player) {
+    }
 
     /** @return the effect source index (0: CNPC+, 1: DBC Addon). */
     int getIndex();

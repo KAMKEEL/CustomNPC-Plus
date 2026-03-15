@@ -17,7 +17,6 @@ public class Magic {
 
     // TODO: mc1710 version has: public ItemStack item = null;
     // OLD: import net.minecraft.item.ItemStack;
-
     public EnumTextureType type = EnumTextureType.BASE;
     public String iconTexture = "";
     public Map<Integer, Float> interactions = new HashMap<>();
@@ -79,14 +78,12 @@ public class Magic {
             interactionsList.addCompound(interactionTag);
         }
         compound.setTagList("Interactions", interactionsList);
-
         // TODO: mc1710 version resolves ItemStack from GameRegistry here:
         // OLD: if (type == EnumTextureType.ITEM && !iconTexture.isEmpty()) {
         // OLD:     Item item = GameRegistry.findItem(parts[0], parts[1]);
         // OLD:     this.item = (item != null) ? new ItemStack(item) : null;
         // OLD: }
     }
-
     // TODO: mc1710 version implements IMagic and adds:
     // OLD: public void setItem(ItemStack item) — uses GameRegistry.findUniqueIdentifierFor
     // OLD: public ItemStack getItem()

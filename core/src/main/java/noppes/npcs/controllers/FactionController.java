@@ -7,7 +7,9 @@ import noppes.npcs.api.INbt;
 import noppes.npcs.api.INbtList;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FactionController {
@@ -22,7 +24,6 @@ public class FactionController {
     // OLD: public List<IFaction> list()
     // OLD: public IFaction delete(int id) — also calls SyncController.syncRemove(EnumSyncType.FACTION, id)
     // OLD: public IFaction create(String name, int defaultPoints)
-
     public FactionController() {
         instance = this;
         factions = new HashMap<Integer, Faction>();
@@ -133,6 +134,10 @@ public class FactionController {
         return factions.get(faction);
     }
 
+    public List<Faction> list() {
+        return new ArrayList<Faction>(this.factions.values());
+    }
+
     public void saveFaction(Faction faction) {
 
         if (faction.id < 0) {
@@ -178,15 +183,21 @@ public class FactionController {
         return lastUsedID;
     }
 
-    public void delete(int id) {
+    public Faction delete(int id) {
         if (id >= 0 && this.factions.size() > 1) {
             Faction faction = this.factions.remove(id);
-            if (faction != null) {
+            saveFactions();
+            if (faction == null) {
+                return null;
+            } else {
                 this.saveFactions();
                 faction.id = -1;
                 // TODO: mc1710 version also calls:
                 // OLD: SyncController.syncRemove(EnumSyncType.FACTION, id);
+                return faction;
             }
+        } else {
+            return null;
         }
     }
 

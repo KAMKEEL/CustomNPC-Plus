@@ -29,7 +29,6 @@ public class MagicController {
     // OLD: public MagicCycle getCycle(int cycleID) — @Override from IMagicHandler
     // OLD: public void addMagicToCycle(int magicId, int cycleId, int index, int priority) — @Override
     // OLD: public void removeMagicFromCycle(int magicId, int cycleId) — @Override
-
     public MagicController() {
         instance = this;
     }
@@ -88,7 +87,6 @@ public class MagicController {
         // OLD: holy.setItem(new ItemStack(CustomItems.spellHoly));
         // OLD: nature.setItem(new ItemStack(CustomItems.spellNature));
         // OLD: arcane.setItem(new ItemStack(CustomItems.spellArcane));
-
         Magic earth = new Magic(getUnusedId(), "Earth", 0x00DD00);
         Magic water = new Magic(getUnusedId(), "Water", 0xF2DD00);
         Magic fire = new Magic(getUnusedId(), "Fire", 0xDD0000);
@@ -274,7 +272,6 @@ public class MagicController {
         // OLD: NBTTagCompound magicCompound = new NBTTagCompound();
         // OLD: mag.writeNBT(magicCompound);
         // OLD: SyncController.syncUpdate(EnumSyncType.MAGIC, -1, magicCompound);
-
         saveMagicData();
     }
 
@@ -343,7 +340,6 @@ public class MagicController {
         // OLD: NBTTagCompound cycleCompound = new NBTTagCompound();
         // OLD: cycle.writeNBT(new NBTWrapper(cycleCompound));
         // OLD: SyncController.syncUpdate(EnumSyncType.MAGIC_CYCLE, -1, cycleCompound);
-
         saveMagicData();
     }
 

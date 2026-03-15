@@ -1,6 +1,7 @@
 package noppes.npcs.api.entity;
 
 import noppes.npcs.api.INbt;
+import noppes.npcs.api.IParticle;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.item.IItemStack;
@@ -8,9 +9,16 @@ import noppes.npcs.api.item.IItemStack;
 /**
  * Represents a generic entity in the world.
  * Provides methods to access or modify the entity's position, motion, temporary and persistent data,
- * and to perform various actions (such as dropping items or changing dimensions).
+ * and to perform various actions (such as spawning particles, dropping items, or changing dimensions).
  */
 public interface IEntity {
+
+    /**
+     * Spawns the given particle effect associated with this entity.
+     *
+     * @param entityParticle The particle effect to spawn.
+     */
+    void spawnParticle(IParticle entityParticle);
 
     /**
      * Returns the unique entity ID.

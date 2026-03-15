@@ -1,8 +1,9 @@
 package noppes.npcs.api;
 
-import noppes.npcs.api.entity.IEntity;
-import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.entity.*;
+import noppes.npcs.api.handler.data.ISound;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.scoreboard.IScoreboard;
 
 public interface IWorld {
     /**
@@ -16,6 +17,29 @@ public interface IWorld {
     long getTotalTime();
 
     boolean areAllPlayersAsleep();
+
+    /**
+     * @param x World position x
+     * @param y World position y
+     * @param z World position z
+     * @return The block at the given position. Returns null if there isn't a block
+     */
+    public IBlock getBlock(int x, int y, int z);
+
+    /**
+     * @param pos the block position
+     * @return The block at the given position. Returns null if there isn't a block
+     */
+    public IBlock getBlock(IPos pos);
+
+    /**
+     * @param x X coordinate
+     * @param z Z coordinate
+     * @return The top-most block in the world as an IBlock object.
+     */
+    IBlock getTopBlock(int x, int z);
+
+    IBlock getTopBlock(IPos pos);
 
     boolean isBlockFreezable(IPos pos);
 
@@ -99,6 +123,16 @@ public interface IWorld {
 
     void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch);
 
+    void playSound(int id, ISound sound);
+
+    void stopSound(int id);
+
+    void pauseSounds();
+
+    void continueSounds();
+
+    void stopSounds();
+
     IEntity getEntityByID(int id);
 
     boolean spawnEntityInWorld(IEntity entity);
@@ -127,6 +161,29 @@ public interface IWorld {
     IEntity[] getEntitiesNear(IPos position, double range);
 
     IEntity[] getEntitiesNear(double x, double y, double z, double range);
+
+    /**
+     * Sets the block's tile entity at the given position.
+     *
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param z Z coordinate
+     * @param tileEntity the tile entity to place
+     */
+    void setTileEntity(int x, int y, int z, ITileEntity tileEntity);
+
+    void setTileEntity(IPos pos, ITileEntity tileEntity);
+
+    /**
+     * Removes the block's tile entity at the given position.
+     *
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param z Z coordinate
+     */
+    void removeTileEntity(int x, int y, int z);
+
+    void removeTileEntity(IPos pos);
 
     /**
      * @param x X coordinate
@@ -163,6 +220,37 @@ public interface IWorld {
 
     String getSignText(IPos pos);
 
+    /**
+     * @param x    World position x
+     * @param y    World position y
+     * @param z    World position z
+     * @param item The block to be set
+     * @return true if the block was successfully placed
+     */
+    boolean setBlock(int x, int y, int z, IItemStack item);
+
+    boolean setBlock(IPos pos, IItemStack item);
+
+    /**
+     * @param x     World position x
+     * @param y     World position y
+     * @param z     World position z
+     * @param block The block to be set
+     * @return true if the block was successfully placed
+     */
+    boolean setBlock(int x, int y, int z, IBlock block);
+
+    boolean setBlock(IPos pos, IBlock block);
+
+    /**
+     * @param x World position x
+     * @param y World position y
+     * @param z World position z
+     */
+    void removeBlock(int x, int y, int z);
+
+    void removeBlock(IPos pos);
+
     boolean isPlaceCancelled(int posX, int posY, int posZ);
 
     boolean isPlaceCancelled(IPos pos);
@@ -180,15 +268,34 @@ public interface IWorld {
     IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance);
 
     /**
+     * starting at the start position, draw a line in the lookVector direction until a block is detected
+     *
+     * @param startPos the ray origin as [x, y, z]
+     * @param lookVector  should be a normalized direction vector
+     * @param maxDistance maximum ray distance in blocks
+     * @param stopOnBlock whether to stop on solid blocks
+     * @param stopOnLiquid whether to stop on liquid blocks
+     * @param stopOnCollision whether to stop on collision boundaries
+     * @return the first detected block but null if maxDistance is reached
+     */
+    IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance);
+
+    IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance);
+
+    /**
      * @param startPos the start position as [x, y, z]
      * @param maxHeight maximum search height
      * @return the position of the closest block of air to startPos
      */
-    IPos getNearestAir(IPos startPos, int maxHeight);
+    public IPos getNearestAir(IPos startPos, int maxHeight);
 
     IEntity[] rayCastEntities(double[] startPos, double[] lookVector, int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
 
-    IEntity[] rayCastEntities(IEntity[] ignoreEntities, double[] startPos, double[] lookVector, int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+    public IEntity[] rayCastEntities(IEntity[] ignoreEntities, double[] startPos, double[] lookVector, int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
 
     IEntity[] rayCastEntities(IPos startPos, IPos lookVector, int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
 
@@ -234,12 +341,36 @@ public interface IWorld {
     void thunderStrike(IPos pos);
 
     /**
+     * Sends a packet from the server to the client everytime its called. Probably should not use this too much.
+     *
+     * @param particle Particle name. Particle name list: http://minecraft.wiki/w/Particles
+     * @param x        The x position
+     * @param y        The y position
+     * @param z        The z position
+     * @param dx       Usually used for the x motion
+     * @param dy       Usually used for the y motion
+     * @param dz       Usually used for the z motion
+     * @param speed    Speed of the particles, usually between 0 and 1
+     * @param count    Particle count
+     */
+    void spawnParticle(String particle, double x, double y, double z, double dx, double dy, double dz, double speed, int count);
+
+    void spawnParticle(String particle, IPos pos, double dx, double dy, double dz, double speed, int count);
+
+    /**
      * @param id     The items name
      * @param damage The damage value
      * @param size   The number of items in the item
      * @return Returns the item
      */
     IItemStack createItem(String id, int damage, int size);
+
+    /**
+     * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
+     * @return Returns IEntityParticle object
+     */
+    @Deprecated
+    IParticle createEntityParticle(String directory);
 
     @Deprecated
     Object getTempData(String key);
@@ -290,7 +421,7 @@ public interface IWorld {
 
     IPlayer[] getAllServerPlayers();
 
-    String[] getPlayerNames();
+    public String[] getPlayerNames();
 
     /**
      * @param x Position x
@@ -321,6 +452,8 @@ public interface IWorld {
 
     IEntity spawnClone(IPos pos, int tab, String name);
 
+    IScoreboard getScoreboard();
+
     /**
      * @return Returns minecraft world object
      * @since 1.7.10c
@@ -333,6 +466,56 @@ public interface IWorld {
      * @return The ID of this world's dimension. 0 for overworld, 1 for End, -1 for Nether, etc.
      */
     int getDimensionID();
+
+    /**
+     * Creates an energy orb projectile. Not spawned until fire() is called.
+     *
+     * @param owner The entity that owns this projectile
+     * @param x     Spawn X position
+     * @param y     Spawn Y position
+     * @param z     Spawn Z position
+     * @param size  Orb size
+     * @return the energy orb entity
+     */
+    IEnergyOrb createEnergyOrb(IEntity owner, double x, double y, double z, float size);
+
+    /**
+     * Creates an energy beam projectile. Not spawned until fire() is called.
+     *
+     * @param owner     The entity that owns this projectile
+     * @param x         Spawn X position
+     * @param y         Spawn Y position
+     * @param z         Spawn Z position
+     * @param beamWidth Width of the beam
+     * @param headSize  Size of the beam head
+     * @return the energy beam entity
+     */
+    IEnergyBeam createEnergyBeam(IEntity owner, double x, double y, double z, float beamWidth, float headSize);
+
+    /**
+     * Creates an energy disc projectile. Not spawned until fire() is called.
+     *
+     * @param owner     The entity that owns this projectile
+     * @param x         Spawn X position
+     * @param y         Spawn Y position
+     * @param z         Spawn Z position
+     * @param radius    Disc radius
+     * @param thickness Disc thickness
+     * @return the energy disc entity
+     */
+    IEnergyDisc createEnergyDisc(IEntity owner, double x, double y, double z, float radius, float thickness);
+
+    /**
+     * Creates an energy laser projectile. Not spawned until fire() is called.
+     *
+     * @param owner      The entity that owns this projectile
+     * @param x          Spawn X position
+     * @param y          Spawn Y position
+     * @param z          Spawn Z position
+     * @param laserWidth Width of the laser
+     * @return the energy laser entity
+     */
+    IEnergyLaser createEnergyLaser(IEntity owner, double x, double y, double z, float laserWidth);
 
     void broadcast(String message);
 }
