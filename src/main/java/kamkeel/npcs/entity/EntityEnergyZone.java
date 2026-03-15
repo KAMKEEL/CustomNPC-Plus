@@ -443,6 +443,10 @@ public abstract class EntityEnergyZone extends EntityEnergyAbility {
     }
 
     protected void writeZoneBaseNBT(NBTTagCompound nbt) {
+        nbt.setDouble("PosX", posX);
+        nbt.setDouble("PosY", posY);
+        nbt.setDouble("PosZ", posZ);
+
         nbt.setFloat("Radius", radius);
         nbt.setFloat("Height", height);
         nbt.setFloat("TargetRadius", targetRadius);
@@ -466,6 +470,15 @@ public abstract class EntityEnergyZone extends EntityEnergyAbility {
     }
 
     protected void readZoneBaseNBT(NBTTagCompound nbt) {
+        if (nbt.hasKey("PosX")) {
+            double px = nbt.getDouble("PosX");
+            double py = nbt.getDouble("PosY");
+            double pz = nbt.getDouble("PosZ");
+            this.setPosition(px, py, pz);
+            this.prevPosX = px; this.prevPosY = py; this.prevPosZ = pz;
+            this.lastTickPosX = px; this.lastTickPosY = py; this.lastTickPosZ = pz;
+        }
+
         this.radius = sanitize(nbt.getFloat("Radius"), 1.0f, MAX_ZONE_RADIUS);
         this.height = sanitize(nbt.getFloat("Height"), 1.0f, MAX_ZONE_HEIGHT);
         this.targetRadius = sanitize(nbt.getFloat("TargetRadius"), 1.0f, MAX_ZONE_RADIUS);

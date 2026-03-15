@@ -38,32 +38,32 @@ public class EnergyPillarData {
     }
 
     public void writeNBT(NBTTagCompound nbt) {
-        nbt.setFloat("TargetRadius", targetRadius);
-        nbt.setFloat("TargetHeight", targetHeight);
-        nbt.setFloat("RadiusGrowSpeed", radiusGrowSpeed);
-        nbt.setFloat("HeightGrowSpeed", heightGrowSpeed);
-        nbt.setInteger("PillarMode", mode.ordinal());
-        nbt.setInteger("PillarOrigin", origin.ordinal());
-        nbt.setInteger("PillarShape", shape.ordinal());
-        nbt.setInteger("SpawnDelay", spawnDelay);
+        nbt.setFloat("targetRadius", targetRadius);
+        nbt.setFloat("targetHeight", targetHeight);
+        nbt.setFloat("radiusGrowSpeed", radiusGrowSpeed);
+        nbt.setFloat("heightGrowSpeed", heightGrowSpeed);
+        nbt.setInteger("pillarMode", mode.ordinal());
+        nbt.setInteger("pillarOrigin", origin.ordinal());
+        nbt.setInteger("pillarShape", shape.ordinal());
+        nbt.setInteger("spawnDelay", spawnDelay);
     }
 
     public void readNBT(NBTTagCompound nbt) {
-        this.targetRadius = nbt.hasKey("TargetRadius") ? nbt.getFloat("TargetRadius") : 1.0f;
-        this.targetHeight = nbt.hasKey("TargetHeight") ? nbt.getFloat("TargetHeight") : 2.0f;
-        this.radiusGrowSpeed = nbt.hasKey("RadiusGrowSpeed") ? nbt.getFloat("RadiusGrowSpeed") : 0.1f;
-        this.heightGrowSpeed = nbt.hasKey("HeightGrowSpeed") ? nbt.getFloat("HeightGrowSpeed") : 0.2f;
+        this.targetRadius = nbt.hasKey("targetRadius") ? nbt.getFloat("targetRadius") : 1.0f;
+        this.targetHeight = nbt.hasKey("targetHeight") ? nbt.getFloat("targetHeight") : 2.0f;
+        this.radiusGrowSpeed = nbt.hasKey("radiusGrowSpeed") ? nbt.getFloat("radiusGrowSpeed") : 0.1f;
+        this.heightGrowSpeed = nbt.hasKey("heightGrowSpeed") ? nbt.getFloat("heightGrowSpeed") : 0.2f;
 
-        int modeOrd = nbt.hasKey("PillarMode") ? nbt.getInteger("PillarMode") : 0;
+        int modeOrd = nbt.hasKey("pillarMode") ? nbt.getInteger("pillarMode") : 0;
         this.mode = (modeOrd >= 0 && modeOrd < PillarMode.values().length) ? PillarMode.values()[modeOrd] : PillarMode.ANCHORED;
 
-        int originOrd = nbt.hasKey("PillarOrigin") ? nbt.getInteger("PillarOrigin") : 0;
+        int originOrd = nbt.hasKey("pillarOrigin") ? nbt.getInteger("pillarOrigin") : 0;
         this.origin = (originOrd >= 0 && originOrd < PillarOrigin.values().length) ? PillarOrigin.values()[originOrd] : PillarOrigin.FROM_GROUND;
 
-        int shapeOrd = nbt.hasKey("PillarShape") ? nbt.getInteger("PillarShape") : 0;
+        int shapeOrd = nbt.hasKey("pillarShape") ? nbt.getInteger("pillarShape") : 0;
         this.shape = (shapeOrd >= 0 && shapeOrd < PillarShape.values().length) ? PillarShape.values()[shapeOrd] : PillarShape.CIRCLE;
 
-        this.spawnDelay = nbt.hasKey("SpawnDelay") ? Math.max(0, nbt.getInteger("SpawnDelay")) : 0;
+        this.spawnDelay = nbt.hasKey("spawnDelay") ? Math.max(0, nbt.getInteger("spawnDelay")) : 0;
     }
 
     public EnergyPillarData copy() {

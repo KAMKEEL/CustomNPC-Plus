@@ -2,10 +2,7 @@ package kamkeel.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyHomingData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
-import kamkeel.npcs.controllers.data.ability.data.energy.EnergyPillarData;
+import kamkeel.npcs.controllers.data.ability.data.energy.*;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -26,12 +23,14 @@ import java.util.List;
  *             line along the initial direction set by setInitialMotion().
  *
  * Lifecycle:
- * 1. Charging   — pillarRadius grows from 0 to targetRadius; pillarHeight stays at MIN_HEIGHT.
- * 2. spawnDelay — fully charged, position locks (ANCHORED) or begins moving (MOVING).
- *                 Height growth has not started yet.
- * 3. Active     — pillarHeight grows toward targetHeight at heightGrowSpeed per tick;
- *                 pillarRadius continues toward targetRadius at radiusGrowSpeed per tick.
- *                 Damage checks run once height exceeds MIN_HEIGHT.
+ * 1. Charging   — charge visual grows in radius at ground level during windup.
+ * 2. spawnDelay — entity is alive but does not grow and does not deal damage.
+ * 3. Active     — pillarHeight grows toward targetHeight; damage checks begin.
+ *
+ * FROM_ABOVE: posY is always the top anchor. The pillar grows downward.
+ *             Hitbox spans from posY - height to posY.
+ * FROM_GROUND: posY is the ground anchor. The pillar grows upward.
+ *              Hitbox spans from posY to posY + height.
  */
 public class EntityAbilityPillar extends EntityEnergyZone {
 
@@ -39,7 +38,6 @@ public class EntityAbilityPillar extends EntityEnergyZone {
 
     private static final float MIN_HEIGHT = 0.05f;
 
-    // DataWatcher slots (base uses 20 for charging)
     private static final int DW_PILLAR_RADIUS = 21;
     private static final int DW_PILLAR_HEIGHT = 22;
 
@@ -65,16 +63,19 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         }
     }
 
+    public enum OffsetAxis {
+        X,
+        Z
+    }
+
     // ==================== PILLAR CONFIG ====================
 
     private EnergyPillarData pillarData = new EnergyPillarData();
 
-    // ==================== PILLAR DIMENSIONS — LOCAL ====================
+    // ==================== PILLAR DIMENSIONS ====================
 
     private float pillarRadius = 0.01f;
     private float pillarHeight = MIN_HEIGHT;
-
-    // ==================== PILLAR DIMENSIONS — RENDER INTERPOLATION ====================
 
     private float renderPillarRadius = 0.01f;
     private float renderPillarHeight = MIN_HEIGHT;
@@ -100,19 +101,25 @@ public class EntityAbilityPillar extends EntityEnergyZone {
 
     public EntityAbilityPillar(World world, EntityLivingBase owner,
                                double x, double y, double z,
-                               EnergyPillarData pillarData,
-                               EnergyDisplayData display,
-                               EnergyLightningData lightning,
-                               EnergyHomingData homing) {
+                               EnergyPillarData pillarData, EnergyDisplayData display,
+                               EnergyCombatData combat, EnergyHomingData homing,
+                               EnergyLightningData lightning, EnergyLifespanData lifespan) {
         super(world);
 
         this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         this.pillarData = pillarData != null ? pillarData.copy() : new EnergyPillarData();
-        this.homingData = homing != null ? homing.copy() : new EnergyHomingData();
         this.displayData = display != null ? display.copy() : new EnergyDisplayData();
+        this.combatData = combat != null ? combat.copy() : new EnergyCombatData();
+        this.homingData = homing != null ? homing.copy() : new EnergyHomingData();
         this.lightningData = lightning != null ? lightning.copy() : new EnergyLightningData();
+        this.lifespanData = lifespan != null ? lifespan.copy() : new EnergyLifespanData();
 
-        snapToGround(x, y, z);
+        // FROM_ABOVE: posY is the top anchor — position at target height, not ground
+        if (pillarData != null && pillarData.origin == PillarOrigin.FROM_ABOVE) {
+            this.setPosition(x, y + pillarData.targetHeight, z);
+        } else {
+            snapToGround(x, y, z);
+        }
 
         setPillarRadiusInternal(0.01f);
         setPillarHeightInternal(MIN_HEIGHT);
@@ -152,8 +159,6 @@ public class EntityAbilityPillar extends EntityEnergyZone {
 
     /**
      * Set straight-line motion for MOVING mode without homing.
-     * Called by the ability before spawning, using the caster's look vector or
-     * direction toward target.
      */
     public void setInitialMotion(double mx, double mz) {
         this.motionX = mx;
@@ -178,7 +183,7 @@ public class EntityAbilityPillar extends EntityEnergyZone {
 
     /**
      * Called by the ability when charging ends.
-     * Starts the spawnDelay countdown, or immediately begins growing if spawnDelay is 0.
+     * Starts the spawnDelay countdown. No damage is dealt during spawnDelay.
      */
     public void startGrowing() {
         setCharging(false);
@@ -217,6 +222,7 @@ public class EntityAbilityPillar extends EntityEnergyZone {
             return;
         }
 
+        // spawnDelay: entity is alive but not growing and not dealing damage
         if (!growing) {
             spawnDelayTick++;
             if (spawnDelayTick >= pillarData.spawnDelay) {
@@ -238,6 +244,7 @@ public class EntityAbilityPillar extends EntityEnergyZone {
             updateMovement();
         }
 
+        // Only deal damage once growing has started and height is meaningful
         if (pillarHeight > MIN_HEIGHT) {
             checkEntityCollision();
         }
@@ -247,10 +254,9 @@ public class EntityAbilityPillar extends EntityEnergyZone {
 
     private void updateMovement() {
         if (!homingData.isHoming()) {
-            // Straight-line: motion was set by setInitialMotion() at spawn time
             this.posX += motionX;
             this.posZ += motionZ;
-            snapToGround(posX, posY, posZ);
+            repositionY();
             return;
         }
 
@@ -258,7 +264,7 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         if (target == null || !target.isEntityAlive()) {
             this.posX += motionX;
             this.posZ += motionZ;
-            snapToGround(posX, posY, posZ);
+            repositionY();
             return;
         }
 
@@ -282,16 +288,28 @@ public class EntityAbilityPillar extends EntityEnergyZone {
 
         this.posX += motionX;
         this.posZ += motionZ;
-        snapToGround(posX, posY, posZ);
+        repositionY();
+    }
+
+    /**
+     * Re-anchor Y position after horizontal movement.
+     * FROM_GROUND: snap to ground.
+     * FROM_ABOVE: snap to ground + targetHeight (top anchor stays at ceiling height).
+     */
+    private void repositionY() {
+        if (pillarData.origin == PillarOrigin.FROM_ABOVE) {
+            double groundY = kamkeel.npcs.controllers.data.ability.Ability.findGroundLevel(worldObj, posX, posY, posZ);
+            this.setPosition(posX, groundY + pillarData.targetHeight, posZ);
+        } else {
+            snapToGround(posX, posY, posZ);
+        }
     }
 
     // ==================== COLLISION ====================
 
     private void checkEntityCollision() {
-        AxisAlignedBB broadBox = AxisAlignedBB.getBoundingBox(
-            posX - pillarRadius, posY, posZ - pillarRadius,
-            posX + pillarRadius, posY + pillarHeight, posZ + pillarRadius
-        );
+        AxisAlignedBB broadBox = buildHitBox();
+        if (broadBox == null) return;
 
         @SuppressWarnings("unchecked")
         List<EntityLivingBase> entities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, broadBox);
@@ -311,6 +329,26 @@ public class EntityAbilityPillar extends EntityEnergyZone {
                 }
             }
         }
+    }
+
+    /**
+     * Build the hit box based on origin.
+     * FROM_GROUND: posY (base) to posY + height (tip).
+     * FROM_ABOVE:  posY - height (tip) to posY (base/ceiling).
+     */
+    private AxisAlignedBB buildHitBox() {
+        float minY, maxY;
+        if (pillarData.origin == PillarOrigin.FROM_ABOVE) {
+            maxY = (float) posY;
+            minY = (float) posY - pillarHeight;
+        } else {
+            minY = (float) posY;
+            maxY = (float) posY + pillarHeight;
+        }
+        return AxisAlignedBB.getBoundingBox(
+            posX - pillarRadius, minY, posZ - pillarRadius,
+            posX + pillarRadius, maxY, posZ + pillarRadius
+        );
     }
 
     private boolean isInPillar(EntityLivingBase entity) {

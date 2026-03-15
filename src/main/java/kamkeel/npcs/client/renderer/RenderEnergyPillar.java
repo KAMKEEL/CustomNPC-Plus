@@ -2,7 +2,6 @@ package kamkeel.npcs.client.renderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.client.renderer.lightning.AttachedLightningRenderer;
 import kamkeel.npcs.entity.EntityAbilityPillar;
 import kamkeel.npcs.entity.EntityAbilityPillar.PillarOrigin;
 import kamkeel.npcs.entity.EntityAbilityPillar.PillarShape;
@@ -15,16 +14,17 @@ import org.lwjgl.opengl.GL11;
  * Renders EntityAbilityPillar as a vertical energy column.
  *
  * Shape modes:
- * - CIRCLE: cylindrical pillar rendered with triangulated segments.
+ * - CIRCLE: cylindrical pillar with triangulated segments.
  * - SQUARE: rectangular prism pillar.
  *
  * Both modes render three color layers (outer glow, mid, inner core).
  *
  * Origin modes:
- * - FROM_GROUND: base at posY, pillar grows upward toward posY + height.
- * - FROM_ABOVE:  pillar falls from above, tip at posY, grows downward.
- *               The entity posY is always the ground anchor point.
- *               Visually: base = posY + targetHeight, tip grows down toward posY.
+ * - FROM_GROUND: posY = ground base. Pillar grows upward (baseY = posY, tipY = posY + height).
+ * - FROM_ABOVE:  posY = top anchor (ceiling). Pillar grows downward
+ *                (baseY = posY, tipY = posY - height).
+ *
+ * During charging, a flat disc grows at ground level (FROM_GROUND) or ceiling level (FROM_ABOVE).
  */
 @SideOnly(Side.CLIENT)
 public class RenderEnergyPillar extends RenderEnergy {
@@ -56,27 +56,19 @@ public class RenderEnergyPillar extends RenderEnergy {
             return;
         }
 
-        // FROM_GROUND: base at y, tip at y+height (grows up).
-        // FROM_ABOVE:  pillar descends from above. The entity's posY is the ground anchor.
-        //              The full column height is targetHeight. The current height is how far
-        //              it has grown. So the visible column spans from:
-        //              tip = posY + targetHeight - height  (starts high, descends)
-        //              base = posY + targetHeight          (fixed ceiling)
+        // FROM_GROUND: base at y, tip grows up.
+        // FROM_ABOVE:  posY is the top anchor. Base = y, tip = y - height (grows down).
         float baseY, tipY;
-        float targetHeight = pillar.getPillarData().targetHeight;
         if (pillar.getPillarOrigin() == PillarOrigin.FROM_ABOVE) {
-            baseY = (float) y + targetHeight;
-            tipY = (float) y + targetHeight - height;
+            baseY = (float) y;
+            tipY = (float) y - height;
         } else {
             baseY = (float) y;
             tipY = (float) y + height;
         }
 
-        float rotationAngle = 0f;
-        float rotationSpeed = pillar.getRotationSpeed();
-        if (rotationSpeed != 0f) {
-            rotationAngle = (pillar.ticksExisted + partialTicks) * rotationSpeed;
-        }
+        float rotationAngle = pillar.getRotationSpeed() != 0f
+            ? (pillar.ticksExisted + partialTicks) * pillar.getRotationSpeed() : 0f;
 
         float innerRadius = radius * INNER_SCALE;
         int innerColor = pillar.getInnerColor();
@@ -111,23 +103,21 @@ public class RenderEnergyPillar extends RenderEnergy {
 
     private void renderCharging(EntityAbilityPillar pillar, double x, double y, double z,
                                 float partialTicks, float proximityAlpha) {
-        float radius = pillar.getInterpolatedPillarRadius(partialTicks);
+        float radius = pillar.getTargetRadius() * 2;
         float chargeProgress = pillar.getInterpolatedChargeProgress(partialTicks);
         float renderRadius = radius * chargeProgress;
 
         if (renderRadius <= 0.01f) return;
 
         float pulseTime = pillar.ticksExisted + partialTicks;
-        float pulse = (float) Math.sin(pulseTime * 0.2f) * 0.08f;
-        renderRadius *= (1.0f + pulse);
+        renderRadius *= (1.0f + (float) Math.sin(pulseTime * 0.2f) * 0.08f);
 
-        // During charging, render a flat disc at ground level
+        // Flat disc at the anchor point
         float baseY = (float) y;
         float tipY = baseY + 0.05f;
 
         float rotationAngle = pillar.getRotationSpeed() != 0f
-            ? (pillar.ticksExisted + partialTicks) * pillar.getRotationSpeed()
-            : 0f;
+            ? (pillar.ticksExisted + partialTicks) * pillar.getRotationSpeed() : 0f;
 
         float innerRadius = renderRadius * INNER_SCALE;
         int innerColor = pillar.getInnerColor();
@@ -158,8 +148,7 @@ public class RenderEnergyPillar extends RenderEnergy {
     // ==================== SHAPE DISPATCH ====================
 
     private void renderPillarShape(PillarShape shape, double x, float baseY, float tipY,
-                                   double z, float radius, int color, float alpha,
-                                   float rotationAngle) {
+                                   double z, float radius, int color, float alpha, float rotationAngle) {
         if (shape == PillarShape.SQUARE) {
             renderSquarePillar(x, baseY, tipY, z, radius, color, alpha, rotationAngle);
         } else {
@@ -203,6 +192,9 @@ public class RenderEnergyPillar extends RenderEnergy {
         }
         tess.draw();
 
+        float capMinY = Math.min(baseY, tipY);
+        float capMaxY = Math.max(baseY, tipY);
+
         // Bottom cap
         tess.startDrawingQuads();
         tess.setColorRGBA_F(r, g, b, alpha);
@@ -212,10 +204,10 @@ public class RenderEnergyPillar extends RenderEnergy {
             float z1 = (float) cz + sinTable[i] * radius;
             float x2 = (float) cx + cosTable[i + 1] * radius;
             float z2 = (float) cz + sinTable[i + 1] * radius;
-            tess.addVertex((float) cx, baseY, (float) cz);
-            tess.addVertex(x2, baseY, z2);
-            tess.addVertex(x1, baseY, z1);
-            tess.addVertex((float) cx, baseY, (float) cz);
+            tess.addVertex((float) cx, capMinY, (float) cz);
+            tess.addVertex(x2, capMinY, z2);
+            tess.addVertex(x1, capMinY, z1);
+            tess.addVertex((float) cx, capMinY, (float) cz);
         }
         tess.draw();
 
@@ -228,10 +220,10 @@ public class RenderEnergyPillar extends RenderEnergy {
             float z1 = (float) cz + sinTable[i] * radius;
             float x2 = (float) cx + cosTable[i + 1] * radius;
             float z2 = (float) cz + sinTable[i + 1] * radius;
-            tess.addVertex((float) cx, tipY, (float) cz);
-            tess.addVertex(x1, tipY, z1);
-            tess.addVertex(x2, tipY, z2);
-            tess.addVertex((float) cx, tipY, (float) cz);
+            tess.addVertex((float) cx, capMaxY, (float) cz);
+            tess.addVertex(x1, capMaxY, z1);
+            tess.addVertex(x2, capMaxY, z2);
+            tess.addVertex((float) cx, capMaxY, (float) cz);
         }
         tess.draw();
     }
@@ -255,6 +247,9 @@ public class RenderEnergyPillar extends RenderEnergy {
             corners[i][1] = (float) cz + lx[i] * sinA + lz[i] * cosA;
         }
 
+        float capMinY = Math.min(baseY, tipY);
+        float capMaxY = Math.max(baseY, tipY);
+
         Tessellator tess = Tessellator.instance;
         tess.startDrawingQuads();
         tess.setColorRGBA_F(r, g, b, alpha);
@@ -274,19 +269,17 @@ public class RenderEnergyPillar extends RenderEnergy {
             tess.addVertex(x1, tipY, z1);
         }
 
-        // Bottom cap
         tess.setNormal(0, -1, 0);
-        tess.addVertex(corners[0][0], baseY, corners[0][1]);
-        tess.addVertex(corners[3][0], baseY, corners[3][1]);
-        tess.addVertex(corners[2][0], baseY, corners[2][1]);
-        tess.addVertex(corners[1][0], baseY, corners[1][1]);
+        tess.addVertex(corners[0][0], capMinY, corners[0][1]);
+        tess.addVertex(corners[3][0], capMinY, corners[3][1]);
+        tess.addVertex(corners[2][0], capMinY, corners[2][1]);
+        tess.addVertex(corners[1][0], capMinY, corners[1][1]);
 
-        // Top cap
         tess.setNormal(0, 1, 0);
-        tess.addVertex(corners[0][0], tipY, corners[0][1]);
-        tess.addVertex(corners[1][0], tipY, corners[1][1]);
-        tess.addVertex(corners[2][0], tipY, corners[2][1]);
-        tess.addVertex(corners[3][0], tipY, corners[3][1]);
+        tess.addVertex(corners[0][0], capMaxY, corners[0][1]);
+        tess.addVertex(corners[1][0], capMaxY, corners[1][1]);
+        tess.addVertex(corners[2][0], capMaxY, corners[2][1]);
+        tess.addVertex(corners[3][0], capMaxY, corners[3][1]);
 
         tess.draw();
     }

@@ -9,10 +9,14 @@ import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLifespanData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyLightningData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyPillarData;
 import kamkeel.npcs.controllers.data.ability.enums.HitType;
+import kamkeel.npcs.controllers.data.ability.enums.LockMode;
+import kamkeel.npcs.controllers.data.ability.enums.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.gui.AbilityFieldDefs;
 import kamkeel.npcs.controllers.data.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.telegraph.TelegraphType;
 import kamkeel.npcs.entity.EntityAbilityPillar;
+import kamkeel.npcs.entity.EntityAbilityPillar.OffsetAxis;
 import kamkeel.npcs.entity.EntityAbilityPillar.PillarMode;
 import kamkeel.npcs.entity.EntityAbilityPillar.PillarShape;
 import net.minecraft.entity.EntityLivingBase;
@@ -26,18 +30,19 @@ import java.util.List;
  * Pillar zone ability — spawns one or more energy pillars that rise from the ground
  * or fall from the sky.
  *
- * ANCHORED: pillar spawns at the target's position and stays there.
- *           When count > 1, each subsequent pillar recalculates a random position
- *           near the target at spawn time.
+ * ANCHORED: pillar spawns at the target's position at execute time and stays there.
+ *           When count > 1, each subsequent pillar gets a random nearby position.
  *
- * MOVING:   pillar spawns in front of the caster and travels forward.
+ * MOVING:   pillar spawns in front of the caster at execute time and travels forward.
  *           With homing: steers toward target.
  *           Without homing: straight line along caster look vector or toward target.
- *           When count > 1, pillarOffset spaces pillars apart along the travel direction.
+ *           When count > 1, pillarOffset spaces pillars along the chosen OffsetAxis.
  *
- * Telegraph shape matches PillarShape (CIRCLE or SQUARE).
- * In MOVING mode, telegraph appears at the spawn point in front of the caster.
+ * Charge visual appears at the target/spawn position during windup (tick 1),
+ * growing in radius at ground level — exactly above the telegraph.
  */
+
+// TODO 1. add another mode, static, 2. fix charging radius, rotation, etc
 public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
 
     // ==================== PILLAR CONFIG ====================
@@ -45,11 +50,11 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
     private EnergyPillarData pillarData = new EnergyPillarData();
     private EnergyHomingData homingData = new EnergyHomingData();
 
-    /**
-     * Spacing between pillars in MOVING mode when count > 1.
-     * 0 = all spawn at the same position.
-     */
+    /** Spacing between pillars when count > 1. 0 = same position. */
     private float pillarOffset = 0f;
+
+    /** Axis along which pillarOffset is applied in MOVING mode. */
+    private OffsetAxis offsetAxis = OffsetAxis.Z;
 
     // ==================== CONSTRUCTOR ====================
 
@@ -59,8 +64,16 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
             new EnergyCombatData(),
             new EnergyLifespanData()
         );
-        combatData.hitType = HitType.MULTI;
-        combatData.multiHitDelayTicks = 20;
+        this.typeId = "ability.cnpc.pillar";
+        this.name = "Pillar";
+        this.targetingMode = TargetingMode.AGGRO_TARGET;
+        this.maxRange = 25.0f;
+        this.minRange = 5.0f;
+        this.cooldownTicks = 0;
+        this.windUpTicks = 30;
+        this.lockMovement = LockMode.WINDUP;
+        this.telegraphType = pillarData.shape.getTelegraphType();
+        this.showTelegraph = true;
     }
 
     // ==================== ABSTRACT IMPLEMENTATIONS ====================
@@ -69,20 +82,14 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
     protected EntityAbilityPillar createEntity(EntityLivingBase caster, EntityLivingBase target,
                                                double x, double y, double z,
                                                EnergyDisplayData resolved, int index) {
-        return new EntityAbilityPillar(
-            caster.worldObj, caster,
-            x, y, z,
-            pillarData,
-            resolved,
-            lightningData,
-            homingData
-        );
+        return new EntityAbilityPillar(caster.worldObj, caster, x, y, z,
+            pillarData, resolved, combatData, homingData, lightningData, lifespanData);
     }
 
     @Override
     protected void setupEntityCharging(EntityAbilityPillar entity, int index) {
-        // The charge visual should appear at ground level at the spawn position,
-        // not following the caster anchor. Position is already set by createEntity.
+        // Charge visual: entity is already at the correct ground position.
+        // Just set it up for charging — it will grow in radius at that position.
         entity.setupCharging(windUpTicks);
     }
 
@@ -102,43 +109,75 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
         return pillarData.targetRadius;
     }
 
-    // ==================== SPAWN POSITION ====================
+    // ==================== SPAWN POSITIONS ====================
 
+    /**
+     * Spawn position at execute time.
+     * MOVING: in front of caster with offset per index along offsetAxis.
+     * ANCHORED index 0: pre-calculated telegraph position.
+     * ANCHORED index > 0: random position near target.
+     */
     @Override
     protected double[] getSpawnPosition(EntityLivingBase caster, EntityLivingBase target, int index) {
         if (pillarData.mode == PillarMode.MOVING) {
             Vec3 look = caster.getLookVec();
-            if (look == null) {
-                return new double[]{caster.posX, caster.posY, caster.posZ};
-            }
+            if (look == null) return new double[]{caster.posX, caster.posY, caster.posZ};
             float baseDist = Math.max(1.0f, pillarData.targetRadius);
-            float offsetDist = baseDist + pillarOffset * index;
+            double ox = offsetAxis == OffsetAxis.X ? pillarOffset * index : 0;
+            double oz = offsetAxis == OffsetAxis.Z ? pillarOffset * index : 0;
             return new double[]{
-                caster.posX + look.xCoord * offsetDist,
+                caster.posX + look.xCoord * baseDist + ox,
                 caster.posY,
-                caster.posZ + look.zCoord * offsetDist
+                caster.posZ + look.zCoord * baseDist + oz
             };
         }
 
-        // ANCHORED: index 0 uses pre-calculated telegraph position.
-        // Subsequent indices recalculate a random nearby position at spawn time.
         if (index == 0) {
             return super.getSpawnPosition(caster, target, index);
         }
 
-        // For index > 0, find a new random position near the target
         double baseX = target != null ? target.posX : caster.posX;
         double baseZ = target != null ? target.posZ : caster.posZ;
         double baseY = target != null ? target.posY : caster.posY;
-
-        float spawnRadius = Math.max(pillarData.targetRadius * 2.0f, 3.0f);
+        float spread = Math.max(pillarData.targetRadius * 2.0f, 3.0f);
         double angle = Math.random() * Math.PI * 2;
-        double dist = Math.sqrt(Math.random()) * spawnRadius;
+        double dist = Math.sqrt(Math.random()) * spread;
         return new double[]{
             baseX + Math.cos(angle) * dist,
             baseY,
             baseZ + Math.sin(angle) * dist
         };
+    }
+
+    /**
+     * Windup spawn position for charge visual.
+     * Always uses the target/telegraph position so the charge visual
+     * appears at ground level exactly above the telegraph.
+     */
+    @Override
+    protected double[] getWindupSpawnPosition(EntityLivingBase caster, EntityLivingBase target, int index) {
+        if (pillarData.mode == PillarMode.MOVING) {
+            // Charge visual appears at the same spot the pillar will spawn
+            Vec3 look = caster.getLookVec();
+            if (look == null) return new double[]{caster.posX, caster.posY, caster.posZ};
+            float baseDist = Math.max(1.0f, pillarData.targetRadius);
+            double ox = offsetAxis == OffsetAxis.X ? pillarOffset * index : 0;
+            double oz = offsetAxis == OffsetAxis.Z ? pillarOffset * index : 0;
+            return new double[]{
+                caster.posX + look.xCoord * baseDist + ox,
+                caster.posY,
+                caster.posZ + look.zCoord * baseDist + oz
+            };
+        }
+        // ANCHORED: use pre-calculated telegraph position for index 0,
+        // target position for the rest
+        if (index == 0 && !preCalculatedPositions.isEmpty()) {
+            return preCalculatedPositions.get(0);
+        }
+        if (target != null) {
+            return new double[]{target.posX, target.posY, target.posZ};
+        }
+        return new double[]{caster.posX, caster.posY, caster.posZ};
     }
 
     // ==================== EXECUTE ====================
@@ -153,7 +192,6 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
             entity.setTarget(target);
         }
 
-        // Set straight-line motion for MOVING mode without homing
         if (pillarData.mode == PillarMode.MOVING && !homingData.isHoming()) {
             double mx = 0, mz = 0;
             if (target != null) {
@@ -201,7 +239,6 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
         double telegraphX, telegraphZ, telegraphY;
 
         if (pillarData.mode == PillarMode.MOVING) {
-            // Telegraph appears at the spawn point in front of the caster
             Vec3 look = caster.getLookVec();
             if (look != null) {
                 float dist = Math.max(1.0f, pillarData.targetRadius);
@@ -212,30 +249,20 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
                 telegraphZ = caster.posZ;
             }
             telegraphY = findGroundLevel(caster.worldObj, telegraphX, caster.posY, telegraphZ);
-
-            preCalculatedPositions.clear();
-            preCalculatedPositions.add(new double[]{telegraphX, telegraphY, telegraphZ});
         } else {
-            // ANCHORED: telegraph at target position
             if (target == null) return null;
             telegraphX = target.posX;
             telegraphZ = target.posZ;
             telegraphY = findGroundLevel(caster.worldObj, telegraphX, target.posY, telegraphZ);
-
-            preCalculatedPositions.clear();
-            preCalculatedPositions.add(new double[]{telegraphX, telegraphY, telegraphZ});
         }
+
+        preCalculatedPositions.clear();
+        preCalculatedPositions.add(new double[]{telegraphX, telegraphY, telegraphZ});
 
         TelegraphInstance instance = new TelegraphInstance(
             telegraph, telegraphX, telegraphY, telegraphZ, caster.rotationYaw);
         instance.setCasterEntityId(caster.getEntityId());
-
-        // In ANCHORED+homing, telegraph follows the target
-        if (pillarData.mode == PillarMode.ANCHORED && homingData.isHoming() && target != null) {
-            instance.setEntityIdToFollow(target.getEntityId());
-        } else {
-            instance.setEntityIdToFollow(-1);
-        }
+        instance.setEntityIdToFollow(-1);
 
         return instance;
     }
@@ -251,14 +278,18 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
     protected void writeTypeSpecificNBT(NBTTagCompound nbt) {
         pillarData.writeNBT(nbt);
         homingData.writeNBT(nbt);
-        nbt.setFloat("PillarOffset", pillarOffset);
+        nbt.setFloat("pillarOffset", pillarOffset);
+        nbt.setInteger("offsetAxis", offsetAxis.ordinal());
     }
 
     @Override
     protected void readTypeSpecificNBT(NBTTagCompound nbt) {
         pillarData.readNBT(nbt);
         homingData.readNBT(nbt);
-        this.pillarOffset = nbt.hasKey("PillarOffset") ? nbt.getFloat("PillarOffset") : 0f;
+        this.pillarOffset = nbt.hasKey("pillarOffset") ? nbt.getFloat("pillarOffset") : 0f;
+        int axisOrd = nbt.hasKey("offsetAxis") ? nbt.getInteger("offsetAxis") : 1;
+        this.offsetAxis = (axisOrd >= 0 && axisOrd < OffsetAxis.values().length)
+            ? OffsetAxis.values()[axisOrd] : OffsetAxis.Z;
     }
 
     // ==================== GUI ====================
@@ -266,6 +297,11 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
     @SideOnly(Side.CLIENT)
     @Override
     protected void addTypeDefinitions(List<FieldDef> defs) {
+        FieldDef.insertAfter(defs, "ability.fireDelay", FieldDef.row(
+            FieldDef.floatField("ability.pillar.offset", () -> pillarOffset, v -> pillarOffset = Math.max(0f, v)).range(0f, 20f),
+            FieldDef.enumField("ability.pillar.offsetAxis", OffsetAxis.class, () -> offsetAxis, v -> offsetAxis = v)
+        ).visibleWhen(() -> zoneCount > 1));
+
         defs.add(FieldDef.section("ability.section.pillar"));
 
         defs.add(FieldDef.enumField("ability.pillarMode", PillarMode.class,
@@ -277,6 +313,11 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
         defs.add(FieldDef.enumField("ability.pillarShape", PillarShape.class,
             () -> pillarData.shape, v -> pillarData.shape = v));
 
+        defs.add(FieldDef.intField("ability.pillar.spawnDelay", () -> pillarData.spawnDelay, v -> pillarData.spawnDelay = Math.max(0, v))
+            .range(0, 200));
+
+        defs.add(FieldDef.section("ability.section.size"));
+
         defs.add(FieldDef.row(
             FieldDef.floatField("ability.pillar.targetRadius", () -> pillarData.targetRadius, v -> pillarData.targetRadius = v).range(0.1f, 64f),
             FieldDef.floatField("ability.pillar.targetHeight", () -> pillarData.targetHeight, v -> pillarData.targetHeight = v).range(0.1f, 64f)
@@ -287,33 +328,25 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
             FieldDef.floatField("ability.pillar.heightGrowSpeed", () -> pillarData.heightGrowSpeed, v -> pillarData.heightGrowSpeed = Math.max(0.01f, v))
         ));
 
-        defs.add(FieldDef.intField("ability.pillar.spawnDelay", () -> pillarData.spawnDelay, v -> pillarData.spawnDelay = Math.max(0, v))
-            .range(0, 200));
-
-        defs.add(FieldDef.floatField("ability.pillar.offset", () -> pillarOffset, v -> pillarOffset = Math.max(0f, v))
-            .visibleWhen(() -> zoneCount > 1)
-            .range(0f, 20f));
-
-        defs.add(FieldDef.section("ability.section.movement")
-            .visibleWhen(() -> pillarData.mode == PillarMode.MOVING));
+        defs.add(FieldDef.section("ability.section.movement"));
 
         defs.add(FieldDef.floatField("ability.speed", () -> homingData.getSpeed(), v -> homingData.setSpeed(v))
-            .visibleWhen(() -> pillarData.mode == PillarMode.MOVING)
             .range(0.01f, 10f));
 
-        defs.add(FieldDef.boolField("ability.homing", () -> homingData.isHoming(), v -> homingData.setHoming(v))
-            .visibleWhen(() -> pillarData.mode == PillarMode.MOVING));
+        defs.add(FieldDef.boolField("ability.homing", () -> homingData.isHoming(), v -> homingData.setHoming(v)));
 
         defs.add(FieldDef.row(
             FieldDef.floatField("ability.homingStrength", () -> homingData.getHomingStrength(), v -> homingData.setHomingStrength(v)).range(0f, 1f),
             FieldDef.floatField("ability.homingRange", () -> homingData.getHomingRange(), v -> homingData.setHomingRange(v))
-        ).visibleWhen(() -> pillarData.mode == PillarMode.MOVING && homingData.isHoming()));
+        ).visibleWhen(() -> homingData.isHoming()));
 
         defs.add(FieldDef.section("ability.section.combat"));
 
         defs.add(FieldDef.floatField("ability.damage", this::getDamage, this::setDamage).range(0f, 1000f));
         defs.add(FieldDef.floatField("ability.knockback", this::getKnockback, this::setKnockback).range(0f, 10f));
         defs.add(FieldDef.intField("ability.maxLifetime", this::getMaxLifetime, this::setMaxLifetime).range(1, 1200));
+
+        defs.add(AbilityFieldDefs.effectsListField("ability.effects", this::getEffects, this::setEffects));
     }
 
     // ==================== GETTERS & SETTERS ====================
@@ -326,4 +359,7 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
 
     public float getPillarOffset() { return pillarOffset; }
     public void setPillarOffset(float offset) { this.pillarOffset = Math.max(0f, offset); }
+
+    public OffsetAxis getOffsetAxis() { return offsetAxis; }
+    public void setOffsetAxis(OffsetAxis axis) { this.offsetAxis = axis != null ? axis : OffsetAxis.Z; }
 }

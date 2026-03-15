@@ -184,17 +184,30 @@ public abstract class AbilityEnergyZone<E extends EntityEnergyZone> extends Abil
     // ==================== ENTITY CREATION ====================
 
     protected E createZoneEntity(EntityLivingBase caster, EntityLivingBase target, int index) {
-        double[] pos = getSpawnPosition(caster, target, index);
+        return createZoneEntityAt(caster, target, index, getSpawnPosition(caster, target, index));
+    }
+
+    protected E createZoneEntityAt(EntityLivingBase caster, EntityLivingBase target, int index, double[] pos) {
         EnergyDisplayData resolved = resolveDisplay(index);
         E entity = createEntity(caster, target, pos[0], pos[1], pos[2], resolved, index);
         entity.setSourceAbility(this);
         entity.setIgnoreIFrames(this.isIgnoreIFrames());
         entity.setEffects(this.effects);
+        // Copy ability combat data to entity so hitType, damage, knockback are in sync
         noppes.npcs.controllers.data.MagicData resolvedMagic = resolveMagicData(caster);
         if (resolvedMagic != null) {
             entity.setMagicData(resolvedMagic.copy());
         }
         return entity;
+    }
+
+    /**
+     * Get spawn position for charge visual during windup.
+     * Default: same as getSpawnPosition. Override for types where windup position
+     * differs from execute position (e.g. Pillar MOVING uses target pos during windup).
+     */
+    protected double[] getWindupSpawnPosition(EntityLivingBase caster, EntityLivingBase target, int index) {
+        return getSpawnPosition(caster, target, index);
     }
 
     protected void spawnZoneEntity(E entity, int index) {
@@ -223,7 +236,10 @@ public abstract class AbilityEnergyZone<E extends EntityEnergyZone> extends Abil
         if (isPreview() || caster == null || caster.worldObj == null || caster.worldObj.isRemote) return;
         if (chargeVisualIds == null || index < 0 || index >= chargeVisualIds.length) return;
 
-        E previewEntity = createZoneEntity(caster, target, index);
+
+
+        double[] windupPos = getWindupSpawnPosition(caster, target, index);
+        E previewEntity = createZoneEntityAt(caster, target, index, windupPos);
         previewEntity.setPreviewMode(true);
         previewEntity.setPreviewOwner(caster);
         setupEntityCharging(previewEntity, index);
@@ -505,16 +521,21 @@ public abstract class AbilityEnergyZone<E extends EntityEnergyZone> extends Abil
             .visibleWhen(() -> getHitType() != HitType.SINGLE.ordinal())
             .hover("ability.hover.maxHits"));
 
-        defs.add(FieldDef.intField("ability.zoneCount", this::getZoneCount, this::setZoneCount)
-            .range(1, MAX_ZONES));
-        defs.add(FieldDef.intField("ability.fireDelay", this::getFireDelay, this::setFireDelay)
-            .range(0, 200)
-            .visibleWhen(() -> zoneCount > 1));
+        defs.add(FieldDef.row(
+            FieldDef.intField("ability.zoneCount", this::getZoneCount, this::setZoneCount)
+                .range(1, MAX_ZONES),
+            FieldDef.intField("ability.fireDelay", this::getFireDelay, this::setFireDelay)
+                .range(0, 200).visibleWhen(() -> zoneCount > 1)
+        ));
 
         addTypeDefinitions(defs);
 
         addEnergyColorDefinitions(defs);
-        addEnergyEffectDefinitions(defs);
+
+        defs.add(FieldDef.section("ability.section.effects").tab("ability.tab.visual"));
+        defs.add(FieldDef.floatField("ability.rotationSpeed", this::getRotationSpeed, this::setRotationSpeed)
+            .tab("ability.tab.visual"));
+        addEnergyLightningDefinitions(defs);
     }
 
     // ==================== COMBAT GETTERS & SETTERS ====================
