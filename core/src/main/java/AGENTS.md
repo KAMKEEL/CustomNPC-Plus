@@ -2,7 +2,7 @@
 
 ## What This Is
 MC-free module containing game logic, enums, data classes, and controllers that compile without
-Minecraft imports. Uses `platform-api/` interfaces for MC operations. 183 files migrated so far.
+Minecraft imports. Uses `platform-api/` interfaces for MC operations. 188 files migrated so far.
 Dependency: `platform-api` ← `core` ← `mc1710 (root src)`.
 
 ## Split-Package Shadow Pattern
@@ -10,7 +10,7 @@ Core classes and mc1710 classes share the **same package**. At compile time, mc1
 core by adding MC-specific functionality:
 
 ```
-core/  Faction.java         → Pure data + INBTCompound serialization
+core/  Faction.java         → Pure data + INbt serialization
 src/   Faction.java         → adds `implements IFaction`, SyncController calls, EntityPlayer methods
 ```
 
@@ -31,7 +31,7 @@ All game enums. No MC imports. Domains:
 - **Misc**: `EnumBardInstrument`, `EnumDayTime`, `EnumParticleType`, `MarkType`, `NBTTypes`, `EnumNpcToolMaterial`
 
 ### controllers/ (8 files)
-Migrated controller singletons using `INBTCompound` instead of `NBTTagCompound`:
+Migrated controller singletons using `INbt` instead of `NBTTagCompound`:
 
 | Controller | Status |
 |---|---|
@@ -75,23 +75,17 @@ Migrated data classes. Key groups:
 - `developer/` — `Developer` registry
 
 ## Platform Abstraction
-Core uses `platform-api/` interfaces:
-- `INBTCompound` / `INBTList` instead of `NBTTagCompound` / `NBTTagList`
+Core uses `platform-api/` interfaces (the real ones from `noppes.npcs.api.*`):
+- `INbt` / `INbtList` instead of `NBTTagCompound` / `NBTTagList`
 - `NBT.compound()` / `NBT.list()` factory methods instead of `new NBTTagCompound()`
 - `PlatformServiceHolder.get()` for file I/O, logging, world save directory access
-- `IUser` for player references (not yet widely implemented — blocks many migrations)
+- `IPlayer` for player references, `IItemStack` for items, `IWorld` for worlds
 
 ## Migration Status
-183/~1810 files migrated. Blockers for remaining classes:
-- **IUser wrapper** needed for Availability, Dialog, Quest migrations
-- **IStack wrapper** needed for item-dependent classes (inventory, trading, recipes)
-- **Entity abstractions** not planned — entities stay mc1710-side permanently
-- **Script system** not planned for migration — deeply coupled to engines
-
-See `CORE_MIGRATION_STATUS.md` and `CORE_PLAN.md` at project root for details.
+188/~1810 files migrated. See `.AGENTS/SESSION_MEMORY.md` for the full migration roadmap.
 
 ## Forbidden
 - **NEVER import net.minecraft.* in core/** — use platform-api interfaces only
 - **NEVER import wrapper classes in core/** — only interfaces from platform-api/
 - **NEVER break split-package shadow** — core class must compile alone, mc1710 adds MC logic
-- **NEVER add IUser/IStack to core until platform-api interfaces are finalized**
+- **NEVER create duplicate interface names** — use the existing `IPlayer`, `IItemStack`, `IWorld`, `IEntity` etc. from platform-api

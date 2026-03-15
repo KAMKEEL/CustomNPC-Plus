@@ -4,14 +4,14 @@
 **All documents below this line are created BY and FOR agents operating on this codebase.**
 This is the master architecture reference. Before any work:
 1. Read `.AGENTS/SESSION_MEMORY.md` — strategic vision, roadmap, critical decisions
-2. Read `.AGENTS/CORE_PLAN.md` — platform abstraction design and naming conventions
-3. Skim `.AGENTS/FORBIDDEN_PRACTICES.md` — architectural guardrails (NEVER violate these)
-4. Reference `.AGENTS/MC_COUPLING_ANALYSIS.md` — what's MC-dependent, migration priority
+2. Skim `.AGENTS/FORBIDDEN_PRACTICES.md` — architectural guardrails (NEVER violate these)
+3. Reference `.AGENTS/MC_COUPLING_ANALYSIS.md` — what's MC-dependent, migration priority
    **If working on multi-version porting**, also read:
 - `.AGENTS/MULTI_VERSION_RESEARCH.md` — real-world strategies, tools, pitfalls
 - `.AGENTS/BUILD_SYSTEM.md` — Gradle architecture, version-specific build requirements
+- `.AGENTS/MIGRATION_ROADMAP.md` — phased migration plan with milestones
 
--**IMPORTANT** ALWAYS CHECK OUT `SESSION_MEMORY.md` WHEN WORKING ON MIGRATING/UPPORTING THIS PROJECT TO LATER MINECRAFT VERSIONS.
+-**IMPORTANT** ALWAYS CHECK OUT `.AGENTS/SESSION_MEMORY.md` WHEN WORKING ON MIGRATING/UPPORTING THIS PROJECT TO LATER MINECRAFT VERSIONS.
 ---
 
 
@@ -35,7 +35,7 @@ Minecraft 1.7.10 Forge mod. NPC customization, AI, quests, abilities, scripting 
 - **Split-package shadow**: Core class in `core/` + mc1710 version in `src/main/java/` same package. mc1710 shadows core at compile time (adds `implements IFaction`, SyncController calls, MC-specific methods).
 - **Platform abstraction**: `PlatformServiceHolder.get()` → `PlatformService` impl registered at mod init.
 - **NBT wrapping**: `NBTTagCompound` → `INBTCompound`, `new NBTTagCompound()` → `NBT.compound()`.
-- **Entity wrapping**: `EntityPlayer` → `IUser` (platform-api), mc1710 provides `PlayerWrapper`.
+- **Entity wrapping**: `EntityPlayer` → `IPlayer` (platform-api), mc1710 provides `PlayerWrapper`.
 
 ## Subsystem Location Map
 
@@ -67,10 +67,9 @@ Minecraft 1.7.10 Forge mod. NPC customization, AI, quests, abilities, scripting 
 | **TypeScript Gen** | `gradle-plugins/src/` | Gradle plugin: Java API → `.d.ts` definitions |
 
 ## Core Migration Status
-- **183 files** abstracted to `core/` + `platform-api/` out of ~1,810 total
+- **188 files** abstracted to `core/` + `platform-api/` out of ~1,810 total
 - Migrated: Faction, Magic, Transport, Tag, GlobalData controllers + 60+ data classes
-- See `CORE_MIGRATION_STATUS.md` for per-file blocker analysis
-- See `CORE_PLAN.md` for migration roadmap and naming conventions
+- See `SESSION_MEMORY.md` for migration roadmap and current strategy
 
 ## NEVER / DO NOT Rules
 
@@ -80,9 +79,9 @@ Minecraft 1.7.10 Forge mod. NPC customization, AI, quests, abilities, scripting 
 4. **NEVER touch recipe system for migration** — `RecipeCarpentry` extends `ShapedRecipes`, `RecipeController` uses `CraftingManager`.
 5. **NEVER import MC classes in `core/` or `platform-api/`** — use platform interfaces only.
 6. **NEVER import wrapper classes in `core/`** — only interfaces from `platform-api/`.
-7. **Platform interface naming**: Short `I` prefix, no `Platform` in name (`IUser` not `IPlatformUser`).
+7. **Platform interface naming**: Use the existing scripting API names as-is (`IPlayer`, `IEntity`, `IItemStack`, `IWorld`). Do NOT create semantically duplicate interfaces.
 8. **MC1710 wrapper naming**: `[Thing]Wrapper` — no `MC1710` prefix.
-9. **Scripting API** (`IPlayer`, `IEntity`, `ICustomNpc`) is a **separate concern** from platform interfaces — different package, different purpose. Do not conflate.
+9. **Scripting API** (`IPlayer`, `IEntity`, `ICustomNpc`) is being **merged into platform-api** — same package (`noppes.npcs.api.*`), stripped of MC type parameters. The MC-free versions live in `platform-api/`, version-specific extensions live in each version leaf's shadow. See `SESSION_MEMORY.md` Phase 0B/0C for the migration plan.
 10. **Split-package rule**: When a class exists in both `core/` and `src/main/java/` with same package, mc1710 version shadows core. Never break this contract.
 
 ## Build & Run
@@ -130,8 +129,8 @@ Minecraft 1.7.10 Forge mod. NPC customization, AI, quests, abilities, scripting 
 - `MULTI_VERSION_RESEARCH.md` — External research: real multi-version mod repos, build tools, preprocessor details
 - `MC_COUPLING_ANALYSIS.md` — Quantified MC-dependency breakdown by subsystem (1,424 files analyzed)
 - `FORBIDDEN_PRACTICES.md` — Anti-patterns, deprecated components, architectural guardrails
-- `CORE_MIGRATION_STATUS.md` — Detailed per-file blocker analysis for core migration
-- `CORE_PLAN.md` — Migration roadmap, naming conventions, architecture decisions
+- `MIGRATION_ROADMAP.md` — Phased migration plan with milestones
+- `BUILD_SYSTEM.md` — Gradle architecture, version-specific build requirements
 - `CHANGELOG.md` — Version history
 - `todo.txt` — Pending tasks
 - `dts-patches/` — Manual patches applied to generated TypeScript definitions

@@ -30,8 +30,9 @@ Core code must **never** import:
 | `CompressedStreamTools` | `PlatformServiceHolder.get().readCompressedNBT()` |
 | `LogWriter` | `PlatformServiceHolder.get().logError()` |
 | `CustomNpcs.getWorldSaveDirectory()` | `PlatformServiceHolder.get().getWorldSaveDirectory()` |
-| `EntityPlayer` param | `IUser` (via platform-api) |
-| `EntityNPCInterface` param | `INpc` (via platform-api, not yet created) |
+| `EntityPlayer` param | `IPlayer` (via platform-api — `noppes.npcs.api.entity.IPlayer`) |
+| `ItemStack` param | `IItemStack` (via platform-api — `noppes.npcs.api.item.IItemStack`) |
+| `World` param | `IWorld` (via platform-api — `noppes.npcs.api.IWorld`) |
 
 ## Split-Package Shadows
 
@@ -40,16 +41,10 @@ Core classes share packages with mc1710 classes. The mc1710 version can:
 - Re-add `SyncController` calls for network sync
 - Override methods that need `ItemStack`, `EntityPlayer`, etc.
 
-## DO NOT TOUCH (Forbidden Zones)
-
-- **Script system** — ScriptHandler, ScriptContainer, I*Script*, Action framework
-- **Ability system** — Ability.java and ability type classes (30+ MC imports)
-- **Entity classes** — extend MC Entity directly
-- **Recipe system** — extends MC recipe classes
-
 ## Adding New Core Code
 
 1. Ensure zero MC imports — use platform-api interfaces
 2. NBT via `NBT.compound()` / `NBT.list()`, file I/O via `PlatformServiceHolder`
 3. Stub out methods needing MC types — mc1710 shadow adds them
 4. Follow existing package structure (controllers → `controllers/`, data → `controllers/data/`)
+5. **NEVER create duplicate interface names** — use `IPlayer`, `IItemStack`, `IWorld`, `IEntity` etc. from platform-api as-is

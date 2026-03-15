@@ -130,7 +130,7 @@ platform-api → core → common (with preprocessor) → version leaves
 
 | Layer | Contents | MC Dependencies |
 |---|---|---|
-| `platform-api/` | Interfaces only (`IUser`, `INBTCompound`, `PlatformService`) | None |
+| `platform-api/` | Interfaces only (`IPlayer`, `INbt`, `PlatformService`) | None |
 | `core/` | MC-free game logic (controllers, data classes, enums, utils) | None |
 | `common/` | Shared MC-aware code with `#if` preprocessor directives | Yes (version-gated) |
 | `versions/<ver>/` | Entity registration, rendering, version-specific implementations | Full MC + Forge/NeoForge |
