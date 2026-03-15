@@ -50,3 +50,10 @@ node_modules
 /core/build/
 /platform-api/build/
 
+# mc1710 
+mc1710/src/main/resources/mixins.*([!.]).json
+mc1710/src/main/resources/assets/customnpcs/api
+mc1710/build/
+mc1710/run/
+
+

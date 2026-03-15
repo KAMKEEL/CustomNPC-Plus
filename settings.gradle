@@ -31,7 +31,8 @@ plugins {
 // Include the local gradle-plugins composite build so plugin is resolved locally
 includeBuild 'gradle-plugins'
 
-// CNPC+ Multi-Version Core Modules
-// These are plain Java libraries with no Minecraft dependencies.
-// They contain version-independent game logic shared across all MC versions.
-include 'core', 'platform-api'
+// CNPC+ Multi-Version Build Structure
+// - platform-api: MC-free interfaces (plain Java 8 library)
+// - core: MC-free game logic (plain Java 8 library, depends on platform-api)
+// - mc1710: Minecraft 1.7.10 module (Forge mod, depends on core)
+include 'platform-api', 'core', 'mc1710'
