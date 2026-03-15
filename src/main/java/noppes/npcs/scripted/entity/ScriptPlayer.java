@@ -317,9 +317,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
             return;
-        PlayerData data = PlayerData.get(player);
-        PlayerQuestController.setQuestFinishedUtil(player, quest, data.questData);
-        data.updateClient = true;
+        PlayerQuestController.setQuestFinished(quest, player);
     }
 
     /**
