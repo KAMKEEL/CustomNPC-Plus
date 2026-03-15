@@ -1,33 +1,13 @@
-// ============================================================================
-// CustomNPC-Plus — Root Project (Multi-Version Coordinator)
-// ============================================================================
-//
-// This root project is a lightweight coordinator for the multi-version build.
-// It does NOT apply the GTNH convention plugin or RetroFuturaGradle directly.
-// The GTNH settings convention plugin (applied in settings.gradle) requires
-// buildscript repositories to be available for plugin resolution.
-//
-// Subprojects:
-//   :platform-api  — MC-free interfaces (plain Java 8 library)
-//   :core          — MC-free game logic (plain Java 8 library, depends on platform-api)
-//   :mc1710        — Minecraft 1.7.10 Forge mod (GTNH convention + RFG, depends on core)
-//
-// Build commands:
-//   ./gradlew build              — Build all modules
-//   ./gradlew :mc1710:build      — Build only the MC 1.7.10 module
-//   ./gradlew :mc1710:runClient  — Run the MC 1.7.10 client
-//   ./gradlew :mc1710:runServer  — Run the MC 1.7.10 server
-// ============================================================================
+// CustomNPC-Plus — Root Project (Multi-Version Aggregator)
+// Plain Gradle project that aggregates submodules.
+// Each submodule (mc1710, mc1122, etc.) handles its own configuration.
 
-buildscript {
-    repositories {
-        maven {
-            name "GTNH Maven"
-            url "https://nexus.gtnewhorizons.com/repository/public/"
-        }
-        gradlePluginPortal()
-        mavenCentral()
-    }
+// IntelliJ IDEA triggers 'processIdeaSettings' on the root project during Gradle sync.
+// The GTNH convention plugin only registers this task on subprojects that apply it,
+// so we register a no-op task here to prevent "task not found" errors.
+tasks.register('processIdeaSettings') {
+    group = 'ide'
+    description = 'No-op task for IntelliJ IDEA Gradle sync compatibility'
 }
 
 // IDEA plugin at root level is required for GTNH convention's IdeIntegrationModule

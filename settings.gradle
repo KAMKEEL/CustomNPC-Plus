@@ -1,12 +1,11 @@
 pluginManagement {
-//    resolutionStrategy {
-//        eachPlugin {
-//            if(requested.id.toString() == "dts.typescript-generator") {
-//                useModule("com.github.bigguy345:dts-gradle-plugin:95b8ab4")
-//            }
-//        }
-//    }
-//   
+    // Default plugin versions so submodules can use 'id' without specifying version.
+    // The gtnhconvention plugin (and its bundled RetroFuturaGradle) is resolved here once
+    // so all submodules share the same classloader — required by Gradle build services.
+    plugins {
+        id 'com.gtnewhorizons.gtnhconvention' version '1.0.27'
+    }
+
     repositories {
         maven { url "https://jitpack.io"}
         maven {
@@ -24,8 +23,20 @@ pluginManagement {
     }
 }
 
-plugins {
-    id 'com.gtnewhorizons.gtnhsettingsconvention' version '1.0.27'
+// Load the GTNH convention plugin into the settings classloader so all submodules
+// share the same RetroFuturaGradle classes (required for Gradle build services).
+buildscript {
+    repositories {
+        maven {
+            name "GTNH Maven"
+            url "https://nexus.gtnewhorizons.com/repository/public/"
+        }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.gtnewhorizons:gtnhgradle:1.0.27'
+    }
 }
 
 // Include the local gradle-plugins composite build so plugin is resolved locally
