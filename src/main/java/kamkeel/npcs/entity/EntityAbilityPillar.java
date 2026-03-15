@@ -69,7 +69,6 @@ public class EntityAbilityPillar extends EntityEnergyZone {
     // ==================== HOMING ====================
 
     protected EnergyHomingData homingData = new EnergyHomingData();
-    private int targetEntityId = -1;
 
     // ==================== ANCHORED MODES ====================
 
@@ -183,6 +182,15 @@ public class EntityAbilityPillar extends EntityEnergyZone {
     @Override
     protected void updateCharging() {
         chargeTick++;
+
+        // Follow entity position during charging preview (e.g. charge visual follows target)
+        if (pillarData.mode == PillarMode.ANCHORED && targetEntityId != -1 && worldObj != null) {
+            Entity target = getTargetEntity();
+            if (target instanceof EntityLivingBase && !target.isDead) {
+                snapToGround(target.posX, target.posY, target.posZ);
+            }
+        }
+
         // Radius grows during charging for the visual disc effect
         float progress = getChargeProgress();
         setPillarRadiusInternal(pillarData.targetRadius * progress);
@@ -367,13 +375,6 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         double extent = Math.max(pillarRadius, pillarHeight) * 2.0D;
         double range = Math.max(128.0D, extent * 4.0D + 64.0D);
         return distance < range * range;
-    }
-
-    // ==================== HELPERS ====================
-
-    public Entity getTargetEntity() {
-        if (targetEntityId == -1) return null;
-        return worldObj.getEntityByID(targetEntityId);
     }
 
     // ==================== RENDERER GETTERS ====================

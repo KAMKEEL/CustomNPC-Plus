@@ -116,14 +116,21 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
         // ANCHORED: spawn at target's current position at execute time
         if (index == 0) {
             if (target == null) return new double[]{caster.posX, caster.posY, caster.posZ};
+
             double spawnX = target.posX;
             double spawnZ = target.posZ;
+
             if (trackTarget) {
+                double motionX = target.posX - target.prevPosX;
+                double motionZ = target.posZ - target.prevPosZ;
+
                 // Predict where target will be based on current motion and spawnDelay
                 double prediction = pillarData.spawnDelay * homingData.getHomingStrength();
-                spawnX += target.motionX * prediction;
-                spawnZ += target.motionZ * prediction;
+
+                spawnX += motionX * prediction;
+                spawnZ += motionZ * prediction;
             }
+
             return new double[]{spawnX, target.posY, spawnZ};
         }
 
@@ -135,16 +142,6 @@ public class AbilityPillar extends AbilityEnergyZone<EntityAbilityPillar> {
         double angle = Math.random() * Math.PI * 2;
         double dist = Math.sqrt(Math.random()) * spread;
         return new double[]{baseX + Math.cos(angle) * dist, baseY, baseZ + Math.sin(angle) * dist};
-    }
-
-    @Override
-    protected int getChargeVisualFollowEntityId(EntityLivingBase caster, EntityLivingBase target, int index) {
-        // ANCHORED: charge visual follows target during charging
-        // MOVING: charge visual is static at spawn point
-        if (pillarData.mode == PillarMode.ANCHORED && target != null) {
-            return target.getEntityId();
-        }
-        return -1;
     }
 
     @Override
