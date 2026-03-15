@@ -53,8 +53,8 @@ public abstract class EntityEnergyZone extends EntityEnergyAbility {
 
     // ==================== SAFETY CONSTANTS ====================
 
-    protected static final float MAX_ZONE_RADIUS = 64.0f;
-    protected static final float MAX_ZONE_HEIGHT = 64.0f;
+    public static final float MAX_ZONE_RADIUS = 64.0f;
+    public static final float MAX_ZONE_HEIGHT = 64.0f;
     protected static final double GROUND_OFFSET = 0.05;
 
     // ==================== LIFESPAN ====================
@@ -77,6 +77,12 @@ public abstract class EntityEnergyZone extends EntityEnergyAbility {
     protected final Map<Integer, Integer> lastHitTickByEntity = new HashMap<>();
 
     protected int hitCount = 0;
+
+    /**
+     * Client-side only: if >= 0, the preview entity updates its position
+     * to match this entity each tick during charging (charge visual follows target).
+     */
+    protected int followEntityId = -1;
 
     // ==================== SIZE — LOGICAL ====================
 
@@ -144,6 +150,15 @@ public abstract class EntityEnergyZone extends EntityEnergyAbility {
         if (isCharging()) {
             this.renderRadius = this.radius;
             this.renderHeight = this.height;
+
+            // Follow entity position during charging preview (e.g. charge visual follows target)
+            if (followEntityId != -1 && worldObj != null) {
+                Entity followed = worldObj.getEntityByID(followEntityId);
+                if (followed instanceof EntityLivingBase && !followed.isDead) {
+                    snapToGround(followed.posX, followed.posY, followed.posZ);
+                }
+            }
+
             updateCharging();
             return;
         } else {
@@ -415,6 +430,9 @@ public abstract class EntityEnergyZone extends EntityEnergyAbility {
     public float getTargetHeight() { return targetHeight; }
     public void setTargetHeight(float height) { this.targetHeight = sanitize(height, 1.0f, MAX_ZONE_HEIGHT); }
 
+    public int getFollowEntityId() { return followEntityId; }
+    public void setFollowEntityId(int id) { this.followEntityId = id; }
+
     public void setEffects(List<AbilityPotionEffect> effects) {
         if (effects == null || effects.isEmpty()) {
             this.effects = new ArrayList<>();
@@ -461,6 +479,7 @@ public abstract class EntityEnergyZone extends EntityEnergyAbility {
         nbt.setBoolean("Charging", isCharging());
         nbt.setInteger("ChargeDuration", chargeDuration);
         nbt.setInteger("ChargeTick", chargeTick);
+        nbt.setInteger("ChargeFollowEntityId", followEntityId);
 
         NBTTagList effectsList = new NBTTagList();
         for (AbilityPotionEffect effect : effects) {
@@ -502,6 +521,7 @@ public abstract class EntityEnergyZone extends EntityEnergyAbility {
         }
         this.chargeDuration = nbt.hasKey("ChargeDuration") ? nbt.getInteger("ChargeDuration") : 0;
         this.chargeTick = nbt.hasKey("ChargeTick") ? nbt.getInteger("ChargeTick") : 0;
+        this.followEntityId = nbt.hasKey("ChargeFollowEntityId") ? nbt.getInteger("ChargeFollowEntityId") : -1;
 
         this.effects.clear();
         if (nbt.hasKey("Effects")) {

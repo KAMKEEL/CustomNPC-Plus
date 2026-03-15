@@ -13,8 +13,8 @@ public class EnergyPillarData {
 
     public float targetRadius = 2.0f;
     public float targetHeight = 10.0f;
-    public float radiusGrowSpeed = 0.1f;
-    public float heightGrowSpeed = 0.2f;
+    public float radiusGrowSpeed = 0.5f;
+    public float heightGrowSpeed = 1.0f;
     public PillarMode mode = PillarMode.ANCHORED;
     public PillarOrigin origin = PillarOrigin.FROM_GROUND;
     public PillarShape shape = PillarShape.CIRCLE;
@@ -35,6 +35,70 @@ public class EnergyPillarData {
         this.origin = origin != null ? origin : PillarOrigin.FROM_GROUND;
         this.shape = shape != null ? shape : PillarShape.CIRCLE;
         this.spawnDelay = Math.max(0, spawnDelay);
+    }
+
+    public float getTargetRadius() {
+        return targetRadius;
+    }
+
+    public void setTargetRadius(float targetRadius) {
+        this.targetRadius = targetRadius;
+    }
+
+    public float getTargetHeight() {
+        return targetHeight;
+    }
+
+    public void setTargetHeight(float targetHeight) {
+        this.targetHeight = targetHeight;
+    }
+
+    public float getRadiusGrowSpeed() {
+        return radiusGrowSpeed;
+    }
+
+    public void setRadiusGrowSpeed(float radiusGrowSpeed) {
+        this.radiusGrowSpeed = radiusGrowSpeed;
+    }
+
+    public float getHeightGrowSpeed() {
+        return heightGrowSpeed;
+    }
+
+    public void setHeightGrowSpeed(float heightGrowSpeed) {
+        this.heightGrowSpeed = heightGrowSpeed;
+    }
+
+    public PillarMode getMode() {
+        return mode;
+    }
+
+    public void setMode(PillarMode mode) {
+        this.mode = mode;
+    }
+
+    public PillarOrigin getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(PillarOrigin origin) {
+        this.origin = origin;
+    }
+
+    public PillarShape getShape() {
+        return shape;
+    }
+
+    public void setShape(PillarShape shape) {
+        this.shape = shape;
+    }
+
+    public int getSpawnDelay() {
+        return spawnDelay;
+    }
+
+    public void setSpawnDelay(int spawnDelay) {
+        this.spawnDelay = spawnDelay;
     }
 
     public void writeNBT(NBTTagCompound nbt) {

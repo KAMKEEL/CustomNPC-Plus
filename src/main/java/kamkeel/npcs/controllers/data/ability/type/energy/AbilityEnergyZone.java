@@ -210,6 +210,14 @@ public abstract class AbilityEnergyZone<E extends EntityEnergyZone> extends Abil
         return getSpawnPosition(caster, target, index);
     }
 
+    /**
+     * Return the entity ID the charge visual should follow during charging, or -1 for none.
+     * Default: -1 (static). Override to make the charge visual track a moving entity.
+     */
+    protected int getChargeVisualFollowEntityId(EntityLivingBase caster, EntityLivingBase target, int index) {
+        return -1;
+    }
+
     protected void spawnZoneEntity(E entity, int index) {
         if (entity == null) return;
         spawnAbilityEntity(entity);
@@ -236,14 +244,14 @@ public abstract class AbilityEnergyZone<E extends EntityEnergyZone> extends Abil
         if (isPreview() || caster == null || caster.worldObj == null || caster.worldObj.isRemote) return;
         if (chargeVisualIds == null || index < 0 || index >= chargeVisualIds.length) return;
 
-
-
         double[] windupPos = getWindupSpawnPosition(caster, target, index);
         E previewEntity = createZoneEntityAt(caster, target, index, windupPos);
         previewEntity.setPreviewMode(true);
         previewEntity.setPreviewOwner(caster);
         setupEntityCharging(previewEntity, index);
         previewEntity.setChargeDuration(Math.max(1, chargeDuration));
+        int followId = getChargeVisualFollowEntityId(caster, target, index);
+        previewEntity.setFollowEntityId(followId);
 
         String id = getChargeVisualId(caster, index);
         chargeVisualIds[index] = id;

@@ -11,20 +11,13 @@ import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 /**
- * Renders EntityAbilityPillar as a vertical energy column.
+ * Renders EntityAbilityPillar.
  *
- * Shape modes:
- * - CIRCLE: cylindrical pillar with triangulated segments.
- * - SQUARE: rectangular prism pillar.
+ * Radius: snaps immediately to targetRadius when charging ends — no interpolation.
+ * Height: grows linearly with no easing, at the speed defined in pillarData.
  *
- * Both modes render three color layers (outer glow, mid, inner core).
- *
- * Origin modes:
- * - FROM_GROUND: posY = ground base. Pillar grows upward (baseY = posY, tipY = posY + height).
- * - FROM_ABOVE:  posY = top anchor (ceiling). Pillar grows downward
- *                (baseY = posY, tipY = posY - height).
- *
- * During charging, a flat disc grows at ground level (FROM_GROUND) or ceiling level (FROM_ABOVE).
+ * FROM_GROUND: baseY = posY, tipY = posY + height (grows up).
+ * FROM_ABOVE:  baseY = posY, tipY = posY - height (grows down from ceiling anchor).
  */
 @SideOnly(Side.CLIENT)
 public class RenderEnergyPillar extends RenderEnergy {
@@ -39,7 +32,6 @@ public class RenderEnergyPillar extends RenderEnergy {
         if (shouldSkipInitialActiveRender(pillar)) return;
 
         setupRenderState();
-
         float proximityAlpha = getProximityAlphaFactor(pillar, x, y, z);
 
         if (pillar.isCharging()) {
@@ -48,7 +40,9 @@ public class RenderEnergyPillar extends RenderEnergy {
             return;
         }
 
-        float radius = pillar.getInterpolatedPillarRadius(partialTicks);
+        // Radius: use raw value directly — snaps on charging end, no interpolation needed
+        float radius = pillar.getPillarRadius();
+        // Height: linearly interpolated between prev and current (no easing)
         float height = pillar.getInterpolatedPillarHeight(partialTicks);
 
         if (radius <= 0.01f || height <= 0.01f) {
@@ -56,8 +50,6 @@ public class RenderEnergyPillar extends RenderEnergy {
             return;
         }
 
-        // FROM_GROUND: base at y, tip grows up.
-        // FROM_ABOVE:  posY is the top anchor. Base = y, tip = y - height (grows down).
         float baseY, tipY;
         if (pillar.getPillarOrigin() == PillarOrigin.FROM_ABOVE) {
             baseY = (float) y;
@@ -103,16 +95,17 @@ public class RenderEnergyPillar extends RenderEnergy {
 
     private void renderCharging(EntityAbilityPillar pillar, double x, double y, double z,
                                 float partialTicks, float proximityAlpha) {
-        float radius = pillar.getTargetRadius() * 2;
+        // Use targetRadius directly — pillarRadius during charging is only 0.01 initially
+        // and grows via DataWatcher which is unavailable on preview entities.
+        float targetRadius = pillar.getPillarData().targetRadius;
         float chargeProgress = pillar.getInterpolatedChargeProgress(partialTicks);
-        float renderRadius = radius * chargeProgress;
+        float renderRadius = targetRadius * chargeProgress;
 
         if (renderRadius <= 0.01f) return;
 
         float pulseTime = pillar.ticksExisted + partialTicks;
         renderRadius *= (1.0f + (float) Math.sin(pulseTime * 0.2f) * 0.08f);
 
-        // Flat disc at the anchor point
         float baseY = (float) y;
         float tipY = baseY + 0.05f;
 
@@ -174,7 +167,6 @@ public class RenderEnergyPillar extends RenderEnergy {
 
         Tessellator tess = Tessellator.instance;
 
-        // Lateral faces
         tess.startDrawingQuads();
         tess.setColorRGBA_F(r, g, b, alpha);
         for (int i = 0; i < CIRCLE_SEGMENTS; i++) {
@@ -182,9 +174,7 @@ public class RenderEnergyPillar extends RenderEnergy {
             float z1 = (float) cz + sinTable[i] * radius;
             float x2 = (float) cx + cosTable[i + 1] * radius;
             float z2 = (float) cz + sinTable[i + 1] * radius;
-            float nx = (cosTable[i] + cosTable[i + 1]) * 0.5f;
-            float nz = (sinTable[i] + sinTable[i + 1]) * 0.5f;
-            tess.setNormal(nx, 0, nz);
+            tess.setNormal((cosTable[i] + cosTable[i + 1]) * 0.5f, 0, (sinTable[i] + sinTable[i + 1]) * 0.5f);
             tess.addVertex(x1, baseY, z1);
             tess.addVertex(x2, baseY, z2);
             tess.addVertex(x2, tipY, z2);
@@ -195,7 +185,6 @@ public class RenderEnergyPillar extends RenderEnergy {
         float capMinY = Math.min(baseY, tipY);
         float capMaxY = Math.max(baseY, tipY);
 
-        // Bottom cap
         tess.startDrawingQuads();
         tess.setColorRGBA_F(r, g, b, alpha);
         tess.setNormal(0, -1, 0);
@@ -211,7 +200,6 @@ public class RenderEnergyPillar extends RenderEnergy {
         }
         tess.draw();
 
-        // Top cap
         tess.startDrawingQuads();
         tess.setColorRGBA_F(r, g, b, alpha);
         tess.setNormal(0, 1, 0);

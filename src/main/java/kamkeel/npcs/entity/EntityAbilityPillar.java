@@ -8,85 +8,73 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import java.util.List;
 
 /**
- * Pillar zone entity — a column of energy that rises from the ground or falls from the sky.
- *
- * Behavior modes:
- * - ANCHORED: spawns at a fixed position and stays there.
- * - MOVING:   spawns in front of the caster and travels forward,
- *             optionally homing toward a target. Without homing, travels in a straight
- *             line along the initial direction set by setInitialMotion().
+ * Pillar zone entity.
  *
  * Lifecycle:
  * 1. Charging   — charge visual grows in radius at ground level during windup.
- * 2. spawnDelay — entity is alive but does not grow and does not deal damage.
- * 3. Active     — pillarHeight grows toward targetHeight; damage checks begin.
+ * 2. spawnDelay — entity is alive, not growing, no damage.
+ * 3. Active     — pillarHeight grows linearly at heightGrowSpeed; damage checks begin.
  *
- * FROM_ABOVE: posY is always the top anchor. The pillar grows downward.
- *             Hitbox spans from posY - height to posY.
- * FROM_GROUND: posY is the ground anchor. The pillar grows upward.
- *              Hitbox spans from posY to posY + height.
+ * Radius snaps to targetRadius immediately when charging ends — no interpolation.
+ * Height grows linearly with no easing.
+ *
+ * FROM_ABOVE: posY = top anchor. Hitbox: posY - height to posY.
+ * FROM_GROUND: posY = ground anchor. Hitbox: posY to posY + height.
+ *
+ * ANCHORED modes:
+ * - followTarget: pillar moves directly toward target each tick (requires homing=true).
+ * - trackTarget:  spawn position predicted once from target velocity at spawn time.
  */
 public class EntityAbilityPillar extends EntityEnergyZone {
 
-    // ==================== CONSTANTS ====================
-
-    private static final float MIN_HEIGHT = 0.05f;
-
+    public static final float MIN_HEIGHT = 0.05f;
+    public static final float MIN_RADIUS = 0.01f;
     private static final int DW_PILLAR_RADIUS = 21;
     private static final int DW_PILLAR_HEIGHT = 22;
 
     // ==================== ENUMS ====================
 
-    public enum PillarMode {
-        ANCHORED,
-        MOVING
-    }
+    public enum PillarMode { ANCHORED, MOVING }
 
-    public enum PillarOrigin {
-        FROM_GROUND,
-        FROM_ABOVE
-    }
+    public enum PillarOrigin { FROM_GROUND, FROM_ABOVE }
 
     public enum PillarShape {
-        CIRCLE,
-        SQUARE;
+        CIRCLE, SQUARE;
 
         public TelegraphType getTelegraphType() {
-            if (this == CIRCLE) return TelegraphType.CIRCLE;
-            else return TelegraphType.SQUARE;
+            return this == CIRCLE ? TelegraphType.CIRCLE : TelegraphType.SQUARE;
         }
     }
 
-    public enum OffsetAxis {
-        X,
-        Z
-    }
+    public enum OffsetAxis { X, Z }
 
-    // ==================== PILLAR CONFIG ====================
+    // ==================== CONFIG ====================
 
     private EnergyPillarData pillarData = new EnergyPillarData();
 
-    // ==================== PILLAR DIMENSIONS ====================
+    // ==================== DIMENSIONS ====================
 
     private float pillarRadius = 0.01f;
     private float pillarHeight = MIN_HEIGHT;
 
-    private float renderPillarRadius = 0.01f;
+    // Height interpolation only — radius snaps immediately
     private float renderPillarHeight = MIN_HEIGHT;
-
-    private float prevRenderPillarRadius = 0.01f;
     private float prevRenderPillarHeight = MIN_HEIGHT;
 
     // ==================== HOMING ====================
 
     protected EnergyHomingData homingData = new EnergyHomingData();
     private int targetEntityId = -1;
+
+    // ==================== ANCHORED MODES ====================
+
+    /** If true, pillar follows target directly each tick (ANCHORED + homing only). */
+    private boolean followTarget = false;
 
     // ==================== RUNTIME STATE ====================
 
@@ -105,7 +93,6 @@ public class EntityAbilityPillar extends EntityEnergyZone {
                                EnergyCombatData combat, EnergyHomingData homing,
                                EnergyLightningData lightning, EnergyLifespanData lifespan) {
         super(world);
-
         this.ownerEntityId = owner != null ? owner.getEntityId() : -1;
         this.pillarData = pillarData != null ? pillarData.copy() : new EnergyPillarData();
         this.displayData = display != null ? display.copy() : new EnergyDisplayData();
@@ -114,9 +101,8 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         this.lightningData = lightning != null ? lightning.copy() : new EnergyLightningData();
         this.lifespanData = lifespan != null ? lifespan.copy() : new EnergyLifespanData();
 
-        // FROM_ABOVE: posY is the top anchor — position at target height, not ground
-        if (pillarData != null && pillarData.origin == PillarOrigin.FROM_ABOVE) {
-            this.setPosition(x, y + pillarData.targetHeight, z);
+        if (this.pillarData.origin == PillarOrigin.FROM_ABOVE) {
+            this.setPosition(x, y + this.pillarData.targetHeight, z);
         } else {
             snapToGround(x, y, z);
         }
@@ -135,7 +121,7 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         this.dataWatcher.addObject(DW_PILLAR_HEIGHT, MIN_HEIGHT);
     }
 
-    // ==================== INTERNAL DIMENSION SETTERS ====================
+    // ==================== INTERNAL SETTERS ====================
 
     private void setPillarRadiusInternal(float value) {
         this.pillarRadius = value;
@@ -157,9 +143,10 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         this.targetEntityId = target != null ? target.getEntityId() : -1;
     }
 
-    /**
-     * Set straight-line motion for MOVING mode without homing.
-     */
+    public void setFollowTarget(boolean follow) {
+        this.followTarget = follow;
+    }
+
     public void setInitialMotion(double mx, double mz) {
         this.motionX = mx;
         this.motionZ = mz;
@@ -175,22 +162,19 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         setupCharging(chargeDuration);
         setPillarRadiusInternal(0.01f);
         setPillarHeightInternal(MIN_HEIGHT);
-        this.renderPillarRadius = 0.01f;
-        this.prevRenderPillarRadius = 0.01f;
         this.renderPillarHeight = MIN_HEIGHT;
         this.prevRenderPillarHeight = MIN_HEIGHT;
     }
 
-    /**
-     * Called by the ability when charging ends.
-     * Starts the spawnDelay countdown. No damage is dealt during spawnDelay.
-     */
     public void startGrowing() {
         setCharging(false);
         this.spawnDelayTick = 0;
         this.growing = pillarData.spawnDelay <= 0;
+        // Radius snaps immediately to target — no interpolation
         setPillarRadiusInternal(pillarData.targetRadius);
         setPillarHeightInternal(MIN_HEIGHT);
+        this.renderPillarHeight = MIN_HEIGHT;
+        this.prevRenderPillarHeight = MIN_HEIGHT;
         syncHitbox();
     }
 
@@ -199,6 +183,7 @@ public class EntityAbilityPillar extends EntityEnergyZone {
     @Override
     protected void updateCharging() {
         chargeTick++;
+        // Radius grows during charging for the visual disc effect
         float progress = getChargeProgress();
         setPillarRadiusInternal(pillarData.targetRadius * progress);
         setPillarHeightInternal(MIN_HEIGHT);
@@ -209,20 +194,20 @@ public class EntityAbilityPillar extends EntityEnergyZone {
 
     @Override
     protected void updateZone() {
-        prevRenderPillarRadius = renderPillarRadius;
         prevRenderPillarHeight = renderPillarHeight;
 
         if (worldObj.isRemote) {
             float dwRadius = this.dataWatcher.getWatchableObjectFloat(DW_PILLAR_RADIUS);
             float dwHeight = this.dataWatcher.getWatchableObjectFloat(DW_PILLAR_HEIGHT);
+            // Radius: snap directly, no interpolation
             this.pillarRadius = dwRadius;
+            // Height: linear tracking, no easing
             this.pillarHeight = dwHeight;
-            renderPillarRadius += (pillarRadius - renderPillarRadius) * 0.15f;
-            renderPillarHeight += (pillarHeight - renderPillarHeight) * 0.15f;
+            renderPillarHeight = pillarHeight;
             return;
         }
 
-        // spawnDelay: entity is alive but not growing and not dealing damage
+        // spawnDelay: no growth, no damage
         if (!growing) {
             spawnDelayTick++;
             if (spawnDelayTick >= pillarData.spawnDelay) {
@@ -231,26 +216,27 @@ public class EntityAbilityPillar extends EntityEnergyZone {
             return;
         }
 
-        if (pillarRadius < pillarData.targetRadius) {
-            setPillarRadiusInternal(Math.min(pillarData.targetRadius, pillarRadius + pillarData.radiusGrowSpeed));
-        }
+        // Linear height growth — no easing, exact speed per tick
         if (pillarHeight < pillarData.targetHeight) {
             setPillarHeightInternal(Math.min(pillarData.targetHeight, pillarHeight + pillarData.heightGrowSpeed));
         }
+        // Radius stays at targetRadius (set in startGrowing)
 
         syncHitbox();
 
         if (pillarData.mode == PillarMode.MOVING) {
             updateMovement();
+        } else if (pillarData.mode == PillarMode.ANCHORED && followTarget) {
+            updateFollowTarget();
         }
 
-        // Only deal damage once growing has started and height is meaningful
+        // No damage during spawnDelay — only when growing
         if (pillarHeight > MIN_HEIGHT) {
             checkEntityCollision();
         }
     }
 
-    // ==================== MOVEMENT (MOVING mode) ====================
+    // ==================== MOVEMENT ====================
 
     private void updateMovement() {
         if (!homingData.isHoming()) {
@@ -292,10 +278,25 @@ public class EntityAbilityPillar extends EntityEnergyZone {
     }
 
     /**
-     * Re-anchor Y position after horizontal movement.
-     * FROM_GROUND: snap to ground.
-     * FROM_ABOVE: snap to ground + targetHeight (top anchor stays at ceiling height).
+     * ANCHORED followTarget: moves directly toward target each tick.
      */
+    private void updateFollowTarget() {
+        Entity target = getTargetEntity();
+        if (target == null || !target.isEntityAlive()) return;
+
+        double dx = target.posX - posX;
+        double dz = target.posZ - posZ;
+        double dist = Math.sqrt(dx * dx + dz * dz);
+
+        if (dist > 0.1) {
+            float speed = homingData.getSpeed();
+            double step = Math.min(dist, speed);
+            this.posX += (dx / dist) * step;
+            this.posZ += (dz / dist) * step;
+            repositionY();
+        }
+    }
+
     private void repositionY() {
         if (pillarData.origin == PillarOrigin.FROM_ABOVE) {
             double groundY = kamkeel.npcs.controllers.data.ability.Ability.findGroundLevel(worldObj, posX, posY, posZ);
@@ -331,11 +332,6 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         }
     }
 
-    /**
-     * Build the hit box based on origin.
-     * FROM_GROUND: posY (base) to posY + height (tip).
-     * FROM_ABOVE:  posY - height (tip) to posY (base/ceiling).
-     */
     private AxisAlignedBB buildHitBox() {
         float minY, maxY;
         if (pillarData.origin == PillarOrigin.FROM_ABOVE) {
@@ -347,19 +343,15 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         }
         return AxisAlignedBB.getBoundingBox(
             posX - pillarRadius, minY, posZ - pillarRadius,
-            posX + pillarRadius, maxY, posZ + pillarRadius
-        );
+            posX + pillarRadius, maxY, posZ + pillarRadius);
     }
 
     private boolean isInPillar(EntityLivingBase entity) {
         double dx = entity.posX - posX;
         double dz = entity.posZ - posZ;
         switch (pillarData.shape) {
-            case SQUARE:
-                return Math.abs(dx) <= pillarRadius && Math.abs(dz) <= pillarRadius;
-            case CIRCLE:
-            default:
-                return Math.sqrt(dx * dx + dz * dz) <= pillarRadius;
+            case SQUARE: return Math.abs(dx) <= pillarRadius && Math.abs(dz) <= pillarRadius;
+            case CIRCLE: default: return Math.sqrt(dx * dx + dz * dz) <= pillarRadius;
         }
     }
 
@@ -377,7 +369,7 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         return distance < range * range;
     }
 
-    // ==================== ENTITY HELPERS ====================
+    // ==================== HELPERS ====================
 
     public Entity getTargetEntity() {
         if (targetEntityId == -1) return null;
@@ -388,19 +380,14 @@ public class EntityAbilityPillar extends EntityEnergyZone {
 
     public float getPillarRadius() { return pillarRadius; }
     public float getPillarHeight() { return pillarHeight; }
+    public float getInterpolatedPillarHeight(float partialTicks) {
+        return prevRenderPillarHeight + (renderPillarHeight - prevRenderPillarHeight) * partialTicks;
+    }
     public PillarMode getPillarMode() { return pillarData.mode; }
     public PillarOrigin getPillarOrigin() { return pillarData.origin; }
     public PillarShape getPillarShape() { return pillarData.shape; }
     public boolean isGrowing() { return growing; }
     public EnergyPillarData getPillarData() { return pillarData; }
-
-    public float getInterpolatedPillarRadius(float partialTicks) {
-        return prevRenderPillarRadius + (renderPillarRadius - prevRenderPillarRadius) * partialTicks;
-    }
-
-    public float getInterpolatedPillarHeight(float partialTicks) {
-        return prevRenderPillarHeight + (renderPillarHeight - prevRenderPillarHeight) * partialTicks;
-    }
 
     // ==================== SETTERS ====================
 
@@ -417,6 +404,7 @@ public class EntityAbilityPillar extends EntityEnergyZone {
         nbt.setFloat("PillarHeight", pillarHeight);
         nbt.setInteger("SpawnDelayTick", spawnDelayTick);
         nbt.setBoolean("Growing", growing);
+        nbt.setBoolean("FollowTarget", followTarget);
         nbt.setInteger("TargetEntityId", targetEntityId);
         nbt.setDouble("MotionX", motionX);
         nbt.setDouble("MotionZ", motionZ);
@@ -438,13 +426,12 @@ public class EntityAbilityPillar extends EntityEnergyZone {
             this.dataWatcher.updateObject(DW_PILLAR_HEIGHT, height);
         }
 
-        this.renderPillarRadius = radius;
-        this.prevRenderPillarRadius = radius;
         this.renderPillarHeight = height;
         this.prevRenderPillarHeight = height;
 
         this.spawnDelayTick = nbt.getInteger("SpawnDelayTick");
         this.growing = nbt.getBoolean("Growing");
+        this.followTarget = nbt.hasKey("FollowTarget") && nbt.getBoolean("FollowTarget");
         this.targetEntityId = nbt.hasKey("TargetEntityId") ? nbt.getInteger("TargetEntityId") : -1;
         this.motionX = nbt.getDouble("MotionX");
         this.motionZ = nbt.getDouble("MotionZ");
