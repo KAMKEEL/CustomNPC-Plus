@@ -45,7 +45,7 @@ public class DataScript implements IScriptHandlerPacket {
     public String scriptLanguage = "ECMAScript";
     private EntityNPCInterface npc;
     public boolean enabled = false;
-    private long lastGlobalsVersion = -1;
+    private final Map<ScriptEngine, Long> engineGlobalsVersion = new IdentityHashMap<>();
 
     public ICustomNpc dummyNpc;
     public IWorld dummyWorld;
@@ -273,12 +273,13 @@ public class DataScript implements IScriptHandlerPacket {
         }
 
         long currentGlobalsVersion = NpcAPI.engineObjectsVersion;
-        if (lastGlobalsVersion != currentGlobalsVersion) {
+        Long lastVersion = engineGlobalsVersion.get(engine);
+        if (lastVersion == null || lastVersion != currentGlobalsVersion) {
             engine.put("API", NpcAPI.Instance());
             for (Map.Entry<String, Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
                 engine.put(engineObjects.getKey(), engineObjects.getValue());
             }
-            lastGlobalsVersion = currentGlobalsVersion;
+            engineGlobalsVersion.put(engine, currentGlobalsVersion);
         }
     }
 

@@ -351,6 +351,7 @@ public class ScriptContainer implements IScriptUnit {
             }
             this.engine = ScriptController.Instance.getEngineByName(scriptLanguage.toLowerCase());
             this.evaluated = false;
+            this.lastGlobalsVersion = -1;
         }
     }
 

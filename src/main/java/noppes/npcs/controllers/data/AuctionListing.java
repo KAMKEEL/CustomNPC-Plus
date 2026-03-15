@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.handler.data.IAuctionListing;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.config.ConfigMarket;
@@ -214,9 +215,7 @@ public class AuctionListing implements IAuctionListing {
         compound.setString("SellerName", sellerName != null ? sellerName : "");
 
         if (item != null) {
-            NBTTagCompound itemTag = new NBTTagCompound();
-            item.writeToNBT(itemTag);
-            compound.setTag("Item", itemTag);
+            compound.setTag("Item", NoppesUtilServer.writeItem(item, new NBTTagCompound()));
         }
 
         compound.setLong("StartingPrice", startingPrice);
@@ -243,7 +242,7 @@ public class AuctionListing implements IAuctionListing {
         sellerName = compound.getString("SellerName");
 
         if (compound.hasKey("Item")) {
-            item = ItemStack.loadItemStackFromNBT(compound.getCompoundTag("Item"));
+            item = NoppesUtilServer.readItem(compound.getCompoundTag("Item"));
         }
 
         startingPrice = compound.getLong("StartingPrice");
