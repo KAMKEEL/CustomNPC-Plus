@@ -109,10 +109,11 @@ public class VersionCompatibility {
                 int x = ((NBTTagInt) list.removeTag(0)).func_150287_d();
 
                 compound.setIntArray("StartPosNew", new int[]{x, y, z});
-                // In older versions, a bug made NpcVisible values 1 and 2 behave identically.
-                // For backward compatibility, treat legacy value 1 as 2 to preserve the intended visible state.
-                CheckVisibleCompatibility(compound);
             }
+
+            // In older versions, a bug made NpcVisible values 1 and 2 behave identically.
+            // For backward compatibility, treat legacy value 1 as 2 to preserve the intended visible state.
+            CheckVisibleCompatibility(compound);
         }
         if (npc.npcVersion == 13) {
             boolean bo = compound.getBoolean("HealthRegen");
@@ -234,4 +235,65 @@ public class VersionCompatibility {
             }
         }
     }
+
+    public static void CheckCompatibility(NBTTagCompound compound) {
+        if (compound.hasNoTags()) {
+            return;
+        }
+        int npcVersion = compound.getInteger("ModRev");
+
+        if (npcVersion == VersionCompatibility.ModRev) return;
+
+        if (npcVersion < 23) {
+            if (compound.hasKey("AimWhileShooting")) {
+                boolean aimShot = compound.getBoolean("AimWhileShooting");
+                compound.setInteger("AimType", !aimShot ? 0 : 1);
+            }
+        }
+        if (npcVersion < 22) {
+            if (compound.hasKey("CanLeap")) {
+                boolean canLeap = compound.getBoolean("CanLeap");
+                compound.setInteger("LeapType", !canLeap ? 0 : 1);
+            }
+        }
+        if (npcVersion < 19) {
+            if (compound.hasKey("CanDrown")) {
+                compound.setInteger("DrowningType", (compound.getBoolean("CanDrown") ? 1 : 0));
+                compound.removeTag("CanDrown");
+            }
+        }
+        if (npcVersion < 18) {
+            // Fix CloakTexture (Reorganization)
+            String cloakTexture = compound.getString("CloakTexture");
+            cloakTexture = cloakTexture.replace("/cloak/Daybreak/", "/cloak/Guilds/Daybreak/");
+            cloakTexture = cloakTexture.replace("/cloak/Created/", "/cloak/Extras/");
+            cloakTexture = cloakTexture.replace("/cloak/Color Capes/", "/cloak/Color/");
+            compound.setString("CloakTexture", cloakTexture);
+        }
+
+        if (npcVersion < 17) {
+            // Fix DialogDarkenScreen
+            if (compound.hasKey("DialogDarkenScreen")) {
+                compound.removeTag("DialogDarkenScreen");
+            }
+        }
+
+        if (npcVersion == 12) {
+            NBTTagList list = compound.getTagList("StartPos", 3);
+            if (list.tagCount() == 3) {
+                int z = ((NBTTagInt) list.removeTag(2)).func_150287_d();
+                int y = ((NBTTagInt) list.removeTag(1)).func_150287_d();
+                int x = ((NBTTagInt) list.removeTag(0)).func_150287_d();
+
+                compound.setIntArray("StartPosNew", new int[]{x, y, z});
+            }
+            // In older versions, a bug made NpcVisible values 1 and 2 behave identically.
+            // For backward compatibility, treat legacy value 1 as 2 to preserve the intended visible state.
+            CheckVisibleCompatibility(compound);
+        }
+
+        compound.setInteger("ModRev", VersionCompatibility.ModRev);
+    }
+
+
 }

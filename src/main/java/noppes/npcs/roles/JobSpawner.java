@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.VersionCompatibility;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -100,12 +101,12 @@ public class JobSpawner extends JobInterface {
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
-        compound1 = compound.getCompoundTag("SpawnerNBT1");
-        compound2 = compound.getCompoundTag("SpawnerNBT2");
-        compound3 = compound.getCompoundTag("SpawnerNBT3");
-        compound4 = compound.getCompoundTag("SpawnerNBT4");
-        compound5 = compound.getCompoundTag("SpawnerNBT5");
-        compound6 = compound.getCompoundTag("SpawnerNBT6");
+        VersionCompatibility.CheckCompatibility(compound1 = compound.getCompoundTag("SpawnerNBT1"));
+        VersionCompatibility.CheckCompatibility(compound2 = compound.getCompoundTag("SpawnerNBT2"));
+        VersionCompatibility.CheckCompatibility(compound3 = compound.getCompoundTag("SpawnerNBT3"));
+        VersionCompatibility.CheckCompatibility(compound4 = compound.getCompoundTag("SpawnerNBT4"));
+        VersionCompatibility.CheckCompatibility(compound5 = compound.getCompoundTag("SpawnerNBT5"));
+        VersionCompatibility.CheckCompatibility(compound6 = compound.getCompoundTag("SpawnerNBT6"));
 
         id = compound.getString("SpawnerId");
         doesntDie = compound.getBoolean("SpawnerDoesntDie");
