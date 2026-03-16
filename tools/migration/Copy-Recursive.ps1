@@ -9,7 +9,7 @@
 #      - Checks if the file's path starts with an ALLOWED prefix (whitelist)
 #      - Checks if it already exists in core/
 #      - If allowed AND not in core, copies it
-#      - Then recursively processes THAT file's imports
+#      - Then recursively processes THAT file's imports (subject to AllowRecursePaths)
 #   4. Skips all Minecraft/Forge/Java stdlib imports
 #   5. Logs every file it copies and every file it skips (with reason)
 #
@@ -20,11 +20,24 @@
 #   Copy-Recursive -Sources @('noppes/npcs/controllers/AnimationController.java') `
 #       -AllowPaths @('noppes/npcs/controllers/', 'noppes/npcs/roles/', 'noppes/npcs/quests/', 'noppes/npcs/config/')
 #
+#   # Copy with recursion restricted to controllers/ only:
+#   Copy-Recursive -Sources @('noppes/npcs/controllers/AnimationController.java') `
+#       -AllowPaths @('noppes/npcs/controllers/', 'noppes/npcs/roles/', 'noppes/npcs/quests/') `
+#       -AllowRecursePaths @('noppes/npcs/controllers/')
+#
 # PARAMS:
 #   -Sources            Array of relative paths within McRoot (e.g., 'noppes/npcs/controllers/Foo.java')
 #   -AllowPaths         WHITELIST: only recursively copy files whose path starts with one of these prefixes.
 #                       The initial -Sources files are ALWAYS copied regardless of whitelist.
 #                       If empty/not provided, ALL project files are allowed (no filter).
+#   -AllowRecursePaths  RECURSION WHITELIST: only follow/scan imports of files whose path starts with
+#                       one of these prefixes. Files from non-whitelisted paths are still COPIED as
+#                       dependencies, but their own imports are NOT recursively followed.
+#                       Initial -Sources files ALWAYS have their imports followed regardless.
+#                       If empty/not provided, ALL files have their imports followed (current behavior).
+#                       DIFFERENT from -AllowPaths:
+#                         -AllowPaths = WHERE files can be copied TO (destination filter)
+#                         -AllowRecursePaths = WHERE imports can be recursively FOLLOWED FROM (recursion filter)
 #   -McRoot             Source root directory (default: 'mc1710/src/main/java')
 #   -CoreRoot           Destination root directory (default: 'core/src/main/java')
 #   -ProjectRoot        Absolute project root (auto-detected from script location if not provided)
@@ -41,6 +54,8 @@ function Copy-Recursive {
         [string[]]$Sources,
 
         [string[]]$AllowPaths = @(),
+
+        [string[]]$AllowRecursePaths = @(),
 
         [string]$McRoot = 'mc1710/src/main/java',
         [string]$CoreRoot = 'core/src/main/java',
@@ -66,10 +81,14 @@ function Copy-Recursive {
     $script:copied = [System.Collections.ArrayList]::new()
     $script:skippedExisting = [System.Collections.ArrayList]::new()
     $script:skippedNotAllowed = [System.Collections.ArrayList]::new()
+    $script:skippedRecurse = [System.Collections.ArrayList]::new()
     $script:notFound = [System.Collections.ArrayList]::new()
+    $script:initialSourceCount = 0
+    $script:nonRecurseImportCount = 0
     $script:depth = 0
 
     $hasWhitelist = $AllowPaths.Count -gt 0
+    $hasRecurseWhitelist = $AllowRecursePaths.Count -gt 0
 
     function Is-Forbidden {
         param([string]$Import)
@@ -83,6 +102,15 @@ function Copy-Recursive {
         param([string]$RelativePath)
         if (-not $hasWhitelist) { return $true }
         foreach ($allow in $AllowPaths) {
+            if ($RelativePath.StartsWith($allow)) { return $true }
+        }
+        return $false
+    }
+
+    function Is-RecurseAllowed {
+        param([string]$RelativePath)
+        if (-not $hasRecurseWhitelist) { return $true }
+        foreach ($allow in $AllowRecursePaths) {
             if ($RelativePath.StartsWith($allow)) { return $true }
         }
         return $false
@@ -107,17 +135,26 @@ function Copy-Recursive {
             return
         }
 
+        # Determine if we should recurse into this file's imports
+        $shouldRecurse = $IsInitialSource -or (Is-RecurseAllowed -RelativePath $RelativePath)
+
         $srcFull = Join-Path $ProjectRoot (Join-Path $McRoot $RelativePath)
         $dstFull = Join-Path $ProjectRoot (Join-Path $CoreRoot $RelativePath)
 
         # Skip if already exists in core
         if (Test-Path $dstFull) {
             [void]$script:skippedExisting.Add($RelativePath)
-            # STILL parse imports to find transitive deps that may not exist in core yet
-            $content = [IO.File]::ReadAllText($dstFull)
             $indent = '  ' * $script:depth
-            Write-Host "${indent}EXISTS: $RelativePath"
-            Parse-And-Follow -Content $content
+            if ($shouldRecurse) {
+                # STILL parse imports to find transitive deps that may not exist in core yet
+                $content = [IO.File]::ReadAllText($dstFull)
+                Write-Host "${indent}EXISTS: $RelativePath"
+                Parse-And-Follow -Content $content
+            } else {
+                Write-Host "${indent}EXISTS: $RelativePath  (recursion restricted -- not in AllowRecursePaths)"
+                [void]$script:skippedRecurse.Add($RelativePath)
+                $script:nonRecurseImportCount++
+            }
             return
         }
 
@@ -134,11 +171,24 @@ function Copy-Recursive {
 
         [void]$script:copied.Add($RelativePath)
         $indent = '  ' * $script:depth
-        Write-Host "${indent}COPIED: $RelativePath"
 
-        # Parse imports and recurse
-        $content = [IO.File]::ReadAllText($srcFull)
-        Parse-And-Follow -Content $content
+        if ($IsInitialSource) {
+            $script:initialSourceCount++
+            Write-Host "${indent}COPIED: $RelativePath  [initial source]"
+        } elseif ($shouldRecurse) {
+            Write-Host "${indent}COPIED: $RelativePath"
+        } else {
+            Write-Host "${indent}COPIED: $RelativePath  (non-recurse import -- path not in AllowRecursePaths)"
+            $script:nonRecurseImportCount++
+        }
+
+        # Parse imports and recurse (only if allowed)
+        if ($shouldRecurse) {
+            $content = [IO.File]::ReadAllText($srcFull)
+            Parse-And-Follow -Content $content
+        } else {
+            [void]$script:skippedRecurse.Add($RelativePath)
+        }
     }
 
     function Parse-And-Follow {
@@ -201,10 +251,16 @@ function Copy-Recursive {
     Write-Host "Dest root:    $CoreRoot"
     Write-Host "Targets:      $($Sources.Count) file(s)"
     if ($hasWhitelist) {
-        Write-Host "Whitelist:    $($AllowPaths.Count) path prefix(es)"
+        Write-Host "AllowPaths:   $($AllowPaths.Count) path prefix(es)  [copy destination whitelist]"
         foreach ($a in $AllowPaths) { Write-Host "  >> $a" }
     } else {
-        Write-Host "Whitelist:    NONE (all project files allowed)"
+        Write-Host "AllowPaths:   NONE (all project files allowed)"
+    }
+    if ($hasRecurseWhitelist) {
+        Write-Host "AllowRecursePaths: $($AllowRecursePaths.Count) prefix(es)  [recursion source whitelist]"
+        foreach ($a in $AllowRecursePaths) { Write-Host "  ~> $a" }
+    } else {
+        Write-Host "AllowRecursePaths: NONE (all discovered files recursed)"
     }
     Write-Host "============================================"
     Write-Host ""
@@ -215,10 +271,13 @@ function Copy-Recursive {
     }
 
     # ===== SUMMARY =====
+    $recursivelyDiscovered = $script:copied.Count - $script:initialSourceCount
     Write-Host ""
     Write-Host "============================================"
     Write-Host "  RECURSIVE COPY SUMMARY"
     Write-Host "============================================"
+    Write-Host "Copied: $($script:copied.Count) files ($($script:initialSourceCount) initial sources, $($recursivelyDiscovered) recursively discovered, $($script:nonRecurseImportCount) non-recurse imports)"
+    Write-Host ""
     Write-Host "Files COPIED:            $($script:copied.Count)"
     foreach ($f in $script:copied) {
         Write-Host "  + $f"
@@ -232,6 +291,13 @@ function Copy-Recursive {
     Write-Host "Skipped (not whitelisted): $($script:skippedNotAllowed.Count)"
     foreach ($f in $script:skippedNotAllowed) {
         Write-Host "  x $f"
+    }
+    if ($hasRecurseWhitelist) {
+        Write-Host ""
+        Write-Host "Recursion restricted:    $($script:skippedRecurse.Count)  (copied but imports NOT followed)"
+        foreach ($f in $script:skippedRecurse) {
+            Write-Host "  ~ $f  -- path not in AllowRecursePaths"
+        }
     }
     Write-Host ""
     Write-Host "Not found in mc1710:     $($script:notFound.Count)"

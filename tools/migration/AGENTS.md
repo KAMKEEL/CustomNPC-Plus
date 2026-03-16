@@ -20,7 +20,8 @@
 |------|------|---------|------------|
 | **`pa_batch.py`** | **Python** | **BATCH create 5+ Java files from JSON manifest (auto-derives paths)** | **`manifest.json`, `--force`, `--dry-run`** |
 | **`pa_editor.py`** | **Python** | **BATCH edit existing files from JSON manifest (atomic insert/delete/replace)** | **`manifest.json`, `--force`, `--dry-run`, `--backup`** |
-| `Copy-Recursive` | PS | Copy files from mc1710 to core, recursively following imports | `-Sources`, `-AllowPaths` |
+| **`pa_analyzer.py`** | **Python** | **Analyze PA member usage across mc1710 from classification + index data** | **`--execute`, `--pa`, `--classification`, `--verbose`** |
+| `Copy-Recursive` | PS | Copy files from mc1710 to core, recursively following imports | `-Sources`, `-AllowPaths`, `-AllowRecursePaths` |
 | `Symbol-Swap` | PS | Replace type names + import surgery across all files | `-Directory`, `-Swaps` |
 | `Nuke-Imports` | PS | Remove all forbidden imports from a directory | `-Directory`, `-ForbiddenPrefixes` |
 | `Create-And-Propagate` | PS | Create a PA interface AND replace its MC equivalent everywhere atomically | `-FilePath`, `-Content`, `-TargetDirectory`, `-Swaps` |
@@ -415,18 +416,45 @@ python tools/migration/test_pa_editor.py
 |-------|----------|---------|-------------|
 | `-Sources` | Yes | -- | Array of relative paths within McRoot (e.g., `'noppes/npcs/controllers/DialogController.java'`) |
 | `-AllowPaths` | No | `@()` (all allowed) | WHITELIST of path prefixes. Only files under these paths get recursively copied. Initial `-Sources` always bypass this. |
+| `-AllowRecursePaths` | No | `@()` (all recursed) | RECURSION WHITELIST: only follow/scan imports of files whose path starts with one of these prefixes. Files from non-whitelisted paths are still COPIED but their imports are NOT recursively followed. Initial `-Sources` always have their imports followed. **Different from `-AllowPaths`** — see below. |
 | `-McRoot` | No | `'mc1710/src/main/java'` | Source root |
 | `-CoreRoot` | No | `'core/src/main/java'` | Destination root |
 | `-ProjectRoot` | No | Auto-detected | Absolute project root |
 | `-ForbiddenPrefixes` | No | java/MC/Forge/etc | Import prefixes never followed |
 
+**`-AllowPaths` vs `-AllowRecursePaths` — Critical Distinction:**
+```
+-AllowPaths        = WHERE files can be copied TO (destination filter)
+-AllowRecursePaths = WHERE imports can be recursively FOLLOWED FROM (recursion depth filter)
+```
+
+| Scenario | `-AllowPaths` | `-AllowRecursePaths` | Result |
+|----------|---------------|---------------------|--------|
+| File in controllers/ imports file in util/ | util/ in AllowPaths | util/ NOT in AllowRecursePaths | util/ file IS copied but its imports are NOT followed |
+| File in controllers/ imports file in roles/ | roles/ NOT in AllowPaths | N/A | roles/ file is NOT copied at all |
+| File in controllers/ imports file in config/ | config/ in AllowPaths | config/ in AllowRecursePaths | config/ file IS copied AND its imports ARE followed |
+
 **Behavior:**
 - Initial `-Sources` files are ALWAYS copied regardless of whitelist.
-- Files already in core are NOT re-copied but ARE scanned for transitive deps.
+- Initial `-Sources` files ALWAYS have their imports followed regardless of `-AllowRecursePaths`.
+- Files already in core are NOT re-copied but ARE scanned for transitive deps (if recursion allowed).
 - Handles wildcard imports (`import foo.bar.*`), static imports, inner class imports.
 - Returns array of copied file paths.
 
-**Output summary shows:** COPIED, EXISTS, skipped(not whitelisted), not found.
+**Output summary shows:** COPIED, EXISTS, skipped(not whitelisted), recursion restricted, not found.
+
+**Summary line format:** `Copied: X files (Y initial sources, Z recursively discovered, A non-recurse imports)`
+
+**Usage example with `-AllowRecursePaths`:**
+```powershell
+# Copy DialogController, allow copying from controllers/ and util/,
+# but only recurse into imports from controllers/.
+# Files from util/ will be copied as dependencies but their imports won't be followed.
+Copy-Recursive `
+    -Sources @('noppes/npcs/controllers/DialogController.java') `
+    -AllowPaths @('noppes/npcs/controllers/', 'noppes/npcs/util/') `
+    -AllowRecursePaths @('noppes/npcs/controllers/')
+```
 
 ---
 
@@ -1228,6 +1256,123 @@ powershell -ExecutionPolicy Bypass -File "tools/migration/test_runner.ps1"
 ```
 
 7 tests covering: Symbol-Swap, Nuke-Imports, Static-Transform, Dedupe-Imports, Generate-Stubs, Create-And-Propagate, and a full pipeline integration test.
+
+---
+---
+
+# PA Analyzer — `pa_analyzer.py`
+
+> **Maps which MC type members each PA uses across mc1710 source files.**
+>
+> Reads `classification_results.json` (non-suppressed PAs) and `mc_usage_index.json` (member usage) to produce a deterministic JSON mapping: `{ "PAName": { mc_types, members, source_files, usage_count, confidence } }`.
+
+## Usage
+
+```bash
+# Dry-run (default) — shows summary without writing
+python tools/migration/pa_analyzer.py
+
+# Execute — writes output JSON
+python tools/migration/pa_analyzer.py --execute
+
+# Filter to specific PAs
+python tools/migration/pa_analyzer.py --execute --pa INbt --pa IPlayer
+
+# Filter by classification
+python tools/migration/pa_analyzer.py --execute --classification EXISTING INTERFACE
+
+# Verbose (detailed per-PA breakdown)
+python tools/migration/pa_analyzer.py --execute --verbose
+
+# Machine-readable JSON summary to stdout
+python tools/migration/pa_analyzer.py --execute --json
+
+# Custom output path
+python tools/migration/pa_analyzer.py --execute --output /tmp/pa_usage.json
+```
+
+## CLI Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--execute` | false | Actually write output JSON (default: dry-run preview) |
+| `--output` | `tools/migration/pa_usage_analysis.json` | Output path |
+| `--classifications` | `tools/migration/classification_results.json` | Input classifications |
+| `--index` | `tools/migration/mc_usage_index.json` | Input usage index |
+| `--pa` | all | Filter to specific PA name(s). Repeatable. |
+| `--classification` | all non-suppressed | Filter by classification: EXISTING, INTERFACE, AUTO |
+| `--json` | false | Machine-readable JSON summary to stdout |
+| `--verbose` | false | Show detailed per-PA member breakdown |
+| `--project-root` | auto-detect | Project root override |
+
+## Output Format
+
+```json
+{
+  "metadata": {
+    "analysis_date": "2026-03-15T23:03:13Z",
+    "tool_version": "1.0.0",
+    "total_PAs_scanned": 238,
+    "total_mc_types_covered": 245,
+    "confidence_thresholds": { "high": ">=90%", "medium": ">=50%", "low": "<50%" }
+  },
+  "summary": {
+    "by_confidence": { "high": ["INbt", ...], "medium": [...], "low": [...] },
+    "by_classification": { "EXISTING": [...], "INTERFACE": [...], "AUTO": [...] },
+    "top_by_usage": [{ "pa_name": "INbt", "usage_count": 4452, "file_count": 356 }, ...],
+    "unused_pas": ["IEnchantment", ...]
+  },
+  "pa_usage": {
+    "INbt": {
+      "mc_types": [{ "fqn": "net.minecraft.nbt.NBTTagCompound", "shortName": "NBTTagCompound", "classification": "EXISTING", "import_count": 593 }],
+      "classifications": ["EXISTING"],
+      "members": {
+        "methods": { "setInteger": { "count": 569, "file_count": 164, "files": [...] } },
+        "static_methods": {},
+        "fields": {}
+      },
+      "source_files": ["noppes/npcs/controllers/FactionController.java", ...],
+      "usage_count": 4452,
+      "unique_members": 32,
+      "file_count": 356,
+      "constructors": { "count": 0, "file_count": 0, "files": [] },
+      "casts": { "count": 0, "file_count": 0, "files": [] },
+      "instanceof": { "count": 5, "file_count": 4, "files": [...] },
+      "confidence": 100.0
+    }
+  }
+}
+```
+
+## Confidence Scoring
+
+Weighted score from usage density, member coverage, and file spread:
+- **Usage density (40%)**: `min(total_usage / 100, 1.0)` — caps at 100 usages
+- **Member coverage (30%)**: `min(unique_members / 10, 1.0)` — caps at 10 unique members
+- **File spread (30%)**: `min(file_count / 20, 1.0)` — caps at 20 files
+
+| Level | Threshold | Meaning |
+|-------|-----------|---------|
+| High | ≥90% | Core PA — heavily used, well-covered, wide spread |
+| Medium | ≥50% | Significant PA — meaningful usage worth abstracting |
+| Low | <50% | Niche PA — limited usage, may not need full interface |
+| Unused | 0% | No member usage found in index — review classification |
+
+## Integration with Migration Workflow
+
+```
+PHASE 0: PA ANALYSIS (run once, reference throughout)
+├── pa_analyzer.py --execute              → full PA usage map
+├── Review unused_pas list                → candidates for SUPPRESS
+├── Review high-confidence PAs            → these MUST have complete interfaces
+└── Compare pa_usage members vs surface-miner → find gaps in existing interfaces
+
+PHASE 1: Use pa_usage_analysis.json during migration
+├── Check PA entry before creating interface → know exactly which methods to include
+├── Cross-reference with surface-miner     → pa_analyzer shows WHAT is used,
+│                                             surface-miner shows what's MISSING from the interface
+└── Review cast/instanceof counts          → high counts = harder migration
+```
 
 ---
 ---
