@@ -1,15 +1,24 @@
 package kamkeel.npcs.controllers.data.telegraph;
 
+
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
 import noppes.npcs.core.NBT;
 
 /**
- * Telegraph configuration - defines a visual warning shape.
+ * Telegraph IConfiguration - defines a visual warning shape.
  * Telegraphs warn players about incoming attacks or mark areas of effect.
  */
 public class Telegraph {
 
-    // Identity
+    // IdIEntity
     private String id = "";
     private TelegraphType type = TelegraphType.CIRCLE;
 

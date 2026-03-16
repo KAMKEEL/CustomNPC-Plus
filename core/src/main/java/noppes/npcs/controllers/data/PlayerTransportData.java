@@ -1,12 +1,19 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.api.handler.IPlayerTransportData;
-import noppes.npcs.api.handler.data.ITransportLocation;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
-import noppes.npcs.core.NBT;
 
 import java.util.HashSet;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.ITransportLocation;
+import noppes.npcs.api.handler.IPlayerTransportData;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.core.NBT;
 
 public class PlayerTransportData implements IPlayerTransportData {
     public HashSet<Integer> transports = new HashSet<Integer>();
@@ -24,8 +31,8 @@ public class PlayerTransportData implements IPlayerTransportData {
         }
 
         for (int i = 0; i < list.size(); i++) {
-            INbt nbttagcompound = list.getCompound(i);
-            dialogsRead.add(nbttagcompound.getInteger("Transport"));
+            INbt INbt = list.getCompound(i);
+            dialogsRead.add(INbt.getInteger("Transport"));
         }
         this.transports = dialogsRead;
     }
@@ -33,9 +40,9 @@ public class PlayerTransportData implements IPlayerTransportData {
     public void saveNBTData(INbt compound) {
         INbtList list = NBT.list();
         for (int dia : transports) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setInteger("Transport", dia);
-            list.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setInteger("Transport", dia);
+            list.addCompound(INbt);
         }
 
         compound.setTagList("TransportData", list);

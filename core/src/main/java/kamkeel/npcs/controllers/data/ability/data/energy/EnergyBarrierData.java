@@ -1,11 +1,19 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
-import noppes.npcs.core.NBT;
-import noppes.npcs.api.INbt;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.core.NBT;
 
 /**
  * Groups barrier properties shared by energy barrier abilities (Dome, Wall, Shield).
@@ -37,7 +45,7 @@ public class EnergyBarrierData {
     // Absorb radius: max distance from barrier's current position for absorption to work
     // -1 = no radius limit (absorb regardless of distance)
     //  0 = use barrier's own extent as the radius (dome radius, panel half-size, etc.)
-    // positive = owner must be within this many blocks of the barrier entity
+    // positive = owner must be within this many blocks of the barrier IEntity
     public float absorbRadius = 0.0f;
 
     // Melee: barrier can be hit by melee attacks

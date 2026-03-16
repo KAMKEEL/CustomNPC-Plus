@@ -1,16 +1,23 @@
 package noppes.npcs.controllers;
 
-import noppes.npcs.constants.EnumDiagramLayout;
-import noppes.npcs.core.NBT;
-import noppes.npcs.controllers.data.Magic;
-import noppes.npcs.controllers.data.MagicAssociation;
-import noppes.npcs.controllers.data.MagicCycle;
-import kamkeel.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
 
 import java.io.File;
 import java.util.HashMap;
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.constants.EnumDiagramLayout;
+import noppes.npcs.controllers.data.Magic;
+import noppes.npcs.controllers.data.MagicAssociation;
+import noppes.npcs.controllers.data.MagicCycle;
+import noppes.npcs.core.NBT;
 
 public class MagicController {
     public HashMap<Integer, Magic> magics = new HashMap<>();
@@ -52,7 +59,7 @@ public class MagicController {
         lastUsedCycleID = 0;
         lastUsedMagicID = 0;
 
-        File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
+        File saveDir = PlatformServiceHolder.get().getIWorldSaveDirectory();
         if (saveDir == null) return;
         try {
             File file = new File(saveDir, "magic.dat");
@@ -75,18 +82,18 @@ public class MagicController {
     }
 
     /**
-     * Creates default magic entries. Override in mc1710 to set ItemStack items.
+     * Creates default magic entries. Override in mc1710 to set IItemStack items.
      */
     protected void createDefaults() {
-        // TODO: mc1710 version sets ItemStack items on each magic:
-        // OLD: earth.setItem(new ItemStack(CustomItems.earthElement));
-        // OLD: water.setItem(new ItemStack(CustomItems.waterElement));
-        // OLD: fire.setItem(new ItemStack(CustomItems.spellFire));
-        // OLD: air.setItem(new ItemStack(CustomItems.airElement));
-        // OLD: dark.setItem(new ItemStack(CustomItems.spellDark));
-        // OLD: holy.setItem(new ItemStack(CustomItems.spellHoly));
-        // OLD: nature.setItem(new ItemStack(CustomItems.spellNature));
-        // OLD: arcane.setItem(new ItemStack(CustomItems.spellArcane));
+        // TODO: mc1710 version sets IItemStack items on each magic:
+        // OLD: earth.setItem(new IItemStack(CustomItems.earthElement));
+        // OLD: water.setItem(new IItemStack(CustomItems.waterElement));
+        // OLD: fire.setItem(new IItemStack(CustomItems.spellFire));
+        // OLD: air.setItem(new IItemStack(CustomItems.airElement));
+        // OLD: dark.setItem(new IItemStack(CustomItems.spellDark));
+        // OLD: holy.setItem(new IItemStack(CustomItems.spellHoly));
+        // OLD: nature.setItem(new IItemStack(CustomItems.spellNature));
+        // OLD: arcane.setItem(new IItemStack(CustomItems.spellArcane));
         Magic earth = new Magic(getUnusedId(), "Earth", 0x00DD00);
         Magic water = new Magic(getUnusedId(), "Water", 0xF2DD00);
         Magic fire = new Magic(getUnusedId(), "Fire", 0xDD0000);
@@ -235,11 +242,11 @@ public class MagicController {
 
     public void saveMagicData() {
         try {
-            File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
+            File saveDir = PlatformServiceHolder.get().getIWorldSaveDirectory();
             File fileNew = new File(saveDir, "magic.dat_new");
             File fileOld = new File(saveDir, "magic.dat_old");
             File fileCurrent = new File(saveDir, "magic.dat");
-            // OLD: CompressedStreamTools.writeCompressed(getNBT(), new FileOutputStream(fileNew));
+            // OLD: NBTIO.writeCompressed(getNBT(), new FileOutputStream(fileNew));
             PlatformServiceHolder.get().writeCompressedNBT(getNBT(), fileNew);
             if (fileOld.exists())
                 fileOld.delete();
@@ -269,7 +276,7 @@ public class MagicController {
         magics.put(mag.id, mag);
 
         // TODO: mc1710 version also calls:
-        // OLD: NBTTagCompound magicCompound = new NBTTagCompound();
+        // OLD: INbt magicCompound = new INbt();
         // OLD: mag.writeNBT(magicCompound);
         // OLD: SyncController.syncUpdate(EnumSyncType.MAGIC, -1, magicCompound);
         saveMagicData();
@@ -337,7 +344,7 @@ public class MagicController {
         cycles.put(cycle.id, cycle);
 
         // TODO: mc1710 version also calls:
-        // OLD: NBTTagCompound cycleCompound = new NBTTagCompound();
+        // OLD: INbt cycleCompound = new INbt();
         // OLD: cycle.writeNBT(new NBTWrapper(cycleCompound));
         // OLD: SyncController.syncUpdate(EnumSyncType.MAGIC_CYCLE, -1, cycleCompound);
         saveMagicData();

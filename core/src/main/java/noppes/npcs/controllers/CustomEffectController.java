@@ -1,0 +1,734 @@
+package noppes.npcs.controllers;
+
+
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.zip.GZIPInputStream;
+import kamkeel.npcs.controllers.SyncController;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.ICustomEffect;
+import noppes.npcs.api.handler.ICustomEffectHandler;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.controllers.data.CustomEffect;
+import noppes.npcs.controllers.data.EffectKey;
+import noppes.npcs.controllers.data.EffectScript;
+import noppes.npcs.controllers.data.PlayerEffect;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.util.NBTJsonUtil;
+
+public class CustomEffectController implements ICustomEffectHandler {
+
+    public static CustomEffectController Instance = new CustomEffectController();
+    public HashMap<Integer, HashMap<Integer, CustomEffect>> indexMapper = new HashMap<>();
+    private HashMap<Integer, String> indexLabels = new HashMap<>();
+
+    public HashMap<Integer, CustomEffect> customEffectsSync = new HashMap<>();
+
+    public HashMap<Integer, EffectScript> customEffectScriptHandlers = new HashMap<>();
+    private HashMap<Integer, String> bootOrder;
+    public CategoryManager categoryManager = new CategoryManager();
+
+    private int lastUsedID = 0;
+    public ConcurrentHashMap<UUID, ConcurrentHashMap<EffectKey, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
+
+    public CustomEffectController() {
+        HashMap<Integer, CustomEffect> customEffects = new HashMap<>();
+        registerEffectMap(0, customEffects);
+    }
+
+    public static CustomEffectController getInstance() {
+        return Instance;
+    }
+
+    public <T extends CustomEffect> void registerEffectMap(int index, HashMap<Integer, T> effectHashMap) {
+        indexMapper.put(index, (HashMap<Integer, CustomEffect>) effectHashMap);
+    }
+
+    public void registerEffectMapLabel(int index, String label) {
+        indexLabels.put(index, label);
+    }
+
+    public HashMap<Integer, String> getIndexLabels() {
+        return indexLabels;
+    }
+
+    public HashMap<Integer, CustomEffect> getCustomEffects() {
+        return indexMapper.get(0);
+    }
+
+    public void load() {
+        lastUsedID = 0;
+        playerEffects.clear();
+        bootOrder = new HashMap<>();
+        LogWriter.info("Loading custom effects...");
+        readCustomEffectMap();
+        loadCustomEffects();
+        LogWriter.info("Done loading custom effects.");
+    }
+
+    public void runEffects(IPlayer player) {
+        Map<EffectKey, PlayerEffect> current = getPlayerEffects(player);
+        for (Map.Entry<EffectKey, PlayerEffect> entry : current.entrySet()) {
+            int id = entry.getKey().getId();
+            int index = entry.getKey().getIndex();
+            CustomEffect effect = get(id, index);
+            if (effect != null) {
+                effect.runEffect(player, entry.getValue());
+            }
+        }
+    }
+
+    public void killEffects(IPlayer player) {
+        Map<EffectKey, PlayerEffect> current = getPlayerEffects(player);
+        Iterator<Map.Entry<EffectKey, PlayerEffect>> iterator = current.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<EffectKey, PlayerEffect> entry = iterator.next();
+            int id = entry.getKey().getId();
+            int index = entry.getKey().getIndex();
+            CustomEffect effect = get(id, index);
+            if (effect != null) {
+                if (effect.lossOnDeath) {
+                    effect.onRemoved(player, entry.getValue(), ExpirationType.DEATH);
+                    iterator.remove();
+                }
+            } else {
+                iterator.remove();
+            }
+        }
+    }
+
+    public void delete(int id) {
+        ICustomEffect effect = get(id);
+        if (effect != null) {
+            CustomEffect foundEffect = getCustomEffects().remove(effect.getID());
+            customEffectScriptHandlers.remove(effect.getID());
+            if (foundEffect != null && foundEffect.name != null) {
+                File dir = categoryManager.getItemDir(id);
+                File file = new File(dir, foundEffect.name + ".json");
+                if (file.exists()) {
+                    file.delete();
+                }
+                categoryManager.removeItem(id);
+                SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
+                saveEffectLoadMap();
+            }
+        }
+    }
+
+    public int getUnusedId() {
+        for (int catid : getCustomEffects().keySet()) {
+            if (catid > lastUsedID)
+                lastUsedID = catid;
+        }
+        lastUsedID++;
+        return lastUsedID;
+    }
+
+    public CustomEffect get(int id, int index) {
+        HashMap<Integer, CustomEffect> effectMap = indexMapper.get(index);
+        return effectMap != null ? effectMap.get(id) : null;
+    }
+
+    public CustomEffect get(int id) {
+        return get(id, 0);
+    }
+
+    public boolean has(int id, int index) {
+        HashMap<Integer, CustomEffect> effectMap = indexMapper.get(index);
+        return effectMap != null && effectMap.containsKey(id);
+    }
+
+    public boolean has(int id) {
+        return has(id, 0);
+    }
+
+    public CustomEffect get(String name, int index) {
+        HashMap<Integer, CustomEffect> effectMap = indexMapper.get(index);
+        if (effectMap != null) {
+            for (CustomEffect effect : effectMap.values()) {
+                if (effect.getName().equalsIgnoreCase(name)) {
+                    return effect;
+                }
+            }
+        }
+        return null;
+    }
+
+    public CustomEffect get(String name) {
+        return get(name, 0);
+    }
+
+    public boolean has(String name, int index) {
+        return get(name, index) != null;
+    }
+
+    public boolean has(String name) {
+        return has(name, 0);
+    }
+
+    public ConcurrentHashMap<EffectKey, PlayerEffect> getPlayerEffects(IPlayer player) {
+        UUID playerId = NoppesUtilServer.getUUID(player);
+        ConcurrentHashMap<EffectKey, PlayerEffect> effects = playerEffects.get(playerId);
+        if (effects == null) {
+            effects = new ConcurrentHashMap<>();
+            playerEffects.put(playerId, effects);
+        }
+        return effects;
+    }
+
+    public void removeEffect(IPlayer player, PlayerEffect effect, ExpirationType type) {
+        if (effect == null)
+            return;
+
+        Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
+        EffectKey key = new EffectKey(effect.id, effect.index);
+        if (currentEffects.containsKey(key)) {
+            CustomEffect parent = get(effect.id, effect.index);
+            if (parent != null) {
+                parent.onRemoved(player, effect, type);
+            }
+            currentEffects.remove(key);
+        }
+    }
+
+    private boolean hasOther(String name, int id) {
+        for (CustomEffect effect : getCustomEffects().values()) {
+            if (effect.getID() != id && effect.getName().equalsIgnoreCase(name))
+                return true;
+        }
+        return false;
+    }
+
+    public void clearEffects(IPlayer player) {
+        Map<EffectKey, PlayerEffect> effects = getPlayerEffects(player);
+        if (effects != null) {
+            effects.clear();
+        }
+    }
+
+    public void clearEffect(IPlayer player, int id) {
+        clearEffect(player, id, 0);
+    }
+
+    public void clearEffect(IPlayer player, int id, int index) {
+        Map<EffectKey, PlayerEffect> effects = getPlayerEffects(player);
+        if (effects != null) {
+            effects.remove(new EffectKey(id, index));
+        }
+    }
+
+    public boolean hasEffect(IPlayer player, int id) {
+        return hasEffect(player, id, 0);
+    }
+
+    public boolean hasEffect(IPlayer player, int id, int index) {
+        return getPlayerEffects(player).containsKey(new EffectKey(id, index));
+    }
+
+    public int getEffectDuration(IPlayer player, int id) {
+        return getEffectDuration(player, id, 0);
+    }
+
+    public int getEffectDuration(IPlayer player, int id, int index) {
+        PlayerEffect effect = getPlayerEffects(player).get(new EffectKey(id, index));
+        return effect != null ? effect.duration : -1;
+    }
+
+    public void applyEffect(IPlayer player, int id, int duration, byte level) {
+        applyEffect(player, id, duration, level, 0);
+    }
+
+    public void applyEffect(IPlayer player, int id, int duration, byte level, int index) {
+        if (player == null || id <= 0) return;
+        Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
+        CustomEffect parent = get(id, index);
+        if (parent != null) {
+            PlayerEffect playerEffect = new PlayerEffect(id, duration, level, index);
+            currentEffects.put(new EffectKey(id, index), playerEffect);
+            parent.onAdded(player, playerEffect);
+        }
+    }
+
+    public void removeEffect(IPlayer player, int id) {
+        removeEffect(player, id, 0, ExpirationType.REMOVED);
+    }
+
+    public void removeEffect(IPlayer player, int id, ExpirationType type) {
+        removeEffect(player, id, 0, type);
+    }
+
+    public void removeEffect(IPlayer player, int id, int index) {
+        removeEffect(player, id, index, ExpirationType.REMOVED);
+    }
+
+    public void removeEffect(IPlayer player, int id, int index, ExpirationType type) {
+        if (player == null || id <= 0) return;
+        Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
+        EffectKey key = new EffectKey(id, index);
+        PlayerEffect effect = currentEffects.get(key);
+        if (effect != null) {
+            this.removeEffect(player, effect, type);
+        }
+    }
+
+    public void decrementEffects(IPlayer player) {
+        Iterator<PlayerEffect> iterator = getPlayerEffects(player).values().iterator();
+        IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
+        while (iterator.hasNext()) {
+            PlayerEffect effect = iterator.next();
+            if (effect == null) {
+                iterator.remove();
+                continue;
+            }
+            if (effect.duration == -100)
+                continue;
+            if (effect.duration <= 0) {
+                CustomEffect parent = CustomEffectController.Instance.get(effect.id, effect.index);
+                if (parent != null) {
+                    parent.onRemoved(player, effect, ExpirationType.RUN_OUT);
+                }
+                iterator.remove();
+                continue;
+            }
+            effect.duration--;
+        }
+    }
+
+    public File getMapDir() {
+        File dir = CustomNpcs.getWorldSaveDirectory();
+        if (!dir.exists())
+            dir.mkdir();
+        return dir;
+    }
+
+    private void loadCustomEffects() {
+        getCustomEffects().clear();
+
+        File dir = getDir();
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+
+        categoryManager.loadCategories(dir);
+
+        // Load uncategorized effects (root level .json files)
+        loadEffectsFromDir(dir, CategoryManager.UNCATEGORIZED_ID);
+
+        // Load categorized effects (subdirectories)
+        for (Map.Entry<Integer, noppes.npcs.controllers.data.Category> entry : categoryManager.getCategories().entrySet()) {
+            File catDir = categoryManager.getCategoryDir(entry.getKey());
+            loadEffectsFromDir(catDir, entry.getKey());
+        }
+
+        this.registerEffectMap(0, getCustomEffects());
+        saveEffectLoadMap();
+    }
+
+    private void loadEffectsFromDir(File dir, int catId) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (!file.isFile() || !file.getName().endsWith(".json"))
+                continue;
+            try {
+                CustomEffect effect = new CustomEffect();
+                effect.readFromNBT(NBTJsonUtil.LoadFile(file));
+                effect.name = file.getName().substring(0, file.getName().length() - 5);
+                if (effect.id == -1) {
+                    effect.id = getUnusedId();
+                }
+                int originalID = effect.id;
+                int setID = effect.id;
+                while (bootOrder.containsKey(setID) || getCustomEffects().containsKey(setID)) {
+                    if (bootOrder.containsKey(setID))
+                        if (bootOrder.get(setID).equalsIgnoreCase(effect.name))
+                            break;
+                    setID++;
+                }
+                effect.id = setID;
+                if (originalID != setID) {
+                    LogWriter.info("Found Custom Effect ID Mismatch: " + effect.name + ", New ID: " + setID);
+                    effect.save();
+                }
+                getCustomEffects().put(effect.id, effect);
+                categoryManager.registerItem(effect.id, catId);
+            } catch (Exception e) {
+                LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+            }
+        }
+    }
+
+    public HashMap<Integer, CustomEffect> getEffectMap(int index) {
+        return indexMapper.get(index);
+    }
+
+    private File getDir() {
+        return new File(CustomNpcs.getWorldSaveDirectory(), "customeffects");
+    }
+
+    public void saveEffectLoadMap() {
+        try {
+            File saveDir = getMapDir();
+            File file = new File(saveDir, "customeffects.dat_new");
+            File file1 = new File(saveDir, "customeffects.dat_old");
+            File file2 = new File(saveDir, "customeffects.dat");
+            NBTIO.writeCompressed(this.writeMapNBT(), new FileOutputStream(file));
+            if (file1.exists()) {
+                file1.delete();
+            }
+            file2.renameTo(file1);
+            if (file2.exists()) {
+                file2.delete();
+            }
+            file.renameTo(file2);
+            if (file.exists()) {
+                file.delete();
+            }
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+    }
+
+    private INbt writeMapNBT() {
+        INbt nbt = new INbt();
+        INbtList customEffectsList = new INbtList();
+        for (Integer key : this.getCustomEffects().keySet()) {
+            CustomEffect customEffect = this.getCustomEffects().get(key);
+            if (!customEffect.getName().isEmpty()) {
+                INbt effectCompound = new INbt();
+                effectCompound.setString("Name", customEffect.getName());
+                effectCompound.setInteger("ID", key);
+                customEffectsList.appendTag(effectCompound);
+            }
+        }
+        nbt.setTag("CustomEffects", customEffectsList);
+        nbt.setInteger("lastID", lastUsedID);
+        return nbt;
+    }
+
+    private void readCustomEffectMap() {
+        bootOrder.clear();
+        try {
+            File file = new File(getMapDir(), "customeffects.dat");
+            if (file.exists()) {
+                loadCustomEffectMap(file);
+            }
+        } catch (Exception e) {
+            try {
+                File file = new File(getMapDir(), "customeffects.dat_old");
+                if (file.exists()) {
+                    loadCustomEffectMap(file);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private void loadCustomEffectMap(File file) throws IOException {
+        DataInputStream dis = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
+        readCustomEffectMap(dis);
+        dis.close();
+    }
+
+    private void readCustomEffectMap(DataInputStream stream) throws IOException {
+        INbt nbtCompound = CompressedStreamTools.read(stream);
+        this.readMapNBT(nbtCompound);
+    }
+
+    private void readMapNBT(INbt compound) {
+        lastUsedID = compound.getInteger("lastID");
+        INbtList list = compound.getTagList("CustomEffects", 10);
+        if (list != null) {
+            for (int i = 0; i < list.tagCount(); i++) {
+                INbt INbt = list.getCompoundTagAt(i);
+                String effectName = INbt.getString("Name");
+                Integer key = INbt.getInteger("ID");
+                bootOrder.put(key, effectName);
+            }
+        }
+    }
+
+    public void deleteEffectFile(String prevName) {
+        categoryManager.deleteFile(prevName + ".json");
+    }
+
+    // API Versions
+    @Override
+    public ICustomEffect createEffect(String name) {
+        if (has(name))
+            return get(name);
+
+        CustomEffect effect = new CustomEffect();
+        effect.name = name;
+
+        if (effect.id == -1) {
+            int id = getUnusedId();
+            while (getCustomEffects().containsKey(id)) {
+                id = getUnusedId();
+            }
+            effect.id = id;
+        }
+        getCustomEffects().put(effect.id, effect);
+        return effect;
+    }
+
+    @Override
+    public ICustomEffect getEffect(String name) {
+        return get(name);
+    }
+
+    @Override
+    public void deleteEffect(String name) {
+        ICustomEffect effect = getEffect(name);
+        if (effect != null) {
+            delete(effect.getID());
+        }
+    }
+
+    @Override
+    public boolean hasEffect(IPlayer player, int id) {
+        if (player == null || player.getMCEntity() == null)
+            return false;
+        return hasEffect((IPlayer) player.getMCEntity(), id);
+    }
+
+    @Override
+    public boolean hasEffect(IPlayer player, ICustomEffect effect) {
+        if (player == null || player.getMCEntity() == null)
+            return false;
+        return hasEffect((IPlayer) player.getMCEntity(), effect.getID(), effect.getIndex());
+    }
+
+    @Override
+    public int getEffectDuration(IPlayer player, int id) {
+        if (player == null || player.getMCEntity() == null)
+            return -1;
+        return getEffectDuration((IPlayer) player.getMCEntity(), id);
+    }
+
+    @Override
+    public int getEffectDuration(IPlayer player, ICustomEffect effect) {
+        if (effect == null)
+            return -1;
+        return getEffectDuration(player, effect.getID(), effect.getIndex());
+    }
+
+    @Override
+    public void applyEffect(IPlayer player, int id, int duration, byte level) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        applyEffect((IPlayer) player.getMCEntity(), id, duration, level);
+    }
+
+    @Override
+    public void applyEffect(IPlayer player, ICustomEffect effect, int duration, byte level) {
+        applyEffect(player, effect.getID(), duration, level);
+    }
+
+    @Override
+    public void removeEffect(IPlayer player, int id) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        removeEffect((IPlayer) player.getMCEntity(), id, ExpirationType.REMOVED);
+    }
+
+    @Override
+    public void removeEffect(IPlayer player, ICustomEffect effect) {
+        removeEffect((IPlayer) player.getMCEntity(), (PlayerEffect) effect, ExpirationType.REMOVED);
+    }
+
+    @Override
+    public void clearEffects(IPlayer player) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        clearEffects((IPlayer) player);
+    }
+
+    @Override
+    public void applyEffect(IPlayer player, int id, int duration, byte level, int index) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        applyEffect((IPlayer) player.getMCEntity(), id, duration, level, index);
+    }
+
+    @Override
+    public void applyEffect(IPlayer player, ICustomEffect effect, int duration, byte level, int index) {
+        applyEffect(player, effect.getID(), duration, level, index);
+    }
+
+    @Override
+    public void removeEffect(IPlayer player, int id, int index) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        removeEffect((IPlayer) player.getMCEntity(), id, index, ExpirationType.REMOVED);
+    }
+
+    @Override
+    public void removeEffect(IPlayer player, ICustomEffect effect, int index) {
+        removeEffect(player, effect.getID(), index);
+    }
+
+    @Override
+    public void clearEffects(IPlayer player, int index) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        IPlayer IEntity = (IPlayer) player.getMCEntity();
+        ConcurrentHashMap<EffectKey, PlayerEffect> effects = getPlayerEffects(IEntity);
+        Iterator<Map.Entry<EffectKey, PlayerEffect>> iterator = effects.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<EffectKey, PlayerEffect> entry = iterator.next();
+            if (entry.getKey().getIndex() == index) {
+                CustomEffect parent = get(entry.getKey().getId(), index);
+                if (parent != null) {
+                    parent.onRemoved(IEntity, entry.getValue(), ExpirationType.REMOVED);
+                }
+                iterator.remove();
+            }
+        }
+    }
+
+    @Override
+    public int getEffectDuration(IPlayer player, int id, int index) {
+        if (player == null || player.getMCEntity() == null)
+            return -1;
+        return getEffectDuration((IPlayer) player.getMCEntity(), id, index);
+    }
+
+    @Override
+    public int getEffectDuration(IPlayer player, ICustomEffect effect, int index) {
+        return getEffectDuration(player, effect.getID(), index);
+    }
+
+    @Override
+    public ICustomEffect getEffect(String name, int index) {
+        return get(name, index);
+    }
+
+    @Override
+    public ICustomEffect getEffect(int id, int index) {
+        return get(id, index);
+    }
+
+    ////////////////////////////////////////////////////////
+    // CATEGORY HELPERS
+    ////////////////////////////////////////////////////////
+
+    public Map<String, Integer> getCategoryScrollData() {
+        return categoryManager.getCategoryScrollData();
+    }
+
+    public void moveItemToCategory(int itemId, int catId) {
+        CustomEffect effect = getCustomEffects().get(itemId);
+        if (effect == null) return;
+        categoryManager.moveItem(itemId, effect.name + ".json", catId);
+        saveEffectLoadMap();
+    }
+
+    public Map<String, Integer> getItemsByCategoryScrollData(int catId) {
+        Map<String, Integer> map = new HashMap<>();
+        List<Integer> itemIds = categoryManager.getItemsInCategory(catId, getCustomEffects().keySet());
+        for (int itemId : itemIds) {
+            CustomEffect effect = getCustomEffects().get(itemId);
+            if (effect != null) {
+                map.put(effect.name, effect.id);
+            }
+        }
+        return map;
+    }
+
+    public HashMap<String, HashSet<UUID>> getItemTagMapForCategory(int catId) {
+        HashMap<String, HashSet<UUID>> tagMap = new HashMap<>();
+        List<Integer> itemIds = categoryManager.getItemsInCategory(catId, getCustomEffects().keySet());
+        for (int itemId : itemIds) {
+            CustomEffect effect = getCustomEffects().get(itemId);
+            if (effect != null && !effect.tagUUIDs.isEmpty()) {
+                tagMap.put(effect.name, effect.tagUUIDs);
+            }
+        }
+        return tagMap;
+    }
+
+    @Override
+    public ICustomEffect saveEffect(ICustomEffect customEffect) {
+        if (customEffect.getID() < 0) {
+            customEffect.setID(getUnusedId());
+            while (has(customEffect.getName()))
+                customEffect.setName(customEffect.getName() + "_");
+        }
+
+        while (hasOther(customEffect.getName(), customEffect.getID()))
+            customEffect.setName(customEffect.getName() + "_");
+
+        TagController.validateTagUUIDs(((CustomEffect) customEffect).tagUUIDs);
+        getCustomEffects().remove(customEffect.getID());
+        getCustomEffects().put(customEffect.getID(), (CustomEffect) customEffect);
+
+        saveEffectLoadMap();
+
+        File dir = categoryManager.getItemDir(customEffect.getID());
+        if (!dir.exists())
+            dir.mkdirs();
+
+        File file = new File(dir, customEffect.getName() + ".json_new");
+        File file2 = new File(dir, customEffect.getName() + ".json");
+
+        try {
+            INbt INbt = ((CustomEffect) customEffect).writeToNBT(true);
+            NBTJsonUtil.SaveFile(file, INbt);
+            if (file2.exists())
+                file2.delete();
+            file.renameTo(file2);
+            INbt.removeTag("ScriptData");
+            SyncController.syncUpdate(EnumSyncType.CUSTOM_EFFECTS, -1, INbt);
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+        return getCustomEffects().get(customEffect.getID());
+    }
+
+    public CustomEffect cloneEffect(int originalId) {
+        CustomEffect original = getCustomEffects().get(originalId);
+        if (original == null) return null;
+
+        int originalCatId = categoryManager.getItemCategory(originalId);
+
+        INbt nbt = original.writeToNBT(true);
+        int newId = getUnusedId();
+        nbt.setInteger("ID", newId);
+
+        CustomEffect clone = new CustomEffect();
+        clone.readFromNBT(nbt);
+
+        String name = clone.getName();
+        while (has(name)) name += "_";
+        clone.name = name;
+
+        if (originalCatId > CategoryManager.UNCATEGORIZED_ID) {
+            categoryManager.registerItem(newId, originalCatId);
+        }
+
+        saveEffect(clone);
+        return clone;
+    }
+
+}

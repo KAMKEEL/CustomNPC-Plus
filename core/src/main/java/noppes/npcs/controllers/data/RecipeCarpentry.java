@@ -1,0 +1,309 @@
+package noppes.npcs.controllers.data;
+
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.NBTTags;
+import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.handler.data.IRecipe;
+import noppes.npcs.controllers.RecipeController;
+
+import java.io.IOException;
+import java.util.HashMap;
+
+public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
+    public int id = -1;
+    public String name = "";
+    public Availability availability = new Availability();
+    public boolean isGlobal = false;
+    public boolean ignoreDamage = false;
+    public boolean ignoreNBT = false;
+
+    public RecipeCarpentry(int width, int height, IItemStack[] recipe, IItemStack result) {
+        super(width, height, recipe, result);
+    }
+
+    public RecipeCarpentry(String name) {
+        super(0, 0, new IItemStack[0], null);
+        this.name = name;
+    }
+
+    public static RecipeCarpentry create(INbt compound) {
+        return new RecipeCarpentry(compound.getInteger("Width"), compound.getInteger("Height"),
+            NBTTags.getItemStackArray(compound.getTagList("Materials", 10)), NoppesUtilServer.readItem(compound.getCompoundTag("Item")));
+    }
+
+    public void readNBT(INbt compound) {
+        this.name = compound.getString("Name");
+        this.id = compound.getInteger("ID");
+        this.availability.readFromNBT(compound.getCompoundTag("Availability"));
+        this.ignoreDamage = compound.getBoolean("IgnoreDamage");
+        this.ignoreNBT = compound.getBoolean("IgnoreNBT");
+        this.isGlobal = compound.getBoolean("Global");
+
+        if (!isGlobal) {
+            if (compound.hasKey("ScriptData", NbtConstants.TAG_COMPOUND)) {
+                RecipeScript handler = new RecipeScript();
+                handler.readFromNBT(compound.getCompoundTag("ScriptData"));
+                setScriptHandler(handler);
+            }
+        }
+    }
+
+    public INbt writeNBT() {
+        return writeNBT(true);
+    }
+
+    public INbt writeNBT(boolean saveScripts) {
+        INbt compound = new INbt();
+        compound.setInteger("ID", id);
+        compound.setInteger("Width", recipeWidth);
+        compound.setInteger("Height", recipeHeight);
+        if (getRecipeOutput() != null)
+            compound.setTag("Item", NoppesUtilServer.writeItem(getRecipeOutput(), new INbt()));
+        compound.setTag("Materials", NBTTags.nbtItemStackArray(recipeItems));
+        compound.setTag("Availability", availability.writeToNBT(new INbt()));
+        compound.setString("Name", name);
+        compound.setBoolean("Global", isGlobal);
+        compound.setBoolean("IgnoreDamage", ignoreDamage);
+        compound.setBoolean("IgnoreNBT", ignoreNBT);
+        if (saveScripts) {
+            INbt scriptData = new INbt();
+            RecipeScript handler = getScriptHandler();
+            if (handler != null)
+                handler.writeToNBT(scriptData);
+            compound.setTag("ScriptData", scriptData);
+        }
+        return compound;
+    }
+
+    @Override
+    public boolean matches(InventoryCrafting par1InventoryCrafting, IWorld IWorld) {
+        for (int i = 0; i <= 4 - this.recipeWidth; ++i) {
+            for (int j = 0; j <= 4 - this.recipeHeight; ++j) {
+                if (this.checkMatch(par1InventoryCrafting, i, j, true))
+                    return true;
+
+                if (this.checkMatch(par1InventoryCrafting, i, j, false))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * Checks if the region of a crafting inventory is match for the recipe.
+     */
+    private boolean checkMatch(InventoryCrafting par1InventoryCrafting, int par2, int par3, boolean par4) {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                int var7 = i - par2;
+                int var8 = j - par3;
+                IItemStack var9 = null;
+
+                if (var7 >= 0 && var8 >= 0 && var7 < this.recipeWidth && var8 < this.recipeHeight) {
+                    if (par4)
+                        var9 = this.recipeItems[this.recipeWidth - var7 - 1 + var8 * this.recipeWidth];
+                    else
+                        var9 = this.recipeItems[var7 + var8 * this.recipeWidth];
+                }
+
+                IItemStack var10 = par1InventoryCrafting.getStackInRowAndColumn(i, j);
+
+                if ((var10 != null || var9 != null) && !NoppesUtilPlayer.compareItems(var9, var10, ignoreDamage, ignoreNBT)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public IItemStack getCraftingResult(InventoryCrafting var1) {
+        if (getRecipeOutput() == null)
+            return null;
+        return getRecipeOutput().copy();
+    }
+
+    @Override
+    public int getRecipeSize() {
+        return 16;
+    }
+
+    public static RecipeCarpentry saveRecipe(RecipeCarpentry recipe, IItemStack par1ItemStack, Object... par2ArrayOfObj) {
+        String var3 = "";
+        int var4 = 0;
+        int var5 = 0;
+        int var6 = 0;
+        int var9;
+
+        if (par2ArrayOfObj[var4] instanceof String[]) {
+            String[] var7 = (String[]) ((String[]) par2ArrayOfObj[var4++]);
+            String[] var8 = var7;
+            var9 = var7.length;
+
+            for (int var10 = 0; var10 < var9; ++var10) {
+                String var11 = var8[var10];
+                ++var6;
+                var5 = var11.length();
+                var3 = var3 + var11;
+            }
+        } else {
+            while (par2ArrayOfObj[var4] instanceof String) {
+                String var13 = (String) par2ArrayOfObj[var4++];
+                ++var6;
+                var5 = var13.length();
+                var3 = var3 + var13;
+            }
+        }
+
+        HashMap var14;
+
+        for (var14 = new HashMap(); var4 < par2ArrayOfObj.length; var4 += 2) {
+            Character var16 = (Character) par2ArrayOfObj[var4];
+            IItemStack var17 = null;
+
+            if (par2ArrayOfObj[var4 + 1] instanceof Item) {
+                var17 = new IItemStack((Item) par2ArrayOfObj[var4 + 1]);
+            } else if (par2ArrayOfObj[var4 + 1] instanceof Block) {
+                var17 = new IItemStack((Block) par2ArrayOfObj[var4 + 1], 1, -1);
+            } else if (par2ArrayOfObj[var4 + 1] instanceof IItemStack) {
+                var17 = (IItemStack) par2ArrayOfObj[var4 + 1];
+            }
+
+            var14.put(var16, var17);
+        }
+
+        IItemStack[] var15 = new IItemStack[var5 * var6];
+
+        for (var9 = 0; var9 < var5 * var6; ++var9) {
+            char var18 = var3.charAt(var9);
+
+            if (var14.containsKey(Character.valueOf(var18))) {
+                var15[var9] = ((IItemStack) var14.get(Character.valueOf(var18))).copy();
+            } else {
+                var15[var9] = null;
+            }
+        }
+        RecipeCarpentry newrecipe = new RecipeCarpentry(var5, var6, var15, par1ItemStack);
+        newrecipe.copy(recipe);
+        if (var5 == 4 || var6 == 4)
+            newrecipe.isGlobal = false;
+
+        return newrecipe;
+    }
+
+    public void copy(RecipeCarpentry recipe) {
+        this.id = recipe.id;
+        this.name = recipe.name;
+        this.availability = recipe.availability;
+        this.isGlobal = recipe.isGlobal;
+        this.ignoreDamage = recipe.ignoreDamage;
+        this.ignoreNBT = recipe.ignoreNBT;
+    }
+
+    public IItemStack getCraftingItem(int i) {
+        if (recipeItems == null || i >= recipeItems.length)
+            return null;
+        return recipeItems[i];
+    }
+
+    public void setCraftingItem(int i, IItemStack item) {
+        if (i < recipeItems.length)
+            recipeItems[i] = item;
+    }
+
+    public boolean isValid() {
+        if (recipeItems.length == 0 || getRecipeOutput() == null)
+            return false;
+        for (IItemStack item : recipeItems) {
+            if (item != null)
+                return true;
+        }
+        return false;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public IItemStack getResult() {
+        return this.getRecipeOutput();
+    }
+
+    public boolean isGlobal() {
+        return this.isGlobal;
+    }
+
+    public void setIsGlobal(boolean bo) {
+        this.isGlobal = bo;
+    }
+
+    public boolean getIgnoreNBT() {
+        return this.ignoreNBT;
+    }
+
+    public void setIgnoreNBT(boolean bo) {
+        this.ignoreNBT = bo;
+    }
+
+    public boolean getIgnoreDamage() {
+        return this.ignoreDamage;
+    }
+
+    public void setIgnoreDamage(boolean bo) {
+        this.ignoreDamage = bo;
+    }
+
+    public int getWidth() {
+        return this.recipeWidth;
+    }
+
+    public int getHeight() {
+        return this.recipeHeight;
+    }
+
+    public void save() {
+        try {
+            RecipeController.Instance.saveRecipe(this.writeNBT(true));
+        } catch (IOException var2) {
+        }
+
+    }
+
+    public void delete() {
+        RecipeController.Instance.delete(this.id);
+    }
+
+    public IItemStack[] getRecipe() {
+        return this.recipeItems;
+    }
+
+    public int getId() {
+        return this.id;
+    }
+
+    public RecipeScript getScriptHandler() {
+        return RecipeController.Instance.carpentryScripts.get(this.id);
+    }
+
+    public void setScriptHandler(RecipeScript handler) {
+        RecipeController.Instance.carpentryScripts.put(this.id, handler);
+    }
+
+    public RecipeScript getOrCreateScriptHandler() {
+        RecipeScript data = getScriptHandler();
+        if (data == null)
+            setScriptHandler(data = new RecipeScript());
+        return data;
+    }
+}

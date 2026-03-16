@@ -1,0 +1,696 @@
+package noppes.npcs.roles;
+
+import noppes.npcs.constants.ClientOnly;
+import kamkeel.npcs.util.IVector3;
+import kamkeel.npcs.controllers.data.ability.preview.PreviewEntityHandler;
+import kamkeel.npcs.controllers.data.ability.gui.SubGuiAbilityConfig;
+import kamkeel.npcs.controllers.data.ability.gui.IAbilityConfigCallback;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.IChainedAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.gui.IAbilityFieldProvider;
+import noppes.npcs.entity.EntityNPCInterface;
+import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
+import kamkeel.npcs.util.ByteBufUtils;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.INbt;
+import com.google.common.collect.HashMultimap;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.NpcMiscInventory;
+import noppes.npcs.constants.EnumAnimation;
+import noppes.npcs.constants.EnumCompanionJobs;
+import noppes.npcs.constants.EnumCompanionStage;
+import noppes.npcs.constants.EnumCompanionTalent;
+import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.roles.companion.CompanionFarmer;
+import noppes.npcs.roles.companion.CompanionFoodStats;
+import noppes.npcs.roles.companion.CompanionGuard;
+import noppes.npcs.roles.companion.CompanionJobInterface;
+import noppes.npcs.roles.companion.CompanionTrader;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
+import java.util.TreeMap;
+import java.util.UUID;
+
+public class RoleCompanion extends RoleInterface {
+    public NpcMiscInventory inventory;
+    public String uuid = "";
+    public String ownerName = "";
+    public Map<EnumCompanionTalent, Integer> talents = new TreeMap<EnumCompanionTalent, Integer>();
+
+    public boolean canAge = true;
+    public long ticksActive = 0;
+    public EnumCompanionStage stage = EnumCompanionStage.FULLGROWN;
+
+    public IPlayer owner = null;
+    public int companionID;
+
+    public EnumCompanionJobs job = EnumCompanionJobs.NONE;
+    public CompanionJobInterface jobInterface = null;
+
+    public boolean hasInv = true;
+    public boolean defendOwner = true;
+
+    public CompanionFoodStats foodstats = new CompanionFoodStats();
+    private int eatingTicks = 20;
+    private IItemStack eating = null;
+    private int eatingDelay = 00;
+
+    public int currentExp = 0;
+
+    public RoleCompanion(EntityNPCInterface npc) {
+        super(npc);
+        inventory = new NpcMiscInventory(12);
+    }
+
+    @Override
+    public boolean aiShouldExecute() {
+        IPlayer prev = owner;
+        owner = getOwner();
+        if (jobInterface != null && jobInterface.isSelfSufficient())
+            return true;
+
+        if (owner == null && !uuid.isEmpty()) {
+            npc.isDead = true;
+        } else if (prev != owner && owner != null) {
+            ownerName = owner.getDisplayName();
+            PlayerData data = PlayerData.get(owner);
+            if (data.companionID != companionID) {
+                npc.isDead = true;
+            }
+        }
+        return owner != null;
+    }
+
+    @Override
+    public void aiUpdateTask() {
+        if (owner != null && (jobInterface == null || !jobInterface.isSelfSufficient()))
+            foodstats.onUpdate(npc);
+        if (foodstats.getFoodLevel() >= 18) {
+            npc.stats.healthRegen = 0;
+            npc.stats.combatRegen = 0;
+        }
+        if (foodstats.needFood() && isSitting()) {
+            if (eatingDelay > 0) {
+                eatingDelay--;
+                return;
+            }
+
+            IItemStack prev = eating;
+            eating = getFood();
+
+            if (prev != null && eating == null)
+                npc.setRoleDataWatcher("");
+
+            if (prev == null && eating != null) {
+                npc.setRoleDataWatcher("eating");
+                eatingTicks = 20;
+            }
+
+            if (isEating()) {
+                doEating();
+            }
+
+        } else if (eating != null && !isSitting()) {
+            eating = null;
+            eatingDelay = 20;
+            npc.setRoleDataWatcher("");
+        }
+
+        ticksActive++;
+        if (canAge && stage != EnumCompanionStage.FULLGROWN) {
+            if (stage == EnumCompanionStage.BABY && ticksActive > EnumCompanionStage.CHILD.matureAge) {
+                matureTo(EnumCompanionStage.CHILD);
+            } else if (stage == EnumCompanionStage.CHILD && ticksActive > EnumCompanionStage.TEEN.matureAge) {
+                matureTo(EnumCompanionStage.TEEN);
+            } else if (stage == EnumCompanionStage.TEEN && ticksActive > EnumCompanionStage.ADULT.matureAge) {
+                matureTo(EnumCompanionStage.ADULT);
+            } else if (stage == EnumCompanionStage.ADULT && ticksActive > EnumCompanionStage.FULLGROWN.matureAge) {
+                matureTo(EnumCompanionStage.FULLGROWN);
+            }
+        }
+    }
+
+    public void clientUpdate() {
+        if (npc.getRoleDataWatcher().equals("eating")) {
+            eating = getFood();
+
+            if (isEating()) {
+                doEating();
+            }
+        } else if (eating != null) {
+            eating = null;
+        }
+
+    }
+
+    private void doEating() {
+        if (npc.worldObj.isRemote) {
+            Random rand = npc.getRNG();
+            for (int j = 0; j < 2; ++j) {
+                IVector3 IVector3 = IVector3.createVectorHelper(((double) rand.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D);
+                IVector3.rotateAroundX(-npc.rotationPitch * (float) Math.PI / 180.0F);
+                IVector3.rotateAroundY(-npc.renderYawOffset * (float) Math.PI / 180.0F);
+                IVector3 vec31 = IVector3.createVectorHelper(((double) rand.nextFloat() - 0.5D) * 0.3D, (double) (-rand.nextFloat()) * 0.6D - 0.3D, npc.width / 2 + 0.1);
+                vec31.rotateAroundX(-npc.rotationPitch * (float) Math.PI / 180.0F);
+                vec31.rotateAroundY(-npc.renderYawOffset * (float) Math.PI / 180.0F);
+                vec31 = vec31.addVector(npc.posX, npc.posY + (double) npc.height + 0.1, npc.posZ);
+                String s = "iconcrack_" + Item.getIdFromItem(eating.getItem());
+
+                if (eating.getHasSubtypes()) {
+                    s = s + "_" + eating.getItemDamage();
+                }
+
+                npc.worldObj.spawnParticle(s, vec31.xCoord, vec31.yCoord, vec31.zCoord, IVector3.xCoord, IVector3.yCoord + 0.0D, IVector3.zCoord);
+            }
+        } else {
+            eatingTicks--;
+
+            if (eatingTicks <= 0) {
+                if (inventory.decrStackSize(eating, 1)) {
+                    ItemFood food = (ItemFood) eating.getItem();
+                    foodstats.onFoodEaten(food, eating);
+                    npc.playSound("random.burp", 0.5F, npc.getRNG().nextFloat() * 0.1F + 0.9F);
+                }
+                eatingDelay = 20;
+                npc.setRoleDataWatcher("");
+                eating = null;
+            } else if (eatingTicks > 3 && eatingTicks % 2 == 0) {
+                Random rand = npc.getRNG();
+                npc.playSound("random.eat", 0.5F + 0.5F * rand.nextInt(2), (rand.nextFloat() - rand.nextFloat()) * 0.2F + 1.0F);
+            }
+        }
+    }
+
+    public void matureTo(EnumCompanionStage stage) {
+        this.stage = stage;
+        EntityCustomNpc npc = (EntityCustomNpc) this.npc;
+        npc.ais.animationType = stage.animation;
+        if (stage == EnumCompanionStage.BABY) {
+            npc.modelData.modelScale.arms.setScale(0.5f, 0.5f, 0.5f);
+            npc.modelData.modelScale.legs.setScale(0.5f, 0.5f, 0.5f);
+            npc.modelData.modelScale.body.setScale(0.5f, 0.5f, 0.5f);
+            npc.modelData.modelScale.head.setScale(0.7f, 0.7f, 0.7f);
+
+            npc.ais.onAttack = 1;
+            npc.ais.setWalkingSpeed(3);
+            if (!talents.containsKey(EnumCompanionTalent.INVENTORY))
+                talents.put(EnumCompanionTalent.INVENTORY, 0);
+        }
+        if (stage == EnumCompanionStage.CHILD) {
+            npc.modelData.modelScale.arms.setScale(0.6f, 0.6f, 0.6f);
+            npc.modelData.modelScale.legs.setScale(0.6f, 0.6f, 0.6f);
+            npc.modelData.modelScale.body.setScale(0.6f, 0.6f, 0.6f);
+            npc.modelData.modelScale.head.setScale(0.8f, 0.8f, 0.8f);
+
+            npc.ais.onAttack = 0;
+            npc.ais.setWalkingSpeed(4);
+            if (!talents.containsKey(EnumCompanionTalent.SWORD))
+                talents.put(EnumCompanionTalent.SWORD, 0);
+        }
+        if (stage == EnumCompanionStage.TEEN) {
+            npc.modelData.modelScale.arms.setScale(0.8f, 0.8f, 0.8f);
+            npc.modelData.modelScale.legs.setScale(0.8f, 0.8f, 0.8f);
+            npc.modelData.modelScale.body.setScale(0.8f, 0.8f, 0.8f);
+            npc.modelData.modelScale.head.setScale(0.9f, 0.9f, 0.9f);
+
+            npc.ais.onAttack = 0;
+            npc.ais.setWalkingSpeed(5);
+            if (!talents.containsKey(EnumCompanionTalent.ARMOR))
+                talents.put(EnumCompanionTalent.ARMOR, 0);
+        }
+        if (stage == EnumCompanionStage.ADULT || stage == EnumCompanionStage.FULLGROWN) {
+            npc.modelData.modelScale.arms.setScale(1f, 1f, 1f);
+            npc.modelData.modelScale.legs.setScale(1f, 1f, 1f);
+            npc.modelData.modelScale.body.setScale(1f, 1f, 1f);
+            npc.modelData.modelScale.head.setScale(1f, 1f, 1f);
+
+            npc.ais.onAttack = 0;
+            npc.ais.setWalkingSpeed(5);
+        }
+    }
+
+    @Override
+    public INbt writeToNBT(INbt compound) {
+        compound.setTag("CompanionInventory", inventory.getToNBT());
+        compound.setString("CompanionOwner", uuid);
+        compound.setString("CompanionOwnerName", ownerName);
+        compound.setInteger("CompanionID", companionID);
+
+        compound.setInteger("CompanionStage", stage.ordinal());
+        compound.setInteger("CompanionExp", currentExp);
+        compound.setBoolean("CompanionCanAge", canAge);
+        compound.setLong("CompanionAge", ticksActive);
+
+        compound.setBoolean("CompanionHasInv", hasInv);
+        compound.setBoolean("CompanionDefendOwner", defendOwner);
+
+        foodstats.writeNBT(compound);
+
+        compound.setInteger("CompanionJob", job.ordinal());
+        if (jobInterface != null)
+            compound.setTag("CompanionJobData", jobInterface.getNBT());
+
+        INbtList list = new INbtList();
+        for (EnumCompanionTalent talent : talents.keySet()) {
+            INbt c = new INbt();
+            c.setInteger("Talent", talent.ordinal());
+            c.setInteger("Exp", talents.get(talent));
+            list.appendTag(c);
+        }
+        compound.setTag("CompanionTalents", list);
+        return compound;
+    }
+
+    @Override
+    public void readFromNBT(INbt compound) {
+        inventory.setFromNBT(compound.getCompoundTag("CompanionInventory"));
+        uuid = compound.getString("CompanionOwner");
+        ownerName = compound.getString("CompanionOwnerName");
+        companionID = compound.getInteger("CompanionID");
+
+        stage = EnumCompanionStage.values()[compound.getInteger("CompanionStage")];
+        currentExp = compound.getInteger("CompanionExp");
+        canAge = compound.getBoolean("CompanionCanAge");
+        ticksActive = compound.getLong("CompanionAge");
+
+        hasInv = compound.getBoolean("CompanionHasInv");
+        defendOwner = compound.getBoolean("CompanionDefendOwner");
+
+        foodstats.readNBT(compound);
+
+        INbtList list = compound.getTagList("CompanionTalents", 10);
+        Map<EnumCompanionTalent, Integer> talents = new TreeMap<EnumCompanionTalent, Integer>();
+        for (int i = 0; i < list.tagCount(); i++) {
+            INbt c = list.getCompoundTagAt(i);
+            EnumCompanionTalent talent = EnumCompanionTalent.values()[c.getInteger("Talent")];
+            talents.put(talent, c.getInteger("Exp"));
+        }
+        this.talents = talents;
+
+        setJob(compound.getInteger("CompanionJob"));
+        if (jobInterface != null)
+            jobInterface.setNBT(compound.getCompoundTag("CompanionJobData"));
+        setStats();
+    }
+
+    private void setJob(int i) {
+        job = EnumCompanionJobs.values()[i];
+        if (job == EnumCompanionJobs.SHOP)
+            jobInterface = new CompanionTrader();
+        else if (job == EnumCompanionJobs.FARMER)
+            jobInterface = new CompanionFarmer();
+        else if (job == EnumCompanionJobs.GUARD)
+            jobInterface = new CompanionGuard();
+        else
+            jobInterface = null;
+
+        if (jobInterface != null)
+            jobInterface.npc = npc;
+    }
+
+    @Override
+    public void interact(IPlayer player) {
+        if (player != null && job == EnumCompanionJobs.SHOP)
+            ((CompanionTrader) jobInterface).interact(player);
+        if (player != owner || !npc.isEntityAlive() || npc.isAttacking())
+            return;
+        if (player.isSneaking()) {
+            openGui(player);
+        } else {
+            setSitting(!isSitting());
+        }
+    }
+
+    public int getTotalLevel() {
+        int level = 0;
+        for (EnumCompanionTalent talent : talents.keySet())
+            level += this.getTalentLevel(talent);
+        return level;
+    }
+
+    public int getMaxExp() {
+        return 500 + getTotalLevel() * 200;
+    }
+
+    public void addExp(int exp) {
+        if (canAddExp(exp))
+            this.currentExp += exp;
+    }
+
+    public boolean canAddExp(int exp) {
+        int newExp = this.currentExp + exp;
+        return newExp >= 0 && newExp < getMaxExp();
+    }
+
+    public void gainExp(int chance) {
+        if (npc.getRNG().nextInt(chance) == 0)
+            addExp(1);
+    }
+
+    private void openGui(IPlayer player) {
+        NoppesUtilServer.sendOpenGui(player, EnumGuiType.Companion, npc);
+    }
+
+    public IPlayer getOwner() {
+        if (uuid == null || uuid.isEmpty())
+            return null;
+        try {
+            UUID id = UUID.fromString(uuid);
+            if (id != null) {
+                return NoppesUtilServer.getPlayer(id);
+            }
+        } catch (IllegalArgumentException ex) {
+
+        }
+        return null;
+    }
+
+
+    public void setOwner(IPlayer player) {
+        uuid = player.getUniqueID().toString();
+    }
+
+
+    public boolean hasTalent(EnumCompanionTalent talent) {
+        return getTalentLevel(talent) > 0;
+    }
+
+    public int getTalentLevel(EnumCompanionTalent talent) {
+        if (!talents.containsKey(talent))
+            return 0;
+
+        int exp = talents.get(talent);
+        if (exp >= 5000)
+            return 5;
+        if (exp >= 3000)
+            return 4;
+        if (exp >= 1700)
+            return 3;
+        if (exp >= 1000)
+            return 2;
+        if (exp >= 400)
+            return 1;
+        return 0;
+    }
+
+    public Integer getNextLevel(EnumCompanionTalent talent) {
+        if (!talents.containsKey(talent))
+            return 0;
+        int exp = talents.get(talent);
+        if (exp < 400)
+            return 400;
+        if (exp < 1000)
+            return 700;
+        if (exp < 1700)
+            return 1700;
+        if (exp < 3000)
+            return 3000;
+        return 5000;
+    }
+
+    public void levelSword() {
+        if (!talents.containsKey(EnumCompanionTalent.SWORD))
+            return;
+    }
+
+    public void levelTalent(EnumCompanionTalent talent, int exp) {
+        if (!talents.containsKey(EnumCompanionTalent.SWORD))
+            return;
+        talents.put(talent, exp + talents.get(talent));
+    }
+
+    public int getExp(EnumCompanionTalent talent) {
+        if (talents.containsKey(talent))
+            return talents.get(talent);
+        return -1;
+    }
+
+    public void setExp(EnumCompanionTalent talent, int exp) {
+        talents.put(talent, exp);
+    }
+
+    private boolean isWeapon(IItemStack item) {
+        if (item == null || item.getItem() == null)
+            return false;
+        return item.getItem() instanceof ItemSword ||
+            item.getItem() instanceof ItemBow ||
+            item.getItem() == Item.getItemFromBlock(Blocks.cobblestone);
+    }
+
+    public boolean canWearWeapon(IItemStack item) {
+        if (item == null || item.getItem() == null)
+            return false;
+
+        if (item.getItem() instanceof ItemSword)
+            return canWearSword(item);
+
+        if (item.getItem() instanceof ItemBow)
+            return this.getTalentLevel(EnumCompanionTalent.RANGED) > 2;
+
+        if (item.getItem() == Item.getItemFromBlock(Blocks.cobblestone))
+            return this.getTalentLevel(EnumCompanionTalent.RANGED) > 1;
+
+        return false;
+    }
+
+    public boolean canWearArmor(IItemStack item) {
+        int level = getTalentLevel(EnumCompanionTalent.ARMOR);
+        if (item == null || !(item.getItem() instanceof ItemArmor) || level <= 0)
+            return false;
+
+        if (level >= 5)
+            return true;
+
+        ItemArmor armor = (ItemArmor) item.getItem();
+        int reduction = ObfuscationReflectionHelper.getPrivateValue(ArmorMaterial.class, armor.getArmorMaterial(), 5);
+        if (reduction <= 5 && level >= 1)
+            return true;
+        if (reduction <= 7 && level >= 2)
+            return true;
+        if (reduction <= 15 && level >= 3)
+            return true;
+        if (reduction <= 33 && level >= 4)
+            return true;
+        return false;
+    }
+
+    public boolean canWearSword(IItemStack item) {
+        int level = getTalentLevel(EnumCompanionTalent.SWORD);
+        if (item == null || !(item.getItem() instanceof ItemSword) || level <= 0)
+            return false;
+        if (level >= 5)
+            return true;
+        return getSwordDamage(item) - level < 4;
+    }
+
+    private double getSwordDamage(IItemStack item) {
+        if (item == null || !(item.getItem() instanceof ItemSword))
+            return 0;
+        HashMultimap map = (HashMultimap) item.getAttributeModifiers();
+        Iterator iterator = map.entries().iterator();
+        while (iterator.hasNext()) {
+            Entry entry = (Entry) iterator.next();
+            if (entry.getKey().equals(Attributes.ATTACK_DAMAGE.getAttributeUnlocalizedName())) {
+                AttributeModifier mod = (AttributeModifier) entry.getValue();
+                return mod.getAmount();
+            }
+        }
+        return 0;
+    }
+
+    public void setStats() {
+        IItemStack weapon = npc.inventory.getWeapon();
+        npc.stats.setAttackStrength((float) (1 + getSwordDamage(weapon)));
+        npc.stats.healthRegen = 0;
+        npc.stats.combatRegen = 0;
+        int ranged = getTalentLevel(EnumCompanionTalent.RANGED);
+        if (ranged > 0 && weapon != null) {
+            if (ranged > 0 && weapon.getItem() == Item.getItemFromBlock(Blocks.cobblestone)) {
+                npc.inventory.setProjectile(weapon);
+            }
+            if (ranged > 0 && weapon.getItem() instanceof ItemBow) {
+                npc.inventory.setProjectile(new IItemStack(Items.arrow));
+            }
+        }
+
+        inventory.setSize(2 + getTalentLevel(EnumCompanionTalent.INVENTORY) * 2);
+    }
+
+    public void setSelfsuficient(boolean bo) {
+        if (owner == null || jobInterface != null && bo == jobInterface.isSelfSufficient())
+            return;
+        PlayerData data = PlayerData.get(owner);
+        if (!bo && data.hasCompanion())
+            return;
+        data.setCompanion(bo ? null : npc);
+        if (job == EnumCompanionJobs.GUARD)
+            ((CompanionGuard) jobInterface).isStanding = bo;
+        else if (job == EnumCompanionJobs.FARMER)
+            ((CompanionFarmer) jobInterface).isStanding = bo;
+
+    }
+
+    public void setSitting(boolean sit) {
+        if (sit) {
+            npc.ais.animationType = EnumAnimation.SITTING;
+            npc.ais.onAttack = 3;
+            npc.ais.startPos = new int[]{ValueUtil.floorDouble(npc.posX),
+                ValueUtil.floorDouble(npc.posY), ValueUtil.floorDouble(npc.posZ)};
+            npc.getNavigator().clearPathEntity();
+            npc.setPositionAndUpdate(npc.ais.startPos[0] + 0.5, npc.posY, npc.ais.startPos[2] + 0.5);
+        } else {
+            npc.ais.animationType = stage.animation;
+            npc.ais.onAttack = 0;
+        }
+        npc.setResponse();
+    }
+
+    public boolean isSitting() {
+        return npc.ais.animationType == EnumAnimation.SITTING;
+    }
+
+    public float applyArmorCalculations(IDamageSource source, float damage) {
+        if (!hasInv || getTalentLevel(EnumCompanionTalent.ARMOR) <= 0)
+            return damage;
+        if (!source.isUnblockable()) {
+            damageArmor(damage);
+            int i = 25 - getTotalArmorValue();
+            float f1 = damage * (float) i;
+            damage = f1 / 25.0F;
+        }
+        return damage;
+    }
+
+    private void damageArmor(float damage) {
+        damage /= 4.0F;
+
+        if (damage < 1.0F) {
+            damage = 1.0F;
+        }
+        boolean hasArmor = false;
+        Iterator<Entry<Integer, IItemStack>> ita = npc.inventory.armor.entrySet().iterator();
+        while (ita.hasNext()) {
+            Entry<Integer, IItemStack> entry = ita.next();
+            IItemStack item = entry.getValue();
+            if (item == null || !(item.getItem() instanceof ItemArmor))
+                continue;
+            hasArmor = true;
+            item.damageItem((int) damage, npc);
+            if (item.stackSize <= 0)
+                ita.remove();
+        }
+        this.gainExp(hasArmor ? 4 : 8);
+    }
+
+    public int getTotalArmorValue() {
+        int armorValue = 0;
+        for (IItemStack armor : npc.inventory.getArmor().values()) {
+            if (armor != null && armor.getItem() instanceof ItemArmor)
+                armorValue += ((ItemArmor) armor.getItem()).damageReduceAmount;
+        }
+        return armorValue;
+    }
+
+    public boolean isFollowing() {
+        if (jobInterface != null && jobInterface.isSelfSufficient())
+            return false;
+        return owner != null && !isSitting();
+    }
+
+    @Override
+    public boolean defendOwner() {
+        if (!defendOwner || owner == null || stage == EnumCompanionStage.BABY || jobInterface != null && jobInterface.isSelfSufficient())
+            return false;
+        return true;
+    }
+
+    public int followRange() {
+        return 9 + 12 * stage.ordinal();
+
+    }
+
+    public boolean hasOwner() {
+        return !uuid.isEmpty();
+    }
+
+    public void addMovementStat(double x, double y, double z) {
+        int i = Math.round(Math.sqrt(x * x + y * y + z * z) * 100.0F);
+        if (npc.isAttacking())
+            foodstats.addExhaustion(0.04F * (float) i * 0.01F);
+        else
+            foodstats.addExhaustion(0.02F * (float) i * 0.01F);
+    }
+
+    private IItemStack getFood() {
+        List<IItemStack> food = new ArrayList<IItemStack>(inventory.items.values());
+        Iterator<IItemStack> ite = food.iterator();
+        int i = -1;
+        while (ite.hasNext()) {
+            IItemStack is = ite.next();
+            if (is == null || !(is.getItem() instanceof ItemFood)) {
+                ite.remove();
+                continue;
+            }
+            int amount = ((ItemFood) is.getItem()).func_150905_g(is);
+            if (i == -1 || amount < i)
+                i = amount;
+        }
+        for (IItemStack is : food) {
+            if (((ItemFood) is.getItem()).func_150905_g(is) == i)
+                return is;
+        }
+        return null;
+    }
+
+    public IItemStack getHeldItem() {
+        if (eating != null)
+            return eating;
+        return npc.inventory.getWeapon();
+    }
+
+    public boolean isEating() {
+        return eating != null;
+    }
+
+    public boolean hasInv() {
+        if (!hasInv)
+            return false;
+        return hasTalent(EnumCompanionTalent.INVENTORY) || hasTalent(EnumCompanionTalent.ARMOR) || hasTalent(EnumCompanionTalent.SWORD);
+    }
+
+    public void attackedEntity(IEntity IEntity) {
+        IItemStack weapon = npc.inventory.getWeapon();
+        gainExp(weapon == null ? 8 : 4);
+        if (weapon == null)
+            return;
+        weapon.damageItem(1, npc);
+        if (weapon.stackSize <= 0)
+            npc.inventory.setWeapon(null);
+    }
+
+    public void addTalentExp(EnumCompanionTalent talent, int exp) {
+        if (talents.containsKey(talent))
+            exp += talents.get(talent);
+        talents.put(talent, exp);
+    }
+}

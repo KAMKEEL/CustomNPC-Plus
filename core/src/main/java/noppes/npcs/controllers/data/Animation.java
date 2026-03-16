@@ -1,0 +1,410 @@
+package noppes.npcs.controllers.data;
+
+import noppes.npcs.constants.ClientOnly;
+import kamkeel.npcs.util.IVector3;
+import kamkeel.npcs.controllers.data.ability.preview.PreviewEntityHandler;
+import kamkeel.npcs.controllers.data.ability.gui.SubGuiAbilityConfig;
+import kamkeel.npcs.controllers.data.ability.gui.IAbilityConfigCallback;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.IChainedAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.gui.IAbilityFieldProvider;
+import noppes.npcs.entity.EntityNPCInterface;
+import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.EventHooks;
+import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.api.handler.data.IAnimationData;
+import noppes.npcs.api.handler.data.IFrame;
+import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.controllers.AnimationController;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+public class Animation implements IAnimation {
+    public AnimationData parent; //Client-sided only
+    public int id = -1; // Only for internal usage
+
+    public ArrayList<Frame> frames = new ArrayList<>();
+    public int currentFrame = 0;
+    public int currentFrameTime = 0;
+
+    public String name = "";
+    public float speed = 1.0F;
+    public byte smooth = 0;
+    public int loop = -1; //If greater than 0 and less than the amount of frames, the animation will begin looping when it reaches this frame.
+
+    public boolean whileStanding = true;
+    public boolean whileAttacking = true;
+    public boolean whileMoving = true;
+
+    //Client-sided
+    public boolean paused;
+
+    protected final Map<String, Object> dataStore = new HashMap<>();
+
+    public Consumer<IAnimation> onAnimationStart;
+    public BiConsumer<Integer, IAnimation> onAnimationFrame;
+    public Consumer<IAnimation> onAnimationEnd;
+
+    public Animation() {
+    }
+
+    public Animation(int id, String name) {
+        this.name = name;
+        this.id = id;
+    }
+
+    public Animation(int id, String name, float speed, byte smooth) {
+        this.name = name;
+        this.speed = speed;
+        this.smooth = smooth;
+
+        this.id = id;
+    }
+
+    public IAnimationData getParent() {
+        return this.parent;
+    }
+
+    public IFrame currentFrame() {
+        return currentFrame < frames.size() ? frames.get(currentFrame) : null;
+    }
+
+    public IFrame[] getFrames() {
+        return frames.toArray(new Frame[0]);
+    }
+
+    public IAnimation setFrames(IFrame[] frames) {
+        this.clearFrames();
+        for (IFrame frame : frames) {
+            this.frames.add((Frame) frame);
+        }
+        return this;
+    }
+
+    public IAnimation clearFrames() {
+        this.frames.clear();
+        return this;
+    }
+
+    public IAnimation addFrame(IFrame frame) {
+        this.frames.add((Frame) frame);
+        return this;
+    }
+
+    public IAnimation addFrame(int index, IFrame frame) {
+        this.frames.add(index, (Frame) frame);
+        return this;
+    }
+
+    public IAnimation removeFrame(IFrame frame) {
+        this.frames.remove((Frame) frame);
+        return this;
+    }
+
+    public IAnimation setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public IAnimation setSpeed(float speed) {
+        this.speed = speed;
+        return this;
+    }
+
+    public float getSpeed() {
+        return this.speed;
+    }
+
+    public IAnimation setSmooth(byte smooth) {
+        this.smooth = smooth;
+        return this;
+    }
+
+    public byte isSmooth() {
+        return this.smooth;
+    }
+
+    public IAnimation doWhileStanding(boolean whileStanding) {
+        this.whileStanding = whileStanding;
+        return this;
+    }
+
+    public boolean doWhileStanding() {
+        return this.whileStanding;
+    }
+
+    public IAnimation doWhileMoving(boolean whileMoving) {
+        this.whileMoving = whileMoving;
+        return this;
+    }
+
+    public boolean doWhileMoving() {
+        return this.whileMoving;
+    }
+
+    public IAnimation doWhileAttacking(boolean whileAttacking) {
+        this.whileAttacking = whileAttacking;
+        return this;
+    }
+
+    public boolean doWhileAttacking() {
+        return this.whileAttacking;
+    }
+
+    public IAnimation setLoop(int loopAtFrame) {
+        this.loop = loopAtFrame;
+        return this;
+    }
+
+    public int loop() {
+        return this.loop;
+    }
+
+    public IAnimation save() {
+        return AnimationController.Instance.saveAnimation(this);
+    }
+
+    @Override
+    public int getID() {
+        return id;
+    }
+
+    @Override
+    public void setID(int newID) {
+        id = newID;
+    }
+
+    public long getTotalTime() {
+        long time = 0;
+        for (Frame frame : this.frames) {
+            time += frame.duration;
+        }
+        return time;
+    }
+
+    @Override
+    public boolean hasData(String key) {
+        return dataStore.containsKey(key);
+    }
+
+    @Override
+    public Object getData(String key) {
+        return dataStore.get(key);
+    }
+
+    @Override
+    public IAnimation setData(String key, Object v) {
+        dataStore.put(key, v);
+        return this;
+    }
+
+    @Override
+    public IAnimation removeData(String key) {
+        dataStore.remove(key);
+        return this;
+    }
+
+    public void readFromNBT(INbt compound) {
+        if (compound.hasKey("ID")) {
+            id = compound.getInteger("ID");
+        } else if (AnimationController.Instance != null) {
+            id = AnimationController.Instance.getUnusedId();
+        }
+
+        name = compound.getString("Name");
+        speed = compound.getFloat("Speed");
+        smooth = compound.getByte("Smooth");
+        loop = compound.getInteger("Loop");
+
+        ArrayList<Frame> frames = new ArrayList<Frame>();
+        INbtList list = compound.getTagList("Frames", 10);
+        for (int i = 0; i < list.tagCount(); i++) {
+            INbt item = list.getCompoundTagAt(i);
+            Frame frame = new Frame();
+            frame.parentSpeed = this.speed;
+            frame.parentSmooth = this.smooth;
+            frame.readFromNBT(new NBTWrapper(item));
+            frames.add(frame);
+        }
+        this.frames = frames;
+
+        this.whileStanding = compound.getBoolean("WhileStanding");
+        this.whileMoving = compound.getBoolean("WhileWalking");
+        this.whileAttacking = compound.getBoolean("WhileAttacking");
+
+        this.currentFrame = compound.getInteger("CurrentFrame");
+        this.currentFrameTime = compound.getInteger("CurrentFrameTime");
+    }
+
+    public INbt writeToNBT() {
+        INbt compound = new INbt();
+        compound.setInteger("ID", id);
+        compound.setString("Name", name);
+        compound.setFloat("Speed", speed);
+        compound.setByte("Smooth", smooth);
+        compound.setInteger("Loop", loop);
+
+        INbtList list = new INbtList();
+        for (Frame frame : frames) {
+            INbt item = ((NBTWrapper) frame.writeToNBT()).getMCTag();
+            list.appendTag(item);
+        }
+        compound.setTag("Frames", list);
+
+        compound.setBoolean("WhileStanding", whileStanding);
+        compound.setBoolean("WhileWalking", whileMoving);
+        compound.setBoolean("WhileAttacking", whileAttacking);
+
+        compound.setInteger("CurrentFrame", currentFrame);
+        compound.setInteger("CurrentFrameTime", currentFrameTime);
+        return compound;
+    }
+
+    public boolean increaseTime() {
+        if (paused)
+            return false;
+
+        if (this.parent != null && this.currentFrame < this.frames.size()) {
+            this.parent.finishedFrame = this.currentFrame;
+        }
+
+        this.currentFrameTime++;
+        if (this.currentFrame() != null && this.currentFrameTime == this.currentFrame().getDuration()) {
+            EventHooks.onAnimationFrameExited(this, this.currentFrame());
+
+            Frame prevFrame = (Frame) this.currentFrame();
+            Frame nextFrame = null;
+            this.currentFrameTime = 0;
+            this.currentFrame++;
+            if (this.currentFrame < this.frames.size()) {
+                nextFrame = this.frames.get(this.currentFrame);
+            } else if (this.loop >= 0 && this.loop < this.frames.size()) {
+                this.currentFrame = this.loop;
+            }
+
+            if (this.currentFrame() != null) {
+                EventHooks.onAnimationFrameEntered(this, this.currentFrame());
+                fireFrameTask(this.currentFrame);
+            } else {
+                EventHooks.onAnimationEnded(this);
+                fireEndTask();
+            }
+
+            if (nextFrame != null) {
+                for (EnumAnimationPart part : EnumAnimationPart.values()) {
+                    if (prevFrame.frameParts.containsKey(part) && nextFrame.frameParts.containsKey(part)) {
+                        nextFrame.frameParts.get(part).prevRotations = prevFrame.frameParts.get(part).prevRotations;
+                        nextFrame.frameParts.get(part).prevPivots = prevFrame.frameParts.get(part).prevPivots;
+                    }
+                }
+            } else if (this.parent != null && this.currentFrame > this.loop) {
+                this.parent.finishedTime = this.parent.getMCEntity().getAge();
+            }
+        }
+
+        return true;
+    }
+
+    @ClientOnly
+    public void jumpToCurrentFrame() {
+        this.jumpToFrameAtTime(this.currentFrame, 0);
+    }
+
+    @ClientOnly
+    public void jumpToFrameAtTime(int frameIndex, int time) {
+        this.currentFrame = frameIndex;
+        this.currentFrameTime = time;
+
+        Frame frame = (Frame) this.currentFrame();
+        if (frame != null) {
+            for (EnumAnimationPart part : EnumAnimationPart.values()) {
+                if (part != null) {
+                    if (frame.frameParts.containsKey(part)) {
+                        frame.frameParts.get(part).jumpToCurrentFrame();
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public IAnimation onStart(Consumer<IAnimation> task) {
+        this.onAnimationStart = task;
+        return this;
+    }
+
+    @Override
+    public IAnimation onFrame(BiConsumer<Integer, IAnimation> task) {
+        this.onAnimationFrame = task;
+        return this;
+    }
+
+    @Override
+    public IAnimation onEnd(Consumer<IAnimation> task) {
+        this.onAnimationEnd = task;
+        return this;
+    }
+
+    protected void fireStartTask() {
+        if (this.onAnimationStart != null) {
+            this.onAnimationStart.accept(this);
+        }
+    }
+
+    protected void fireFrameTask(int frame) {
+        if (this.onAnimationFrame != null) {
+            this.onAnimationFrame.accept(frame, this);
+        }
+    }
+
+    protected void fireEndTask() {
+        if (this.onAnimationEnd != null) {
+            this.onAnimationEnd.accept(this);
+        }
+    }
+
+    /**
+     * Only called on setAnimation, to transfer tasks from
+     * this global instance stored in AnimationController
+     * to the new local instance on IEntity's AnimationData,
+     * and clear them from the global instance.
+     */
+    public void moveFromGlobalToLocal(Animation animation) {
+        this.onAnimationStart = animation.onAnimationStart;
+        this.onAnimationFrame = animation.onAnimationFrame;
+        this.onAnimationEnd = animation.onAnimationEnd;
+
+        animation.onAnimationEnd = null;
+        animation.onAnimationFrame = null;
+        animation.onAnimationStart = null;
+
+        this.dataStore.putAll(animation.dataStore);
+        animation.dataStore.clear();
+    }
+
+
+}

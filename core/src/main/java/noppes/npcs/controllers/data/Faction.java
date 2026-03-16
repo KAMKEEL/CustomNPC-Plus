@@ -1,16 +1,22 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.NBTTags;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
-import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.handler.IPlayerFactionData;
-import noppes.npcs.api.handler.data.IFaction;
-import noppes.npcs.controllers.FactionController;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.IFaction;
+import noppes.npcs.api.handler.IPlayerFactionData;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.controllers.FactionController;
+import noppes.npcs.NBTTags;
 
 public class Faction {
     public String name = "";
@@ -78,15 +84,15 @@ public class Faction {
     }
 
     // TODO: mc1710 version implements IFaction and adds:
-    // OLD: public boolean isFriendlyToPlayer(EntityPlayer player) — uses PlayerData.get(player).factionData
-    // OLD: public boolean isAggressiveToPlayer(EntityPlayer player) — uses PlayerData.get(player).factionData
-    // OLD: public boolean isNeutralToPlayer(EntityPlayer player) — uses PlayerData.get(player).factionData
-    // OLD: public boolean isAggressiveToNpc(EntityNPCInterface entity) — uses entity.faction.id
+    // OLD: public boolean isFriendlyToPlayer(IPlayer player) — uses PlayerData.get(player).factionData
+    // OLD: public boolean isAggressiveToPlayer(IPlayer player) — uses PlayerData.get(player).factionData
+    // OLD: public boolean isNeutralToPlayer(IPlayer player) — uses PlayerData.get(player).factionData
+    // OLD: public boolean isAggressiveToNpc(IEntityNPCInterface IEntity) — uses IEntity.faction.id
     // OLD: public int playerStatus(IPlayer player) — uses IPlayerFactionData
     // OLD: public boolean isAggressiveToNpc(ICustomNpc npc) — uses npc.getFaction().getId()
-    // OLD: public boolean isFriendlyToPlayer(IPlayer player) — delegates to EntityPlayer overload
-    // OLD: public boolean isNeutralToPlayer(IPlayer player) — delegates to EntityPlayer overload
-    // OLD: public boolean isAggressiveToPlayer(IPlayer player) — delegates to EntityPlayer overload
+    // OLD: public boolean isFriendlyToPlayer(IPlayer player) — delegates to IPlayer overload
+    // OLD: public boolean isNeutralToPlayer(IPlayer player) — delegates to IPlayer overload
+    // OLD: public boolean isAggressiveToPlayer(IPlayer player) — delegates to IPlayer overload
     public int getId() {
         return this.id;
     }

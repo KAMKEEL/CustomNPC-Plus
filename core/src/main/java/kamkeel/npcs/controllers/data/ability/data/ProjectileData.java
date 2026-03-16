@@ -1,9 +1,18 @@
 package kamkeel.npcs.controllers.data.ability.data;
 
-import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
+
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyAnchorData;
 import kamkeel.npcs.controllers.data.ability.data.energy.EnergyDisplayData;
+import kamkeel.npcs.controllers.data.ability.enums.AnchorPoint;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
 
 /**
  * Per-projectile data: anchor point + optional color override.
@@ -26,7 +35,7 @@ public class ProjectileData {
      * If colorOverride is true, returns a copy with overridden inner/outer colors.
      */
     public EnergyDisplayData resolveDisplay(EnergyDisplayData primary) {
-        // Always return a copy so entity mutations never bleed back into the ability template.
+        // Always return a copy so IEntity mutations never bleed back into the ability template.
         EnergyDisplayData resolved = primary.copy();
         if (colorOverride) {
             resolved.innerColor = this.innerColor;

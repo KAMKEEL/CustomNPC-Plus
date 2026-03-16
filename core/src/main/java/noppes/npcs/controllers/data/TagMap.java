@@ -1,8 +1,5 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
-import noppes.npcs.core.NBT;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,6 +7,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.core.NBT;
 
 public class TagMap {
     public int cloneTab;
@@ -33,13 +40,13 @@ public class TagMap {
         INbtList list = compound.getTagList("TagMap", 10);
         if (list != null) {
             for (int i = 0; i < list.size(); i++) {
-                INbt nbttagcompound = list.getCompound(i);
-                String cloneName = nbttagcompound.getString("Clone");
+                INbt INbt = list.getCompound(i);
+                String cloneName = INbt.getString("Clone");
 
                 HashSet<UUID> uuids = new HashSet<UUID>();
-                INbtList nbtTagList = nbttagcompound.getTagList("TagUUIDs", 8);
-                for (int j = 0; j < nbtTagList.size(); j++) {
-                    String uuid = nbtTagList.getString(j);
+                INbtList INbtList = INbt.getTagList("TagUUIDs", 8);
+                for (int j = 0; j < INbtList.size(); j++) {
+                    String uuid = INbtList.getString(j);
                     if (!uuid.isEmpty()) {
                         uuids.add(UUID.fromString(uuid));
                     }
@@ -57,11 +64,11 @@ public class TagMap {
             if (uuidSet.size() > 0) {
                 INbt cloneCompound = NBT.compound();
                 cloneCompound.setString("Clone", key);
-                INbtList nbtTagList = NBT.list();
+                INbtList INbtList = NBT.list();
                 for (UUID uuid : uuidSet) {
-                    nbtTagList.addString(uuid.toString());
+                    INbtList.addString(uuid.toString());
                 }
-                cloneCompound.setTagList("TagUUIDs", nbtTagList);
+                cloneCompound.setTagList("TagUUIDs", INbtList);
                 cloneList.addCompound(cloneCompound);
             }
         }

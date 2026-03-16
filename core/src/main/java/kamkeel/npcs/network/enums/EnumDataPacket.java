@@ -1,5 +1,16 @@
 package kamkeel.npcs.network.enums;
 
+
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+
 // Packets to the Client
 public enum EnumDataPacket {
     // Synchronization
@@ -14,7 +25,6 @@ public enum EnumDataPacket {
     SOUND,
     DIALOG,
     QUEST_COMPLETION,
-
 
     // NPC
     EDIT_NPC,
@@ -77,8 +87,8 @@ public enum EnumDataPacket {
     ENERGY_CHARGE_SPAWN,
     ENERGY_CHARGE_REMOVE,
 
-    // Energy Explosion Preview
-    ENERGY_EXPLOSION_SPAWN,
+    // Energy IExplosion Preview
+    ENERGY_IExplosion_SPAWN,
 
     // Energy Projectile Reflection Sync
     PROJECTILE_REFLECT,

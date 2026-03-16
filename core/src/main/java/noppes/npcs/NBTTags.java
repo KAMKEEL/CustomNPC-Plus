@@ -1,8 +1,5 @@
 package noppes.npcs;
 
-import noppes.npcs.core.NBT;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,12 +9,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.core.NBT;
 
 /**
  * Core NBT serialization utilities for Map/Set/List collections.
  * Uses INbt/INbtList abstractions.
  *
- * NOTE: ItemStack-related methods, IScriptUnit methods, and raw NBT type methods
+ * NOTE: IItemStack-related methods, IScriptUnit methods, and raw NBT type methods
  * (nbtDoubleList, getIntAt) remain in the mc1710 version only since they require
  * direct MC types.
  */
@@ -36,11 +43,11 @@ public class NBTTags {
     public static int TAG_Compound = 10;
     public static int TAG_Int_Array = 11;
 
-    // TODO: ItemStack methods stay in mc1710 version:
-    // OLD: getItemStackList(NBTTagList) - uses NoppesUtilServer.readItem()
-    // OLD: getItemStackArray(NBTTagList) - uses NoppesUtilServer.readItem()
-    // OLD: nbtItemStackList(HashMap<Integer, ItemStack>) - uses NoppesUtilServer.writeItem()
-    // OLD: nbtItemStackArray(ItemStack[]) - uses NoppesUtilServer.writeItem()
+    // TODO: IItemStack methods stay in mc1710 version:
+    // OLD: getIItemStackList(INbtList) - uses NoppesUtilServer.readItem()
+    // OLD: getIItemStackArray(INbtList) - uses NoppesUtilServer.readItem()
+    // OLD: nbtIItemStackList(HashMap<Integer, IItemStack>) - uses NoppesUtilServer.writeItem()
+    // OLD: nbtIItemStackArray(IItemStack[]) - uses NoppesUtilServer.writeItem()
 
     public static ArrayList<int[]> getIntegerArraySet(INbtList tagList) {
         ArrayList<int[]> set = new ArrayList<int[]>();
@@ -54,8 +61,8 @@ public class NBTTags {
     public static HashMap<Integer, Boolean> getBooleanList(INbtList tagList) {
         HashMap<Integer, Boolean> list = new HashMap<Integer, Boolean>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getInteger("Slot"), nbttagcompound.getBoolean("Boolean"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getInteger("Slot"), INbt.getBoolean("Boolean"));
         }
         return list;
     }
@@ -63,8 +70,8 @@ public class NBTTags {
     public static HashMap<Integer, Integer> getIntegerIntegerMap(INbtList tagList) {
         HashMap<Integer, Integer> list = new HashMap<Integer, Integer>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getInteger("Slot"), nbttagcompound.getInteger("Integer"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getInteger("Slot"), INbt.getInteger("Integer"));
         }
         return list;
     }
@@ -72,8 +79,8 @@ public class NBTTags {
     public static HashMap<Integer, Float> getIntegerFloatMap(INbtList tagList) {
         HashMap<Integer, Float> list = new HashMap<Integer, Float>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getInteger("Slot"), nbttagcompound.getFloat("Float"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getInteger("Slot"), INbt.getFloat("Float"));
         }
         return list;
     }
@@ -81,8 +88,8 @@ public class NBTTags {
     public static HashMap<Integer, Double> getIntegerDoubleMap(INbtList tagList) {
         HashMap<Integer, Double> list = new HashMap<Integer, Double>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getInteger("Slot"), nbttagcompound.getDouble("Double"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getInteger("Slot"), INbt.getDouble("Double"));
         }
         return list;
     }
@@ -90,8 +97,8 @@ public class NBTTags {
     public static HashMap<Integer, Long> getIntegerLongMap(INbtList tagList) {
         HashMap<Integer, Long> list = new HashMap<Integer, Long>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getInteger("Slot"), nbttagcompound.getLong("Long"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getInteger("Slot"), INbt.getLong("Long"));
         }
         return list;
     }
@@ -99,8 +106,8 @@ public class NBTTags {
     public static HashSet<String> getStringSet(INbtList tagList) {
         HashSet<String> list = new HashSet<>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.add(nbttagcompound.getString("String"));
+            INbt INbt = tagList.getCompound(i);
+            list.add(INbt.getString("String"));
         }
         return list;
     }
@@ -108,63 +115,63 @@ public class NBTTags {
     public static HashMap<Integer, Byte> getIntegerByteMap(INbtList tagList) {
         HashMap<Integer, Byte> list = new HashMap<Integer, Byte>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getInteger("Slot"), nbttagcompound.getByte("Byte"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getInteger("Slot"), INbt.getByte("Byte"));
         }
         return list;
     }
 
     public static INbtList nbtIntegerByteMap(Map<Integer, Byte> lines) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (lines == null)
-            return nbttaglist;
+            return INbtList;
         for (int slot : lines.keySet()) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setInteger("Slot", slot);
-            nbttagcompound.setByte("Byte", lines.get(slot));
-            nbttaglist.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setInteger("Slot", slot);
+            INbt.setByte("Byte", lines.get(slot));
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtStringSet(HashSet<String> collection) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (collection == null)
-            return nbttaglist;
+            return INbtList;
         for (String slot : collection) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setString("String", slot);
-            nbttaglist.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setString("String", slot);
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static HashSet<Integer> getIntegerSet(INbtList tagList) {
         HashSet<Integer> list = new HashSet<Integer>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.add(nbttagcompound.getInteger("Integer"));
+            INbt INbt = tagList.getCompound(i);
+            list.add(INbt.getInteger("Integer"));
         }
         return list;
     }
 
     public static INbtList nbtIntegerSet(HashSet<Integer> set) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (set == null)
-            return nbttaglist;
+            return INbtList;
         for (int slot : set) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setInteger("Integer", slot);
-            nbttaglist.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setInteger("Integer", slot);
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static HashMap<String, String> getStringStringMap(INbtList tagList) {
         HashMap<String, String> list = new HashMap<String, String>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getString("Slot"), nbttagcompound.getString("Value"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getString("Slot"), INbt.getString("Value"));
         }
         return list;
     }
@@ -172,8 +179,8 @@ public class NBTTags {
     public static HashMap<Integer, String> getIntegerStringMap(INbtList tagList) {
         HashMap<Integer, String> list = new HashMap<Integer, String>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getInteger("Slot"), nbttagcompound.getString("Value"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getInteger("Slot"), INbt.getString("Value"));
         }
         return list;
     }
@@ -181,8 +188,8 @@ public class NBTTags {
     public static HashMap<String, Integer> getStringIntegerMap(INbtList tagList) {
         HashMap<String, Integer> list = new HashMap<String, Integer>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getString("Slot"), nbttagcompound.getInteger("Value"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getString("Slot"), INbt.getInteger("Value"));
         }
         return list;
     }
@@ -190,8 +197,8 @@ public class NBTTags {
     public static HashMap<String, int[]> getStringIntegerArrayMap(INbtList tagList) {
         HashMap<String, int[]> list = new HashMap<String, int[]>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getString("Slot"), nbttagcompound.getIntArray("Value"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getString("Slot"), INbt.getIntArray("Value"));
         }
         return list;
     }
@@ -199,10 +206,10 @@ public class NBTTags {
     public static HashMap<String, int[]> getStringIntegerArrayMap(INbtList tagList, int arrayLength) {
         HashMap<String, int[]> list = new HashMap<String, int[]>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            int[] a = nbttagcompound.getIntArray("Value");
+            INbt INbt = tagList.getCompound(i);
+            int[] a = INbt.getIntArray("Value");
             if (a.length != arrayLength) a = new int[arrayLength];
-            list.put(nbttagcompound.getString("Slot"), a);
+            list.put(INbt.getString("Slot"), a);
         }
         return list;
     }
@@ -211,24 +218,23 @@ public class NBTTags {
         HashMap<String, Vector<String>> map = new HashMap<String, Vector<String>>();
         for (int i = 0; i < tagList.size(); i++) {
             Vector<String> values = new Vector<String>();
-            INbt nbttagcompound = tagList.getCompound(i);
-            INbtList list = nbttagcompound.getTagList("Values", 10);
+            INbt INbt = tagList.getCompound(i);
+            INbtList list = INbt.getTagList("Values", 10);
             for (int j = 0; j < list.size(); j++) {
                 INbt value = list.getCompound(j);
                 values.add(value.getString("Value"));
             }
 
-            map.put(nbttagcompound.getString("Key"), values);
+            map.put(INbt.getString("Key"), values);
         }
         return map;
     }
 
-
     public static List<String> getStringList(INbtList tagList) {
         List<String> list = new ArrayList<String>();
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            String line = nbttagcompound.getString("Line");
+            INbt INbt = tagList.getCompound(i);
+            String line = INbt.getString("Line");
             list.add(line);
         }
         return list;
@@ -237,91 +243,91 @@ public class NBTTags {
     public static String[] getStringArray(INbtList tagList, int size) {
         String[] arr = new String[size];
         for (int i = 0; i < tagList.size(); i++) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            String line = nbttagcompound.getString("Value");
-            int slot = nbttagcompound.getInteger("Slot");
+            INbt INbt = tagList.getCompound(i);
+            String line = INbt.getString("Value");
+            int slot = INbt.getInteger("Slot");
             arr[slot] = line;
         }
         return arr;
     }
 
     public static INbtList nbtIntegerArraySet(List<int[]> set) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (set == null)
-            return nbttaglist;
+            return INbtList;
         for (int[] arr : set) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setIntArray("Array", arr);
-            nbttaglist.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setIntArray("Array", arr);
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtBooleanList(HashMap<Integer, Boolean> updatedSlots) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (updatedSlots == null)
-            return nbttaglist;
+            return INbtList;
         HashMap<Integer, Boolean> inventory2 = updatedSlots;
         for (Integer slot : inventory2.keySet()) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setInteger("Slot", slot);
-            nbttagcompound.setBoolean("Boolean", inventory2.get(slot));
+            INbt INbt = NBT.compound();
+            INbt.setInteger("Slot", slot);
+            INbt.setBoolean("Boolean", inventory2.get(slot));
 
-            nbttaglist.addCompound(nbttagcompound);
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtIntegerIntegerMap(Map<Integer, Integer> lines) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (lines == null)
-            return nbttaglist;
+            return INbtList;
         for (int slot : lines.keySet()) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setInteger("Slot", slot);
-            nbttagcompound.setInteger("Integer", lines.get(slot));
-            nbttaglist.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setInteger("Slot", slot);
+            INbt.setInteger("Integer", lines.get(slot));
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtIntegerFloatMap(Map<Integer, Float> lines) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (lines == null)
-            return nbttaglist;
+            return INbtList;
         for (int slot : lines.keySet()) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setInteger("Slot", slot);
-            nbttagcompound.setDouble("Float", lines.get(slot));
-            nbttaglist.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setInteger("Slot", slot);
+            INbt.setDouble("Float", lines.get(slot));
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtIntegerDoubleMap(Map<Integer, Double> lines) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (lines == null)
-            return nbttaglist;
+            return INbtList;
         for (int slot : lines.keySet()) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setInteger("Slot", slot);
-            nbttagcompound.setDouble("Double", lines.get(slot));
-            nbttaglist.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setInteger("Slot", slot);
+            INbt.setDouble("Double", lines.get(slot));
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtIntegerLongMap(Map<Integer, Long> lines) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (lines == null)
-            return nbttaglist;
+            return INbtList;
         for (int slot : lines.keySet()) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setInteger("Slot", slot);
-            nbttagcompound.setLong("Long", lines.get(slot));
-            nbttaglist.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setInteger("Slot", slot);
+            INbt.setLong("Long", lines.get(slot));
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtVectorMap(Map<String, Vector<String>> map) {
@@ -344,88 +350,88 @@ public class NBTTags {
     }
 
     public static INbtList nbtStringStringMap(Map<String, String> map) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (map == null)
-            return nbttaglist;
+            return INbtList;
         for (String slot : map.keySet()) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setString("Slot", slot);
-            nbttagcompound.setString("Value", map.get(slot));
+            INbt INbt = NBT.compound();
+            INbt.setString("Slot", slot);
+            INbt.setString("Value", map.get(slot));
 
-            nbttaglist.addCompound(nbttagcompound);
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtStringIntegerMap(Map<String, Integer> map) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (map == null)
-            return nbttaglist;
+            return INbtList;
         for (String slot : map.keySet()) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setString("Slot", slot);
-            nbttagcompound.setInteger("Value", map.get(slot));
+            INbt INbt = NBT.compound();
+            INbt.setString("Slot", slot);
+            INbt.setInteger("Value", map.get(slot));
 
-            nbttaglist.addCompound(nbttagcompound);
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtStringIntegerArrayMap(Map<String, int[]> map) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (map == null)
-            return nbttaglist;
+            return INbtList;
         for (String slot : map.keySet()) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setString("Slot", slot);
-            nbttagcompound.setIntArray("Value", map.get(slot));
+            INbt INbt = NBT.compound();
+            INbt.setString("Slot", slot);
+            INbt.setIntArray("Value", map.get(slot));
 
-            nbttaglist.addCompound(nbttagcompound);
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtIntegerStringMap(HashMap<Integer, String> map) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (map == null)
-            return nbttaglist;
+            return INbtList;
         for (int slot : map.keySet()) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setInteger("Slot", slot);
-            nbttagcompound.setString("Value", map.get(slot));
+            INbt INbt = NBT.compound();
+            INbt.setInteger("Slot", slot);
+            INbt.setString("Value", map.get(slot));
 
-            nbttaglist.addCompound(nbttagcompound);
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtStringArray(String[] list) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (list == null)
-            return nbttaglist;
+            return INbtList;
         for (int i = 0; i < list.length; i++) {
             if (list[i] == null)
                 continue;
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setString("Value", list[i]);
-            nbttagcompound.setInteger("Slot", i);
-            nbttaglist.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setString("Value", list[i]);
+            INbt.setInteger("Slot", i);
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     public static INbtList nbtStringList(List<String> list) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         for (String s : list) {
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setString("Line", s);
-            nbttaglist.addCompound(nbttagcompound);
+            INbt INbt = NBT.compound();
+            INbt.setString("Line", s);
+            INbtList.addCompound(INbt);
         }
-        return nbttaglist;
+        return INbtList;
     }
 
     // TODO: nbtDoubleList stays in mc1710 version - uses NBTTagDouble directly
-    // OLD: public static NBTTagList nbtDoubleList(double... par1ArrayOfDouble)
+    // OLD: public static INbtList nbtDoubleList(double... par1ArrayOfDouble)
 
     public static INbt NBTMerge(INbt data, INbt merge) {
         INbt compound = data.copy();
@@ -489,34 +495,34 @@ public class NBTTags {
         TreeMap<Long, String> list = new TreeMap<>();
 
         for (int i = 0; i < tagList.size(); ++i) {
-            INbt nbttagcompound = tagList.getCompound(i);
-            list.put(nbttagcompound.getLong("Long"), nbttagcompound.getString("String"));
+            INbt INbt = tagList.getCompound(i);
+            list.put(INbt.getLong("Long"), INbt.getString("String"));
         }
 
         return list;
     }
 
     public static INbtList NBTLongStringMap(Map<Long, String> map) {
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         if (map == null) {
-            return nbttaglist;
+            return INbtList;
         } else {
             for (long slot : map.keySet()) {
-                INbt nbttagcompound = NBT.compound();
-                nbttagcompound.setLong("Long", slot);
-                nbttagcompound.setString("String", map.get(slot));
-                nbttaglist.addCompound(nbttagcompound);
+                INbt INbt = NBT.compound();
+                INbt.setLong("Long", slot);
+                INbt.setString("String", map.get(slot));
+                INbtList.addCompound(INbt);
             }
 
-            return nbttaglist;
+            return INbtList;
         }
     }
 
-    // TODO: Script methods stay in mc1710 version - use IScriptHandler/IScriptUnit/NBTTagCompound directly
-    // OLD: public static List<IScriptUnit> GetScriptOld(NBTTagList list, IScriptHandler handler)
-    // OLD: public static List<IScriptUnit> GetScript(NBTTagCompound compound, IScriptHandler handler)
-    // OLD: public static NBTTagList NBTScript(List<IScriptUnit> scripts)
+    // TODO: Script methods stay in mc1710 version - use IScriptHandler/IScriptUnit/INbt directly
+    // OLD: public static List<IScriptUnit> GetScriptOld(INbtList list, IScriptHandler handler)
+    // OLD: public static List<IScriptUnit> GetScript(INbt compound, IScriptHandler handler)
+    // OLD: public static INbtList NBTScript(List<IScriptUnit> scripts)
 
     // TODO: getIntAt stays in mc1710 version - uses NBTTagInt.func_150287_d() directly
-    // OLD: public static int getIntAt(NBTTagList tagList, int index)
+    // OLD: public static int getIntAt(INbtList tagList, int index)
 }

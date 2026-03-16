@@ -1,12 +1,19 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
-import noppes.npcs.core.NBT;
-import noppes.npcs.constants.EnumStockReset;
 
 import java.util.HashMap;
 import java.util.Map;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.constants.EnumStockReset;
+import noppes.npcs.core.NBT;
 
 /**
  * Manages trader stock system including:
@@ -15,11 +22,11 @@ import java.util.Map;
  * - Automatic stock reset timers
  */
 public class TraderStock {
-    // Stock configuration
+    // Stock IConfiguration
     public boolean enableStock = false;
     public boolean perPlayer = false;  // false = per-server, true = per-player
 
-    // Reset configuration (mirrors Quest cooldown system)
+    // Reset IConfiguration (mirrors Quest cooldown system)
     public EnumStockReset resetType = EnumStockReset.NONE;
     public long customResetTime = 0;  // For MCCUSTOM/RLCUSTOM types (in ticks or ms)
 
@@ -102,7 +109,7 @@ public class TraderStock {
     /**
      * Check if stock should reset based on current time
      *
-     * @param currentTime Current MC world time (ticks) or real time (ms) depending on reset type
+     * @param currentTime Current MC IWorld time (ticks) or real time (ms) depending on reset type
      */
     public boolean shouldReset(long currentTime) {
         if (resetType == EnumStockReset.NONE) {

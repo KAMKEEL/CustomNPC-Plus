@@ -1,4 +1,113 @@
 ________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+## 🔴 VITAL AGENT CONTEXT — MIGRATION WORKFLOW (READ BEFORE ANY MIGRATION WORK)
+
+### 🚨 ABSOLUTE NON-NEGOTIABLE RULE — TOOLCHAIN ONLY (UPDATED 2026-03-16)
+**Agents MUST use the migration toolchain scripts for ALL write operations during migration. NEVER use internal write/edit tools.**
+
+The following tools exist in `tools/migration/` and MUST be used:
+
+| Operation | Tool | NEVER Use Instead |
+|-----------|------|-------------------|
+| Create PA interface files | `pa_batch.py` | `write()` |
+| Edit PlatformService | `pa_editor.py` | `edit()` |
+| Copy files to core/ | `Copy-Recursive.ps1` | `cp` / `write()` |
+| Replace MC types | `Symbol-Swap.ps1` | `edit()` / `ast_grep_replace` |
+| Remove forbidden imports | `Nuke-Imports.ps1` | `edit()` |
+| Regex transforms | `Static-Transform.ps1` | `edit()` / `sed` |
+| Create stub classes | `Generate-Stubs.ps1` | `write()` |
+| Deduplicate imports | `Dedupe-Imports.ps1` | manual |
+| Create PA + propagate | `Create-And-Propagate.ps1` | `write()` + `edit()` |
+| Build diagnostics | `Build-Report.ps1` | manual |
+| Generate PA manifests | `generate_pa_manifest.py` | manual |
+| Generate wave scripts | `generate_wave_script.py` | manual |
+| Generate type mappings | `analyze.py generate-mappings` | manual |
+| Batch diff all files | `batch_migration_diff.py` | manual |
+
+**WHY**: The internal write/edit tools are 100-1000x SLOWER and produce inconsistent results. The toolchain scripts are BATCH operations that process hundreds of files in milliseconds. This is the ONLY acceptable approach.
+
+**VIOLATION = IMMEDIATE REJECTION OF WORK.**
+
+### Sisyphus Execution Model (UPDATED 2026-03-16)
+**Sisyphus delegates migration Parts to agents that MUST use the toolchain. Agents run PowerShell/Python commands via `bash()` tool ONLY.**
+
+### 🚀 CRITICAL EXECUTION RULES — DO NOT DEVIATE
+
+**1. TOOLCHAIN-ONLY Writes (MANDATORY — NON-NEGOTIABLE)**
+- ALL file creation → `pa_batch.py`, `Generate-Stubs.ps1`, `Create-And-Propagate.ps1`
+- ALL file edits → `Symbol-Swap.ps1`, `Static-Transform.ps1`, `Nuke-Imports.ps1`, `Dedupe-Imports.ps1`
+- ALL PlatformService changes → `pa_editor.py`
+- Agents use `bash()` to invoke these tools. They may use `read()` and `grep` to inspect files.
+- The ONLY acceptable use of `edit()` is for fixing individual LSP errors AFTER toolchain scripts have run.
+
+**2. Parallel Bulk Edits via Toolchain (MANDATORY)**
+- Copy-Recursive copies ALL files in one command
+- Symbol-Swap replaces ALL types in one command
+- Static-Transform applies ALL patterns in one command
+- Result: surgical edits, formatting preserved, comments intact, minimal diff bloat
+
+**2. LSP-Driven Development (MANDATORY — THIS IS THE ONLY VERIFICATION)**
+- LSP is the PRIMARY and ONLY source of truth — NOT code analysis, NOT grepping
+- After applying ALL edits for a Part, run `lsp_diagnostics` on EVERY moved file
+- **Do NOT proceed until LSP shows ZERO errors**
+- If LSP shows errors → STOP and fix those specific errors immediately (same response or next)
+- **If LSP is broken, unresponsive, or malfunctioning → STOP WORK and notify human immediately**
+- Per-wave rule: **Do NOT move to next Part/Wave until LSP shows zero errors for current Part**
+
+**3. NO Commits by Sisyphus (MANDATORY)**
+- DO NOT commit after Parts complete
+- Committing requires build verification (which is slow and blocking)
+- Human will verify build afterward and commit
+- Sisyphus responsibility: code correctness via LSP. Human responsibility: build verification + commit.
+- Just complete the Part, report status, move to next
+
+**4. Error Recovery (MANDATORY)**
+- If LSP shows errors after edits: analyze the error, fix the `oldString` pattern, re-apply edit
+- If multiple errors: fix them all in ONE response, then re-run LSP
+- **Do NOT create partial fixes** — fix the entire pattern once
+
+### Execution Pattern (Per Part)
+
+```
+PART N:
+  Response 1: Read ALL files for Part N (parallel)
+  Response 2: 
+    - Apply ALL edits (parallel edit() calls, bulk changes per file)
+    - Run lsp_diagnostics on ALL moved files
+  Response 3+ (if needed):
+    - IF LSP shows errors → FIX and re-run lsp_diagnostics
+    - REPEAT until zero errors
+  When LSP ✅ ZERO errors → Part N COMPLETE, move to Part N+1
+```
+
+### Parallel Capability
+- Sisyphus can edit 8-10 files in a single response
+- All `edit()` calls execute concurrently
+- Typical Part has 3-8 files → all edited at once
+
+### Why This Matters
+- **Speed:** No agent spawn overhead, bulk edits, parallel execution → ~2-3 hours total
+- **Quality:** LSP verification ensures correctness, format preservation ensures clean diffs
+- **Reliability:** Sisyphus maintains full context and can fix errors immediately
+- **Human Control:** Build verification and committing stays with human (prevents broken builds)
+
+---
+
+### Human-Agent Division of Labor (OLD — OUTDATED, KEPT FOR REFERENCE)
+~~**The human (project owner) will manually move all packages/files from m7 → core/.**~~ 
+**UPDATED: Sisyphus moves files + fixes them via LSP verification.**
+
+### Why LSP is Essential (REAFFIRMED)
+- After files are moved to core/, they will have broken MC imports
+- `lsp_diagnostics` produces the EXACT list of what's broken: file, line, column, error message
+- This is the ONLY reliable guide — NOT guessing, NOT grepping
+- Sisyphus MUST run `lsp_diagnostics` after applying ALL edits for a Part
+- Sisyphus MUST re-run `lsp_diagnostics` after EACH fix until convergence to zero errors
+
+### PA Package Placement Rule (UPDATED 2026-03-15)
+- If the abstraction interface already exists under `noppes.npcs.api.*` → use it as-is
+- If it's a NEW abstraction for MC classes → create under `common.minecraft.*` in platform-api (NOT `noppes.npcs.common.minecraft`, just `common.minecraft`)
+
+________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 ## ⚠️ MIGRATION ORCHESTRATION RULES (APPLY TO ALL MIGRATION WORK)
 
 These rules govern how ALL agents operate during the multi-version migration. Every delegated task MUST follow them.
@@ -30,6 +139,7 @@ The orchestrating agent (Sisyphus) will manually verify ALL delegated work:
 
 ### 5. Context Passing
 - Every delegated agent MUST receive the full content of SESSION_MEMORY.md in their prompt
+- Every agent must be of the UNSPECIFIED HIGH CATEGORY, unless explicitly told to use another
 - This ensures every agent understands the vision, architecture, constraints, and forbidden practices
 
 ### 6. Phase Reports
@@ -63,7 +173,7 @@ The orchestrating agent (Sisyphus) will manually verify ALL delegated work:
 - Record any discoveries, surprises, or deviations in SESSION_MEMORY.md
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
-CURRENT USER PROMPT:
+MAIN USER VISION:
 
 ## 1) MINECRAFT/FORGE PLATFORM ABSTRACTION:
 
@@ -122,14 +232,7 @@ to supply us with an ICustomNpc or an IPlayer, etc. which represent the system.
 DO NOT CHANGE THEIR NAMES AND DO NOT CREATE SEMANTICALLY DUPLICATE INTERFACES/CLASSES .
 2) TO BE DECIDED BY YOU.
 
-> **AGENT RECOMMENDATION FOR POINT 1:**
-> Feasible. Move the API into platform-api in phases:
-> - **Phase 1:** Move ~131 MC-free interfaces directly (retain package structure, strip 5 generic type params)
-> - **Phase 2:** Migrate 71 MC-contaminated files by replacing MC type references with platform-api equivalents or Object returns
-> - **Phase 3:** Reconcile the 30 existing split-package shadow conflicts (keep one authoritative version)
-> - **Phase 4:** Update addon mods (DBC, Gecko, AW) to depend on platform-api artifact instead of git submodule
->
-> **AGENT RECOMMENDATION FOR POINT 2 — SEE MIGRATION ROADMAP BELOW**
+> **AGENT RECOMMENDATION  — SEE .AGENTS/MIGRATION_ROADMAP.md*
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 

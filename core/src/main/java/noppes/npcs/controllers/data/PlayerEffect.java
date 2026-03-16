@@ -1,7 +1,16 @@
 package noppes.npcs.controllers.data;
 
+
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.IPlayerEffect;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
 
 public class PlayerEffect implements IPlayerEffect {
     public int id;
@@ -59,7 +68,7 @@ public class PlayerEffect implements IPlayerEffect {
     /**
      * Applies this effect's tick logic to the given player.
      * This method is not part of the core IPlayerEffect interface because
-     * it depends on IPlayer which has MC entity dependencies.
+     * it depends on IPlayer which has MC IEntity dependencies.
      * Override in mc1710 to restore original behavior.
      */
     public void performEffect(IPlayer player) {
@@ -68,10 +77,10 @@ public class PlayerEffect implements IPlayerEffect {
 
         // TODO: Requires CustomEffectController + IPlayer - implement in mc1710 override
         // OLD CODE:
-        // if (player != null && player.getMCEntity() != null && player.getMCEntity() instanceof EntityPlayer) {
+        // if (player != null && player.getMCIEntity() != null && player.getMCIEntity() instanceof IPlayer) {
         //     CustomEffect effect = CustomEffectController.getInstance().get(this.id, this.index);
         //     if (effect != null)
-        //         effect.onTick((EntityPlayer) player.getMCEntity(), this);
+        //         effect.onTick((IPlayer) player.getMCIEntity(), this);
         // }
     }
 

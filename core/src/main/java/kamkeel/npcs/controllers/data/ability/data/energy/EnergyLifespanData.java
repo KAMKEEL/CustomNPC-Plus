@@ -1,11 +1,20 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
+
 import noppes.npcs.api.ability.data.IEnergyLifespanData;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
 
 /**
  * Groups lifespan/range properties for energy projectile abilities.
- * Used as a parameter object for entity constructors and ability configuration.
+ * Used as a parameter object for IEntity constructors and ability IConfiguration.
  */
 public class EnergyLifespanData implements IEnergyLifespanData {
     public float maxDistance = 150.0f;

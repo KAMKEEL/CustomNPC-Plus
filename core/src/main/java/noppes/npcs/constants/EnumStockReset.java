@@ -1,5 +1,16 @@
 package noppes.npcs.constants;
 
+
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+
 /**
  * Stock reset types for Trader NPCs.
  * Mirrors EnumQuestRepeat pattern for consistency.
@@ -46,7 +57,7 @@ public enum EnumStockReset {
     }
 
     /**
-     * Check if this reset type uses real-world time
+     * Check if this reset type uses real-IWorld time
      */
     public boolean isRealTime() {
         return this == RLDAILY || this == RLWEEKLY || this == RLCUSTOM;

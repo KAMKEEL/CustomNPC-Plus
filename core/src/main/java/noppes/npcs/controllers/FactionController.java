@@ -1,16 +1,23 @@
 package noppes.npcs.controllers;
 
-import noppes.npcs.core.NBT;
-import noppes.npcs.controllers.data.Faction;
-import kamkeel.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.controllers.data.Faction;
+import noppes.npcs.core.NBT;
 
 public class FactionController {
     public HashMap<Integer, Faction> factionsSync = new HashMap<Integer, Faction>();
@@ -40,7 +47,7 @@ public class FactionController {
     public void load() {
         factions = new HashMap<Integer, Faction>();
         lastUsedID = 0;
-        File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
+        File saveDir = PlatformServiceHolder.get().getIWorldSaveDirectory();
         if (saveDir == null) {
             return;
         }
@@ -71,20 +78,20 @@ public class FactionController {
         // OLD: DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
         // OLD: loadFactions(var1);
         // OLD: var1.close();
-        INbt nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
-        loadFactions(nbttagcompound1);
+        INbt INbt1 = PlatformServiceHolder.get().readCompressedNBT(file);
+        loadFactions(INbt1);
     }
 
-    public void loadFactions(INbt nbttagcompound1) {
+    public void loadFactions(INbt INbt1) {
         HashMap<Integer, Faction> factions = new HashMap<Integer, Faction>();
-        lastUsedID = nbttagcompound1.getInteger("lastID");
-        INbtList list = nbttagcompound1.getTagList("NPCFactions", 10);
+        lastUsedID = INbt1.getInteger("lastID");
+        INbtList list = INbt1.getTagList("NPCFactions", 10);
 
         if (list != null) {
             for (int i = 0; i < list.size(); i++) {
-                INbt nbttagcompound = list.getCompound(i);
+                INbt INbt = list.getCompound(i);
                 Faction faction = new Faction();
-                faction.readNBT(nbttagcompound);
+                faction.readNBT(INbt);
                 factions.put(faction.id, faction);
             }
         }
@@ -99,19 +106,19 @@ public class FactionController {
             faction.writeNBT(nbtfactions);
             list.addCompound(nbtfactions);
         }
-        INbt nbttagcompound = NBT.compound();
-        nbttagcompound.setInteger("lastID", lastUsedID);
-        nbttagcompound.setTagList("NPCFactions", list);
-        return nbttagcompound;
+        INbt INbt = NBT.compound();
+        INbt.setInteger("lastID", lastUsedID);
+        INbt.setTagList("NPCFactions", list);
+        return INbt;
     }
 
     public void saveFactions() {
         try {
-            File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
+            File saveDir = PlatformServiceHolder.get().getIWorldSaveDirectory();
             File file = new File(saveDir, "factions.dat_new");
             File file1 = new File(saveDir, "factions.dat_old");
             File file2 = new File(saveDir, "factions.dat");
-            // OLD: CompressedStreamTools.writeCompressed(getNBT(), new FileOutputStream(file));
+            // OLD: NBTIO.writeCompressed(getNBT(), new FileOutputStream(file));
             PlatformServiceHolder.get().writeCompressedNBT(getNBT(), file);
             if (file1.exists()) {
                 file1.delete();
@@ -154,7 +161,7 @@ public class FactionController {
         factions.put(faction.id, faction);
 
         // TODO: mc1710 version also calls:
-        // OLD: NBTTagCompound facCompound = new NBTTagCompound();
+        // OLD: INbt facCompound = new INbt();
         // OLD: faction.writeNBT(facCompound);
         // OLD: SyncController.syncUpdate(EnumSyncType.FACTION, -1, facCompound);
         saveFactions();

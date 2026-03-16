@@ -1,13 +1,20 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.core.NBT;
-import noppes.npcs.constants.EnumTextureType;
-import noppes.npcs.controllers.MagicController;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
 
 import java.util.HashMap;
 import java.util.Map;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.constants.EnumTextureType;
+import noppes.npcs.controllers.MagicController;
+import noppes.npcs.core.NBT;
 
 public class Magic {
     public String name = "";
@@ -15,9 +22,8 @@ public class Magic {
     public int color = Integer.parseInt("FF00", 16);
     public int id = -1;
 
-    // TODO: mc1710 version has: public ItemStack item = null;
-    // OLD: import net.minecraft.item.ItemStack;
-    public EnumTextureType type = EnumTextureType.BASE;
+    // TODO: mc1710 version has: public IItemStack item = null;
+    // OLD:     public EnumTextureType type = EnumTextureType.BASE;
     public String iconTexture = "";
     public Map<Integer, Float> interactions = new HashMap<>();
 
@@ -44,11 +50,11 @@ public class Magic {
 
         type = EnumTextureType.values()[compound.getInteger("Type")];
         iconTexture = compound.getString("IconTexture");
-        // TODO: mc1710 version resolves ItemStack from GameRegistry here:
+        // TODO: mc1710 version resolves IItemStack from GameRegistry here:
         // OLD: if (type == EnumTextureType.ITEM && !iconTexture.isEmpty()) {
         // OLD:     String[] parts = iconTexture.split(":");
         // OLD:     Item item = GameRegistry.findItem(parts[0], parts[1]);
-        // OLD:     this.item = (item != null) ? new ItemStack(item) : null;
+        // OLD:     this.item = (item != null) ? new IItemStack(item) : null;
         // OLD: }
 
         interactions.clear();
@@ -78,15 +84,15 @@ public class Magic {
             interactionsList.addCompound(interactionTag);
         }
         compound.setTagList("Interactions", interactionsList);
-        // TODO: mc1710 version resolves ItemStack from GameRegistry here:
+        // TODO: mc1710 version resolves IItemStack from GameRegistry here:
         // OLD: if (type == EnumTextureType.ITEM && !iconTexture.isEmpty()) {
         // OLD:     Item item = GameRegistry.findItem(parts[0], parts[1]);
-        // OLD:     this.item = (item != null) ? new ItemStack(item) : null;
+        // OLD:     this.item = (item != null) ? new IItemStack(item) : null;
         // OLD: }
     }
     // TODO: mc1710 version implements IMagic and adds:
-    // OLD: public void setItem(ItemStack item) — uses GameRegistry.findUniqueIdentifierFor
-    // OLD: public ItemStack getItem()
+    // OLD: public void setItem(IItemStack item) — uses GameRegistry.findUniqueIdentifierFor
+    // OLD: public IItemStack getItem()
 
     public int getId() {
         return this.id;

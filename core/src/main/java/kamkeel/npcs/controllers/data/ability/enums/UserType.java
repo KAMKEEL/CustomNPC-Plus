@@ -1,7 +1,18 @@
 package kamkeel.npcs.controllers.data.ability.enums;
 
+
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+
 /**
- * Defines which entity types can use an ability.
+ * Defines which IEntity types can use an ability.
  */
 public enum UserType {
     NPC_ONLY,

@@ -1,0 +1,414 @@
+package noppes.npcs.controllers;
+
+
+import noppes.npcs.constants.ClientOnly;
+import kamkeel.npcs.util.IVector3;
+import kamkeel.npcs.controllers.data.ability.preview.PreviewEntityHandler;
+import kamkeel.npcs.controllers.data.ability.gui.SubGuiAbilityConfig;
+import kamkeel.npcs.controllers.data.ability.gui.IAbilityConfigCallback;
+import kamkeel.npcs.controllers.data.ability.gui.FieldDef;
+import kamkeel.npcs.controllers.data.ability.gui.IChainedAbilityFieldProvider;
+import kamkeel.npcs.controllers.data.ability.gui.IAbilityFieldProvider;
+import noppes.npcs.entity.EntityNPCInterface;
+import kamkeel.npcs.entity.EntityEnergyDome;
+import kamkeel.npcs.entity.EntityEnergyBarrier;
+import kamkeel.npcs.entity.EntityEnergyPanel;
+import kamkeel.npcs.entity.EntityAbilityOrb;
+import kamkeel.npcs.entity.EntityAbilityLaser;
+import kamkeel.npcs.entity.EntityAbilityDisc;
+import kamkeel.npcs.entity.EntityAbilityBeam;
+import kamkeel.npcs.entity.EntityEnergyProjectile;
+import kamkeel.npcs.util.ByteBufUtils;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
+import jdk.nashorn.api.scripting.ClassFilter;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.config.ConfigScript;
+import noppes.npcs.controllers.data.ForgeDataScript;
+import noppes.npcs.controllers.data.GlobalNPCDataScript;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
+import noppes.npcs.util.JsonException;
+import noppes.npcs.util.NBTJsonUtil;
+import somehussar.janino.EntityUnloadListener;
+import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
+
+public class ScriptController {
+
+    public static ScriptController Instance;
+    public static boolean HasStart = false;
+    private final ScriptEngineManager manager;
+    private ScriptEngineFactory nashornFactory;
+    public final Map<String, String> languages = new HashMap<String, String>();
+    public Map<String, String> scripts = new HashMap<String, String>();
+    public long lastLoaded = 0;
+    public File dir;
+    public INbt compound = new INbt();
+
+    public boolean shouldSave = false;
+    public PlayerDataScript playerScripts = new PlayerDataScript((IPlayer) null);
+    public long lastPlayerUpdate = 0L;
+
+    public ForgeDataScript forgeScripts = new ForgeDataScript();
+    public long lastForgeUpdate = 0L;
+
+    public GlobalNPCDataScript globalNpcScripts = new GlobalNPCDataScript((EntityNPCInterface) null);
+    public long lastGlobalNpcUpdate = 0L;
+
+    /**
+     * Incremented whenever external scripts loaded.
+     */
+    public int globalRevision;
+
+    public ScriptController() {
+        Instance = this;
+        manager = new ScriptEngineManager();
+        if (!CustomNpcs.proxy.isScriptingEnabled())
+            return;
+        LogWriter.info("Script Engines Available:");
+
+        try {
+            this.nashornFactory = new NashornScriptEngineFactory();
+            LogWriter.info("→ standalone Nashorn loaded");
+        } catch (NoClassDefFoundError e) {
+            // fallback to built-in (Java 8–11) — also guarded
+            try {
+                ScriptEngine eng = manager.getEngineByName("nashorn");
+                if (eng != null) {
+                    this.nashornFactory = eng.getFactory();
+                    LogWriter.info("→ built-in Nashorn loaded");
+                }
+            } catch (Throwable t) {
+                LogWriter.error("No Nashorn engine available");
+            }
+        }
+
+        for (ScriptEngineFactory fac : manager.getEngineFactories()) {
+            if (fac.getExtensions().isEmpty())
+                continue;
+
+            ScriptEngine scriptEngine = fac.getScriptEngine();
+            try {
+                scriptEngine.put("$RunTest", null);
+                String ext = "." + fac.getExtensions().get(0).toLowerCase();
+                LogWriter.info("Engine " + fac.getEngineName() + " running " + fac.getLanguageName() + " with extension: " + ext);
+                languages.put(fac.getLanguageName(), ext);
+            } catch (Exception ignored) {
+            }
+        }
+        languages.put("Java", ".java");
+    }
+
+    private File forgeScriptsFile() {
+        return new File(this.dir, "forge_scripts.json");
+    }
+
+    public boolean loadForgeScripts() {
+        this.forgeScripts.clear();
+        File file = this.forgeScriptsFile();
+
+        try {
+            if (!file.exists()) {
+                return false;
+            } else {
+                this.forgeScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
+                return true;
+            }
+        } catch (Exception var3) {
+            LogWriter.error("Error loading: " + file.getAbsolutePath(), var3);
+            return false;
+        }
+    }
+
+    public void saveForgeScripts() {
+        File file = this.forgeScriptsFile();
+        try {
+            NBTJsonUtil.SaveFile(file, this.forgeScripts.writeToNBT(new INbt()));
+            this.forgeScripts.resetLastInited();
+        } catch (IOException | JsonException var4) {
+            var4.printStackTrace();
+        }
+    }
+
+    private File playerScriptsFile() {
+        return new File(dir, "player_scripts.json");
+    }
+
+    private File npcScriptsFile() {
+        return new File(dir, "npc_scripts.json");
+    }
+
+    public boolean loadPlayerScripts() {
+        this.playerScripts.clear();
+        File file = this.playerScriptsFile();
+
+        try {
+            if (!file.exists()) {
+                return false;
+            } else {
+                this.playerScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
+                shouldSave = false;
+                return true;
+            }
+        } catch (Exception var3) {
+            LogWriter.error("Error loading: " + file.getAbsolutePath(), var3);
+            return false;
+        }
+    }
+
+    public void savePlayerScripts() {
+        File file = this.playerScriptsFile();
+        try {
+            NBTJsonUtil.SaveFile(file, this.playerScripts.writeToNBT(new INbt()));
+            this.playerScripts.resetLastInited();
+        } catch (IOException | JsonException var4) {
+            var4.printStackTrace();
+        }
+    }
+
+    public PlayerDataScript getPlayerScripts(IPlayer player) {
+        if (ConfigScript.IndividualPlayerScripts)
+            return PlayerData.get(player).scriptData;
+
+        return this.playerScripts;
+    }
+
+    public PlayerDataScript getPlayerScripts(IPlayer player) {
+        if (ConfigScript.IndividualPlayerScripts)
+            return PlayerData.get((IPlayer) player.getMCEntity()).scriptData;
+
+        return this.playerScripts;
+    }
+
+    public boolean loadGlobalNPCScripts() {
+        this.globalNpcScripts.clear();
+        File file = this.npcScriptsFile();
+
+        try {
+            if (!file.exists()) {
+                return false;
+            } else {
+                this.globalNpcScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
+                shouldSave = false;
+                return true;
+            }
+        } catch (Exception var3) {
+            LogWriter.error("Error loading: " + file.getAbsolutePath(), var3);
+            return false;
+        }
+    }
+
+    public void saveGlobalNpcScripts() {
+        File file = this.npcScriptsFile();
+        try {
+            NBTJsonUtil.SaveFile(file, this.globalNpcScripts.writeToNBT(new INbt()));
+            this.globalNpcScripts.resetLastInited();
+        } catch (IOException | JsonException var4) {
+            var4.printStackTrace();
+        }
+    }
+
+    public synchronized void saveForgeScriptsSync() {
+        customNPCThread.execute(this::saveForgeScripts);
+    }
+
+    public synchronized void savePlayerScriptsSync() {
+        customNPCThread.execute(() -> {
+            File file = this.playerScriptsFile();
+            try {
+                NBTJsonUtil.SaveFile(file, this.playerScripts.writeToNBT(new INbt()));
+                this.playerScripts.resetLastInited();
+            } catch (IOException | JsonException var4) {
+                var4.printStackTrace();
+            }
+        });
+    }
+
+    public synchronized void saveGlobalScriptsSync() {
+        customNPCThread.execute(this::saveGlobalNpcScripts);
+    }
+
+    public void syncClientScripts(IPlayer player) {
+        if (player != null) {
+            ScriptFilesPacket.sendToPlayer(player, "Java");
+        } else {
+            ScriptFilesPacket.sendToAll("Java");
+        }
+    }
+
+    public void loadCategories() {
+        dir = new File(CustomNpcs.getWorldSaveDirectory(), "scripts");
+        if (!dir.exists())
+            dir.mkdir();
+        if (!getSavedFile().exists())
+            shouldSave = true;
+        new ScriptWorld(null).clearTempData();
+        scripts.clear();
+        for (String language : languages.keySet()) {
+            String ext = languages.get(language);
+            File scriptDir = new File(dir, language.toLowerCase());
+            if (!scriptDir.exists())
+                scriptDir.mkdir();
+            else
+                loadDir(scriptDir, "", ext);
+        }
+        lastLoaded = System.currentTimeMillis();
+        globalRevision++;
+    }
+
+    private void loadDir(File dir, String name, String ext) {
+        for (File file : dir.listFiles()) {
+            String filename = name + file.getName().toLowerCase();
+            if (file.isDirectory()) {
+                loadDir(file, filename + "/", ext);
+                continue;
+            }
+            if (!filename.endsWith(ext))
+                continue;
+            try {
+                scripts.put(filename, readFile(file));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public boolean loadStoredData() {
+        loadCategories();
+        File file = getSavedFile();
+        try {
+            if (!file.exists())
+                return false;
+            this.compound = NBTJsonUtil.LoadFile(file);
+            shouldSave = false;
+        } catch (Exception e) {
+            LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+            return false;
+        }
+        return true;
+    }
+
+    private File getSavedFile() {
+        return new File(dir, "world_data.json");
+    }
+
+    private String readFile(File file) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        try {
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
+
+            while (line != null) {
+                sb.append(line);
+                sb.append("\n");
+                line = br.readLine();
+            }
+            return sb.toString();
+        } finally {
+            br.close();
+        }
+    }
+
+    private static final List<String> nashornNames = immutableList("nashorn", "Nashorn", "js", "JS", "JavaScript", "javascript", "ECMAScript", "ecmascript");
+
+    public ScriptEngine getEngineByName(String language) {
+        if (nashornNames.contains(language) && this.nashornFactory != null) {
+            ScriptEngine scriptEngine;
+            if (ConfigScript.EnableBannedClasses) {
+                try {
+                    ClassFilter filter = s -> {
+                        for (String className : ConfigScript.BannedClasses) {
+                            if (s.compareTo(className) == 0) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    };
+                    NashornScriptEngineFactory nashornScriptEngineFactory = (NashornScriptEngineFactory) this.nashornFactory;
+                    scriptEngine = nashornScriptEngineFactory.getScriptEngine(filter);
+                } catch (Exception e) {
+                    scriptEngine = this.nashornFactory.getScriptEngine();
+                }
+            } else {
+                scriptEngine = this.nashornFactory.getScriptEngine();
+            }
+            scriptEngine.setBindings(this.manager.getBindings(), ScriptContext.GLOBAL_SCOPE);
+            return scriptEngine;
+        }
+        return manager.getEngineByName(language);
+    }
+
+    private static List<String> immutableList(String... elements) {
+        return Collections.unmodifiableList(Arrays.asList(elements));
+    }
+
+    public INbtList nbtLanguages() {
+        INbtList list = new INbtList();
+        for (String language : languages.keySet()) {
+            INbt compound = new INbt();
+            INbtList scripts = new INbtList();
+            for (String script : getScripts(language)) {
+                scripts.appendTag(new NBTTagString(script));
+            }
+            compound.setTag("Scripts", scripts);
+            compound.setString("Language", language);
+            list.appendTag(compound);
+        }
+        return list;
+    }
+
+    public List<String> getScripts(String language) {
+        List<String> list = new ArrayList<String>();
+        String ext = languages.get(language);
+        if (ext == null)
+            return list;
+        for (String script : scripts.keySet()) {
+            if (script.endsWith(ext)) {
+                list.add(script);
+            }
+        }
+        return list;
+    }
+
+    @SubscribeEvent
+    public void addWorldAccess(WorldEvent.Load event) {
+        event.IWorld.addWorldAccess(new EntityUnloadListener());
+    }
+
+    @SubscribeEvent
+    public void invoke(WorldEvent.Save event) {
+        if (!shouldSave || event.IWorld.isRemote || event.IWorld != PlatformServiceHolder.get().getServer().worldServers[0])
+            return;
+
+        try {
+            NBTJsonUtil.SaveFile(getSavedFile(), compound);
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+
+        shouldSave = false;
+    }
+}

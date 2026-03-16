@@ -1,0 +1,132 @@
+package kamkeel.npcs.controllers.data.attribute.requirement.types;
+
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.INbt;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.data.attribute.requirement.IRequirementChecker;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.UUID;
+
+public class SoulbindRequirement implements IRequirementChecker {
+
+    public static HashMap<String, String> uuidToUsername = new HashMap<>();
+
+    @Override
+    public String getKey() {
+        return "cnpc_soulbind";
+    }
+
+    @Override
+    public String getTranslation() {
+        return "requirement.soulbind";
+    }
+
+    @Override
+    public String getTooltipValue(INbt nbt) {
+        if (nbt.hasKey(getKey())) {
+            String uuid = nbt.getString(getKey());
+            if (uuid != null && !uuid.isEmpty()) {
+                return getUsernameFromUUID(uuid);
+            }
+        }
+        return "null";
+    }
+
+    private String getUsernameFromUUID(String uuid) {
+        if (uuidToUsername.containsKey(uuid)) {
+            if (!uuidToUsername.get(uuid).equals("null")) {
+                return uuidToUsername.get(uuid);
+            }
+        }
+        try {
+            String strippedUUID = uuid.replace("-", "");
+            String urlStr = "https://sessionserver.mojang.com/session/minecraft/profile/" + strippedUUID;
+            HttpURLConnection connection = (HttpURLConnection) new URL(urlStr).openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.setRequestMethod("GET");
+            connection.connect();
+
+            InputStream stream = connection.getInputStream();
+            InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
+
+            JsonElement element = new JsonParser().parse(reader);
+            JsonObject jsonObj = element.getAsJsonObject();
+
+            if (jsonObj.has("name")) {
+                String name = jsonObj.get("name").getAsString();
+                uuidToUsername.put(uuid, name);
+                return name;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "null";
+    }
+
+
+    @Override
+    public Object getValue(INbt nbt) {
+        if (nbt.hasKey(getKey())) {
+            return nbt.getString(getKey());
+        }
+        return null;
+    }
+
+    @Override
+    public void apply(INbt nbt, Object value) {
+        if (value instanceof String) {
+            String entry = (String) value;
+            if (entry.isEmpty())
+                return;
+
+            // Check if the provided value is already a valid UUID
+            UUID uuid = null;
+            try {
+                uuid = UUID.fromString(entry);
+            } catch (Exception ignored) {
+            }
+
+            // If not a UUID, attempt to treat the value as a username
+            if (uuid == null) {
+                uuid = ProfileController.Instance.getUUIDFromUsername(entry);
+            }
+
+            if (uuid != null) {
+                nbt.setString(getKey(), uuid.toString());
+            }
+        }
+    }
+
+    @Override
+    public boolean check(IPlayer player, INbt nbt) {
+        if (nbt.hasKey(getKey())) {
+            String uuidString = nbt.getString(getKey());
+            if (uuidString != null && !uuidString.isEmpty()) {
+                UUID convert = null;
+                try {
+                    convert = UUID.fromString(uuidString);
+                } catch (Exception ignored) {
+                }
+                if (convert != null)
+                    return player.getUniqueID().equals(convert);
+            }
+            return false;
+        }
+        return true;
+    }
+}

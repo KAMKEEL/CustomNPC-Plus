@@ -1,15 +1,24 @@
 package kamkeel.npcs.controllers.data.ability.data.energy;
 
+
 import kamkeel.npcs.controllers.data.ability.enums.HitType;
 import noppes.npcs.api.ability.data.IEnergyCombatData;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
 
 /**
  * Groups combat properties shared by energy projectile abilities.
- * Used as a parameter object for entity constructors and ability configuration.
+ * Used as a parameter object for IEntity constructors and ability IConfiguration.
  */
 public class EnergyCombatData implements IEnergyCombatData {
-    public static final float MAX_EXPLOSION_RADIUS = 15.0f;
+    public static final float MAX_IExplosion_RADIUS = 15.0f;
     public static final int DEFAULT_MAX_HITS = 5;
     public static final int MAX_HITS = 200;
 
@@ -17,8 +26,8 @@ public class EnergyCombatData implements IEnergyCombatData {
     public float knockback = 1.0f;
     public float knockbackUp = 0.1f;
     public boolean explosive = false;
-    public float explosionRadius = 3.0f;
-    public float explosionDamageFalloff = 0.5f;
+    public float IExplosionRadius = 3.0f;
+    public float IExplosionDamageFalloff = 0.5f;
     public HitType hitType = HitType.SINGLE;
     public int multiHitDelayTicks = 5;
     public int maxHits = DEFAULT_MAX_HITS;
@@ -27,33 +36,33 @@ public class EnergyCombatData implements IEnergyCombatData {
     }
 
     public EnergyCombatData(float damage, float knockback, float knockbackUp,
-                            boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                            boolean explosive, float IExplosionRadius, float IExplosionDamageFalloff,
                             HitType hitType, int multiHitDelay) {
-        this(damage, knockback, knockbackUp, explosive, explosionRadius, explosionDamageFalloff, hitType, multiHitDelay, DEFAULT_MAX_HITS);
+        this(damage, knockback, knockbackUp, explosive, IExplosionRadius, IExplosionDamageFalloff, hitType, multiHitDelay, DEFAULT_MAX_HITS);
     }
 
     public EnergyCombatData(float damage, float knockback, float knockbackUp,
-                            boolean explosive, float explosionRadius, float explosionDamageFalloff,
+                            boolean explosive, float IExplosionRadius, float IExplosionDamageFalloff,
                             HitType hitType, int multiHitDelay, int maxHits) {
         this.damage = damage;
         this.knockback = knockback;
         this.knockbackUp = knockbackUp;
         this.explosive = explosive;
-        this.explosionRadius = clampExplosionRadius(explosionRadius);
-        this.explosionDamageFalloff = explosionDamageFalloff;
+        this.IExplosionRadius = clampIExplosionRadius(IExplosionRadius);
+        this.IExplosionDamageFalloff = IExplosionDamageFalloff;
         this.hitType = hitType;
         this.multiHitDelayTicks = multiHitDelay;
         this.maxHits = clampMaxHits(maxHits);
     }
 
     public EnergyCombatData(float damage, float knockback, float knockbackUp,
-                            boolean explosive, float explosionRadius, float explosionDamageFalloff) {
+                            boolean explosive, float IExplosionRadius, float IExplosionDamageFalloff) {
         this.damage = damage;
         this.knockback = knockback;
         this.knockbackUp = knockbackUp;
         this.explosive = explosive;
-        this.explosionRadius = clampExplosionRadius(explosionRadius);
-        this.explosionDamageFalloff = explosionDamageFalloff;
+        this.IExplosionRadius = clampIExplosionRadius(IExplosionRadius);
+        this.IExplosionDamageFalloff = IExplosionDamageFalloff;
     }
 
     @Override
@@ -97,23 +106,23 @@ public class EnergyCombatData implements IEnergyCombatData {
     }
 
     @Override
-    public float getExplosionRadius() {
-        return explosionRadius;
+    public float getIExplosionRadius() {
+        return IExplosionRadius;
     }
 
     @Override
-    public void setExplosionRadius(float explosionRadius) {
-        this.explosionRadius = clampExplosionRadius(explosionRadius);
+    public void setIExplosionRadius(float IExplosionRadius) {
+        this.IExplosionRadius = clampIExplosionRadius(IExplosionRadius);
     }
 
     @Override
-    public float getExplosionDamageFalloff() {
-        return explosionDamageFalloff;
+    public float getIExplosionDamageFalloff() {
+        return IExplosionDamageFalloff;
     }
 
     @Override
-    public void setExplosionDamageFalloff(float explosionDamageFalloff) {
-        this.explosionDamageFalloff = explosionDamageFalloff;
+    public void setIExplosionDamageFalloff(float IExplosionDamageFalloff) {
+        this.IExplosionDamageFalloff = IExplosionDamageFalloff;
     }
 
     public int getMaxHits() {
@@ -129,8 +138,8 @@ public class EnergyCombatData implements IEnergyCombatData {
         nbt.setFloat("knockback", knockback);
         nbt.setFloat("knockbackUp", knockbackUp);
         nbt.setBoolean("explosive", explosive);
-        nbt.setFloat("explosionRadius", explosionRadius);
-        nbt.setFloat("explosionDamageFalloff", explosionDamageFalloff);
+        nbt.setFloat("IExplosionRadius", IExplosionRadius);
+        nbt.setFloat("IExplosionDamageFalloff", IExplosionDamageFalloff);
         nbt.setInteger("hitType", hitType.ordinal());
         nbt.setInteger("multiHitDelayTicks", multiHitDelayTicks);
         nbt.setInteger("maxHits", maxHits);
@@ -141,8 +150,8 @@ public class EnergyCombatData implements IEnergyCombatData {
         knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.0f;
         knockbackUp = nbt.hasKey("knockbackUp") ? nbt.getFloat("knockbackUp") : 0.1f;
         explosive = nbt.hasKey("explosive") && nbt.getBoolean("explosive");
-        explosionRadius = nbt.hasKey("explosionRadius") ? nbt.getFloat("explosionRadius") : 3.0f;
-        explosionDamageFalloff = nbt.hasKey("explosionDamageFalloff") ? nbt.getFloat("explosionDamageFalloff") : 0.5f;
+        IExplosionRadius = nbt.hasKey("IExplosionRadius") ? nbt.getFloat("IExplosionRadius") : 3.0f;
+        IExplosionDamageFalloff = nbt.hasKey("IExplosionDamageFalloff") ? nbt.getFloat("IExplosionDamageFalloff") : 0.5f;
         hitType = HitType.fromOrdinal(nbt.hasKey("hitType") ? nbt.getInteger("hitType") : 0);
         multiHitDelayTicks = nbt.hasKey("multiHitDelayTicks") ? nbt.getInteger("multiHitDelayTicks") : 5;
         maxHits = nbt.hasKey("maxHits") ? nbt.getInteger("maxHits") : DEFAULT_MAX_HITS;
@@ -150,15 +159,15 @@ public class EnergyCombatData implements IEnergyCombatData {
         // Sanitize
         if (Float.isNaN(damage) || Float.isInfinite(damage)) damage = 7.0f;
         if (Float.isNaN(knockback) || Float.isInfinite(knockback) || knockback < 0) knockback = 1.0f;
-        if (Float.isNaN(explosionRadius) || Float.isInfinite(explosionRadius) || explosionRadius < 0) explosionRadius = 3.0f;
-        explosionRadius = clampExplosionRadius(explosionRadius);
+        if (Float.isNaN(IExplosionRadius) || Float.isInfinite(IExplosionRadius) || IExplosionRadius < 0) IExplosionRadius = 3.0f;
+        IExplosionRadius = clampIExplosionRadius(IExplosionRadius);
         if (multiHitDelayTicks < 1) multiHitDelayTicks = 1;
         maxHits = clampMaxHits(maxHits);
     }
 
-    private static float clampExplosionRadius(float explosionRadius) {
-        if (Float.isNaN(explosionRadius) || Float.isInfinite(explosionRadius)) return 0.0f;
-        return Math.max(0.0f, Math.min(MAX_EXPLOSION_RADIUS, explosionRadius));
+    private static float clampIExplosionRadius(float IExplosionRadius) {
+        if (Float.isNaN(IExplosionRadius) || Float.isInfinite(IExplosionRadius)) return 0.0f;
+        return Math.max(0.0f, Math.min(MAX_IExplosion_RADIUS, IExplosionRadius));
     }
 
     private static int clampMaxHits(int maxHits) {
@@ -167,7 +176,7 @@ public class EnergyCombatData implements IEnergyCombatData {
 
     public EnergyCombatData copy() {
         EnergyCombatData copy = new EnergyCombatData(damage, knockback, knockbackUp,
-            explosive, explosionRadius, explosionDamageFalloff);
+            explosive, IExplosionRadius, IExplosionDamageFalloff);
         copy.hitType = hitType;
         copy.multiHitDelayTicks = multiHitDelayTicks;
         copy.maxHits = maxHits;

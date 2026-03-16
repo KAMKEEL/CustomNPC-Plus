@@ -1,5 +1,16 @@
 package noppes.npcs.constants;
 
+
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+
 public enum EnumScriptType {
     INIT("init"),
     TICK("tick"),
@@ -40,7 +51,7 @@ public enum EnumScriptType {
     LOGIN("login"),
     LOGOUT("logout"),
     CHAT("chat"),
-    DAMAGED_ENTITY("damagedEntity"),
+    DAMAGED_IEntity("damagedIEntity"),
     SPAWN("spawn"),
     TOSSED("tossed"),
     PICKEDUP("pickedUp"),
@@ -89,8 +100,8 @@ public enum EnumScriptType {
     BREAK_BLOCK("breakBlock"),
     FORGE_EVENT("forgeEvent"),
     FORGE_INIT("forgeInit"),
-    FORGE_ENTITY("forgeEntity"),
-    FORGE_WORLD("forgeWorld"),
+    FORGE_IEntity("forgeIEntity"),
+    FORGE_IWorld("forgeIWorld"),
     CNPC_NATURAL_SPAWN("onCNPCNaturalSpawn"),
     CUSTOM_ITEM_EVENT("customItemEvent"),
 
@@ -136,7 +147,7 @@ public enum EnumScriptType {
 
     ENERGY_PROJECTILE_FIRED("energyProjectileFired"),
     ENERGY_PROJECTILE_TICK("energyProjectileTick"),
-    ENERGY_PROJECTILE_ENTITY_IMPACT("energyProjectileEntityImpact"),
+    ENERGY_PROJECTILE_IEntity_IMPACT("energyProjectileIEntityImpact"),
     ENERGY_PROJECTILE_BLOCK_IMPACT("energyProjectileBlockImpact"),
     ENERGY_PROJECTILE_EXPIRED("energyProjectileExpired"),
 

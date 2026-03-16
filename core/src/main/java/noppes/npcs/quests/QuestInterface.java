@@ -1,0 +1,57 @@
+package noppes.npcs.quests;
+
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.handler.data.IQuestInterface;
+import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.constants.EnumPartyObjectives;
+import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerQuestData;
+
+import java.util.Vector;
+
+public abstract class QuestInterface implements IQuestInterface {
+    public int questId;
+
+    public abstract void writeEntityToNBT(INbt compound);
+
+    public abstract void readEntityFromNBT(INbt compound);
+
+    public abstract boolean isCompleted(PlayerData player);
+
+    public void handleComplete(IPlayer player) {
+        PlayerQuestData questData = PlayerData.get(player).questData;
+        if (questData != null && questData.getTrackedQuest() != null) {
+            if (this.questId == PlayerData.get(player).questData.getTrackedQuest().getId()) {
+                PlayerData.get(player).questData.untrackQuest();
+            }
+        }
+    }
+
+    public void handlePartyComplete(IPlayer player, Party party, boolean isLeader, EnumPartyObjectives objectives) {
+        handleComplete(player);
+    }
+
+    public void removePartyItems(Party party) {
+    }
+
+    public abstract Vector<String> getQuestLogStatus(IPlayer player);
+
+    public abstract IQuestObjective[] getObjectives(IPlayer var1);
+
+
+    // Party Related
+    public abstract IQuestObjective[] getPartyObjectives(Party party);
+
+    public abstract Vector<String> getPartyQuestLogStatus(Party party);
+
+    public abstract boolean isPartyCompleted(Party party);
+}

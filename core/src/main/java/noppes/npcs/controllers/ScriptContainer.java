@@ -1,0 +1,436 @@
+package noppes.npcs.controllers;
+
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.INbt;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.NBTTags;
+import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.controllers.data.IScriptUnit;
+import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+
+public class ScriptContainer implements IScriptUnit {
+    private static final String lock = "lock";
+    public static ScriptContainer Current;
+    private static String CurrentType;
+    public String fullscript = "";
+    public String script = "";
+    public TreeMap<Long, String> console = new TreeMap<>();
+    public boolean errored = false;
+    public List<String> scripts = new ArrayList<>();
+    private HashSet<String> unknownFunctions = new HashSet<>();
+    public long lastCreated = 0L;
+    private String currentScriptLanguage = null;
+    public ScriptEngine engine = null;
+    private IScriptHandler handler = null;
+    private boolean evaluated = false;
+    private static Method luaCoerce;
+    private static Method luaCall;
+    private CompiledScript compScript = null;
+    private final HashMap<String, ScriptObjectMirror> cachedFunctions = new HashMap<>();
+    private long lastGlobalsVersion = -1;
+
+    /**
+     * Persisted per-container language. Null means inherit from handler default.
+     * Separate from currentScriptLanguage which is the engine cache.
+     */
+    private String language = null;
+
+    /**
+     * Per-instance bindings for variable isolation. When non-null, this container
+     * is an instance scope sharing a template's engine. All eval/lookup uses these
+     * bindings instead of the engine's default ENGINE_SCOPE.
+     */
+    private Bindings instanceBindings = null;
+
+    public ScriptContainer(IScriptHandler handler) {
+        this.handler = handler;
+    }
+
+    /**
+     * Create a lightweight instance scope that shares this container's engine
+     * but has its own isolated Bindings for variable state.
+     * The template's engine is initialized if needed.
+     *
+     * @param instanceHandler the script handler for the instance
+     */
+    @Override
+    public IScriptUnit createInstanceScope(IScriptHandler instanceHandler) {
+        if (this.engine == null) {
+            this.setEngine(this.getLanguage());
+        }
+        ScriptContainer instance = new ScriptContainer(instanceHandler);
+        instance.script = this.script;
+        instance.scripts = new ArrayList<>(this.scripts);
+        instance.console = this.console;
+        instance.language = this.language;
+        instance.engine = this.engine;
+        instance.currentScriptLanguage = this.currentScriptLanguage;
+        instance.instanceBindings = this.engine.createBindings();
+        return instance;
+    }
+
+    public void readFromNBT(INbt compound) {
+        String prevScript = this.script;
+        this.script = compound.getString("Script");
+        for (int i = 0; i < ConfigScript.ExpandedScriptLimit; i++) {
+            if (compound.hasKey("ExpandedScript" + i)) {
+                this.script += compound.getString("ExpandedScript" + i);
+            } else {
+                break;
+            }
+        }
+
+        if (!this.script.equals(prevScript)) {
+            this.evaluated = false;
+        }
+
+        this.console = NBTTags.GetLongStringMap(compound.getTagList("Console", 10));
+        this.scripts = NBTTags.getStringList(compound.getTagList("ScriptList", 10));
+        this.lastCreated = 0L;
+
+        // Read per-container language (empty string or missing = inherit from handler)
+        if (compound.hasKey("ContainerLanguage")) {
+            String lang = compound.getString("ContainerLanguage");
+            this.language = lang.isEmpty() ? null : lang;
+        }
+    }
+
+    public INbt writeToNBT(INbt compound) {
+        compound.setString(IScriptUnit.NBT_TYPE_KEY, IScriptUnit.TYPE_ECMASCRIPT);
+        if (this.script.length() < 65535) {
+            compound.setString("Script", this.script);
+        } else {
+            if (ConfigScript.ExpandedScriptLimit > 0) {
+                int i = 0;
+                int length = this.script.length();
+                while (length > 0 && i <= ConfigScript.ExpandedScriptLimit) {
+                    String str = "";
+                    if (i == 0) {
+                        compound.setString("Script", this.script.substring(0, 65535));
+                        str = this.script.substring(0, 65535);
+                    } else {
+                        int end = (length - 65535) >= 0 ? 65535 * (i + 1) : 65535 * i + length;
+                        str = this.script.substring(65535 * i, end);
+                        compound.setString("ExpandedScript" + (i - 1), str);
+                    }
+                    i++;
+                    length -= str.length();
+                }
+            } else {
+                compound.setString("Script", this.script.substring(0, 65535));
+            }
+        }
+        //compound.setString("Type", this.type);
+        compound.setTag("Console", NBTTags.NBTLongStringMap(this.console));
+        compound.setTag("ScriptList", NBTTags.nbtStringList(this.scripts));
+
+        // Persist per-container language if explicitly set
+        if (this.language != null) {
+            compound.setString("ContainerLanguage", this.language);
+        }
+        return compound;
+    }
+
+    private String getFullCode() {
+        if (!this.evaluated) {
+            // build includes first depending on config setting
+            StringBuilder sb = new StringBuilder();
+            if (CustomNpcs.proxy.isRunLoadedScriptsFirst()) {
+                this.appendExternalScripts(sb);
+            }
+
+            // then your per‐hook main script
+            if (this.script != null && !this.script.isEmpty()) {
+                sb.append(this.script).append("\n");
+            }
+
+            // build includes last if not built first
+            if (!CustomNpcs.proxy.isRunLoadedScriptsFirst()) {
+                this.appendExternalScripts(sb);
+            }
+            this.fullscript = sb.toString();
+            this.unknownFunctions = new HashSet<>();
+        }
+        return this.fullscript;
+    }
+
+    private void appendExternalScripts(StringBuilder sb) {
+        for (String loc : this.scripts) {
+            String code = ScriptController.Instance.scripts.get(loc);
+            if (code != null && !code.isEmpty()) {
+                sb.append(code).append("\n");
+            }
+        }
+    }
+
+    public void run(ScriptEngine engine) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        this.engine.getContext().setWriter(pw);
+        this.engine.getContext().setErrorWriter(pw);
+
+        try {
+            if (compScript == null && engine instanceof Compilable)
+                compScript = ((Compilable) engine).compile(getFullCode());
+
+            if (compScript != null) {
+                compScript.eval(engine.getContext());
+            } else {
+                engine.eval(getFullCode());
+            }
+        } catch (Throwable var14) {
+            this.errored = true;
+            var14.printStackTrace(pw);
+        } finally {
+            String errorString = sw.getBuffer().toString().trim();
+            this.appendConsole(errorString);
+            pw.close();
+        }
+    }
+
+    public void run(EnumScriptType type, Event event) {
+        if (!CustomNpcs.proxy.isScriptingEnabled())
+            return;
+
+        this.run((String) type.function, (Object) event);
+    }
+
+    public void run(String type, Object event) {
+        if (!CustomNpcs.proxy.isScriptingEnabled() || errored || !hasCode() || unknownFunctions.contains(type))
+            return;
+
+        this.setEngine(this.getLanguage());
+        if (engine == null)
+            return;
+
+        if (ScriptController.Instance.lastLoaded > this.lastCreated) {
+            this.lastCreated = ScriptController.Instance.lastLoaded;
+            evaluated = false;
+            lastGlobalsVersion = -1;
+        }
+
+        synchronized (lock) {
+            Current = this;
+            CurrentType = type;
+
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+
+            engine.getContext().setWriter(pw);
+            engine.getContext().setErrorWriter(pw);
+
+            // Populate bindings with API objects (skip if globals unchanged)
+            long currentGlobalsVersion = NpcAPI.engineObjectsVersion;
+            boolean globalsChanged = lastGlobalsVersion != currentGlobalsVersion;
+            if (instanceBindings != null) {
+                if (globalsChanged) {
+                    instanceBindings.put("API", NpcAPI.Instance());
+                    for (Map.Entry<String, Object> objectEntry : NpcAPI.engineObjects.entrySet()) {
+                        instanceBindings.put(objectEntry.getKey(), objectEntry.getValue());
+                    }
+                    lastGlobalsVersion = currentGlobalsVersion;
+                }
+            } else {
+                if (globalsChanged) {
+                    engine.put("API", NpcAPI.Instance());
+                    for (Map.Entry<String, Object> objectEntry : NpcAPI.engineObjects.entrySet()) {
+                        engine.put(objectEntry.getKey(), objectEntry.getValue());
+                    }
+                    lastGlobalsVersion = currentGlobalsVersion;
+                }
+            }
+
+            try {
+                if (!evaluated) {
+                    this.cachedFunctions.clear();
+                    if (instanceBindings != null) {
+                        engine.eval(getFullCode(), instanceBindings);
+                    } else {
+                        engine.eval(getFullCode());
+                    }
+                    evaluated = true;
+                }
+                if (engine.getFactory().getLanguageName().equals("lua")) {
+                    Object ob = instanceBindings != null ? instanceBindings.get(type) : engine.get(type);
+                    if (ob != null) {
+                        if (luaCoerce == null) {
+                            luaCoerce = Class.forName("org.luaj.vm2.lib.jse.CoerceJavaToLua").getMethod("coerce", Object.class);
+                            luaCall = ob.getClass().getMethod("call", Class.forName("org.luaj.vm2.LuaValue"));
+                        }
+                        luaCall.invoke(ob, luaCoerce.invoke(null, event));
+                    } else {
+                        unknownFunctions.add(type);
+                    }
+                } else {
+                    if (!this.cachedFunctions.containsKey(type)) {
+                        ScriptObjectMirror func;
+                        if (instanceBindings != null) {
+                            Object val = instanceBindings.get(type);
+                            func = val instanceof ScriptObjectMirror ? (ScriptObjectMirror) val : null;
+                        } else {
+                            ScriptObjectMirror global = (ScriptObjectMirror) engine.getBindings(ScriptContext.ENGINE_SCOPE);
+                            func = (ScriptObjectMirror) global.get(type);
+                        }
+                        this.cachedFunctions.put(type, func);
+                    }
+                    ScriptObjectMirror func = this.cachedFunctions.get(type);
+                    if (func != null) {
+                        func.call(null, event);
+                    }
+                }
+            } catch (NoSuchMethodException e) {
+                unknownFunctions.add(type);
+            } catch (Throwable e) {
+                errored = true;
+                e.printStackTrace(pw);
+            } finally {
+                appendConsole(sw.getBuffer().toString().trim());
+                pw.close();
+                Current = null;
+            }
+        }
+    }
+
+    public void appendConsole(String message) {
+        if (message != null && !message.isEmpty()) {
+            long time = System.currentTimeMillis();
+            if (this.console.containsKey(time)) {
+                message = (String) this.console.get(time) + "\n" + message;
+            }
+
+            this.console.put(time, message);
+
+            while (this.console.size() > 40) {
+                this.console.remove(this.console.firstKey());
+            }
+        }
+    }
+
+    public boolean isValid() {
+        return evaluated && !errored;
+    }
+
+    @Override
+    public boolean hasCode() {
+        if (!scripts.isEmpty())
+            return true;
+        return !this.getFullCode().isEmpty();
+    }
+
+    @Override
+    public boolean isUnknownFunction(String type) {
+        return unknownFunctions.contains(type);
+    }
+
+    public void setEngine(String scriptLanguage) {
+        if (!Objects.equals(scriptLanguage, this.currentScriptLanguage)) {
+            // Instance scopes share the template's engine — never create a new one
+            if (instanceBindings != null) return;
+            this.currentScriptLanguage = scriptLanguage;
+            if (ConfigScript.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
+                System.setProperty("nashorn.args", "--language=es6");
+            }
+            this.engine = ScriptController.Instance.getEngineByName(scriptLanguage.toLowerCase());
+            this.evaluated = false;
+        }
+    }
+
+    // ==================== IScriptUnit IMPLEMENTATION ====================
+
+    @Override
+    public String getScript() {
+        return this.script;
+    }
+
+    @Override
+    public void setScript(String script) {
+        this.script = script;
+        this.evaluated = false;
+    }
+
+    @Override
+    public List<String> getExternalScripts() {
+        return this.scripts;
+    }
+
+    @Override
+    public void setExternalScripts(List<String> scripts) {
+        this.scripts = scripts;
+        this.evaluated = false;
+    }
+
+    @Override
+    public TreeMap<Long, String> getConsole() {
+        return this.console;
+    }
+
+    @Override
+    public void clearConsole() {
+        this.console.clear();
+    }
+
+    @Override
+    public String getLanguage() {
+        // Return persisted per-container language, defaulting to ECMAScript.
+        // This is separate from currentScriptLanguage which is the engine cache.
+        return this.language != null ? this.language : "ECMAScript";
+    }
+
+    @Override
+    public void setLanguage(String language) {
+        if (!Objects.equals(this.language, language)) {
+            this.language = language;
+            this.evaluated = false;
+        }
+    }
+
+    @Override
+    public String generateHookStub(String hookName, Object hookData) {
+        // ECMAScript function template
+        return "function " + hookName + "(event) {\n    \n}\n";
+    }
+
+    @Override
+    public void ensureCompiled() {
+    }
+
+    @Override
+    public boolean hasErrored() {
+        return this.errored;
+    }
+
+    @Override
+    public void setErrored(boolean errored) {
+        this.errored = errored;
+    }
+
+    @Override
+    public boolean isJanino() {
+        return false;
+    }
+}
+

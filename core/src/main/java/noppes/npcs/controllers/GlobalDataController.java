@@ -1,11 +1,18 @@
 package noppes.npcs.controllers;
 
-import noppes.npcs.core.NBT;
-import kamkeel.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.api.INbt;
 
 import java.io.File;
-
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.core.NBT;
 import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
 
 public class GlobalDataController {
@@ -18,7 +25,7 @@ public class GlobalDataController {
     }
 
     private void load() {
-        File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
+        File saveDir = PlatformServiceHolder.get().getIWorldSaveDirectory();
         try {
             File file = new File(saveDir, "global.dat");
             if (file.exists()) {
@@ -38,28 +45,28 @@ public class GlobalDataController {
     }
 
     private void loadData(File file) throws Exception {
-        // OLD: NBTTagCompound nbttagcompound1;
+        // OLD: INbt INbt1;
         // OLD: try (FileInputStream fis = new FileInputStream(file)) {
-        // OLD:     nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        // OLD:     INbt1 = NBTIO.readCompressed(fis);
         // OLD: }
-        INbt nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
-        itemGiverId = nbttagcompound1.getInteger("itemGiverId");
+        INbt INbt1 = PlatformServiceHolder.get().readCompressedNBT(file);
+        itemGiverId = INbt1.getInteger("itemGiverId");
     }
 
     public void saveData() {
         customNPCThread.execute(() -> {
             try {
-                File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
+                File saveDir = PlatformServiceHolder.get().getIWorldSaveDirectory();
 
-                // OLD: NBTTagCompound nbttagcompound = new NBTTagCompound();
-                INbt nbttagcompound = NBT.compound();
-                nbttagcompound.setInteger("itemGiverId", itemGiverId);
+                // OLD: INbt INbt = new INbt();
+                INbt INbt = NBT.compound();
+                INbt.setInteger("itemGiverId", itemGiverId);
 
                 File file = new File(saveDir, "global.dat_new");
                 File file1 = new File(saveDir, "global.dat_old");
                 File file2 = new File(saveDir, "global.dat");
-                // OLD: CompressedStreamTools.writeCompressed(nbttagcompound, new FileOutputStream(file));
-                PlatformServiceHolder.get().writeCompressedNBT(nbttagcompound, file);
+                // OLD: NBTIO.writeCompressed(INbt, new FileOutputStream(file));
+                PlatformServiceHolder.get().writeCompressedNBT(INbt, file);
                 if (file1.exists()) {
                     file1.delete();
                 }

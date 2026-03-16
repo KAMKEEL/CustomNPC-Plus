@@ -1,5 +1,7 @@
 package kamkeel.npcs.platform;
 
+import common.minecraft.util.IResourceLocation;
+import common.minecraft.util.ITextComponent;
 import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IWorld;
@@ -11,6 +13,10 @@ import noppes.npcs.platform.nbt.NBTFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Central platform abstraction that bridges CORE logic with MC-version-specific code.
@@ -93,4 +99,54 @@ public interface PlatformService {
     // --- Scheduling ---
 
     void runOnMainThread(Runnable task);
+
+    // --- Translation ---
+
+    String translateToLocal(String key);
+
+    String translateToLocalFormatted(String key, Object... args);
+
+    // --- Server ---
+
+    boolean isLogicalClient();
+
+    boolean isModLoaded(String modId);
+
+    boolean isDedicatedServer();
+
+    List<IPlayer> getOnlinePlayers();
+
+    IPlayer getPlayerByName(String name);
+
+    IPlayer getPlayerByUUID(UUID uuid);
+
+    IWorld getWorldForDimension(int dimensionId);
+
+    // --- Entity Registry ---
+
+    String getEntityRegistryName(IEntity entity);
+
+    // --- Item Registry ---
+
+    IItemStack getItemById(int id);
+
+    int getIdFromItem(IItemStack item);
+
+    // --- Text Components ---
+
+    ITextComponent createTextComponent(String text);
+
+    ITextComponent createTranslatedComponent(String key, Object... args);
+
+    // --- Resource ---
+
+    IResourceLocation createResourceLocation(String resourceName);
+
+    IResourceLocation createResourceLocation(String domain, String path);
+
+    // --- NBT Stream I/O ---
+
+    INbt readCompressedNBT(InputStream stream) throws IOException;
+
+    void writeCompressedNBT(INbt compound, OutputStream stream) throws IOException;
 }

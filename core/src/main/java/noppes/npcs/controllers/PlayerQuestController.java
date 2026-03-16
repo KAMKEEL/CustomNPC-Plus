@@ -1,0 +1,167 @@
+package noppes.npcs.controllers;
+
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.INbt;
+import kamkeel.npcs.controllers.ProfileController;
+import noppes.npcs.EventHooks;
+import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.config.ConfigMain;
+import noppes.npcs.constants.EnumProfileSync;
+import noppes.npcs.constants.EnumQuestRepeat;
+import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestData;
+import noppes.npcs.quests.QuestDialog;
+
+import java.util.Vector;
+
+public class PlayerQuestController {
+
+    public static boolean hasActiveQuests(IPlayer player) {
+        PlayerQuestData data = PlayerData.get(player).questData;
+        return !data.activeQuests.isEmpty();
+    }
+
+    public static boolean isQuestActive(IPlayer player, int quest) {
+        PlayerQuestData data = PlayerData.get(player).questData;
+        return data.activeQuests.containsKey(quest);
+    }
+
+    public static boolean isQuestFinished(IPlayer player, int questid) {
+        PlayerQuestData data = PlayerData.get(player).questData;
+        return data.finishedQuests.containsKey(questid);
+    }
+
+    public static void addActiveQuest(QuestData questData, IPlayer player) {
+        PlayerData playerData = PlayerData.get(player);
+        PlayerQuestData data = playerData.questData;
+        if (canQuestBeAccepted(questData.quest, player)) {
+            if (EventHooks.onQuestStarted(player, questData.quest)) {
+                return;
+            }
+
+            data.activeQuests.put(questData.quest.id, questData);
+            if (questData.sendAlerts) {
+                AchievementPacket.sendAchievement((IPlayer) player, false, "quest.newquest", questData.quest.title);
+                ChatAlertPacket.sendChatAlert((IPlayer) player, "quest.newquest", ": ", questData.quest.title);
+            }
+            playerData.updateClient = true;
+        } else {
+            long timeUntilRepeat = questData.quest.getTimeUntilRepeat(player);
+            if (timeUntilRepeat > 0 && questData.quest.getIsRepeatable() && questData.quest.repeat != EnumQuestRepeat.NONE && questData.quest.repeat != EnumQuestRepeat.REPEATABLE) {
+                String timeString = NoppesUtilServer.millisToTime(timeUntilRepeat);
+                String message = "You have " + timeString + " left until you can repeat this quest.";
+                player.addChatMessage(new ITextComponent(NoppesStringUtils.formatText(message, player)));
+            }
+        }
+    }
+
+    public static void setQuestFinished(Quest quest, IPlayer player) {
+        PlayerData playerdata = PlayerData.get(player);
+        PlayerQuestData data = playerdata.questData;
+        QuestData questData = data.activeQuests.get(quest.id);
+        data.activeQuests.remove(quest.id);
+        setQuestFinishedUtil(player, quest, data);
+        if (quest.repeat != EnumQuestRepeat.NONE && quest.type == EnumQuestType.Dialog) {
+            QuestDialog questdialog = (QuestDialog) quest.questInterface;
+            for (int dialog : questdialog.dialogs.values()) {
+                playerdata.dialogData.dialogsRead.remove(dialog);
+            }
+        }
+        if (questData != null && questData.sendAlerts) {
+            AchievementPacket.sendAchievement((IPlayer) player, false, "quest.completed", questData.quest.title);
+            ChatAlertPacket.sendChatAlert((IPlayer) player, "quest.completed", ": ", questData.quest.title);
+        }
+        playerdata.updateClient = true;
+    }
+
+    public static void setQuestFinishedUtil(IPlayer player, Quest quest, PlayerQuestData questData) {
+        long completeTime;
+        if (quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY || quest.repeat == EnumQuestRepeat.RLCUSTOM) {
+            completeTime = System.currentTimeMillis();
+            questData.finishedQuests.put(quest.id, completeTime);
+        } else {
+            completeTime = player.worldObj.getTotalWorldTime();
+            questData.finishedQuests.put(quest.id, completeTime);
+        }
+
+        if (ConfigMain.ProfilesEnabled && quest.profileOptions.enableOptions
+                && (quest.profileOptions.completeControl == EnumProfileSync.Shared
+                    || quest.profileOptions.cooldownControl == EnumProfileSync.Shared))
+            ProfileController.Instance.shareQuestCompletion(player, quest.id, completeTime);
+    }
+
+    public static void setQuestPartyFinished(Quest quest, IPlayer player, QuestData questData) {
+        PlayerData playerdata = PlayerData.get(player);
+        PlayerQuestData data = playerdata.questData;
+        data.activeQuests.remove(quest.id);
+        setQuestFinishedUtil(player, quest, data);
+        if (quest.repeat != EnumQuestRepeat.NONE && quest.type == EnumQuestType.Dialog) {
+            QuestDialog questdialog = (QuestDialog) quest.questInterface;
+            for (int dialog : questdialog.dialogs.values()) {
+                playerdata.dialogData.dialogsRead.remove(dialog);
+            }
+        }
+        if (questData != null && questData.sendAlerts) {
+            AchievementPacket.sendAchievement((IPlayer) player, false, "quest.completed", questData.quest.title);
+            ChatAlertPacket.sendChatAlert((IPlayer) player, "quest.completed", ": ", questData.quest.title);
+        }
+        playerdata.updateClient = true;
+    }
+
+    public static boolean canQuestBeAccepted(Quest quest, IPlayer player) {
+        if (quest == null)
+            return false;
+
+        PlayerData playerData = PlayerData.get(player);
+        if (playerData == null)
+            return false;
+
+        PlayerQuestData data = playerData.questData;
+        if (data.activeQuests.containsKey(quest.id))
+            return false;
+
+        boolean finishedLocally = data.finishedQuests.containsKey(quest.id);
+        boolean completedShared = false;
+        boolean hasCooldownShared = false;
+        if (ProfileClientConfig.isProfilesEnabled() && quest.profileOptions.enableOptions
+                && ProfileClientConfig.hasSharedQuest(player, quest.id)) {
+            if (quest.profileOptions.completeControl == EnumProfileSync.Shared)
+                completedShared = true;
+            if (quest.profileOptions.cooldownControl == EnumProfileSync.Shared)
+                hasCooldownShared = true;
+        }
+
+        boolean isFinished = finishedLocally || completedShared;
+
+        if (!isFinished && !hasCooldownShared)
+            return true;
+        if (quest.repeat == EnumQuestRepeat.REPEATABLE)
+            return true;
+        if (quest.repeat == EnumQuestRepeat.NONE)
+            return !isFinished;
+
+        return quest.getTimeUntilRepeat(player) <= 0;
+    }
+
+    public static Vector<Quest> getActiveQuests(IPlayer player) {
+        Vector<Quest> quests = new Vector<Quest>();
+        PlayerQuestData data = PlayerData.get(player).questData;
+        for (QuestData questdata : data.activeQuests.values()) {
+            if (questdata.quest == null)
+                continue;
+            quests.add(questdata.quest);
+        }
+        return quests;
+    }
+}

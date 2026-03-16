@@ -88,11 +88,12 @@ function Symbol-Swap {
             }
         }
 
-        # PHASE 2: Replace symbols in code body
+        # PHASE 2: Replace symbols in code body (whole-word, CASE-SENSITIVE via -creplace)
         foreach ($swap in $Swaps) {
             $oldSym = $swap[0]; $newSym = $swap[1]
-            if ($content -match [regex]::Escape($oldSym)) {
-                $content = $content -replace [regex]::Escape($oldSym), $newSym
+            $pattern = '\b' + [regex]::Escape($oldSym) + '\b'
+            if ($content -cmatch $pattern) {
+                $content = $content -creplace $pattern, $newSym
                 $fileSwapped = $true
             }
         }

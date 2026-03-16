@@ -1,15 +1,22 @@
 package noppes.npcs.controllers.data;
 
-import noppes.npcs.api.handler.data.ILine;
-import noppes.npcs.api.handler.data.ILines;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
-import noppes.npcs.core.NBT;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.ILine;
+import noppes.npcs.api.handler.data.ILines;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.core.NBT;
 
 public class Lines implements ILines {
     private static final Random random = new Random();
@@ -20,32 +27,32 @@ public class Lines implements ILines {
     public INbt writeToNBT() {
         INbt compound = NBT.compound();
 
-        INbtList nbttaglist = NBT.list();
+        INbtList INbtList = NBT.list();
         for (int slot : lines.keySet()) {
             Line line = lines.get(slot);
-            INbt nbttagcompound = NBT.compound();
-            nbttagcompound.setInteger("Slot", slot);
-            nbttagcompound.setString("Line", line.text);
-            nbttagcompound.setString("Song", line.sound);
+            INbt INbt = NBT.compound();
+            INbt.setInteger("Slot", slot);
+            INbt.setString("Line", line.text);
+            INbt.setString("Song", line.sound);
 
-            nbttaglist.addCompound(nbttagcompound);
+            INbtList.addCompound(INbt);
         }
 
-        compound.setTagList("Lines", nbttaglist);
+        compound.setTagList("Lines", INbtList);
         return compound;
     }
 
     public void readNBT(INbt compound) {
-        INbtList nbttaglist = compound.getTagList("Lines", 10);
+        INbtList INbtList = compound.getTagList("Lines", 10);
 
         HashMap<Integer, Line> map = new HashMap<Integer, Line>();
-        for (int i = 0; i < nbttaglist.size(); i++) {
-            INbt nbttagcompound = nbttaglist.getCompound(i);
+        for (int i = 0; i < INbtList.size(); i++) {
+            INbt INbt = INbtList.getCompound(i);
             Line line = new Line();
-            line.text = nbttagcompound.getString("Line");
-            line.sound = nbttagcompound.getString("Song");
+            line.text = INbt.getString("Line");
+            line.sound = INbt.getString("Song");
 
-            map.put(nbttagcompound.getInteger("Slot"), line);
+            map.put(INbt.getInteger("Slot"), line);
         }
         lines = map;
     }

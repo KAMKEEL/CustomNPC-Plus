@@ -1,0 +1,189 @@
+package noppes.npcs.controllers.data;
+
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.INbt;
+import com.google.common.reflect.ClassPath;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.EventHooks;
+import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ScriptHookController;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+
+public class ForgeDataScript extends MultiScriptHandler {
+    private static final Object HOOK_LOCK = new Object();
+    private static List<String> cachedHooks;
+
+    private long lastForgeUpdate = -1L;
+    private final HashSet<String> globalUnknownEvents = new HashSet<>();
+
+    public ForgeDataScript() {
+    }
+
+    public boolean isEnabled() {
+        return this.enabled && CustomNpcs.proxy.isGlobalForgeScripts() && ScriptController.HasStart && this.scripts.size() > 0;
+    }
+
+    @Override
+    protected boolean canRunScripts() {
+        return isEnabled();
+    }
+
+    @Override
+    public ScriptContext getContext() {
+        return ScriptContext.FORGE;
+    }
+
+    @Override
+    protected boolean needsReInit() {
+        return ScriptController.Instance.lastLoaded > lastInited || ScriptController.Instance.lastForgeUpdate > lastForgeUpdate;
+    }
+
+    @Override
+    protected void reInitScripts() {
+        lastInited = ScriptController.Instance.lastLoaded;
+        lastForgeUpdate = ScriptController.Instance.lastForgeUpdate;
+        globalUnknownEvents.clear();
+
+        for (IScriptUnit script : this.scripts) {
+            if (script instanceof ScriptContainer)
+                ((ScriptContainer) script).errored = false;
+        }
+    }
+
+    @Override
+    public void callScript(String type, Event event) {
+        if (!canRunScripts()) {
+            return;
+        }
+
+        if (needsReInit()) {
+            reInitScripts();
+            if (!type.equals("init")) {
+                EventHooks.onForgeInit(this);
+            }
+        }
+
+        // Skip events that no script tab handles
+        if (globalUnknownEvents.contains(type)) {
+            return;
+        }
+
+        boolean anyHandled = false;
+        for (IScriptUnit script : this.scripts) {
+            if (script == null || script.hasErrored() || !script.hasCode())
+                continue;
+            boolean wasUnknown = script.isUnknownFunction(type);
+            script.run(type, event);
+            if (!wasUnknown || !script.isUnknownFunction(type)) {
+                anyHandled = true;
+            }
+        }
+
+        // If no script tab handled this event type, cache it globally
+        if (!anyHandled) {
+            globalUnknownEvents.add(type);
+        }
+    }
+
+    @Override
+    public List<String> getHooks() {
+        if (cachedHooks != null)
+            return new ArrayList<>(cachedHooks);
+
+        synchronized (HOOK_LOCK) {
+            if (cachedHooks != null)
+                return new ArrayList<>(cachedHooks);
+
+            // Start with built-in + addon hooks from ScriptHookController
+            List<String> hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(ScriptContext.FORGE.hookContext));
+
+            // Dynamically discover Forge event classes
+            ArrayList<ClassPath.ClassInfo> list = new ArrayList<>();
+            try {
+                list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.gameevent"));
+                list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
+                list.removeAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event.terraingen"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            for (ClassPath.ClassInfo classInfo : list) {
+                Class<?> infoClass = classInfo.load();
+                List<Class<?>> classes = new ArrayList<>(Arrays.asList(infoClass.getDeclaredClasses()));
+                if (classes.isEmpty()) {
+                    classes.add(infoClass);
+                }
+
+                for (Class<?> eventClass : classes) {
+                    if (isValidForgeEvent(eventClass)) {
+                        String eventName = eventClass.getName();
+                        int lastDot = eventName.lastIndexOf(".");
+                        eventName = StringUtils.uncapitalize(eventName.substring(lastDot + 1).replace("$", ""));
+
+                        if (!hookList.contains(eventName)) {
+                            hookList.add(eventName);
+                        }
+                    }
+                }
+            }
+
+            cachedHooks = hookList;
+        }
+
+        return new ArrayList<>(cachedHooks);
+    }
+
+    /**
+     * Check if a class is a valid Forge event that should be exposed as a hook.
+     */
+    private boolean isValidForgeEvent(Class<?> eventClass) {
+        return Event.class.isAssignableFrom(eventClass)
+            && Modifier.isPublic(eventClass.getModifiers())
+            && !Modifier.isAbstract(eventClass.getModifiers())
+            && !EntityEvent.EntityConstructing.class.isAssignableFrom(eventClass)
+            && !WorldEvent.PotentialSpawns.class.isAssignableFrom(eventClass)
+            && !TickEvent.RenderTickEvent.class.isAssignableFrom(eventClass)
+            && !TickEvent.ClientTickEvent.class.isAssignableFrom(eventClass)
+            && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(eventClass)
+            && !ItemTooltipEvent.class.isAssignableFrom(eventClass)
+            && !ChunkEvent.class.isAssignableFrom(eventClass)
+            && !ChunkWatchEvent.class.isAssignableFrom(eventClass)
+            && !ChunkDataEvent.class.isAssignableFrom(eventClass);
+    }
+
+    @Override
+    public void requestData() {
+        ForgeScriptPacket.Get();
+    }
+
+    @Override
+    public void sendSavePacket(int index, int totalCount, INbt nbt) {
+        ForgeScriptPacket.Save(index, totalCount, nbt);
+    }
+
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new EventJaninoScript(ScriptContext.FORGE);
+    }
+
+    @Override
+    public boolean isClient() {
+        return false;
+    }
+}

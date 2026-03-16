@@ -1,16 +1,23 @@
 package noppes.npcs.controllers;
 
-import noppes.npcs.core.NBT;
-import noppes.npcs.controllers.data.TransportCategory;
-import noppes.npcs.controllers.data.TransportLocation;
-import kamkeel.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.controllers.data.TransportCategory;
+import noppes.npcs.controllers.data.TransportLocation;
+import noppes.npcs.core.NBT;
 
 public class TransportController {
     private HashMap<Integer, TransportLocation> locations = new HashMap<Integer, TransportLocation>();
@@ -19,8 +26,8 @@ public class TransportController {
     private int lastUsedID = 0;
 
     // TODO: mc1710 version implements ITransportHandler and adds:
-    // OLD: public TransportLocation saveLocation(int categoryId, NBTTagCompound compound, EntityNPCInterface npc)
-    //   - This overload uses EntityNPCInterface, RoleTransporter, EnumRoleType
+    // OLD: public TransportLocation saveLocation(int categoryId, INbt compound, IEntityNPCInterface npc)
+    //   - This overload uses IEntityNPCInterface, RoleTransporter, EnumRoleType
     // OLD: public ITransportCategory[] categories()
     // OLD: public void createCategory(String title)
     // OLD: public ITransportCategory getCategory(String title)
@@ -39,7 +46,7 @@ public class TransportController {
     }
 
     private void loadCategories() {
-        File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
+        File saveDir = PlatformServiceHolder.get().getIWorldSaveDirectory();
         if (saveDir == null)
             return;
         try {
@@ -64,13 +71,13 @@ public class TransportController {
     public void loadCategories(File file) throws Exception {
         HashMap<Integer, TransportLocation> locations = new HashMap<Integer, TransportLocation>();
         HashMap<Integer, TransportCategory> categories = new HashMap<Integer, TransportCategory>();
-        // OLD: NBTTagCompound nbttagcompound1;
+        // OLD: INbt INbt1;
         // OLD: try (FileInputStream fis = new FileInputStream(file)) {
-        // OLD:     nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        // OLD:     INbt1 = NBTIO.readCompressed(fis);
         // OLD: }
-        INbt nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
-        lastUsedID = nbttagcompound1.getInteger("lastID");
-        INbtList list = nbttagcompound1.getTagList("NPCTransportCategories", 10);
+        INbt INbt1 = PlatformServiceHolder.get().readCompressedNBT(file);
+        lastUsedID = INbt1.getInteger("lastID");
+        INbtList list = INbt1.getTagList("NPCTransportCategories", 10);
         if (list == null) {
             return;
         }
@@ -96,19 +103,19 @@ public class TransportController {
             category.writeNBT(compound);
             list.addCompound(compound);
         }
-        INbt nbttagcompound = NBT.compound();
-        nbttagcompound.setInteger("lastID", lastUsedID);
-        nbttagcompound.setTagList("NPCTransportCategories", list);
-        return nbttagcompound;
+        INbt INbt = NBT.compound();
+        INbt.setInteger("lastID", lastUsedID);
+        INbt.setTagList("NPCTransportCategories", list);
+        return INbt;
     }
 
     public void saveCategories() {
         try {
-            File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
+            File saveDir = PlatformServiceHolder.get().getIWorldSaveDirectory();
             File file = new File(saveDir, "transport.dat_new");
             File file1 = new File(saveDir, "transport.dat_old");
             File file2 = new File(saveDir, "transport.dat");
-            // OLD: CompressedStreamTools.writeCompressed(getNBT(), new FileOutputStream(file));
+            // OLD: NBTIO.writeCompressed(getNBT(), new FileOutputStream(file));
             PlatformServiceHolder.get().writeCompressedNBT(getNBT(), file);
             if (file1.exists()) {
                 file1.delete();

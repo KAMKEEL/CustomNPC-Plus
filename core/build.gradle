@@ -9,8 +9,15 @@ version = '1.0'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     api project(':platform-api')
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
 }
 
 tasks.withType(JavaCompile).configureEach {

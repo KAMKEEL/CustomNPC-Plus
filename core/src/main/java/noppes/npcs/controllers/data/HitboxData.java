@@ -1,7 +1,16 @@
 package noppes.npcs.controllers.data;
 
+
 import noppes.npcs.api.entity.data.IHitboxData;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
 import noppes.npcs.core.CoreConfig;
 
 public class HitboxData implements IHitboxData {
@@ -10,28 +19,28 @@ public class HitboxData implements IHitboxData {
     private float heightScale = 1f;
     private boolean hitboxEnabled = false;
 
-    public INbt writeToNBT(INbt nbttagcompound) {
-        nbttagcompound.setBoolean("HitboxEnabled", hitboxEnabled);
+    public INbt writeToNBT(INbt INbt) {
+        INbt.setBoolean("HitboxEnabled", hitboxEnabled);
         if (hitboxEnabled) {
             if (widthScale > CoreConfig.HitBoxScaleMax)
                 widthScale = CoreConfig.HitBoxScaleMax;
-            nbttagcompound.setFloat("HitboxWidthScale", widthScale);
+            INbt.setFloat("HitboxWidthScale", widthScale);
 
             if (heightScale > CoreConfig.HitBoxScaleMax)
                 heightScale = CoreConfig.HitBoxScaleMax;
-            nbttagcompound.setFloat("HitboxHeightScale", heightScale);
+            INbt.setFloat("HitboxHeightScale", heightScale);
         }
-        return nbttagcompound;
+        return INbt;
     }
 
-    public void readFromNBT(INbt nbttagcompound) {
-        hitboxEnabled = nbttagcompound.getBoolean("HitboxEnabled");
+    public void readFromNBT(INbt INbt) {
+        hitboxEnabled = INbt.getBoolean("HitboxEnabled");
         if (hitboxEnabled) {
-            widthScale = nbttagcompound.getFloat("HitboxWidthScale");
+            widthScale = INbt.getFloat("HitboxWidthScale");
             if (widthScale > CoreConfig.HitBoxScaleMax)
                 widthScale = CoreConfig.HitBoxScaleMax;
 
-            heightScale = nbttagcompound.getFloat("HitboxHeightScale");
+            heightScale = INbt.getFloat("HitboxHeightScale");
             if (heightScale > CoreConfig.HitBoxScaleMax)
                 heightScale = CoreConfig.HitBoxScaleMax;
         }

@@ -1,5 +1,16 @@
 package noppes.npcs.constants;
 
+
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+
 public enum EnumNpcToolMaterial {
     WOOD(0, 59, 2.0F, 0, 15),
     STONE(1, 131, 4.0F, 1, 5),
@@ -30,7 +41,7 @@ public enum EnumNpcToolMaterial {
     /**
      * Damage versus entities.
      */
-    private final int damageVsEntity;
+    private final int damageVsIEntity;
 
     /**
      * Defines the natural enchantability factor of the material.
@@ -41,7 +52,7 @@ public enum EnumNpcToolMaterial {
         this.harvestLevel = par3;
         this.maxUses = par4;
         this.efficiencyOnProperMaterial = par5;
-        this.damageVsEntity = par6;
+        this.damageVsIEntity = par6;
         this.enchantability = par7;
     }
 
@@ -62,8 +73,8 @@ public enum EnumNpcToolMaterial {
     /**
      * Damage versus entities.
      */
-    public int getDamageVsEntity() {
-        return this.damageVsEntity;
+    public int getDamageVsIEntity() {
+        return this.damageVsIEntity;
     }
 
     /**

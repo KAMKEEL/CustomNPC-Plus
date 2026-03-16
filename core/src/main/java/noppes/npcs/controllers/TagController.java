@@ -1,10 +1,5 @@
 package noppes.npcs.controllers;
 
-import noppes.npcs.core.NBT;
-import noppes.npcs.controllers.data.Tag;
-import kamkeel.npcs.platform.PlatformServiceHolder;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.INbtList;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -13,6 +8,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import kamkeel.npcs.platform.PlatformServiceHolder;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.controllers.data.Tag;
+import noppes.npcs.core.NBT;
 
 public class TagController {
     public HashMap<Integer, Tag> tags;
@@ -23,7 +30,7 @@ public class TagController {
     // TODO: mc1710 version implements ITagHandler and adds:
     // OLD: public List<ITag> list()
     // OLD: public ITag delete(int id)
-    // OLD: public static void sendCategoryTagMap(EntityPlayerMP player, HashMap<String, HashSet<UUID>> itemTags) — uses GuiDataPacket
+    // OLD: public static void sendCategoryTagMap(IPlayerMP player, HashMap<String, HashSet<UUID>> itemTags) — uses GuiDataPacket
     public TagController() {
         instance = this;
         tags = new HashMap<Integer, Tag>();
@@ -35,7 +42,7 @@ public class TagController {
     }
 
     private void loadTags() {
-        File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
+        File saveDir = PlatformServiceHolder.get().getIWorldSaveDirectory();
         if (saveDir == null) {
             return;
         }
@@ -60,21 +67,21 @@ public class TagController {
         // OLD: DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
         // OLD: loadTags(var1);
         // OLD: var1.close();
-        INbt nbttagcompound1 = PlatformServiceHolder.get().readCompressedNBT(file);
-        loadTags(nbttagcompound1);
+        INbt INbt1 = PlatformServiceHolder.get().readCompressedNBT(file);
+        loadTags(INbt1);
     }
 
-    public void loadTags(INbt nbttagcompound1) {
+    public void loadTags(INbt INbt1) {
         HashMap<Integer, Tag> tags = new HashMap<Integer, Tag>();
-        lastUsedID = nbttagcompound1.getInteger("lastID");
-        INbtList list = nbttagcompound1.getTagList("NPCTags", 10);
+        lastUsedID = INbt1.getInteger("lastID");
+        INbtList list = INbt1.getTagList("NPCTags", 10);
 
         if (list != null) {
             for (int i = 0; i < list.size(); i++) {
-                INbt nbttagcompound = list.getCompound(i);
+                INbt INbt = list.getCompound(i);
                 Tag tag = new Tag();
-                // OLD: tag.readNBT(new NBTWrapper(nbttagcompound));
-                tag.readNBT(nbttagcompound);
+                // OLD: tag.readNBT(new NBTWrapper(INbt));
+                tag.readNBT(INbt);
                 tags.put(tag.id, tag);
             }
         }
@@ -90,19 +97,19 @@ public class TagController {
             tag.writeNBT(nbtfactions);
             list.addCompound(nbtfactions);
         }
-        INbt nbttagcompound = NBT.compound();
-        nbttagcompound.setInteger("lastID", lastUsedID);
-        nbttagcompound.setTagList("NPCTags", list);
-        return nbttagcompound;
+        INbt INbt = NBT.compound();
+        INbt.setInteger("lastID", lastUsedID);
+        INbt.setTagList("NPCTags", list);
+        return INbt;
     }
 
     public void saveTags() {
         try {
-            File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();
+            File saveDir = PlatformServiceHolder.get().getIWorldSaveDirectory();
             File file = new File(saveDir, "tags.dat_new");
             File file1 = new File(saveDir, "tags.dat_old");
             File file2 = new File(saveDir, "tags.dat");
-            // OLD: CompressedStreamTools.writeCompressed(getNBT(), new FileOutputStream(file));
+            // OLD: NBTIO.writeCompressed(getNBT(), new FileOutputStream(file));
             PlatformServiceHolder.get().writeCompressedNBT(getNBT(), file);
             if (file1.exists()) {
                 file1.delete();

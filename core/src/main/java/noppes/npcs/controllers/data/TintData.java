@@ -1,7 +1,16 @@
 package noppes.npcs.controllers.data;
 
+
 import noppes.npcs.api.entity.data.ITintData;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
 
 public class TintData implements ITintData {
     private boolean tintEnabled = false;
@@ -11,26 +20,26 @@ public class TintData implements ITintData {
     private int generalTint = 0x000000;
     private int generalAlpha = 40;
 
-    public INbt writeToNBT(INbt nbttagcompound) {
-        nbttagcompound.setBoolean("TintEnabled", tintEnabled);
+    public INbt writeToNBT(INbt INbt) {
+        INbt.setBoolean("TintEnabled", tintEnabled);
         if (tintEnabled) {
-            nbttagcompound.setBoolean("HurtTintEnabled", hurtTintEnabled);
-            nbttagcompound.setBoolean("GeneralTintEnabled", generalTintEnabled);
-            nbttagcompound.setInteger("HurtTint", hurtTint);
-            nbttagcompound.setInteger("GeneralTint", generalTint);
-            nbttagcompound.setInteger("GeneralAlpha", generalAlpha);
+            INbt.setBoolean("HurtTintEnabled", hurtTintEnabled);
+            INbt.setBoolean("GeneralTintEnabled", generalTintEnabled);
+            INbt.setInteger("HurtTint", hurtTint);
+            INbt.setInteger("GeneralTint", generalTint);
+            INbt.setInteger("GeneralAlpha", generalAlpha);
         }
-        return nbttagcompound;
+        return INbt;
     }
 
-    public void readFromNBT(INbt nbttagcompound) {
-        tintEnabled = nbttagcompound.getBoolean("TintEnabled");
+    public void readFromNBT(INbt INbt) {
+        tintEnabled = INbt.getBoolean("TintEnabled");
         if (tintEnabled) {
-            hurtTintEnabled = nbttagcompound.getBoolean("HurtTintEnabled");
-            generalTintEnabled = nbttagcompound.getBoolean("GeneralTintEnabled");
-            hurtTint = nbttagcompound.getInteger("HurtTint");
-            generalTint = nbttagcompound.getInteger("GeneralTint");
-            generalAlpha = nbttagcompound.getInteger("GeneralAlpha");
+            hurtTintEnabled = INbt.getBoolean("HurtTintEnabled");
+            generalTintEnabled = INbt.getBoolean("GeneralTintEnabled");
+            hurtTint = INbt.getInteger("HurtTint");
+            generalTint = INbt.getInteger("GeneralTint");
+            generalAlpha = INbt.getInteger("GeneralAlpha");
         }
     }
 

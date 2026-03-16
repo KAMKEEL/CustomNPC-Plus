@@ -1,5 +1,16 @@
 package kamkeel.npcs.network.enums;
 
+
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+
 public enum EnumRequestPacket {
     NPCDelete,
     RemoteMainMenu,
@@ -98,8 +109,8 @@ public enum EnumRequestPacket {
 
     RemoteNpcsGet,
     RemoteTpToNpc,
-    TileEntitySave,
-    TileEntityGet,
+    TileIEntitySave,
+    TileIEntityGet,
     Gui,
     IsGuiOpen,
     CacheAnimation,

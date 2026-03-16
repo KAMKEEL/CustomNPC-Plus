@@ -1,15 +1,26 @@
 package kamkeel.npcs.controllers.data.ability.enums;
 
+
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLiving;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.INbtList;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
+
 /**
  * Defines anchor points for ability charging effects.
- * Determines where the charging visual (orb, disc, etc.) appears relative to the entity.
+ * Determines where the charging visual (orb, disc, etc.) appears relative to the IEntity.
  */
 public enum AnchorPoint {
-    FRONT("Front"),           // In front of entity face (default)
-    CENTER("Center"),         // Entity center
+    FRONT("Front"),           // In front of IEntity face (default)
+    CENTER("Center"),         // IEntity center
     RIGHT_HAND("Right Hand"), // Right arm/hand position
     LEFT_HAND("Left Hand"),   // Left arm/hand position
-    ABOVE_HEAD("Above Head"), // Above the entity
+    ABOVE_HEAD("Above Head"), // Above the IEntity
     CHEST("Chest"),           // Chest level, centered
     EYE("Eye");           // Eye level, centered
 
