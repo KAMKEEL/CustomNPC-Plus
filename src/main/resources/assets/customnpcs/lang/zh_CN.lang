@@ -1,5 +1,12 @@
 customnpcs.defaultTextColor=404040
 
+key.categories.customnpc=自定义NPC+
+key.customnpcs.special=特殊按键
+key.customnpcs.abilityHudKey=HUD 按键
+key.customnpcs.abilityNext=下一个技能
+key.customnpcs.abilityPrev=上一个技能
+key.npcInventory=NPC 仓库
+
 entity.CustomNpc.name=自定义NPC
 entity.customnpcs.CustomNpc.name=自定义NPC
 
@@ -19,6 +26,7 @@ tile.npcWallBanner.name=壁挂旗帜
 tile.npcChair.name=椅子
 tile.npcCrate.name=板条箱
 tile.npcTallLamp.name=立灯
+tile.npcShortLamp.name=台灯
 tile.npcWeaponRack.name=武器架
 tile.npcCouchWool.name=棉花座椅
 tile.npcTable.name=木质桌子
@@ -55,9 +63,11 @@ tile.npcScripted.name=脚本方块
 
 gui.delete=你确定要删除这个NPC吗？
 gui.add=添加
+gui.view=查看
 gui.remove=删除
 gui.save=保存
 gui.name=姓名
+gui.displayName=显示名称
 gui.color=颜色
 gui.none=无
 gui.time=时间
@@ -67,7 +77,7 @@ gui.close=关闭
 gui.disabled=无效
 gui.increase=提升
 gui.decrease=降低
-gui.day=白天 
+gui.day=白天
 gui.night=夜晚
 gui.constant=恒定
 gui.accelerate=加速
@@ -88,6 +98,12 @@ gui.untilclose=直到关闭
 gui.whenavailable=准备时
 gui.ignoreDamage=无视伤害
 gui.ignoreNBT=忽略NBT
+gui.ignoreMatDamage=忽略材料的DMG
+gui.ignoreMatNBT=忽略材料的NBT
+gui.ignoreItemNBT=忽略物品的NBT
+gui.repairPercent=修复 %
+gui.material=材料
+gui.xpCost=XP 成本
 gui.recordHistory=记录历史
 gui.minrange=最小范围
 gui.engagedistance=交互距离
@@ -102,14 +118,21 @@ gui.play=播放
 gui.selectSound=选择音效
 gui.selectnpc=选择NPC
 gui.select=选择
+gui.sync=同步
 gui.range=范围
 gui.partly=部分的</P>
 gui.copy=复制
 gui.clear=清除
+gui.builtin=内置
+gui.custom=自定义
+gui.chained=连招
+gui.builtinAnimations=内置动画
+gui.customAnimations=自定义动画
 gui.done=确定
 gui.paste=粘贴
 gui.test=测试
 gui.settings=设置
+gui.build=创建
 gui.enabled=开启
 gui.website=网站
 gui.text=文本
@@ -134,7 +157,51 @@ gui.deselectAll=取消选择所有
 gui.loading=加载
 gui.off=Off
 gui.on=On
+gui.fullscreen=全屏模式
+gui.fullscreen.tooltip=专为全屏显示设计
+gui.addCategory=添加分类
 gui.sure=你确定吗?
+gui.available=需求满足
+gui.items=物品
+gui.npcs=NPCs
+gui.change=改变
+gui.create=创建
+gui.rename=重命名
+gui.playerMap=重新生成玩家地图
+gui.unused=未使用
+gui.apply=应用
+gui.cancel=取消
+gui.continue=继续
+gui.back=返回
+gui.yes=是
+gui.abilities=技能
+gui.toggles=状态开关
+gui.toggle=切换开关
+gui.toggle.active=开启中
+gui.toggle.inactive=已关闭
+gui.abilityHotbar=技能快捷栏
+
+gui.lineColor1=上面线条颜色
+gui.lineColor2=中间线条颜色
+gui.lineColor3=下面线条颜色
+gui.slotColour=插槽颜色
+gui.buttonAcceptColour=接受按钮颜色
+gui.buttonRejectColour=拒绝按钮颜色
+gui.animated=启用动画
+gui.animated.hover=带有 .mcmeta 文件的纹理会自动播放动画。\n勾选此项以手动控制精灵图（Sprite Sheet）的逐帧动画。
+gui.frameCount=帧数
+gui.frameTime=帧间隔
+questgui.doyouaccept=你会接受这个任务吗？
+questgui.bringitems=带上物品
+questgui.readdialog=读对话框
+questgui.killmobs=击杀目标
+questgui.findlocation=找到位置
+questgui.defeat=失败
+questgui.objectives=目标:
+questgui.rewards=奖励:
+questgui.experience=经验:
+questgui.reject=拒绝
+questgui.accept=接受
 
 party.accept=接受
 party.allowParty=允许队伍
@@ -192,6 +259,7 @@ settings.dialogSound=对话音效
 settings.dialogSpeed=对话速度
 settings.chatAlerts=聊天警报
 settings.bannerAlerts=横幅警报
+settings.effectsBar=隐藏效果栏
 settings.alignmentX=追踪 X
 settings.alignmentY=追踪 Y
 settings.trackScale=跟踪范围
@@ -199,6 +267,7 @@ settings.clearTrack=完成追踪任务
 settings.confirmClearTrack=你确定要完成追踪任务吗?
 settings.clearSkin=清除皮肤缓存
 settings.confirmClearSkin=你确定要清理你的皮肤吗?
+settings.hud=HUD 编辑器
 
 scale.shared=共享
 filter.contains=包含
@@ -242,6 +311,7 @@ mailbox.hour=小时
 mailbox.hours=小时
 mailbox.minute=分钟
 mailbox.minutes=分钟
+mailbox.seconds=秒
 mailbox.username=用户名
 mailbox.subject=标题
 mailbox.send=发送
@@ -263,7 +333,6 @@ display.overlay=附加材质
 display.player=玩家
 display.selectTexture=选择材质
 display.livingAnimation=有活力的
-display.collides=与实体碰撞
 display.visible=是否可见
 display.bossbar=Boss型血条
 display.squareTexture=方形材质
@@ -287,13 +356,32 @@ display.glow=发光
 display.solid=固体
 display.tintsettings=色调设置
 display.hitboxsettings=碰撞体积设置
+display.version=版本
+display.versionInfo=向所有项目发送版本更新
+display.maxStack=最大堆叠大小
+display.useAction=使用动作
+display.armor=护甲类型
+display.enchantability=附魔能力
+display.digSpeed=挖掘速度
+display.color=颜色
+display.durabilityShow=显示耐久
+display.isTool=是工具
+display.isNormalItem=是普通物品
+display.isToolInfo=修改工具的实用性和渲染效果
+display.isNormalItemInfo=改变项目渲染。缩放和旋转将不起作用
 
-inv.minExp=最小经验值
-inv.maxExp=最大经验值
-inv.npcInventory=NPC物品栏
-inv.inventory=物品栏
-inv.dropChance=掉落几率
-inv.auto=自动拾取
+use_action.none=无
+use_action.block=方块
+use_action.eat=吃
+use_action.drink=喝
+use_action.bow=弓
+
+armor_type.none=无
+armor_type.all=全部
+armor_type.head=头盔
+armor_type.chestplate=胸甲
+armor_type.leggings=护腿
+armor_type.boots=鞋子
 
 availability.options=可用的选项
 availability.always=总是可用
@@ -302,6 +390,8 @@ availability.before=...之前
 availability.available=可用
 availability.whenactive=当激活时
 availability.whennotactive=未激活时
+availability.acceptable=可接受
+availability.notacceptable=不能接受
 availability.selectquest=选择任务
 availability.selectdialog=选择对话
 availability.selectfaction=选择阵营
@@ -317,6 +407,13 @@ availability.areaNotAvailble=你不能通过这里。
 availability.permission=你没权限干这事哦
 availability.editIcon=从现在起十秒内，你能用右击来设置任何物品的图标
 
+availability.error.day=只在白天
+availability.error.night=只在晚上
+availability.error.dialog=%s 对话 %d
+availability.error.quest=%s 任务 %d
+availability.error.faction=%s %s 派系 %d
+availability.error.xp=经验等级 %d
+
 spawning.availableBiomes=可选生物群落
 spawning.spawningBiomes=在以下生物群落内生成
 spawning.availableDimensions=可用维度
@@ -330,20 +427,118 @@ spawning.liquidSpawning=在液体中生成
 spawning.airSpawning=在空气中生成
 spawning.minHeight=最小高度
 spawning.maxHeight=最大高度
+spawning.maxAlive=最大存活数 (0 = 无限)
+spawning.cooldownTicks=冷却时间 (刻)
+spawning.attemptsPerCycle=每周期尝试次数
+spawning.playerMinDistance=玩家最小距离
+spawning.despawnMode=消失模式
+spawning.despawn.forceNatural=强制自然消失 (推荐：像原生生物一样消失)
+spawning.despawn.preserve=保留模板设置 (沿用克隆体的原始设置)
+spawning.despawn.forcePersistent=强制持久存在 (不会自然消失，长期加载)
+spawning.naturalInfo=请至少添加一个生成条目，并配置NPC的生成选项，以使其能够自然生成。
+spawning.naturalInfoPerformance=自然生成设置\n最佳性能基准:\n- 最大存活数: 20-60\n- 冷却时间: 200-600 刻\n- 每周期尝试: 1-2 次\n- 玩家最小距离: 32-48 格\n- 消失模式: 强制自然消失
+tooltip.naturalspawns.main.addProfile=创建新的自然生成配置文件。\n性能建议：按生物群系或主题集中管理配置文件数量。
+tooltip.naturalspawns.main.removeProfile=删除选中的自然生成配置文件。\n性能建议：移除未使用的配置文件以减少选择开销。
+tooltip.naturalspawns.main.search=按名称过滤生成配置文件。\n提示：使用“群系/类型”前缀以便更快维护。
+tooltip.naturalspawns.main.biomes=选择此配置文件可以生成的生物群系。\n性能建议：仅勾选需要的群系。
+tooltip.naturalspawns.main.dimensions=选择此配置文件可以生成的维度。\n性能建议：限制在必需的维度内。
+tooltip.naturalspawns.main.options=打开高级生成控制。\n性能建议：配置上限、冷却、尝试次数和消失模式。
+tooltip.naturalspawns.main.addEntry=为此配置文件添加一个条目槽位。\n性能建议：仅保留激活的条目。
+tooltip.naturalspawns.main.removeEntry=移除选中的条目槽位。\n性能建议：移除空槽位或重复条目。
+tooltip.naturalspawns.main.slot=条目槽位索引。\n提示：保持编号有序以便于调试。
+tooltip.naturalspawns.main.selectEntry=选择此槽位将生成哪个克隆体/NPC。\n性能建议：避免在高频生成配置中使用脚本繁重的克隆体。
+tooltip.naturalspawns.options.animal=生成规则：动物\n使用动物风格的生成检查（地表 + 生物有效方块）。\n适用于被动型/主世界生物。\n性能：如不需要请禁用。
+tooltip.naturalspawns.options.monster=生成规则：怪物\n使用怪物风格的生成检查（地表 + 怪物有效方块）。\n适用于敌对型/夜间/洞穴生物。\n性能：如不需要请禁用。
+tooltip.naturalspawns.options.liquid=生成规则：液体\n允许在液体/水中进行生成验证。\n仅适用于水生生物条目。\n性能：除非必须，否则保持关闭。
+tooltip.naturalspawns.options.air=生成规则：空气\n允许在开阔空中列中进行生成验证。\n仅适用于飞行/空中生物条目。\n性能：除非必须，否则保持关闭。
+tooltip.naturalspawns.options.minHeight=最低生成 Y 轴\n此配置文件的垂直下限。\n与最高高度配合使用以缩小有效层级。\n性能：范围越窄 = 失败的检查越少。
+tooltip.naturalspawns.options.maxHeight=最高生成 Y 轴\n此配置文件的垂直上限。\n与最低高度配合使用以 targeting 特定层级。\n性能：范围越窄 = 失败的检查越少。
+tooltip.naturalspawns.options.maxAlive=最大存活数 (每配置文件)\n统计标记为此自然生成配置文件的已加载实体数量。\n0 = 无限 (不推荐)。\n性能基准：20-60。
+tooltip.naturalspawns.options.cooldownTicks=冷却时间 (刻)\n成功生成后，此配置文件再次生成前需等待的时间。\n20 刻 = 1 秒。\n性能基准：200-600 (10-30 秒)。
+tooltip.naturalspawns.options.attemptsPerCycle=每周期尝试次数\n每个周期此配置文件测试附近位置的数量。\n数值越高会增加生成压力和 CPU 检查。\n性能基准：1-2。
+tooltip.naturalspawns.options.playerMinDistance=玩家最小距离\n距离最近玩家多少格以内禁止生成。\n数值越高可减少玩家附近的突然生成 (pop-in)。\n性能基准：32-48。
+tooltip.naturalspawns.options.despawnMode=消失模式 (CNPC 条目)\n强制自然消失：生成时设置 canDespawn=true。推荐用于自然生态系统。\n保留模板设置：保持克隆体/模板的原始消失设置。\n强制持久存在：设置 canDespawn=false (NPC 加载时间更长)。\n性能建议：强制自然消失。
 
-role.name=身份
-role.none=无身份
+role.name=职业
+role.none=无职业
 role.trader=商人
-role.follower=雇佣随从
-role.bank=储存者
-role.transporter=传送师
-role.mailman=信使
-role.marketname=链接市场名称
-role.companion=同伴
+role.follower=追随者 (或“随从”)
+role.bank=银行家
+role.transporter=运输员 (用于在两个点之间自动移动物品)
+role.mailman=邮递员
+role.marketname=关联市场名称 (用于连接多个商人的共享库存)
+role.companion=伙伴 (比追随者更智能，会战斗且不会轻易卡住)
+role.mount=坐骑
+role.mount.offsetx=座位 X 偏移
+role.mount.offsety=座位 Y 偏移
+role.mount.offsetz=座位 Z 偏移
+role.mount.jumpheight=跳跃高度
+role.mount.sprint=冲刺 (是否允许加速跑)
+role.mount.fly=飞行模式
+role.mount.hover=悬停模式 (像创造模式一样悬浮)
+role.mount.ascendspeed=上升速度
+role.mount.descendspeed=下降速度
+role.mount.walkspeed=行走速度：%s
+role.auctioneer=拍卖师
+role.auctioneer.tabs=标签页可见性 (控制玩家能看到哪些界面)
+role.auctioneer.showBrowse=显示浏览市场
+role.auctioneer.showMyListings=显示我的出售
+role.auctioneer.showMyBids=显示我的出价
+role.auctioneer.showClaims=显示可领取物品
+role.auctioneer.actions=玩家操作权限
+role.auctioneer.allowCreate=允许创建拍卖
+role.auctioneer.allowBid=允许参与竞拍
+role.auctioneer.allowBuyout=允许直接买断
+role.auctioneer.messages=消息设置
+role.auctioneer.welcome=欢迎消息
+role.auctioneer.noAuction=拍卖功能禁用提示
 
-trader.insufficient=缺少物品
-trader.sufficient=足够的货币
-trader.slotdisabled=禁用槽位
+trader.unavailable=不可用 (通常指商人正在忙碌或未激活)
+trader.insufficient.currency=余额不足
+trader.available=有货
+trader.slotdisabled=槽位已禁用
+trader.currencycost=花费
+trader.outofstock=缺货
+trader.instock=库存充足 (原文小写，汉化时建议首字母大写或保持语境一致)
+trader.restock=补货 (按钮或动作)
+trader.balance=余额
+trader.reopentrader=重新打开交易界面
+
+stock.options.hover=配置库存上限和重置计时器
+stock.enable=启用库存限制
+stock.perplayer=每位玩家独立
+stock.resettype=重置类型
+stock.enable.hover=为交易栏启用有限库存
+stock.perplayer.hover=为每个玩家单独追踪库存
+stock.resettype.hover=库存自动补货的时间
+stock.customtime.hover=设置自定义重置间隔
+stock.defaultmax.hover=所有栏位的默认最大库存 (-1 = 无限)
+stock.perslot.hover=为单个栏位设置最大库存
+stock.reset.hover=将所有库存重置为最大值
+stock.resetcooldown.hover=在下一次打开交易界面时强制重置库存
+
+stock.reset.never=从不
+stock.reset.mcdaily=游戏每日
+stock.reset.mcweekly=游戏每周
+stock.reset.mccustom=游戏自定义
+stock.reset.rldaily=现实每日
+stock.reset.rlweekly=现实每周
+stock.reset.rlcustom=现实自定义
+
+stock.options.hover=配置库存上限和重置计时器
+stock.enable.hover=为交易槽位启用有限库存
+stock.perplayer.hover=为每位玩家单独追踪库存
+stock.resettype.hover=设置库存自动补货的时机
+stock.customtime.hover=设置自定义的重置间隔
+stock.defaultmax.hover=所有槽位的默认最大库存 (-1 = 无限)
+stock.perslot.hover=为单个槽位设置最大库存
+stock.reset.hover=将所有库存重置为最大值
+stock.resetcooldown.hover=强制库存在下一次打开商人界面时重置
+
+gui.settings.hover=配置交易选项
+gui.ignoreDamage.hover=比较货币时忽略物品耐久度
+gui.ignoreNBT.hover=比较货币时忽略NBT数据
+gui.recordHistory.hover=记录购买历史以供分析
 
 job.name=职业
 job.none=无职业
@@ -395,14 +590,15 @@ stats.regenhealth=正常生命恢复
 stats.combatregen=受攻击生命恢复
 stats.naturallydespawns=自然消失
 stats.aimWhileShooting=射击时瞄准
-stats.invincibility=无敌帧
-stats.allowed=允许
+stats.invincibility=无敌
+stats.allowed=运行
 stats.ignored=忽略
 stats.potionImmune=免疫药水
 stats.attackInvisible=攻击隐藏
 stats.never=从不
 stats.inWater=在水里
 stats.inAir=在空气中
+stats.collides=碰撞
 
 stats.size=尺寸
 stats.speed=速度
@@ -417,6 +613,9 @@ stats.stick=穿透目标
 stats.regular=无增益
 stats.amplified=增益
 stats.explosion=爆炸
+stats.onShot=射击中
+stats.onStart=开始中
+stats.burnItem=燃烧物品
 
 ai.standing=站立
 ai.wandering=游荡
@@ -479,6 +678,7 @@ faction.friendly=友好
 faction.points=点数相关
 faction.ondeath=该NPC死亡后
 faction.hidden=隐藏
+faction.hidden.hover=隐藏该势力在玩家的势力声望界面中
 faction.default=默认
 faction.attackHostile=攻击敌对阵营
 faction.defend=保护阵营中的其他人
@@ -486,7 +686,10 @@ faction.nostanding=你现在不属于任何一个阵营
 faction.options=阵营选项
 faction.increasepoints=阵营 %s提高了了 %s 点数
 faction.decreasepoints=阵营 %s降低了 %s 点数
+faction.attacked=被怪物攻击
 faction.attacked=被其他生物攻击
+faction.passive=是被动的
+faction.passive.hover=被动阵营不会让任何攻击任务排队[对性能有好处]
 
 menu.inventory=物品
 menu.display=外形设置
@@ -497,7 +700,11 @@ menu.advanced=高级设置
 menu.global=全局设置
 menu.role=职业设置
 menu.animations=动画
-menu.quests=任务
+menu.tags=标签
+menu.general=一般
+menu.magics=魔法
+menu.cycles=周期
+menu.attributes=属性
 
 cloner.tagFilters=标签过滤
 cloner.tagVisibility=标签的可见性
@@ -522,6 +729,10 @@ global.playerdata=玩家档案
 global.recipes=NPC合成表
 global.naturalspawn=自然生成设置
 global.linked=链接
+global.customeffects=状态
+global.magic=魔法
+global.abilities=技能
+global.auction=拍卖会
 
 bank.slot=数量
 bank.unlock=解锁
@@ -593,8 +804,10 @@ dialog.npcScale=NPC 比例
 dialog.npcOffset=NPC 偏移
 dialog.titleColor=标题颜色
 dialog.titlePos=标题的位置
+dialog.enableColorSettings=启用颜色设置
 
 quest.quest=任务
+quest.active=主动任务
 quest.quests=任务
 quest.item=物品收集任务
 quest.kill=击杀任务
@@ -611,6 +824,9 @@ quest.mcdaily=MC中的一天
 quest.mcweekly=MC中的一周
 quest.rldaily=现实中的一天
 quest.rlweekly=现实中的一周
+quest.rlcustom=RL 自定义
+quest.mccustom=MC 自定义
+quest.profile=配置文件选项
 quest.instant=立即完成
 quest.npc=交付npc
 quest.next=下一个任务
@@ -629,8 +845,7 @@ quest.tracking=追踪
 quest.alerts=提醒
 quest.noAlerts=无提醒
 
-script.apidoc=API 文档
-script.apisrc=API 源
+gui.api=API
 
 script.scripts=脚本
 script.hooks=钩子
@@ -642,7 +857,7 @@ script.update=更新
 script.console=控制台
 script.language=语言
 script.default=默认
-script.damaged=伤害
+script.damaged=受伤
 script.killed=杀死
 script.attack=攻击
 script.target=注视
@@ -685,10 +900,10 @@ playerscript.tick=更新
 playerscript.pickupXP=拾取经验
 playerscript.timer=计时器
 playerscript.mouseClicked=鼠标点击
-playerscript.startItem=Item Start
-playerscript.usingItem=使用物品
-playerscript.stopItem=Item Stop
-playerscript.finishItem=Item Finish
+playerscript.startItem=开始使用物品
+playerscript.usingItem=正在使用物品
+playerscript.stopItem=停止使用物品
+playerscript.finishItem=完成使用物品
 playerscript.playSound=播放声音
 playerscript.lightning=雷击
 playerscript.fall=跌落
@@ -709,6 +924,11 @@ item.npcMounter.name=骑乘魔杖
 item.npcTeleporter.name=传送魔杖
 item.npcScripter.name=脚本魔杖
 item.scripted_item.name=脚本物品
+item.linked_item.name=关联物品
+item.npcTool.hammer.name=NPC 锤
+item.npcTool.paintbrush.name=NPC 刷
+item.npcTool.magic_book.name=魔法书
+
 
 item.npcBanjo.name=五弦琴
 item.npcViolin.name=小提琴
@@ -735,6 +955,7 @@ item.npcDiamondGun.name=钻石手枪
 item.npcBronzeGun.name=青铜手枪
 item.npcEmeraldGun.name=绿宝石手枪
 item.npcMachineGun.name=机枪
+item.npcMachineGun.info=剩余
 
 item.npcWoodenBullet.name=木质子弹
 item.npcStoneBullet.name=石质子弹
@@ -1023,7 +1244,7 @@ item.npcAirElement.name=气之元素
 item.npcCarKey.name=车钥匙
 item.npcKey.name=钥匙
 item.npcKey2.name=钥匙
-item.npcPendant.name=吊坠 
+item.npcPendant.name=吊坠
 item.npcBlueprint.name=蓝图
 item.npcRing.name=戒指
 
@@ -1147,6 +1368,8 @@ model.legs=腿
 model.scale=比例
 model.animation=动画
 model.rotate=旋转
+model.rotationRate=旋转速率
+model.translate=平移
 model.pivot=枢轴
 model.load=模型加载
 model.save=模型保存
@@ -1171,9 +1394,9 @@ animation.smoothing=平滑
 animation.linear=线性
 animation.smooth=平滑
 animation.loop=循环
-animation.tickType=Tick类型
-animation.mcTicks=MC Ticks
-animation.renderTicks=渲染tick
+animation.tickType=计时类型
+animation.mcTicks=游戏刻
+animation.renderTicks=渲染刻
 animation.whileStanding=站
 animation.whileAttacking=攻击时
 animation.whileMoving=移动时
@@ -1195,17 +1418,17 @@ guard.currentTargets=当前目标
 guard.availableTargets=可用目标
 guard.specifictargets=具体目标
 
-companion.baby =宝贝
-companion.child =孩子
-companion.teenager =少年
-companion.adult =成人
-companion.fullgrown =成年
-companion.age =年龄
-companion.stage =阶段
-companion.owner =所有者
-companion.strength =力量
-companion.talent =天赋
-companion.level =等级
+companion.baby=宝贝
+companion.child=孩子
+companion.teenager=少年
+companion.adult=成人
+companion.fullgrown=成年
+companion.age=年龄
+companion.stage=阶段
+companion.owner=所有者
+companion.strength=力量
+companion.talent=天赋
+companion.level=等级
 
 markov.generic.name=通用生成器
 markov.ancientGreek.name=古希腊
@@ -1219,17 +1442,17 @@ markov.slavic.name=古波兰
 markov.welsh.name=布列塔尼(威尔士)
 markov.spanish.name=西班牙(拉丁美洲)
 
-markov.gender.name =性别
+markov.gender.name=性别
 markov.gender.either=任选其一
-markov.gender.female =女
-markov.gender.male =男
-markov.generate =生成
+markov.gender.female=女
+markov.gender.male=男
+markov.generate=生成
 
-mark.question =问题
-mark.exclamation =感叹
-mark.pointer =指针
-mark.skull =头骨
-mark.cross =交叉
+mark.question=问题
+mark.exclamation=感叹
+mark.pointer=指针
+mark.skull=头骨
+mark.cross=交叉
 mark.star=星星
 
 tint.enable=启用自定义色彩
@@ -1243,13 +1466,995 @@ hitbox.hitbox=碰撞体积
 hitbox.width=宽度比例
 hitbox.height=身高比例
 
-key.npcInventory=NPC物品栏
-role.mount=Mount
-role.mount.offsetx=Seat X
-role.mount.offsety=Seat Y
-role.mount.offsetz=Seat Z
-role.mount.jumpheight=Jump
-role.mount.sprint=Sprint
-role.mount.reset=Reset Position
-role.mount.walkspeed=Walk Speed: %s
-key.customnpcs.special=Special Key
+texture.item=物品
+texture.base=基础
+
+general.menuName=菜单名称
+
+effect.runsEveryX=每X个tick运行一次
+effect.defaultLength=默认长度
+
+effect.editor.runsEveryX=每个X点
+effect.editor.defaultLength=长度
+effect.editor.height=高度
+effect.editor.width=宽度
+effect.editor.xPos=X 轴位置
+effect.editor.yPos=Y 轴位置
+effect.editor.lossOnDeath=死亡损失
+
+particle.maxAge=最大存活时间
+particle.facePlayer=面向玩家
+particle.noClip=穿透方块
+
+profile.lastLoaded=最后一次加载
+profile.info.quest.active=任务激活
+profile.info.quest.finished=任务完成
+profile.info.dialog.read=对话读取
+profile.change.message=要更改吗？
+profile.create.message=创建新的配置文件将更改您现在的配置文件。
+profile.rename.message=您要重命名您的插槽吗？
+profile.operation.error=你的请求有错误
+profile.enableOptions=启用选项
+profile.completion=完成
+profile.cooldown=冷却时间
+profile.individual=个人
+profile.slot=槽位
+
+magic.interaction=交互
+magic.diagram=图表类型
+magic.index=索引
+magic.priority=优先级
+magic.split=拆分
+magic.bonus=奖励
+magic.dist=距离
+magic.distribute=分配
+magic.distInfo=将魔法拆分分配给所有选定的魔法
+
+diagram.circular=圆形
+diagram.square=方形
+diagram.tree=树形
+diagram.generated=生成
+diagram.circular_manual=圆形 [手动]
+diagram.square_manual=方形 [手动]
+diagram.tree_manual=树形 [手动]
+diagram.chart=图表
+diagram.manual=手动
+diagram.info=手动：索引为层级，优先级为顺序。
+
+rpgcore:tooltip=按住 %key% 查看属性
+rpgcore:attribute.damage=攻击力
+rpgcore:attribute.defense=防御力
+rpgcore:attribute.resistance=抗性
+rpgcore:attribute.neutral=中立伤害
+
+requirement.soulbind=灵魂绑定
+
+trail.smoke=烟雾
+trail.portal=传送门
+trail.redstone=红石
+trail.lightning=闪电
+trail.largesmoke=大量烟雾
+trail.magic=魔法
+trail.enchant=附魔
+trail.crit=暴击
+trail.explode=爆炸
+trail.music=音乐
+trail.flame=火焰
+trail.lava=熔岩
+trail.splash=飞溅
+trail.slime=黏液
+trail.heart=心
+trail.angryvillager=愤怒村民
+trail.happyvillager=快乐村民
+trail.custom=自定义
+
+menu.abilities=技能
+
+ability.availableTypes=可选类型
+ability.npcAbilities=NPC技能
+ability.globalCooldown=全局冷却
+ability.minCooldown=最小冷却
+ability.maxCooldown=最大冷却
+ability.edit=编辑技能
+ability.targeting=目标选择
+ability.timing=时机 (刻)
+ability.cooldown=冷却
+ability.windup=前摇
+ability.syncOn=同步：开
+ability.syncOff=同步：关
+ability.dazed=眩晕刻数
+ability.threshold=阈值
+ability.lockMove=锁定移动
+ability.lockMove.windup=前摇
+ability.lockMove.active=生效中
+ability.lockMove.both=两者
+ability.telegraph=预警
+ability.telegraphType=预警类型
+
+ability.target.aggro_target=目标
+ability.target.self=自身
+ability.target.aoe_self=范围效果[以自身]
+ability.target.aoe_target=范围效果[以目标]
+ability.syncWindup=同步前摇
+
+# Anchor Point
+ability.anchor.front=前方
+ability.anchor.center=中心
+ability.anchor.rightHand=右手
+ability.anchor.leftHand=左手
+ability.anchor.aboveHead=头顶
+ability.anchor.chest=胸部
+ability.anchor.eye=眼睛
+
+# Sweep Mode
+ability.sweep.swipe=挥扫
+ability.sweep.spin=旋转
+
+# Dash Mode
+ability.dash.aggressive=激进
+ability.dash.defensive=防御
+ability.dash.directional=定向冲刺
+
+# Dash Direction
+ability.dash.forward=向前
+ability.dash.diagonalForwardLeft=左前斜向
+ability.dash.diagonalForwardRight=右前斜向
+ability.dash.left=向左
+ability.dash.right=向右
+ability.dash.diagonalBackLeft=左后斜向
+ability.dash.diagonalBackRight=右后斜向
+ability.dash.back=向后
+ability.dash.custom=自定义
+
+# Counter Type
+ability.counter.flat=固定值
+ability.counter.percent=百分比
+
+# Zone Shape
+ability.shape.circle=圆形
+ability.shape.square=方形
+ability.shape.ring=扇形
+ability.shape.cone=形状
+ability.zoneShape=形状
+
+# Zone Presets
+ability.preset.custom=自定义
+ability.preset.default=默认
+ability.preset.toxic=毒性
+ability.preset.inferno=炼狱
+ability.preset.arcane=奥术
+ability.preset.electric=电击
+ability.preset.frost=冰霜
+ability.preset.hidden=隐藏
+ability.preset.venom=毒液
+ability.preset.explosive=爆炸
+ability.preset.cursed=诅咒
+ability.preset.shock=诱饵
+ability.preset.snare=静态
+
+# Accent Styles
+ability.accentStyle.static=摇曳
+ability.accentStyle.swaying=上升
+ability.accentStyle.flickering=闪烁
+
+# Particle Motion Styles
+ability.particleMotion.rising=上升
+ability.particleMotion.drifting=飘动
+ability.particleMotion.sparks=火花
+
+# Zone Settings
+ability.section.zone=区域放置
+ability.telegraphSize=预警大小
+ability.coneAngle=扇形角度
+ability.ignoreInvulnFrames=忽略无敌帧
+ability.visible=可见
+
+# Visual Layer Section Headers
+ability.section.ground=地面填充
+ability.section.rings=环形
+ability.section.border=边框
+ability.section.accents=点缀
+ability.section.lightning=闪电
+ability.section.particles=粒子
+
+# Placement Mode
+ability.placement.atCaster=在施法者处
+ability.placement.atTarget=在目标处
+ability.placement.followCaster=跟随施法者
+ability.placement.followTarget=跟随目标
+
+# Teleport Mode
+ability.teleport.blink=瞬闪
+ability.teleport.behind=身后
+ability.teleport.single=单次
+
+# Trap Placement
+ability.trapPlace.atCaster=在施法者处
+ability.trapPlace.atTarget=在目标处
+ability.trapPlace.aheadOfCaster=施法者前方
+
+telegraph.circle=圆形
+telegraph.ring=环形
+telegraph.line=直线
+telegraph.cone=扇形
+telegraph.point=点
+
+ability.tab.timing=时机
+ability.tab.effects=效果
+ability.tab.telegraph=预警
+ability.tab.visual=视觉
+ability.telegraphColor=颜色
+ability.telegraphSizeNote=大小基于技能参数
+
+# Ability Effects Tab
+
+ability.cnpc.custom=自定义
+ability.telegraphShape=预警形状
+ability.toggleEnabled=启用切换
+ability.toggleStates=切换状态
+ability.hasActiveToggle=激活切换计时
+ability.section.toggle=切换
+ability.section.execution=执行
+ability.cnpc.slam=猛击
+ability.cnpc.heavy_hit=重击
+ability.cnpc.cutter=切割
+ability.cnpc.beam=光束
+ability.cnpc.projectile=投射物
+ability.cnpc.orb=法球
+ability.cnpc.charge=冲锋
+ability.cnpc.dash=突进
+ability.cnpc.teleport=传送
+ability.cnpc.vortex=漩涡
+ability.cnpc.shockwave=冲击波
+ability.cnpc.guard=格挡
+ability.cnpc.counter=反击
+ability.cnpc.dodge=闪避
+ability.cnpc.effect=效果
+ability.cnpc.hazard=危险区域
+ability.cnpc.trap=陷阱
+ability.cnpc.disc=圆盘
+ability.cnpc.laser_shot=激光射击
+ability.cnpc.sweeper=清扫器
+
+# ═══════════════════════════════════════════════════════════════
+# Ability Config GUI
+# ═══════════════════════════════════════════════════════════════
+
+# General Tab
+ability.weight=权重
+ability.windUpTicks=前摇
+ability.cooldownTicks=冷却
+ability.perAbilityCooldown=每个技能独立冷却
+ability.freeOnCast=施放即进入冷却
+ability.hover.freeOnCast=实体生成后技能立即进入冷却，允许施法者在召唤物存在期间使用其他技能
+ability.freeAim=自由瞄准
+ability.hover.freeAim=仅限玩家。允许玩家在激活阶段用鼠标控制光束方向。要求：移动锁定设置为“激活”或“两者”，旋转模式设置为“自由”，且未启用“施放即进入冷却”。
+ability.lockMovement=锁定移动
+ability.rotationMode=旋转模式
+ability.rotationPhase=旋转阶段
+ability.rotation.free=自由
+ability.rotation.locked=锁定
+ability.rotation.track=追踪
+ability.interruptible=可打断
+ability.dazedTicks=眩晕刻数
+ability.targetingMode=目标选择模式
+
+# Target Tab
+ability.minRange=最小距离
+ability.maxRange=最大距离
+ability.conditions=条件
+
+# Chained Ability
+ability.select=选择技能
+ability.entries=条目
+ability.delay=延迟
+ability.windUpAll=全部蓄力
+ability.allowedBy=允许者
+
+# Effects Tab
+ability.windUpSound=前摇音效
+ability.activeSound=生效音效
+ability.counterSound=反击音效
+ability.windUpAnimation=前摇动画
+ability.activeAnimation=生效动画
+ability.dazedAnimation=眩晕动画
+ability.counterAnimation=反击动画
+ability.dodgeAnimation1=闪避动画 1
+ability.dodgeAnimation2=闪避动画 2
+ability.dodgeAnimation3=闪避动画 3
+ability.showTelegraph=显示预警
+ability.windUpColor=前摇颜色
+ability.activeColor=生效颜色
+ability.telegraphHeight=高度偏移
+ability.telegraphRadius=半径
+ability.telegraphInnerRadius=内半径
+ability.telegraphLength=长度
+ability.telegraphWidth=宽度
+ability.telegraphAngle=角度
+ability.telegraphActiveTicks=激活刻数
+ability.syncTelegraph=同步持续时间
+
+# Section Headers
+ability.section.timing=时机
+ability.section.movement=移动
+ability.section.sounds=声音
+ability.section.animations=动画
+ability.section.animation=动画
+ability.section.telegraph=预警
+ability.section.beam=光束
+ability.section.sweep=横扫
+ability.section.push=击退
+ability.section.leap=跳跃
+ability.section.disc=圆盘
+ability.section.homing=追踪
+ability.section.boomerang=回旋镖
+ability.section.explosive=爆炸
+ability.section.colors=颜色
+ability.section.effects=效果
+ability.section.burst=爆发
+ability.section.magic=魔法
+ability.magic.note=魔法备注
+ability.magic.usesCaster=使用施法者的魔法数据
+ability.magic.editor=魔法编辑器
+ability.preview.damage=伤害
+ability.preview.health=生命值
+ability.preview.magic.casters=魔法：施法者的
+ability.section.dodgeAnimations=闪避动画
+ability.section.visual=视觉
+ability.section.projectile1=投射物 1
+ability.section.projectile2=投射物 2
+ability.section.projectile3=投射物 3
+ability.section.projectile4=投射物 4
+ability.section.projectile5=投射物 5
+ability.section.projectile6=投射物 6
+ability.section.projectile7=投射物 7
+ability.section.projectile8=投射物 8
+ability.section.counter=反击
+ability.section.area=区域
+ability.section.damage=伤害
+ability.section.debuffs=减益效果
+ability.section.healing=治疗
+ability.section.trigger=触发
+ability.section.aoe=范围效果
+ability.section.pullDamage=牵引伤害
+ability.section.hitZone=命中区域
+
+# Shared Sub-Section Labels (used under section headers)
+gui.radius=半径
+gui.thickness=厚度
+gui.rotationSpeed=旋转速度
+gui.strength=强度
+gui.delay=延迟
+gui.density=密度
+gui.length=长度
+gui.width=宽度
+gui.height=高度
+gui.value=数值
+gui.chance=几率
+gui.sound=声音
+gui.animation=动画
+gui.duration=持续时间
+gui.amp=振幅
+gui.speed=速度
+gui.size=大小
+gui.alpha=透明度
+gui.count=数量
+gui.style=样式
+gui.scale=缩放
+gui.motion=移动
+gui.glow=辉光
+gui.texture=纹理
+gui.dps=每秒伤害
+gui.interval=间隔
+gui.cooldown=冷却
+gui.max=最大
+gui.preset=预设
+gui.applyPreset=应用预设
+
+# Common Type Settings
+ability.radius=半径
+ability.knockback=击退
+ability.knockbackUp=向上击退
+ability.hitType=命中类型
+ability.hitType.single=单体
+ability.hitType.pierce=穿透
+ability.hitType.multi=多重
+ability.multiHitDelay=多重命中延迟
+ability.maxHits=最大命中次数
+ability.distance=距离
+ability.maxDistance=最大距离
+ability.maxLength=最大长度
+ability.lifetime=生命周期
+ability.stunTicks=眩晕时间（刻）
+ability.hitWidth=命中宽度
+ability.hitLength=命中长度
+ability.effects=效果
+ability.effect.burn=燃烧
+ability.mode=模式
+ability.anchorPoint=锚点
+ability.anchor.offsetX=X轴偏移
+ability.anchor.offsetY=Y轴偏移
+ability.anchor.offsetZ=Z轴偏移
+ability.launchFromAnchor=从锚点发射
+ability.hover.launchFromAnchor=启用后，抛射物将从其锚点位置发射，而不是吸附到默认的眼睛/视线向量位置。
+ability.vertical=垂直
+ability.rotationSpeed=旋转速度
+
+# Slam
+ability.leapSpeed=跳跃速度
+ability.leapHeight=跳跃高度
+
+# Cutter
+ability.range=范围
+ability.sweepMode=横扫模式
+ability.spinDuration=旋转持续时间
+ability.arcAngle=弧线角度
+ability.innerRadius=内半径
+
+# Projectile
+ability.projectileType=投射物类型
+
+# Heavy Hit
+ability.hitDelayTicks=命中延迟（刻）
+ability.activeDisplayTicks=结束延迟（刻）
+
+# Orb Settings
+ability.homing=寻的
+ability.explosive=爆炸
+ability.firingSpeed=射击速度
+ability.amount=数量
+ability.dualCharge=双重充能
+
+# Charge
+ability.chargeSpeed=充能速度
+
+# Dash
+ability.dashMode=突进模式
+ability.dashDistance=突进距离
+ability.dashDirection=方向
+ability.dashSpeed=突进速度
+ability.dashAngle=角度
+
+# Teleport
+ability.blinkRadius=闪烁半径
+ability.blinkCount=闪烁次数
+ability.blinkDelay=闪烁延迟
+ability.behindDistance=身后距离
+ability.lineOfSight=视线
+ability.damageAtStart=开始时伤害
+ability.damageAtEnd=结束时伤害
+
+# Vortex
+ability.pullRadius=吸引半径
+ability.pullStrength=吸引强度
+ability.maxTargets=最大目标数
+
+# Shockwave
+ability.pushStrength=推力强度
+
+# Defend (Guard / Counter / Dodge)
+ability.maxHitAmount=最大命中数量
+ability.damageReduction=伤害减免
+
+# Heal
+ability.instantHeal=即时治疗
+ability.healAmount=治疗量
+ability.healPercent=治疗百分比
+ability.targetFilter=目标筛选
+ability.targetFilter.allies=盟友
+ability.targetFilter.enemies=敌人
+ability.targetFilter.all=全部
+ability.includeSelf=包含自身
+ability.section.targeting=目标选择
+ability.concurrent=并发
+ability.customScriptInfo=此能力用于脚本目的
+ability.concurrentInfo=此能力允许在连招中并发执行
+ability.hover.concurrent=启用后，此能力将与连招中上一个能力同时触发
+ability.customEffects=自定义效果
+ability.effectActions=效果动作
+ability.noCustomEffects=未定义自定义效果
+ability.variant.selfHeal=自我治疗
+ability.variant.healingAura=治疗光环
+ability.variant.poisonDebuff=中毒减益
+
+# Hazard
+ability.shape=形状
+ability.placement=放置
+ability.damageInterval=伤害间隔
+ability.slownessLevel=缓慢等级
+ability.debuffDuration=减益持续时间
+ability.poisonLevel=中毒等级
+ability.affectsCaster=影响施法者
+
+# Trap
+ability.armTime=准备时间
+
+# Sweeper
+ability.sweepSpeed=横扫速度
+ability.rotations=旋转数
+ability.piercing=穿透
+ability.lockTarget=锁定目标
+
+# Beam / Laser
+ability.beamWidth=光束宽度
+ability.headSize=头部大小
+ability.attachedToOwner=附加于拥有者
+ability.laserWidth=激光宽度
+ability.expansionSpeed=扩张速度
+ability.lingerTicks=停留时间
+
+# Visual Settings
+ability.innerColor=内部颜色
+ability.outerColor=外部颜色
+ability.outerEnabled=外部辉光
+ability.outerWidth=外部宽度
+ability.outerAlpha=外部透明度
+ability.lightning=闪电
+ability.lightningRadius=半径
+
+# Projectile Count / Settings
+ability.projectileCount=数量
+ability.fireDelay=开火延迟
+ability.colorOverride=颜色覆盖
+
+# Burst System
+ability.burstEnabled=连发
+ability.burstAmount=数量
+ability.burstDelay=延迟
+ability.burstReplayAnimations=重播动画
+ability.burstOverlap=重叠
+ability.hover.burstOverlap=启用后，前一次连发的投射物会继续飞行，同时发射新的投射物
+ability.hover.burstReplay=为每次连发迭代重播前摇和生效动画
+
+# Ability Save/Load
+ability.save.confirm=保存技能预设
+ability.save.overwrite=覆盖现有预设
+ability.duplicate.name=已存在同名预设
+ability.invulnerable=无敌
+ability.invulnerable.none=无
+ability.invulnerable.windup=前摇阶段
+ability.invulnerable.active=激活阶段
+ability.invulnerable.both=两者皆是
+ability.hover.invulnerable=在选定阶段忽略所有 incoming 伤害和命中反应。选择“前摇阶段”或“两者皆是”时还会禁用打断效果。
+ability.load.select=选择要加载的技能：
+ability.load.mode=应如何加载此技能？
+ability.clone=克隆
+ability.reference=引用
+ability.delete.confirm=删除技能预设
+gui.load=加载
+
+# Ability Edit Mode
+ability.edit.mode=应如何编辑此技能？
+ability.cloneModify=克隆并编辑
+ability.modifyParent=编辑父级
+
+# Ability Variant Selection
+ability.selectVariant=选择变体
+ability.variant.base=基础
+ability.variant.single=单个
+ability.variant.dual=双持
+ability.variant.barrage=弹幕
+
+# Ability Type Selection
+ability.selectType=选择技能类型：
+
+# Global Abilities Manager
+ability.manager.title=技能管理器
+
+# Explosive Hover Text
+ability.explosive.noBlockDamage=爆炸不会破坏方块
+
+# Shockwave Settings (dev)
+ability.shockwaveFalloff=伤害/击退随距离衰减
+
+# Ability Config GUI (dev)
+ability.typeId=类型 ID
+ability.noTypeSettings=无特定类型设置
+
+# ═══════════════════════════════════════════════════════════════
+# Ability Hover Tooltips
+# ═══════════════════════════════════════════════════════════════
+
+ability.hover.weight=权重越高，在有多个可用技能时被选中的概率越大
+ability.hover.lockMovement=在选定阶段（前摇、生效或两者）阻止NPC寻路移动
+ability.hover.rotationMode=自由：正常的AI旋转。锁定：冻结朝向。追踪：强制面朝目标以精确瞄准。
+ability.hover.rotationPhase=旋转模式生效的时机（前摇、生效或两者）
+ability.hover.interruptible=如果启用，技能会被受到伤害打断
+ability.hover.dazed=如果技能被打断，眩晕的刻数（20刻 = 1秒）
+ability.hover.windup=技能激活前的充能时间（20刻 = 1秒）
+ability.hover.cooldown=技能再次可用前的冷却时间（20刻 = 1秒）
+ability.hover.sync=设置前摇刻数以匹配动画时长
+ability.hover.minRange=目标必须至少离此距离
+ability.hover.maxRange=目标必须在此距离内
+ability.hover.targeting=技能选择目标的方式
+ability.hover.conditions=技能激活必须满足的要求
+ability.hover.showTelegraph=在前摇期间显示视觉预警指示器
+ability.hover.windUpColor=充能阶段预警的颜色
+ability.hover.activeColor=技能生效时预警的颜色
+ability.hover.homing=投射物追踪目标
+ability.hover.homingStr=投射物追踪的激进程度（越高 = 转弯越急）
+ability.hover.hitType=单体：首次命中后停止。穿透：可命中每个实体一次。多重：可利用下方延迟再次命中实体。穿透/多重模式均受“最大命中数”限制。
+ability.hover.multiHitDelay=当命中类型为“多重”时，对同一实体重复命中的间隔刻数（20 刻 = 1 秒）
+ability.hover.maxHits=投射物在穿透/多重模式下结束前的最大总命中次数。较低的值可减少重复命中刷屏并提升性能。
+ability.hover.explosive=撞击时产生爆炸
+ability.hover.explosionRad=爆炸半径大小
+ability.hover.maxHitAmount=防御能力结束前可吸收的最大命中次数（0 = 无限）
+ability.hover.counterType=固定值：固定的伤害反击。百分比：反击造成所吸收伤害的百分比。
+ability.hover.piercing=命中多个目标，而非在首个命中处停止
+ability.hover.lightning=为视觉效果添加电击效果
+ability.hover.outerGlow=在投射物周围启用外层辉光
+ability.hover.anchorPoint=技能从NPC身上的哪个位置生成
+ability.hover.vertical=圆盘垂直飞行，薄边朝向目标（像锯片一样）
+ability.hover.dualCharge=是否创建两个锚点
+ability.hover.damage=对目标造成的基础伤害
+ability.hover.speed=投射物的移动速度
+ability.hover.lifetime=消失前的最大刻数
+ability.hover.knockback=施加给目标的击退力
+ability.hover.boomerang=到达最大距离后，投射物返回施法者处
+ability.hover.dashMode=激进：朝目标冲刺，防御：远离冲刺
+ability.hover.aoe=影响范围内所有有效目标，而不是仅一个
+ability.hover.dmgOnPull=在拉动目标时持续造成伤害
+ability.hover.lineOfSight=要求对目标有清晰的视线
+ability.hover.dmgAtStart=在传送原点位置造成伤害
+ability.hover.dmgAtEnd=在传送目的地造成伤害
+ability.hover.instant=立即治疗，而不是随时间治疗
+ability.hover.healSelf=技能可以治疗施法的NPC
+ability.hover.healAllies=技能可以治疗附近的盟友NPC
+ability.hover.placement=技能效果放置的位置（施法者、目标等）
+ability.hover.lockTarget=清扫光束追踪目标的位置
+ability.hover.canCounter=在受到伤害时启用反击
+ability.hover.counterType=固定值 = 固定伤害，百分比 = 受到伤害的百分比
+ability.hover.affectsCaster=危险区域可以伤害创建它的NPC
+ability.hover.sweepMode=挥扫 = 单次弧线攻击，旋转 = 连续旋转
+ability.hover.innerRadius=施法者的最小距离。距离小于此值的实体不会被命中。形成一个环形死角。也会在预警指示器上显示。
+ability.hover.telegraphShape=预警指示器的形状。不同形状使用不同的尺寸参数。
+ability.hover.telegraphHeight=预警指示器渲染时距离地面的垂直偏移量
+ability.hover.telegraphRadius=预警指示器形状的半径（用于圆形、环形、方形）
+ability.hover.telegraphInnerRadius=形成空心中心的内半径。用于环形（甜甜圈形）和锥形（截断楔形）。
+ability.hover.telegraphLength=预警指示器形状的前向距离（用于直线、锥形）
+ability.hover.telegraphWidth=预警指示器的侧向宽度（用于直线）
+ability.hover.telegraphAngle=扩散角度（度数）（用于锥形）
+ability.hover.telegraphActiveTicks=预警指示器在激活阶段保持可见的时长（20 刻 = 1 秒）。设为 0 则仅在前摇阶段显示预警。
+ability.hover.syncTelegraph=启用后，预警指示器的激活持续时间将自动匹配技能持续时间
+ability.hover.launching=启用后，墙体将向前推进，造成伤害并击退
+
+# Energy Barrier Abilities
+ability.cnpc.dome=穹顶
+ability.cnpc.wall=墙体
+ability.cnpc.shield=护盾
+ability.cnpc.slicer=切割器
+
+ability.section.barrier=屏障
+ability.section.properties=属性
+ability.section.panel=面板
+ability.section.launch=发射
+ability.section.slicer=切割器
+ability.section.icon=图标
+ability.hasIcon=自定义图标
+ability.icon.tint=色调颜色
+
+ability.domeRadius=穹顶半径
+ability.useHealth=启用生命值
+ability.maxHealth=最大生命值
+ability.useDuration=启用持续时间
+ability.duration=持续时间
+ability.defaultMultiplier=默认倍率
+ability.innerAlpha=内部透明度
+ability.heightOffset=高度偏移
+ability.section.offset=偏移
+ability.offsetX=X 轴偏移
+ability.offsetY=Y 轴偏移
+ability.offsetZ=Z 轴偏移
+
+ability.solid=实体碰撞
+ability.knockbackEnabled=击退
+ability.knockbackStrength=击退力度
+ability.absorbing=伤害吸收
+ability.absorbRadius=吸收半径
+ability.reflect=反弹
+ability.reflectStrength=强度 (%)
+ability.meleeEnabled=允许近战攻击
+ability.meleeDamageMultiplier=近战倍率
+
+ability.followCaster=跟随施法者
+ability.hover.followCaster=穹顶将随施法者移动而保持居中
+ability.hover.solid=实体无法穿过屏障边界
+ability.hover.knockbackEnabled=排斥力场将实体推离屏障表面
+ability.hover.absorbing=对施法者造成的伤害将被转移至屏障的生命值
+ability.hover.absorbRadius=吸收生效的最大距离。-1 = 无限，0 = 屏障范围（穹顶半径或面板尺寸 x3），正值 = 阻挡半径
+ability.hover.reflect=反弹未破坏的投射物并按“强度”比例减少其伤害
+ability.targetOwner=锁定原施法者
+ability.hover.targetOwner=将反弹投射物的目标设定为原始施法者。若启用追踪，投射物将追踪其前施法者。
+ability.hover.meleeEnabled=屏障可被近战攻击命中并造成伤害
+
+
+ability.variant.small=小型
+ability.variant.large=大型
+ability.variant.static=静态
+ability.variant.launched=发射型
+
+ability.addChain=连招链
+ability.entrySource=添加条目来源
+ability.fromNpc=来自 NPC
+ability.byReference=通过引用
+ability.createNew=创建新项
+ability.selectSlot=选择 NPC 技能
+ability.loadType=加载类型
+ability.loadAbility=加载技能
+ability.loadChain=加载连招链
+ability.validFor=适用对象
+ability.userType.NPC_ONLY=仅限 NPC
+ability.userType.PLAYER_ONLY=仅限玩家
+ability.userType.BOTH=两者皆可
+ability.userType.NONE=无人可用！
+ability.icon.section.uv=UV 坐标
+ability.icon.x=图标 X 坐标
+ability.icon.y=图标 Y 坐标
+ability.icon.layers=图层
+ability.icon.layer=图层
+
+gui.both=两者
+gui.players=玩家
+gui.tags=标签
+
+# Conditions
+condition.edit=编辑条件
+condition.filter=过滤类型
+condition.filter.target=目标
+condition.filter.caster=施法者
+condition.filter.both=两者
+
+# Condition HP Threshold
+condition.hp_threshold=生命值阈值
+condition.hp_above=生命值高于
+condition.hp_below=生命值低于
+condition.hp_equal=生命值等于
+condition.threshold=阈值
+condition.percent=使用百分比
+condition.threshold_type=阈值类型
+
+# Condition Hit Count
+condition.hit_count=命中次数
+condition.required_hits=所需命中次数
+condition.within_ticks=时间窗口（刻）
+
+# Condition Item
+condition.item=持有物品
+condition.usage_type=使用类型
+condition.armor_slot=护甲槽位
+condition.full_armor=全套护甲
+condition.item_count=物品数量
+condition.item_name=物品名称
+
+# Condition Threshold
+condition.above=高于
+condition.below=低于
+condition.equal=等于
+condition.threshold_flat=阈值（固定值）
+condition.threshold_percent=阈值（百分比）
+
+# Condition Quest Completed
+condition.quest_completed=任务已完成
+condition.select_quest=选择任务
+
+# Condition Has Effect
+condition.has_effect=拥有效果
+condition.select_effect=选择效果
+
+# Condition Hover Tooltips
+condition.hover.type=技能激活必须满足的条件类型
+condition.hover.hpAbove=当NPC生命值高于该百分比时激活
+condition.hover.hpBelow=当NPC生命值低于该百分比时激活
+condition.hover.targetHpAbove=当目标生命值高于该百分比时激活
+condition.hover.targetHpBelow=当目标生命值低于该百分比时激活
+condition.hover.hitCount=在指定时间窗口内受到指定次数攻击后激活
+condition.hover.hits=触发条件所需的攻击次数
+condition.hover.within=时间窗口（刻）（20刻 = 1秒）
+condition.hover.threshold=生命值百分比阈值 (1-99%)
+condition.hover.armor_slots=特定护甲槽位中的装备
+condition.hover.item_name=按物品名称或标识符进行过滤
+condition.hover.required_count=所需匹配物品的数量
+
+# Effect Hover Tooltips
+effect.hover.type=要施加给目标的药水效果类型
+effect.hover.duration=效果持续时间（刻）（20刻 = 1秒）
+effect.hover.amplifier=效果等级（数值越高效果越强）
+effect.manual=手动
+effect.potionid=药水ID
+
+# =========================================
+# Auction House
+# =========================================
+
+# Auction Status
+auction.status.active=进行中
+auction.status.ended=已结束
+auction.status.cancelled=已取消
+auction.status.claimed=已领取
+
+# Auction Sort
+auction.sort.newest=最新上架
+auction.sort.endingSoon=即将结束
+auction.sort.priceLow=价格：从低到高
+auction.sort.priceHigh=价格：从高到低
+auction.sort.mostBids=出价最多
+
+# Claim Types
+auction.claim.item=物品
+auction.claim.currency=出售所得
+auction.claim.refund=竞价退款
+
+# Notifications
+auction.notify.won=您赢得了一场拍卖！
+auction.notify.outbid=您的出价被超越了！
+auction.notify.sold=您的物品已售出！
+auction.notify.expired=您的拍卖已过期。
+auction.notify.claim=您有待领取的物品。
+
+# Main GUI
+auction.title=拍卖行
+
+# Listing Display
+auction.seller=卖家: %s
+auction.currentBid=当前出价: %s
+auction.buyout=一口价: %s
+auction.timeLeft=剩余时间: %s
+auction.bids=%d 次出价
+auction.noBids=暂无出价
+auction.startingPrice=起拍价: %s
+
+# Sell Page
+auction.sell.startingPrice=起拍价
+auction.sell.buyoutPrice=一口价
+auction.sell.fee=上架费: %s
+auction.sell.noItem=放置物品以出售
+
+# Filter
+auction.filter.search=搜索
+
+# Bid Dialog
+auction.bid.minimum=最低出价: %s
+auction.bid.yourBid=您的出价:
+auction.bid.place=出价
+auction.bid.buyout=立即购买
+
+# Errors
+auction.error.notEnoughCurrency=货币不足！
+auction.error.bidTooLow=出价必须至少为 %s。
+auction.error.blacklisted=此物品无法在拍卖行上架。
+auction.error.boundItem=绑定物品无法在拍卖行上架。
+auction.error.bidExceedsBuyout=出价达到或超过一口价。请直接使用“立即购买”。
+
+# Navigation
+auction.nav.listings=浏览拍卖
+auction.nav.sell=出售物品
+auction.nav.trades=我的交易
+auction.nav.filter=筛选
+
+# Claim Details
+auction.claim.amount=数量: %s
+auction.claim.expires=%s 天后过期
+auction.claim.expiresSoon=即将过期！
+auction.claim.clickToClaim=点击领取
+
+# Filter
+auction.filter.sort=排序方式
+auction.filter.none=(无)
+auction.filter.leftClick=左键: 搜索
+auction.filter.rightClick=右键: 切换排序
+
+# Pagination
+auction.page.prev=上一页
+auction.page.next=下一页
+
+# Sell Page
+auction.sell.confirm=确认上架
+auction.sell.invalidPrice=请输入有效的起拍价
+auction.sell.buyoutTooLow=一口价必须高于起拍价
+auction.sell.placeItem=将物品放在此处
+auction.sell.slotTitle=待售物品
+auction.sell.leftClear=左键点击清空
+auction.sell.rightRemove=右键点击移除 1 个
+auction.sell.leftAdd=左键点击添加整组
+auction.sell.rightAddOne=右键点击添加 1 个
+
+# Trades Page
+auction.trades.activeListing=活跃的上架
+auction.trades.activeBid=活跃的出价
+auction.trades.unavailable=槽位不可用
+auction.trades.rightClickToCancel=右键点击取消
+auction.trades.leftClickToClaim=左键点击领取
+auction.trades.leftClickToIncrease=左键点击提高出价
+auction.trades.winningBid=您是最高出价者
+auction.trades.soldClaim=物品已售出！
+auction.trades.wonClaim=拍卖成功！
+auction.trades.expiredClaim=拍卖已过期
+auction.trades.refundClaim=出价被超 - 退款可用
+auction.trades.confirmCancel=取消上架？
+auction.trades.confirmClaim=领取物品？
+auction.trades.rightClickConfirm=再次右键点击确认
+auction.trades.leftClickConfirm=再次左键点击确认
+auction.trades.otherClickCancel=其他点击将取消
+auction.trades.buyer=买家
+auction.trades.outbidBy=出价被 [玩家] 超越
+auction.trades.selling=出售中
+auction.trades.bidding=竞标中
+auction.trades.sold=已售出
+auction.trades.won=已赢得
+auction.trades.expired=已过期
+auction.trades.outbid=出价被超
+auction.trades.clickToRebid=点击以提高出价
+auction.trades.leftClickRebid=左键点击重新出价
+auction.trades.rightClickRefund=右键点击领取退款
+auction.claim.soldItem=物品: %s
+auction.claim.buyer=买家: %s
+auction.claim.outbidItem=物品: %s
+auction.claim.outbidBy=出价被超越者: %s
+
+# Sell Page - Buyout Toggle
+auction.sell.allowBuyout=允许立即购买
+auction.sell.buyoutEnabled=已启用
+auction.sell.buyoutEnabledDesc=买家可以立即以一口价购买
+auction.sell.buyoutEnabledDesc2=立即购买
+auction.sell.buyoutDisabled=已禁用
+auction.sell.buyoutDisabledDesc=仅限拍卖 - 无立即购买
+auction.sell.clickToToggle=点击切换
+auction.sell.notEnoughItems=库存物品不足
+
+# Auction Bidding Info
+auction.info.currentBid=当前出价
+auction.info.highBidder=最高出价者
+auction.info.startingPrice=起拍价
+auction.info.buyoutPrice=一口价
+auction.info.timeLeft=剩余时间
+auction.info.bidCount=总出价次数
+
+# Auction Bid SubGui
+auction.bid.yourBalance=您的余额: %s
+
+# Auction Buyout SubGui
+auction.buyout.title=立即购买
+auction.buyout.confirm=以此价格购买此物品：
+
+# Global Auction Management GUI
+global.auction.manage.title=全局拍卖管理
+global.auction.manage.listings=拍卖列表
+global.auction.manage.create=创建
+global.auction.manage.claims=认领
+global.auction.manage.sort=排序
+global.auction.manage.search=搜索
+global.auction.manage.page=页码
+global.auction.manage.hint.listings=左键：打开拍卖详情
+global.auction.manage.hint.listings2=右键：禁止玩家交易 | Shift+右键：取消并转为全局拍卖
+global.auction.manage.hint.stop=右键：禁止玩家交易
+global.auction.manage.hint.cancel=Shift+右键：取消并转为全局拍卖
+global.auction.manage.hint.claims=双击左键以认领全局条目
+global.auction.manage.details=拍卖详情
+global.auction.manage.selectListing=左键点击列表项查看详情
+global.auction.manage.seller=卖家名称
+global.auction.manage.startPrice=起拍价
+global.auction.manage.buyoutPrice=一口价
+global.auction.manage.durationHours=持续时间（小时）
+global.auction.manage.stagedItem=待上架物品
+global.auction.manage.create.submit=创建模拟拍卖
+global.auction.manage.hint.create=使用右侧面板 inventory 来准备物品
+global.auction.manage.confirm=再次点击以确认
+global.auction.manage.confirm.stop=再次右键点击以确认禁止玩家
+global.auction.manage.confirm.cancel=再次 Shift+右键点击以确认取消并转为全局
+global.auction.manage.confirm.claim=再次左键点击以确认认领
+global.auction.manage.error.noItem=请先准备物品
+global.auction.manage.error.invalidStart=请输入有效的起拍价
+global.auction.manage.error.invalidBuyout=一口价必须为零或大于等于起拍价
+
+# Directory Fullscreen
+gui.move=移动
+gui.moving=正在移动
+gui.confirm=确认
+gui.move.selectItems=选择要移动的物品（最多 %d 个），准备就绪后请按确认
+gui.move.selectCategory=选择目标分类
+animation.mirror=镜像
+gui.builtin.tag=(内置)
+ability.damage=伤害
+ability.allowed=允许
+gui.move.confirmLine=将 %d 个物品移动到：
+gui.category=分类
