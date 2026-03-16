@@ -1,0 +1,3289 @@
+{
+  "_meta": {
+    "generated": "2026-03-16T01:06:48.204317+00:00",
+    "source": "mc_type_classifications_original.json",
+    "total_types": 394,
+    "categories": {
+      "EXISTING": 11,
+      "INTERFACE": 15,
+      "SERVICE": 12,
+      "TRANSFORM": 10,
+      "SUPPRESS": 346
+    }
+  },
+  "mappings": {
+    "NBTTagCompound": {
+      "fqn": "net.minecraft.nbt.NBTTagCompound",
+      "category": "EXISTING",
+      "pa_name": "INbt",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.INbt",
+      "imports": 593,
+      "swap": [
+        "NBTTagCompound",
+        "INbt",
+        "net.minecraft.nbt.NBTTagCompound",
+        "noppes.npcs.api.INbt"
+      ]
+    },
+    "EntityPlayer": {
+      "fqn": "net.minecraft.entity.player.EntityPlayer",
+      "category": "EXISTING",
+      "pa_name": "IPlayer",
+      "pa_package": "noppes.npcs.api.entity",
+      "pa_fqn": "noppes.npcs.api.entity.IPlayer",
+      "imports": 551,
+      "swap": [
+        "EntityPlayer",
+        "IPlayer",
+        "net.minecraft.entity.player.EntityPlayer",
+        "noppes.npcs.api.entity.IPlayer"
+      ]
+    },
+    "EntityPlayerMP": {
+      "fqn": "net.minecraft.entity.player.EntityPlayerMP",
+      "category": "EXISTING",
+      "pa_name": "IPlayer",
+      "pa_package": "noppes.npcs.api.entity",
+      "pa_fqn": "noppes.npcs.api.entity.IPlayer",
+      "imports": 304,
+      "swap": [
+        "EntityPlayerMP",
+        "IPlayer",
+        "net.minecraft.entity.player.EntityPlayerMP",
+        "noppes.npcs.api.entity.IPlayer"
+      ]
+    },
+    "Entity": {
+      "fqn": "net.minecraft.entity.Entity",
+      "category": "EXISTING",
+      "pa_name": "IEntity",
+      "pa_package": "noppes.npcs.api.entity",
+      "pa_fqn": "noppes.npcs.api.entity.IEntity",
+      "imports": 262,
+      "swap": [
+        "Entity",
+        "IEntity",
+        "net.minecraft.entity.Entity",
+        "noppes.npcs.api.entity.IEntity"
+      ]
+    },
+    "ItemStack": {
+      "fqn": "net.minecraft.item.ItemStack",
+      "category": "EXISTING",
+      "pa_name": "IItemStack",
+      "pa_package": "noppes.npcs.api.item",
+      "pa_fqn": "noppes.npcs.api.item.IItemStack",
+      "imports": 228,
+      "swap": [
+        "ItemStack",
+        "IItemStack",
+        "net.minecraft.item.ItemStack",
+        "noppes.npcs.api.item.IItemStack"
+      ]
+    },
+    "EntityLivingBase": {
+      "fqn": "net.minecraft.entity.EntityLivingBase",
+      "category": "EXISTING",
+      "pa_name": "IEntityLivingBase",
+      "pa_package": "noppes.npcs.api.entity",
+      "pa_fqn": "noppes.npcs.api.entity.IEntityLivingBase",
+      "imports": 201,
+      "swap": [
+        "EntityLivingBase",
+        "IEntityLivingBase",
+        "net.minecraft.entity.EntityLivingBase",
+        "noppes.npcs.api.entity.IEntityLivingBase"
+      ]
+    },
+    "World": {
+      "fqn": "net.minecraft.world.World",
+      "category": "EXISTING",
+      "pa_name": "IWorld",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IWorld",
+      "imports": 172,
+      "swap": [
+        "World",
+        "IWorld",
+        "net.minecraft.world.World",
+        "noppes.npcs.api.IWorld"
+      ]
+    },
+    "NBTTagList": {
+      "fqn": "net.minecraft.nbt.NBTTagList",
+      "category": "EXISTING",
+      "pa_name": "INbtList",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.INbtList",
+      "imports": 111,
+      "swap": [
+        "NBTTagList",
+        "INbtList",
+        "net.minecraft.nbt.NBTTagList",
+        "noppes.npcs.api.INbtList"
+      ]
+    },
+    "DamageSource": {
+      "fqn": "net.minecraft.util.DamageSource",
+      "category": "EXISTING",
+      "pa_name": "IDamageSource",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IDamageSource",
+      "imports": 36,
+      "swap": [
+        "DamageSource",
+        "IDamageSource",
+        "net.minecraft.util.DamageSource",
+        "noppes.npcs.api.IDamageSource"
+      ]
+    },
+    "WorldServer": {
+      "fqn": "net.minecraft.world.WorldServer",
+      "category": "EXISTING",
+      "pa_name": "IWorld",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IWorld",
+      "imports": 18,
+      "swap": [
+        "WorldServer",
+        "IWorld",
+        "net.minecraft.world.WorldServer",
+        "noppes.npcs.api.IWorld"
+      ]
+    },
+    "EntityLiving": {
+      "fqn": "net.minecraft.entity.EntityLiving",
+      "category": "EXISTING",
+      "pa_name": "IEntityLiving",
+      "pa_package": "noppes.npcs.api.entity",
+      "pa_fqn": "noppes.npcs.api.entity.IEntityLiving",
+      "imports": 18,
+      "swap": [
+        "EntityLiving",
+        "IEntityLiving",
+        "net.minecraft.entity.EntityLiving",
+        "noppes.npcs.api.entity.IEntityLiving"
+      ]
+    },
+    "ResourceLocation": {
+      "fqn": "net.minecraft.util.ResourceLocation",
+      "category": "INTERFACE",
+      "pa_name": "IResourceLocation",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IResourceLocation",
+      "imports": 145,
+      "swap": [
+        "ResourceLocation",
+        "IResourceLocation",
+        "net.minecraft.util.ResourceLocation",
+        "noppes.npcs.api.IResourceLocation"
+      ],
+      "methods": [
+        "getResourceDomain",
+        "getResourcePath",
+        "toString"
+      ],
+      "constructors": [
+        "IResourceLocation.of(String domain, String path)",
+        "IResourceLocation.of(String combined)"
+      ]
+    },
+    "AxisAlignedBB": {
+      "fqn": "net.minecraft.util.AxisAlignedBB",
+      "category": "INTERFACE",
+      "pa_name": "IBoundingBox",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IBoundingBox",
+      "imports": 59,
+      "swap": [
+        "AxisAlignedBB",
+        "IBoundingBox",
+        "net.minecraft.util.AxisAlignedBB",
+        "noppes.npcs.api.IBoundingBox"
+      ],
+      "methods": [
+        "getMinX",
+        "getMinY",
+        "getMinZ",
+        "getMaxX",
+        "getMaxY",
+        "getMaxZ",
+        "expand",
+        "offset",
+        "intersectsWith",
+        "isVecInside"
+      ]
+    },
+    "ICommandSender": {
+      "fqn": "net.minecraft.command.ICommandSender",
+      "category": "INTERFACE",
+      "pa_name": "ICommandSender",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.ICommandSender",
+      "imports": 47,
+      "swap": [
+        "ICommandSender",
+        "ICommandSender",
+        "net.minecraft.command.ICommandSender",
+        "noppes.npcs.api.ICommandSender"
+      ],
+      "methods": [
+        "getCommandSenderName",
+        "addChatMessage",
+        "canCommandSenderUseCommand",
+        "getEntityWorld",
+        "getCommandSenderPosition"
+      ]
+    },
+    "Vec3": {
+      "fqn": "net.minecraft.util.Vec3",
+      "category": "INTERFACE",
+      "pa_name": "IVector3",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IVector3",
+      "imports": 43,
+      "swap": [
+        "Vec3",
+        "IVector3",
+        "net.minecraft.util.Vec3",
+        "noppes.npcs.api.IVector3"
+      ],
+      "methods": [
+        "getX",
+        "getY",
+        "getZ",
+        "add",
+        "subtract",
+        "normalize",
+        "distanceTo",
+        "lengthVector",
+        "crossProduct",
+        "dotProduct"
+      ]
+    },
+    "ChatComponentText": {
+      "fqn": "net.minecraft.util.ChatComponentText",
+      "category": "INTERFACE",
+      "pa_name": "ITextComponent",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.ITextComponent",
+      "imports": 20,
+      "swap": [
+        "ChatComponentText",
+        "ITextComponent",
+        "net.minecraft.util.ChatComponentText",
+        "noppes.npcs.api.ITextComponent"
+      ],
+      "methods": [
+        "getText",
+        "setChatStyle",
+        "appendSibling",
+        "getFormattedText",
+        "getUnformattedText"
+      ]
+    },
+    "ChatComponentTranslation": {
+      "fqn": "net.minecraft.util.ChatComponentTranslation",
+      "category": "INTERFACE",
+      "pa_name": "ITextComponent",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.ITextComponent",
+      "imports": 24,
+      "swap": [
+        "ChatComponentTranslation",
+        "ITextComponent",
+        "net.minecraft.util.ChatComponentTranslation",
+        "noppes.npcs.api.ITextComponent"
+      ],
+      "methods": [
+        "getKey",
+        "getFormatArgs"
+      ]
+    },
+    "IChatComponent": {
+      "fqn": "net.minecraft.util.IChatComponent",
+      "category": "INTERFACE",
+      "pa_name": "ITextComponent",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.ITextComponent",
+      "imports": 10,
+      "swap": [
+        "IChatComponent",
+        "ITextComponent",
+        "net.minecraft.util.IChatComponent",
+        "noppes.npcs.api.ITextComponent"
+      ],
+      "methods": [
+        "getFormattedText",
+        "getUnformattedText",
+        "appendSibling",
+        "setChatStyle",
+        "getChatStyle"
+      ]
+    },
+    "ChatStyle": {
+      "fqn": "net.minecraft.util.ChatStyle",
+      "category": "INTERFACE",
+      "pa_name": "ITextStyle",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.ITextStyle",
+      "imports": 3,
+      "swap": [
+        "ChatStyle",
+        "ITextStyle",
+        "net.minecraft.util.ChatStyle",
+        "noppes.npcs.api.ITextStyle"
+      ],
+      "methods": [
+        "setColor",
+        "setBold",
+        "setItalic",
+        "setUnderlined",
+        "setStrikethrough",
+        "setObfuscated"
+      ]
+    },
+    "MovingObjectPosition": {
+      "fqn": "net.minecraft.util.MovingObjectPosition",
+      "category": "INTERFACE",
+      "pa_name": "IRayTraceResult",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IRayTraceResult",
+      "imports": 15,
+      "swap": [
+        "MovingObjectPosition",
+        "IRayTraceResult",
+        "net.minecraft.util.MovingObjectPosition",
+        "noppes.npcs.api.IRayTraceResult"
+      ],
+      "methods": [
+        "getType",
+        "getBlockPos",
+        "getEntity",
+        "getHitVec",
+        "getSideHit"
+      ]
+    },
+    "NBTBase": {
+      "fqn": "net.minecraft.nbt.NBTBase",
+      "category": "INTERFACE",
+      "pa_name": "INbtBase",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.INbtBase",
+      "imports": 13,
+      "swap": [
+        "NBTBase",
+        "INbtBase",
+        "net.minecraft.nbt.NBTBase",
+        "noppes.npcs.api.INbtBase"
+      ],
+      "methods": [
+        "getId",
+        "copy"
+      ]
+    },
+    "Potion": {
+      "fqn": "net.minecraft.potion.Potion",
+      "category": "INTERFACE",
+      "pa_name": "IPotionType",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IPotionType",
+      "imports": 7,
+      "swap": [
+        "Potion",
+        "IPotionType",
+        "net.minecraft.potion.Potion",
+        "noppes.npcs.api.IPotionType"
+      ],
+      "methods": [
+        "getId",
+        "getName",
+        "isBadEffect",
+        "isInstant",
+        "getStatusIconIndex"
+      ]
+    },
+    "PotionEffect": {
+      "fqn": "net.minecraft.potion.PotionEffect",
+      "category": "INTERFACE",
+      "pa_name": "IPotionEffect",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IPotionEffect",
+      "imports": 6,
+      "swap": [
+        "PotionEffect",
+        "IPotionEffect",
+        "net.minecraft.potion.PotionEffect",
+        "noppes.npcs.api.IPotionEffect"
+      ],
+      "methods": [
+        "getPotionID",
+        "getDuration",
+        "getAmplifier",
+        "getIsAmbient",
+        "getIsShowParticles"
+      ]
+    },
+    "Explosion": {
+      "fqn": "net.minecraft.world.Explosion",
+      "category": "INTERFACE",
+      "pa_name": "IExplosion",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IExplosion",
+      "imports": 3,
+      "swap": [
+        "Explosion",
+        "IExplosion",
+        "net.minecraft.world.Explosion",
+        "noppes.npcs.api.IExplosion"
+      ],
+      "methods": [
+        "getExplosivePlacedBy",
+        "getPosition"
+      ]
+    },
+    "Configuration": {
+      "fqn": "net.minecraftforge.common.config.Configuration",
+      "category": "INTERFACE",
+      "pa_name": "IForgeConfig",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IForgeConfig",
+      "imports": 9,
+      "swap": [
+        "Configuration",
+        "IForgeConfig",
+        "net.minecraftforge.common.config.Configuration",
+        "noppes.npcs.api.IForgeConfig"
+      ],
+      "methods": [
+        "get",
+        "getCategory",
+        "save",
+        "load",
+        "hasKey",
+        "hasCategory"
+      ]
+    },
+    "Property": {
+      "fqn": "net.minecraftforge.common.config.Property",
+      "category": "INTERFACE",
+      "pa_name": "IConfigProperty",
+      "pa_package": "noppes.npcs.api",
+      "pa_fqn": "noppes.npcs.api.IConfigProperty",
+      "imports": 7,
+      "swap": [
+        "Property",
+        "IConfigProperty",
+        "net.minecraftforge.common.config.Property",
+        "noppes.npcs.api.IConfigProperty"
+      ],
+      "methods": [
+        "getString",
+        "getInt",
+        "getDouble",
+        "getBoolean",
+        "getStringList",
+        "set",
+        "setComment"
+      ]
+    },
+    "StatCollector": {
+      "fqn": "net.minecraft.util.StatCollector",
+      "category": "SERVICE",
+      "service_target": "PlatformService",
+      "imports": 106,
+      "methods": {
+        "translateToLocal(String key)": "Server-side translation. Returns localized string.",
+        "translateToLocalFormatted(String key, Object... args)": "Server-side formatted translation."
+      },
+      "swap": null
+    },
+    "Item": {
+      "fqn": "net.minecraft.item.Item",
+      "category": "SERVICE",
+      "service_target": "PlatformService",
+      "imports": 72,
+      "methods": {
+        "getItemById(int id)": "Registry lookup: ID → Item. Returns IItemStack or Object.",
+        "getIdFromItem(Item item)": "Reverse registry lookup: Item → ID."
+      },
+      "swap": null
+    },
+    "MinecraftServer": {
+      "fqn": "net.minecraft.server.MinecraftServer",
+      "category": "SERVICE",
+      "service_target": "PlatformService",
+      "imports": 26,
+      "methods": {
+        "getServer()": "Static singleton accessor. 1.7: MinecraftServer.getServer(), 1.16+: different access.",
+        "isDedicatedServer()": "Server type check.",
+        "worldServerForDimension(int dim)": "Get world by dimension ID. Returns IWorld.",
+        "getConfigurationManager()": "Get player list manager."
+      },
+      "swap": null
+    },
+    "EntityList": {
+      "fqn": "net.minecraft.entity.EntityList",
+      "category": "SERVICE",
+      "service_target": "PlatformService",
+      "imports": 25,
+      "methods": {
+        "getEntityString(Entity e)": "Get entity's registry name string.",
+        "createEntityByName(String name, World world)": "Spawn entity by registry name."
+      },
+      "swap": null
+    },
+    "FMLCommonHandler": {
+      "fqn": "cpw.mods.fml.common.FMLCommonHandler",
+      "category": "SERVICE",
+      "service_target": "PlatformService",
+      "imports": 25,
+      "methods": {
+        "instance().getSide()": "Get physical side (CLIENT/SERVER). Already covered by PlatformService.isPhysicalClient().",
+        "instance().getEffectiveSide()": "Get logical side (CLIENT/SERVER)."
+      },
+      "swap": null
+    },
+    "CompressedStreamTools": {
+      "fqn": "net.minecraft.nbt.CompressedStreamTools",
+      "category": "SERVICE",
+      "service_target": "NBTIO",
+      "imports": 24,
+      "methods": {
+        "readCompressed(InputStream)": "Read compressed NBT from stream. Returns INbt.",
+        "writeCompressed(NBTTagCompound, OutputStream)": "Write compressed NBT to stream."
+      },
+      "swap": null
+    },
+    "CommandBase": {
+      "fqn": "net.minecraft.command.CommandBase",
+      "category": "SERVICE",
+      "service_target": "PlatformService",
+      "imports": 14,
+      "methods": {
+        "parseDouble(String)": "Parse double from command arg.",
+        "parseInt(String)": "Parse int from command arg.",
+        "getListOfStringsMatchingLastWord(String[], String...)": "Tab completion helper."
+      },
+      "swap": null
+    },
+    "Loader": {
+      "fqn": "cpw.mods.fml.common.Loader",
+      "category": "SERVICE",
+      "service_target": "PlatformService",
+      "imports": 11,
+      "methods": {
+        "isModLoaded(String modid)": "Check if a mod is loaded."
+      },
+      "swap": null
+    },
+    "I18n": {
+      "fqn": "net.minecraft.client.resources.I18n",
+      "category": "SERVICE",
+      "service_target": "PlatformService",
+      "imports": 9,
+      "methods": {
+        "format(String key, Object... args)": "Client-side translation with formatting."
+      },
+      "swap": null
+    },
+    "DimensionManager": {
+      "fqn": "net.minecraftforge.common.DimensionManager",
+      "category": "SERVICE",
+      "service_target": "PlatformService",
+      "imports": 2,
+      "methods": {
+        "getWorld(int dimensionId)": "Get world by dimension ID. Returns IWorld.",
+        "getIDs()": "Get all registered dimension IDs."
+      },
+      "swap": null
+    },
+    "PlayerSelector": {
+      "fqn": "net.minecraft.command.PlayerSelector",
+      "category": "SERVICE",
+      "service_target": "PlatformService",
+      "imports": 2,
+      "methods": {
+        "matchPlayers(ICommandSender, String)": "Parse @p/@a/@r selectors. Returns List<IPlayer>."
+      },
+      "swap": null
+    },
+    "NBTUtil": {
+      "fqn": "net.minecraft.nbt.NBTUtil",
+      "category": "SERVICE",
+      "service_target": "NBTIO",
+      "imports": 1,
+      "methods": {
+        "func_152459_a(NBTTagCompound, GameProfile)": "Write GameProfile to NBT.",
+        "func_152458_a(NBTTagCompound)": "Read GameProfile from NBT."
+      },
+      "swap": null
+    },
+    "Side": {
+      "fqn": "cpw.mods.fml.relauncher.Side",
+      "category": "TRANSFORM",
+      "patterns": [
+        [
+          "@SideOnly\\s*\\(\\s*Side\\.CLIENT\\s*\\)",
+          "@ClientOnly"
+        ],
+        [
+          "@SideOnly\\s*\\(\\s*Side\\.SERVER\\s*\\)",
+          "@ServerOnly"
+        ],
+        [
+          "Side\\.CLIENT",
+          "PlatformSide.CLIENT"
+        ],
+        [
+          "Side\\.SERVER",
+          "PlatformSide.SERVER"
+        ]
+      ],
+      "imports": 405,
+      "swap": null
+    },
+    "SideOnly": {
+      "fqn": "cpw.mods.fml.relauncher.SideOnly",
+      "category": "TRANSFORM",
+      "patterns": [],
+      "imports": 395,
+      "swap": null
+    },
+    "MathHelper": {
+      "fqn": "net.minecraft.util.MathHelper",
+      "category": "TRANSFORM",
+      "patterns": [
+        [
+          "MathHelper\\.clamp_int\\s*\\(",
+          "ValueUtil.clampInt("
+        ],
+        [
+          "MathHelper\\.clamp_float\\s*\\(",
+          "ValueUtil.clampFloat("
+        ],
+        [
+          "MathHelper\\.clamp_double\\s*\\(",
+          "ValueUtil.clampDouble("
+        ],
+        [
+          "MathHelper\\.sqrt_double\\s*\\(",
+          "Math.sqrt("
+        ],
+        [
+          "MathHelper\\.sqrt_float\\s*\\(",
+          "(float)Math.sqrt("
+        ],
+        [
+          "MathHelper\\.floor_double\\s*\\(",
+          "ValueUtil.floorDouble("
+        ],
+        [
+          "MathHelper\\.floor_float\\s*\\(",
+          "ValueUtil.floorFloat("
+        ],
+        [
+          "MathHelper\\.sin\\s*\\(",
+          "(float)Math.sin("
+        ],
+        [
+          "MathHelper\\.cos\\s*\\(",
+          "(float)Math.cos("
+        ],
+        [
+          "MathHelper\\.abs\\s*\\(",
+          "Math.abs("
+        ],
+        [
+          "MathHelper\\.ceiling_double_int\\s*\\(",
+          "ValueUtil.ceilToInt("
+        ],
+        [
+          "MathHelper\\.ceiling_float_int\\s*\\(",
+          "ValueUtil.ceilToInt("
+        ]
+      ],
+      "imports": 98,
+      "swap": null
+    },
+    "EnumChatFormatting": {
+      "fqn": "net.minecraft.util.EnumChatFormatting",
+      "category": "TRANSFORM",
+      "patterns": [
+        [
+          "EnumChatFormatting\\.",
+          "TextFormatting."
+        ]
+      ],
+      "imports": 19,
+      "swap": null
+    },
+    "EnumFacing": {
+      "fqn": "net.minecraft.util.EnumFacing",
+      "category": "TRANSFORM",
+      "patterns": [
+        [
+          "EnumFacing\\.",
+          "Direction."
+        ]
+      ],
+      "imports": 3,
+      "swap": null
+    },
+    "SharedMonsterAttributes": {
+      "fqn": "net.minecraft.entity.SharedMonsterAttributes",
+      "category": "TRANSFORM",
+      "patterns": [
+        [
+          "SharedMonsterAttributes\\.maxHealth",
+          "Attributes.MAX_HEALTH"
+        ],
+        [
+          "SharedMonsterAttributes\\.movementSpeed",
+          "Attributes.MOVEMENT_SPEED"
+        ],
+        [
+          "SharedMonsterAttributes\\.attackDamage",
+          "Attributes.ATTACK_DAMAGE"
+        ],
+        [
+          "SharedMonsterAttributes\\.followRange",
+          "Attributes.FOLLOW_RANGE"
+        ],
+        [
+          "SharedMonsterAttributes\\.knockbackResistance",
+          "Attributes.KNOCKBACK_RESISTANCE"
+        ]
+      ],
+      "imports": 10,
+      "swap": null
+    },
+    "Constants": {
+      "fqn": "net.minecraftforge.common.util.Constants",
+      "category": "TRANSFORM",
+      "patterns": [
+        [
+          "Constants\\.NBT\\.TAG_COMPOUND",
+          "NbtConstants.TAG_COMPOUND"
+        ],
+        [
+          "Constants\\.NBT\\.TAG_STRING",
+          "NbtConstants.TAG_STRING"
+        ],
+        [
+          "Constants\\.NBT\\.TAG_LIST",
+          "NbtConstants.TAG_LIST"
+        ],
+        [
+          "Constants\\.NBT\\.TAG_INT",
+          "NbtConstants.TAG_INT"
+        ],
+        [
+          "Constants\\.NBT\\.TAG_DOUBLE",
+          "NbtConstants.TAG_DOUBLE"
+        ],
+        [
+          "Constants\\.NBT\\.TAG_BYTE",
+          "NbtConstants.TAG_BYTE"
+        ],
+        [
+          "Constants\\.NBT\\.TAG_FLOAT",
+          "NbtConstants.TAG_FLOAT"
+        ],
+        [
+          "Constants\\.NBT\\.TAG_LONG",
+          "NbtConstants.TAG_LONG"
+        ],
+        [
+          "Constants\\.NBT\\.TAG_SHORT",
+          "NbtConstants.TAG_SHORT"
+        ],
+        [
+          "Constants\\.NBT\\.TAG_INT_ARRAY",
+          "NbtConstants.TAG_INT_ARRAY"
+        ],
+        [
+          "Constants\\.NBT\\.TAG_BYTE_ARRAY",
+          "NbtConstants.TAG_BYTE_ARRAY"
+        ]
+      ],
+      "imports": 9,
+      "swap": null
+    },
+    "CommandException": {
+      "fqn": "net.minecraft.command.CommandException",
+      "category": "TRANSFORM",
+      "patterns": [
+        [
+          "net\\.minecraft\\.command\\.CommandException",
+          "noppes.npcs.api.CommandException"
+        ],
+        [
+          "new CommandException\\(",
+          "new CommandException("
+        ]
+      ],
+      "imports": 31,
+      "swap": null
+    },
+    "ChunkCoordinates": {
+      "fqn": "net.minecraft.util.ChunkCoordinates",
+      "category": "TRANSFORM",
+      "patterns": [
+        [
+          "new ChunkCoordinates\\(([^,]+),\\s*([^,]+),\\s*([^)]+)\\)",
+          "new BlockPos($1, $2, $3)"
+        ],
+        [
+          "\\.posX\\b",
+          ".getX()"
+        ],
+        [
+          "\\.posY\\b",
+          ".getY()"
+        ],
+        [
+          "\\.posZ\\b",
+          ".getZ()"
+        ]
+      ],
+      "imports": 4,
+      "swap": null
+    },
+    "EnumAction": {
+      "fqn": "net.minecraft.item.EnumAction",
+      "category": "TRANSFORM",
+      "patterns": [
+        [
+          "EnumAction\\.",
+          "ItemAction."
+        ]
+      ],
+      "imports": 11,
+      "swap": null
+    },
+    "GuiButton": {
+      "fqn": "net.minecraft.client.gui.GuiButton",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 218,
+      "swap": null
+    },
+    "Minecraft": {
+      "fqn": "net.minecraft.client.Minecraft",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 180,
+      "swap": null
+    },
+    "ModelRenderer": {
+      "fqn": "net.minecraft.client.model.ModelRenderer",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 122,
+      "swap": null
+    },
+    "ModelBase": {
+      "fqn": "net.minecraft.client.model.ModelBase",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 102,
+      "swap": null
+    },
+    "Block": {
+      "fqn": "net.minecraft.block.Block",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 84,
+      "swap": null
+    },
+    "TileEntity": {
+      "fqn": "net.minecraft.tileentity.TileEntity",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 78,
+      "swap": null
+    },
+    "GuiScreen": {
+      "fqn": "net.minecraft.client.gui.GuiScreen",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 70,
+      "swap": null
+    },
+    "Tessellator": {
+      "fqn": "net.minecraft.client.renderer.Tessellator",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 46,
+      "swap": null
+    },
+    "Slot": {
+      "fqn": "net.minecraft.inventory.Slot",
+      "category": "SUPPRESS",
+      "reason": "inventory",
+      "imports": 42,
+      "swap": null
+    },
+    "RenderHelper": {
+      "fqn": "net.minecraft.client.renderer.RenderHelper",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 40,
+      "swap": null
+    },
+    "OpenGlHelper": {
+      "fqn": "net.minecraft.client.renderer.OpenGlHelper",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 39,
+      "swap": null
+    },
+    "TextureManager": {
+      "fqn": "net.minecraft.client.renderer.texture.TextureManager",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 38,
+      "swap": null
+    },
+    "FontRenderer": {
+      "fqn": "net.minecraft.client.gui.FontRenderer",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 38,
+      "swap": null
+    },
+    "NBTTagString": {
+      "fqn": "net.minecraft.nbt.NBTTagString",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 35,
+      "swap": null
+    },
+    "IIcon": {
+      "fqn": "net.minecraft.util.IIcon",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 35,
+      "swap": null
+    },
+    "RenderBlocks": {
+      "fqn": "net.minecraft.client.renderer.RenderBlocks",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 35,
+      "swap": null
+    },
+    "RenderManager": {
+      "fqn": "net.minecraft.client.renderer.entity.RenderManager",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 33,
+      "swap": null
+    },
+    "ModelBox": {
+      "fqn": "net.minecraft.client.model.ModelBox",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 32,
+      "swap": null
+    },
+    "IInventory": {
+      "fqn": "net.minecraft.inventory.IInventory",
+      "category": "SUPPRESS",
+      "reason": "inventory",
+      "imports": 30,
+      "swap": null
+    },
+    "IBlockAccess": {
+      "fqn": "net.minecraft.world.IBlockAccess",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 30,
+      "swap": null
+    },
+    "RenderingRegistry": {
+      "fqn": "cpw.mods.fml.client.registry.RenderingRegistry",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 28,
+      "swap": null
+    },
+    "EntityAIBase": {
+      "fqn": "net.minecraft.entity.ai.EntityAIBase",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 27,
+      "swap": null
+    },
+    "ScaledResolution": {
+      "fqn": "net.minecraft.client.gui.ScaledResolution",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 26,
+      "swap": null
+    },
+    "IIconRegister": {
+      "fqn": "net.minecraft.client.renderer.texture.IIconRegister",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 26,
+      "swap": null
+    },
+    "Container": {
+      "fqn": "net.minecraft.inventory.Container",
+      "category": "SUPPRESS",
+      "reason": "inventory",
+      "imports": 25,
+      "swap": null
+    },
+    "CreativeTabs": {
+      "fqn": "net.minecraft.creativetab.CreativeTabs",
+      "category": "SUPPRESS",
+      "reason": "registration",
+      "imports": 25,
+      "swap": null
+    },
+    "Material": {
+      "fqn": "net.minecraft.block.material.Material",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 24,
+      "swap": null
+    },
+    "GuiYesNo": {
+      "fqn": "net.minecraft.client.gui.GuiYesNo",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 22,
+      "swap": null
+    },
+    "Gui": {
+      "fqn": "net.minecraft.client.gui.Gui",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 22,
+      "swap": null
+    },
+    "GuiYesNoCallback": {
+      "fqn": "net.minecraft.client.gui.GuiYesNoCallback",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 21,
+      "swap": null
+    },
+    "ItemBlock": {
+      "fqn": "net.minecraft.item.ItemBlock",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 19,
+      "swap": null
+    },
+    "Cancelable": {
+      "fqn": "cpw.mods.fml.common.eventhandler.Cancelable",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 19,
+      "swap": null
+    },
+    "GameRegistry": {
+      "fqn": "cpw.mods.fml.common.registry.GameRegistry",
+      "category": "SUPPRESS",
+      "reason": "registration",
+      "imports": 18,
+      "swap": null
+    },
+    "Event": {
+      "fqn": "cpw.mods.fml.common.eventhandler.Event",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 17,
+      "swap": null
+    },
+    "BlockContainer": {
+      "fqn": "net.minecraft.block.BlockContainer",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 16,
+      "swap": null
+    },
+    "ModelBiped": {
+      "fqn": "net.minecraft.client.model.ModelBiped",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 16,
+      "swap": null
+    },
+    "SubscribeEvent": {
+      "fqn": "cpw.mods.fml.common.eventhandler.SubscribeEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 15,
+      "swap": null
+    },
+    "EntityItem": {
+      "fqn": "net.minecraft.entity.item.EntityItem",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 15,
+      "swap": null
+    },
+    "ItemArmor": {
+      "fqn": "net.minecraft.item.ItemArmor",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 13,
+      "swap": null
+    },
+    "IItemRenderer": {
+      "fqn": "net.minecraftforge.client.IItemRenderer",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 11,
+      "swap": null
+    },
+    "IResource": {
+      "fqn": "net.minecraft.client.resources.IResource",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 11,
+      "swap": null
+    },
+    "BlockPos": {
+      "fqn": "net.minecraft.util.math.BlockPos",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 10,
+      "swap": null
+    },
+    "Render": {
+      "fqn": "net.minecraft.client.renderer.entity.Render",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 8,
+      "swap": null
+    },
+    "ItemRenderer": {
+      "fqn": "net.minecraft.client.renderer.ItemRenderer",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 8,
+      "swap": null
+    },
+    "MinecraftForge": {
+      "fqn": "net.minecraftforge.common.MinecraftForge",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 8,
+      "swap": null
+    },
+    "RenderItem": {
+      "fqn": "net.minecraft.client.renderer.entity.RenderItem",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 8,
+      "swap": null
+    },
+    "EntityMob": {
+      "fqn": "net.minecraft.entity.monster.EntityMob",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 7,
+      "swap": null
+    },
+    "EntityCreature": {
+      "fqn": "net.minecraft.entity.EntityCreature",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 7,
+      "swap": null
+    },
+    "EntityAnimal": {
+      "fqn": "net.minecraft.entity.passive.EntityAnimal",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 7,
+      "swap": null
+    },
+    "EntityTameable": {
+      "fqn": "net.minecraft.entity.passive.EntityTameable",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 7,
+      "swap": null
+    },
+    "RendererLivingEntity": {
+      "fqn": "net.minecraft.client.renderer.entity.RendererLivingEntity",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 7,
+      "swap": null
+    },
+    "ISimpleBlockRenderingHandler": {
+      "fqn": "cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 7,
+      "swap": null
+    },
+    "EntityClientPlayerMP": {
+      "fqn": "net.minecraft.client.entity.EntityClientPlayerMP",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 7,
+      "swap": null
+    },
+    "InventoryBasic": {
+      "fqn": "net.minecraft.inventory.InventoryBasic",
+      "category": "SUPPRESS",
+      "reason": "inventory",
+      "imports": 7,
+      "swap": null
+    },
+    "Packet": {
+      "fqn": "net.minecraft.network.Packet",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 7,
+      "swap": null
+    },
+    "Enchantment": {
+      "fqn": "net.minecraft.enchantment.Enchantment",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "MerchantRecipeList": {
+      "fqn": "net.minecraft.village.MerchantRecipeList",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 6,
+      "swap": null
+    },
+    "MerchantRecipe": {
+      "fqn": "net.minecraft.village.MerchantRecipe",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "ObfuscationReflectionHelper": {
+      "fqn": "cpw.mods.fml.common.ObfuscationReflectionHelper",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 6,
+      "swap": null
+    },
+    "EntityVillager": {
+      "fqn": "net.minecraft.entity.passive.EntityVillager",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 6,
+      "swap": null
+    },
+    "FakePlayer": {
+      "fqn": "net.minecraftforge.common.util.FakePlayer",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 6,
+      "swap": null
+    },
+    "IEntitySelector": {
+      "fqn": "net.minecraft.command.IEntitySelector",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 6,
+      "swap": null
+    },
+    "S35PacketUpdateTileEntity": {
+      "fqn": "net.minecraft.network.play.server.S35PacketUpdateTileEntity",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 6,
+      "swap": null
+    },
+    "ChatAllowedCharacters": {
+      "fqn": "net.minecraft.util.ChatAllowedCharacters",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 6,
+      "swap": null
+    },
+    "TickEvent": {
+      "fqn": "cpw.mods.fml.common.gameevent.TickEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 6,
+      "swap": null
+    },
+    "TextureMap": {
+      "fqn": "net.minecraft.client.renderer.texture.TextureMap",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 6,
+      "swap": null
+    },
+    "NBTTagFloat": {
+      "fqn": "net.minecraft.nbt.NBTTagFloat",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 6,
+      "swap": null
+    },
+    "EntityXPOrb": {
+      "fqn": "net.minecraft.entity.item.EntityXPOrb",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 5,
+      "swap": null
+    },
+    "Achievement": {
+      "fqn": "net.minecraft.stats.Achievement",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 5,
+      "swap": null
+    },
+    "BlockColored": {
+      "fqn": "net.minecraft.block.BlockColored",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 5,
+      "swap": null
+    },
+    "ModContainer": {
+      "fqn": "cpw.mods.fml.common.ModContainer",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 5,
+      "swap": null
+    },
+    "EntityThrowable": {
+      "fqn": "net.minecraft.entity.projectile.EntityThrowable",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 5,
+      "swap": null
+    },
+    "EntityFX": {
+      "fqn": "net.minecraft.client.particle.EntityFX",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 5,
+      "swap": null
+    },
+    "FMLProxyPacket": {
+      "fqn": "cpw.mods.fml.common.network.internal.FMLProxyPacket",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 5,
+      "swap": null
+    },
+    "PathEntity": {
+      "fqn": "net.minecraft.pathfinding.PathEntity",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 5,
+      "swap": null
+    },
+    "TileEntitySpecialRenderer": {
+      "fqn": "net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 5,
+      "swap": null
+    },
+    "Blocks": {
+      "fqn": "net.minecraft.init.Blocks",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 47,
+      "swap": null
+    },
+    "Items": {
+      "fqn": "net.minecraft.init.Items",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 29,
+      "swap": null
+    },
+    "EnumCreatureAttribute": {
+      "fqn": "net.minecraft.entity.EnumCreatureAttribute",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 4,
+      "swap": null
+    },
+    "PlayerEvent": {
+      "fqn": "cpw.mods.fml.common.gameevent.PlayerEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 4,
+      "swap": null
+    },
+    "IResourceManager": {
+      "fqn": "net.minecraft.client.resources.IResourceManager",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 4,
+      "swap": null
+    },
+    "PositionedSoundRecord": {
+      "fqn": "net.minecraft.client.audio.PositionedSoundRecord",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 4,
+      "swap": null
+    },
+    "NPCRendererHelper": {
+      "fqn": "net.minecraft.client.renderer.entity.NPCRendererHelper",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 4,
+      "swap": null
+    },
+    "GLAllocation": {
+      "fqn": "net.minecraft.client.renderer.GLAllocation",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 4,
+      "swap": null
+    },
+    "EntityDragon": {
+      "fqn": "net.minecraft.entity.boss.EntityDragon",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 4,
+      "swap": null
+    },
+    "EntityArrow": {
+      "fqn": "net.minecraft.entity.projectile.EntityArrow",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 4,
+      "swap": null
+    },
+    "ItemTooltipEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.ItemTooltipEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 4,
+      "swap": null
+    },
+    "NetworkManager": {
+      "fqn": "net.minecraft.network.NetworkManager",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 4,
+      "swap": null
+    },
+    "EntitySheep": {
+      "fqn": "net.minecraft.entity.passive.EntitySheep",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 4,
+      "swap": null
+    },
+    "NBTTagByte": {
+      "fqn": "net.minecraft.nbt.NBTTagByte",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 4,
+      "swap": null
+    },
+    "ItemBow": {
+      "fqn": "net.minecraft.item.ItemBow",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 4,
+      "swap": null
+    },
+    "NBTTagIntArray": {
+      "fqn": "net.minecraft.nbt.NBTTagIntArray",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 4,
+      "swap": null
+    },
+    "WorldEvent": {
+      "fqn": "net.minecraftforge.event.world.WorldEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 4,
+      "swap": null
+    },
+    "PacketBuffer": {
+      "fqn": "net.minecraft.network.PacketBuffer",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 4,
+      "swap": null
+    },
+    "EntityAITarget": {
+      "fqn": "net.minecraft.entity.ai.EntityAITarget",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 4,
+      "swap": null
+    },
+    "GuiContainer": {
+      "fqn": "net.minecraft.client.gui.inventory.GuiContainer",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 4,
+      "swap": null
+    },
+    "InventoryCrafting": {
+      "fqn": "net.minecraft.inventory.InventoryCrafting",
+      "category": "SUPPRESS",
+      "reason": "recipe-system",
+      "imports": 4,
+      "swap": null
+    },
+    "AttributeModifier": {
+      "fqn": "net.minecraft.entity.ai.attributes.AttributeModifier",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 3,
+      "swap": null
+    },
+    "SoundHandler": {
+      "fqn": "net.minecraft.client.audio.SoundHandler",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "RenderBiped": {
+      "fqn": "net.minecraft.client.renderer.entity.RenderBiped",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "ItemEditableBook": {
+      "fqn": "net.minecraft.item.ItemEditableBook",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "ItemWritableBook": {
+      "fqn": "net.minecraft.item.ItemWritableBook",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "ForgeHooksClient": {
+      "fqn": "net.minecraftforge.client.ForgeHooksClient",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "MinecraftForgeClient": {
+      "fqn": "net.minecraftforge.client.MinecraftForgeClient",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "ForgeChunkManager": {
+      "fqn": "net.minecraftforge.common.ForgeChunkManager",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "BiomeGenBase": {
+      "fqn": "net.minecraft.world.biome.BiomeGenBase",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "LivingEvent": {
+      "fqn": "net.minecraftforge.event.entity.living.LivingEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 3,
+      "swap": null
+    },
+    "EntityInteractEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.EntityInteractEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 3,
+      "swap": null
+    },
+    "PlayerInteractEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.PlayerInteractEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 3,
+      "swap": null
+    },
+    "SimpleReloadableResourceManager": {
+      "fqn": "net.minecraft.client.resources.SimpleReloadableResourceManager",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "KeyBinding": {
+      "fqn": "net.minecraft.client.settings.KeyBinding",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "ICrafting": {
+      "fqn": "net.minecraft.inventory.ICrafting",
+      "category": "SUPPRESS",
+      "reason": "inventory",
+      "imports": 3,
+      "swap": null
+    },
+    "ItemFood": {
+      "fqn": "net.minecraft.item.ItemFood",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "PathNavigate": {
+      "fqn": "net.minecraft.pathfinding.PathNavigate",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 3,
+      "swap": null
+    },
+    "PathPoint": {
+      "fqn": "net.minecraft.pathfinding.PathPoint",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 3,
+      "swap": null
+    },
+    "AbstractClientPlayer": {
+      "fqn": "net.minecraft.client.entity.AbstractClientPlayer",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "GuiTextField": {
+      "fqn": "net.minecraft.client.gui.GuiTextField",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "InventoryPlayer": {
+      "fqn": "net.minecraft.entity.player.InventoryPlayer",
+      "category": "SUPPRESS",
+      "reason": "inventory",
+      "imports": 3,
+      "swap": null
+    },
+    "EntityRenderer": {
+      "fqn": "net.minecraft.client.renderer.EntityRenderer",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "RenderPlayer": {
+      "fqn": "net.minecraft.client.renderer.entity.RenderPlayer",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "BlockIce": {
+      "fqn": "net.minecraft.block.BlockIce",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "BlockLeavesBase": {
+      "fqn": "net.minecraft.block.BlockLeavesBase",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "BlockVine": {
+      "fqn": "net.minecraft.block.BlockVine",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "EntityHorse": {
+      "fqn": "net.minecraft.entity.passive.EntityHorse",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 3,
+      "swap": null
+    },
+    "RenderWorldLastEvent": {
+      "fqn": "net.minecraftforge.client.event.RenderWorldLastEvent",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "IEntityAdditionalSpawnData": {
+      "fqn": "cpw.mods.fml.common.registry.IEntityAdditionalSpawnData",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 3,
+      "swap": null
+    },
+    "FMLNetworkEvent": {
+      "fqn": "cpw.mods.fml.common.network.FMLNetworkEvent",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 3,
+      "swap": null
+    },
+    "ArmorMaterial": {
+      "fqn": "net.minecraft.item.ItemArmor.ArmorMaterial",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "EntityEvent": {
+      "fqn": "net.minecraftforge.event.entity.EntityEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 3,
+      "swap": null
+    },
+    "EntityDamageSource": {
+      "fqn": "net.minecraft.util.EntityDamageSource",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 3,
+      "swap": null
+    },
+    "ChunkCoordIntPair": {
+      "fqn": "net.minecraft.world.ChunkCoordIntPair",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "EventPriority": {
+      "fqn": "cpw.mods.fml.common.eventhandler.EventPriority",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 3,
+      "swap": null
+    },
+    "GuiScreenEvent": {
+      "fqn": "net.minecraftforge.client.event.GuiScreenEvent",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 3,
+      "swap": null
+    },
+    "IExtendedEntityProperties": {
+      "fqn": "net.minecraftforge.common.IExtendedEntityProperties",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 3,
+      "swap": null
+    },
+    "ItemSword": {
+      "fqn": "net.minecraft.item.ItemSword",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 3,
+      "swap": null
+    },
+    "NBTTagDouble": {
+      "fqn": "net.minecraft.nbt.NBTTagDouble",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 9,
+      "swap": null
+    },
+    "NBTTagInt": {
+      "fqn": "net.minecraft.nbt.NBTTagInt",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 8,
+      "swap": null
+    },
+    "IAttributeInstance": {
+      "fqn": "net.minecraft.entity.ai.attributes.IAttributeInstance",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 2,
+      "swap": null
+    },
+    "BlockEvent": {
+      "fqn": "net.minecraftforge.event.world.BlockEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "ResourcePackRepository": {
+      "fqn": "net.minecraft.client.resources.ResourcePackRepository",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "Ticket": {
+      "fqn": "net.minecraftforge.common.ForgeChunkManager.Ticket",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "ScoreObjective": {
+      "fqn": "net.minecraft.scoreboard.ScoreObjective",
+      "category": "SUPPRESS",
+      "reason": "scoreboard-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "ScorePlayerTeam": {
+      "fqn": "net.minecraft.scoreboard.ScorePlayerTeam",
+      "category": "SUPPRESS",
+      "reason": "scoreboard-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "Scoreboard": {
+      "fqn": "net.minecraft.scoreboard.Scoreboard",
+      "category": "SUPPRESS",
+      "reason": "scoreboard-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "NetworkRegistry": {
+      "fqn": "cpw.mods.fml.common.network.NetworkRegistry",
+      "category": "SUPPRESS",
+      "reason": "registration",
+      "imports": 2,
+      "swap": null
+    },
+    "EntityRegistry": {
+      "fqn": "cpw.mods.fml.common.registry.EntityRegistry",
+      "category": "SUPPRESS",
+      "reason": "registration",
+      "imports": 2,
+      "swap": null
+    },
+    "IResourcePack": {
+      "fqn": "net.minecraft.client.resources.IResourcePack",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "CraftingManager": {
+      "fqn": "net.minecraft.item.crafting.CraftingManager",
+      "category": "SUPPRESS",
+      "reason": "recipe-system",
+      "imports": 2,
+      "swap": null
+    },
+    "GameSettings": {
+      "fqn": "net.minecraft.client.settings.GameSettings",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "TextureUtil": {
+      "fqn": "net.minecraft.client.renderer.texture.TextureUtil",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "EnumHelper": {
+      "fqn": "net.minecraftforge.common.util.EnumHelper",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "OreDictionary": {
+      "fqn": "net.minecraftforge.oredict.OreDictionary",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "EnchantmentHelper": {
+      "fqn": "net.minecraft.enchantment.EnchantmentHelper",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "Chunk": {
+      "fqn": "net.minecraft.world.chunk.Chunk",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "EntityJoinWorldEvent": {
+      "fqn": "net.minecraftforge.event.entity.EntityJoinWorldEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "ItemTossEvent": {
+      "fqn": "net.minecraftforge.event.entity.item.ItemTossEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "PlayerUseItemEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.PlayerUseItemEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "LivingAttackEvent": {
+      "fqn": "net.minecraftforge.event.entity.living.LivingAttackEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "LivingHurtEvent": {
+      "fqn": "net.minecraftforge.event.entity.living.LivingHurtEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "IRangedAttackMob": {
+      "fqn": "net.minecraft.entity.IRangedAttackMob",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 2,
+      "swap": null
+    },
+    "NPCResourceHelper": {
+      "fqn": "net.minecraft.client.resources.NPCResourceHelper",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "ActiveRenderInfo": {
+      "fqn": "net.minecraft.client.renderer.ActiveRenderInfo",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "IMerchant": {
+      "fqn": "net.minecraft.entity.IMerchant",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 2,
+      "swap": null
+    },
+    "BiomeDictionary": {
+      "fqn": "net.minecraftforge.common.BiomeDictionary",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "InventoryCraftResult": {
+      "fqn": "net.minecraft.inventory.InventoryCraftResult",
+      "category": "SUPPRESS",
+      "reason": "recipe-system",
+      "imports": 2,
+      "swap": null
+    },
+    "WeightedRandom": {
+      "fqn": "net.minecraft.util.WeightedRandom",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "EntityGhast": {
+      "fqn": "net.minecraft.entity.monster.EntityGhast",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 2,
+      "swap": null
+    },
+    "S12PacketEntityVelocity": {
+      "fqn": "net.minecraft.network.play.server.S12PacketEntityVelocity",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 2,
+      "swap": null
+    },
+    "EntityPlayerSP": {
+      "fqn": "net.minecraft.client.entity.EntityPlayerSP",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "ItemRenderType": {
+      "fqn": "net.minecraftforge.client.IItemRenderer.ItemRenderType",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "EnumCreatureType": {
+      "fqn": "net.minecraft.entity.EnumCreatureType",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 2,
+      "swap": null
+    },
+    "ChunkDataEvent": {
+      "fqn": "net.minecraftforge.event.world.ChunkDataEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "ChunkEvent": {
+      "fqn": "net.minecraftforge.event.world.ChunkEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "ChunkWatchEvent": {
+      "fqn": "net.minecraftforge.event.world.ChunkWatchEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "ContainerPlayer": {
+      "fqn": "net.minecraft.inventory.ContainerPlayer",
+      "category": "SUPPRESS",
+      "reason": "inventory",
+      "imports": 2,
+      "swap": null
+    },
+    "LivingDeathEvent": {
+      "fqn": "net.minecraftforge.event.entity.living.LivingDeathEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "Phase": {
+      "fqn": "cpw.mods.fml.common.gameevent.TickEvent.Phase",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 2,
+      "swap": null
+    },
+    "EntityMoveHelper": {
+      "fqn": "net.minecraft.entity.ai.EntityMoveHelper",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 2,
+      "swap": null
+    },
+    "EnumSkyBlock": {
+      "fqn": "net.minecraft.world.EnumSkyBlock",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 2,
+      "swap": null
+    },
+    "AbstractResourcePack": {
+      "fqn": "net.minecraft.client.resources.AbstractResourcePack",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "FallbackResourceManager": {
+      "fqn": "net.minecraft.client.resources.FallbackResourceManager",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "RenderLivingEvent": {
+      "fqn": "net.minecraftforge.client.event.RenderLivingEvent",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "RenderPlayerEvent": {
+      "fqn": "net.minecraftforge.client.event.RenderPlayerEvent",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "EntityPortalFX": {
+      "fqn": "net.minecraft.client.particle.EntityPortalFX",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "SkinManager": {
+      "fqn": "net.minecraft.client.resources.SkinManager",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 2,
+      "swap": null
+    },
+    "EntityEnderman": {
+      "fqn": "net.minecraft.entity.monster.EntityEnderman",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 2,
+      "swap": null
+    },
+    "EntityCreeper": {
+      "fqn": "net.minecraft.entity.monster.EntityCreeper",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 2,
+      "swap": null
+    },
+    "IMob": {
+      "fqn": "net.minecraft.entity.monster.IMob",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 2,
+      "swap": null
+    },
+    "INpc": {
+      "fqn": "net.minecraft.entity.INpc",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 2,
+      "swap": null
+    },
+    "EntityFishHook": {
+      "fqn": "net.minecraft.entity.projectile.EntityFishHook",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 2,
+      "swap": null
+    },
+    "NBTPrimitive": {
+      "fqn": "net.minecraft.nbt.NBTBase.NBTPrimitive",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 2,
+      "swap": null
+    },
+    "FMLEventChannel": {
+      "fqn": "cpw.mods.fml.common.network.FMLEventChannel",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "IBlockSource": {
+      "fqn": "net.minecraft.dispenser.IBlockSource",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "CommandBlockLogic": {
+      "fqn": "net.minecraft.command.server.CommandBlockLogic",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "IntHashMap": {
+      "fqn": "net.minecraft.util.math.IntHashMap",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "WorldProvider": {
+      "fqn": "net.minecraft.world.WorldProvider",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "BlockDispenser": {
+      "fqn": "net.minecraft.block.BlockDispenser",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "FMLServerAboutToStartEvent": {
+      "fqn": "cpw.mods.fml.common.event.FMLServerAboutToStartEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "StringUtils": {
+      "fqn": "net.minecraft.util.StringUtils",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "MobSpawnerBaseLogic": {
+      "fqn": "net.minecraft.tileentity.MobSpawnerBaseLogic",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "TileEntityCommandBlock": {
+      "fqn": "net.minecraft.tileentity.TileEntityCommandBlock",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "TileEntityMobSpawner": {
+      "fqn": "net.minecraft.tileentity.TileEntityMobSpawner",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "ForgeHooks": {
+      "fqn": "net.minecraftforge.common.ForgeHooks",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "LivingFallEvent": {
+      "fqn": "net.minecraftforge.event.entity.living.LivingFallEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "PlayerDropsEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.PlayerDropsEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityEnderPearl": {
+      "fqn": "net.minecraft.entity.item.EntityEnderPearl",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "ITickable": {
+      "fqn": "net.minecraft.client.renderer.texture.ITickable",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "MouseEvent": {
+      "fqn": "net.minecraftforge.client.event.MouseEvent",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "ClientRegistry": {
+      "fqn": "cpw.mods.fml.client.registry.ClientRegistry",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "IImageBuffer": {
+      "fqn": "net.minecraft.client.renderer.IImageBuffer",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "Util": {
+      "fqn": "net.minecraft.util.Util",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "ReflectionHelper": {
+      "fqn": "cpw.mods.fml.relauncher.ReflectionHelper",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "SoundRegistry": {
+      "fqn": "net.minecraft.client.audio.SoundRegistry",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "TexturedQuad": {
+      "fqn": "net.minecraft.client.model.TexturedQuad",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "BossStatus": {
+      "fqn": "net.minecraft.entity.boss.BossStatus",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "ItemPotion": {
+      "fqn": "net.minecraft.item.ItemPotion",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "PotionHelper": {
+      "fqn": "net.minecraft.potion.PotionHelper",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "ModelBook": {
+      "fqn": "net.minecraft.client.model.ModelBook",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "NPCEntityHelper": {
+      "fqn": "net.minecraft.entity.NPCEntityHelper",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "FMLLaunchHandler": {
+      "fqn": "cpw.mods.fml.relauncher.FMLLaunchHandler",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "StatList": {
+      "fqn": "net.minecraft.stats.StatList",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "WorldSettings": {
+      "fqn": "net.minecraft.world.WorldSettings",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "Score": {
+      "fqn": "net.minecraft.scoreboard.Score",
+      "category": "SUPPRESS",
+      "reason": "scoreboard-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "FMLClientHandler": {
+      "fqn": "cpw.mods.fml.client.FMLClientHandler",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "PlayerNotFoundException": {
+      "fqn": "net.minecraft.command.PlayerNotFoundException",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "NetHandlerPlayServer": {
+      "fqn": "net.minecraft.network.NetHandlerPlayServer",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "GuiAchievement": {
+      "fqn": "net.minecraft.client.gui.achievement.GuiAchievement",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "NBTSizeTracker": {
+      "fqn": "net.minecraft.nbt.NBTSizeTracker",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 1,
+      "swap": null
+    },
+    "IGuiHandler": {
+      "fqn": "cpw.mods.fml.common.network.IGuiHandler",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "BehaviorDefaultDispenseItem": {
+      "fqn": "net.minecraft.dispenser.BehaviorDefaultDispenseItem",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "ToolMaterial": {
+      "fqn": "net.minecraft.item.Item.ToolMaterial",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "ItemFlintAndSteel": {
+      "fqn": "net.minecraft.item.ItemFlintAndSteel",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "Mod": {
+      "fqn": "cpw.mods.fml.common.Mod",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "EventHandler": {
+      "fqn": "cpw.mods.fml.common.Mod.EventHandler",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "SidedProxy": {
+      "fqn": "cpw.mods.fml.common.SidedProxy",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "FMLLoadCompleteEvent": {
+      "fqn": "cpw.mods.fml.common.event.FMLLoadCompleteEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "FMLServerStartedEvent": {
+      "fqn": "cpw.mods.fml.common.event.FMLServerStartedEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "FMLServerStoppedEvent": {
+      "fqn": "cpw.mods.fml.common.event.FMLServerStoppedEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "FMLInitializationEvent": {
+      "fqn": "cpw.mods.fml.common.event.FMLInitializationEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "FMLPreInitializationEvent": {
+      "fqn": "cpw.mods.fml.common.event.FMLPreInitializationEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "FMLServerStartingEvent": {
+      "fqn": "cpw.mods.fml.common.event.FMLServerStartingEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "ForgeEventFactory": {
+      "fqn": "net.minecraftforge.event.ForgeEventFactory",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "Teleporter": {
+      "fqn": "net.minecraft.world.Teleporter",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "LoaderState": {
+      "fqn": "cpw.mods.fml.common.LoaderState",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityDamageSourceIndirect": {
+      "fqn": "net.minecraft.util.EntityDamageSourceIndirect",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "Result": {
+      "fqn": "cpw.mods.fml.common.eventhandler.Event.Result",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "ChunkPosition": {
+      "fqn": "net.minecraft.world.ChunkPosition",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "AnvilRepairEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.AnvilRepairEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "PlayerDestroyItemEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.PlayerDestroyItemEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityStruckByLightningEvent": {
+      "fqn": "net.minecraftforge.event.entity.EntityStruckByLightningEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "PlaySoundAtEntityEvent": {
+      "fqn": "net.minecraftforge.event.entity.PlaySoundAtEntityEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "AchievementEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.AchievementEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "ArrowLooseEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.ArrowLooseEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "ArrowNockEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.ArrowNockEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "BonemealEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.BonemealEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "FillBucketEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.FillBucketEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "PlayerOpenContainerEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.PlayerOpenContainerEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "PlayerPickupXpEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.PlayerPickupXpEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "PlayerSleepInBedEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.PlayerSleepInBedEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "PlayerWakeUpEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.PlayerWakeUpEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "UseHoeEvent": {
+      "fqn": "net.minecraftforge.event.entity.player.UseHoeEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "PopulateChunkEvent": {
+      "fqn": "net.minecraftforge.event.terraingen.PopulateChunkEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityAIDoorInteract": {
+      "fqn": "net.minecraft.entity.ai.EntityAIDoorInteract",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 1,
+      "swap": null
+    },
+    "BlockDoor": {
+      "fqn": "net.minecraft.block.BlockDoor",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "BlockFence": {
+      "fqn": "net.minecraft.block.BlockFence",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "BlockFenceGate": {
+      "fqn": "net.minecraft.block.BlockFenceGate",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "BlockRailBase": {
+      "fqn": "net.minecraft.block.BlockRailBase",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "BlockWall": {
+      "fqn": "net.minecraft.block.BlockWall",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "ChunkCache": {
+      "fqn": "net.minecraft.world.ChunkCache",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityAINearestAttackableTarget": {
+      "fqn": "net.minecraft.entity.ai.EntityAINearestAttackableTarget",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 1,
+      "swap": null
+    },
+    "BlockBreakable": {
+      "fqn": "net.minecraft.block.BlockBreakable",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "ForgeDirection": {
+      "fqn": "net.minecraftforge.common.util.ForgeDirection",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "RenderGameOverlayEvent": {
+      "fqn": "net.minecraftforge.client.event.RenderGameOverlayEvent",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "RenderHandEvent": {
+      "fqn": "net.minecraftforge.client.event.RenderHandEvent",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityFlameFX": {
+      "fqn": "net.minecraft.client.particle.EntityFlameFX",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "EntitySmokeFX": {
+      "fqn": "net.minecraft.client.particle.EntitySmokeFX",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "IReloadableResourceManager": {
+      "fqn": "net.minecraft.client.resources.IReloadableResourceManager",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "ReportedException": {
+      "fqn": "net.minecraft.util.ReportedException",
+      "category": "SUPPRESS",
+      "reason": "debug",
+      "imports": 1,
+      "swap": null
+    },
+    "ClientCommandHandler": {
+      "fqn": "net.minecraftforge.client.ClientCommandHandler",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "FolderResourcePack": {
+      "fqn": "net.minecraft.client.resources.FolderResourcePack",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "IResourceManagerReloadListener": {
+      "fqn": "net.minecraft.client.resources.IResourceManagerReloadListener",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityChicken": {
+      "fqn": "net.minecraft.entity.passive.EntityChicken",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "SimpleTexture": {
+      "fqn": "net.minecraft.client.renderer.texture.SimpleTexture",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "InputEvent": {
+      "fqn": "cpw.mods.fml.common.gameevent.InputEvent",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "ClickEvent": {
+      "fqn": "net.minecraft.event.ClickEvent",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "ISound": {
+      "fqn": "net.minecraft.client.audio.ISound",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "ITickableSound": {
+      "fqn": "net.minecraft.client.audio.ITickableSound",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "MovingSound": {
+      "fqn": "net.minecraft.client.audio.MovingSound",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityConstructing": {
+      "fqn": "net.minecraftforge.event.entity.EntityEvent.EntityConstructing",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "C17PacketCustomPayload": {
+      "fqn": "net.minecraft.network.play.client.C17PacketCustomPayload",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "ShaderGroup": {
+      "fqn": "net.minecraft.client.shader.ShaderGroup",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "GuiOpenEvent": {
+      "fqn": "net.minecraftforge.client.event.GuiOpenEvent",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "GuiConfirmOpenLink": {
+      "fqn": "net.minecraft.client.gui.GuiConfirmOpenLink",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "DefaultResourcePack": {
+      "fqn": "net.minecraft.client.resources.DefaultResourcePack",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "ITextureObject": {
+      "fqn": "net.minecraft.client.renderer.texture.ITextureObject",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "PositionTextureVertex": {
+      "fqn": "net.minecraft.client.model.PositionTextureVertex",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "ImageBufferDownload": {
+      "fqn": "net.minecraft.client.renderer.ImageBufferDownload",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "ItemRendererHelper": {
+      "fqn": "net.minecraftforge.client.IItemRenderer.ItemRendererHelper",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "SlotCrafting": {
+      "fqn": "net.minecraft.inventory.SlotCrafting",
+      "category": "SUPPRESS",
+      "reason": "recipe-system",
+      "imports": 1,
+      "swap": null
+    },
+    "S2FPacketSetSlot": {
+      "fqn": "net.minecraft.network.play.server.S2FPacketSetSlot",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "LoadingCallback": {
+      "fqn": "net.minecraftforge.common.ForgeChunkManager.LoadingCallback",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "EnumEnchantmentType": {
+      "fqn": "net.minecraft.enchantment.EnumEnchantmentType",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityAIAttackOnCollide": {
+      "fqn": "net.minecraft.entity.ai.EntityAIAttackOnCollide",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityAIHurtByTarget": {
+      "fqn": "net.minecraft.entity.ai.EntityAIHurtByTarget",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityAIOpenDoor": {
+      "fqn": "net.minecraft.entity.ai.EntityAIOpenDoor",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityAIRestrictSun": {
+      "fqn": "net.minecraft.entity.ai.EntityAIRestrictSun",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityAISwimming": {
+      "fqn": "net.minecraft.entity.ai.EntityAISwimming",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityAITaskEntry": {
+      "fqn": "net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 1,
+      "swap": null
+    },
+    "IBossDisplayData": {
+      "fqn": "net.minecraft.entity.boss.IBossDisplayData",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityZombie": {
+      "fqn": "net.minecraft.entity.monster.EntityZombie",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityBat": {
+      "fqn": "net.minecraft.entity.passive.EntityBat",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "S0BPacketAnimation": {
+      "fqn": "net.minecraft.network.play.server.S0BPacketAnimation",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "ServerChatEvent": {
+      "fqn": "net.minecraftforge.event.ServerChatEvent",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    },
+    "S27PacketExplosion": {
+      "fqn": "net.minecraft.network.play.server.S27PacketExplosion",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "MovingObjectType": {
+      "fqn": "net.minecraft.util.MovingObjectPosition.MovingObjectType",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "EntitySkeleton": {
+      "fqn": "net.minecraft.entity.monster.EntitySkeleton",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "S04PacketEntityEquipment": {
+      "fqn": "net.minecraft.network.play.server.S04PacketEntityEquipment",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "ItemColored": {
+      "fqn": "net.minecraft.item.ItemColored",
+      "category": "SUPPRESS",
+      "reason": "item-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "FMLMessage": {
+      "fqn": "cpw.mods.fml.common.network.internal.FMLMessage",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityTrackerEntry": {
+      "fqn": "net.minecraft.entity.EntityTrackerEntry",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "EnumDifficulty": {
+      "fqn": "net.minecraft.world.EnumDifficulty",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "CommandHandler": {
+      "fqn": "net.minecraft.command.CommandHandler",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "Vec3i": {
+      "fqn": "net.minecraft.util.Vec3i",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "BlockAir": {
+      "fqn": "net.minecraft.block.BlockAir",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityLightningBolt": {
+      "fqn": "net.minecraft.entity.effect.EntityLightningBolt",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "TileEntitySign": {
+      "fqn": "net.minecraft.tileentity.TileEntitySign",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "BlockSnapshot": {
+      "fqn": "net.minecraftforge.common.util.BlockSnapshot",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "StatBase": {
+      "fqn": "net.minecraft.stats.StatBase",
+      "category": "SUPPRESS",
+      "reason": "forge-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "IPlantable": {
+      "fqn": "net.minecraftforge.common.IPlantable",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "IScoreObjectiveCriteria": {
+      "fqn": "net.minecraft.scoreboard.IScoreObjectiveCriteria",
+      "category": "SUPPRESS",
+      "reason": "scoreboard-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "NBTTagByteArray": {
+      "fqn": "net.minecraft.nbt.NBTTagByteArray",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 1,
+      "swap": null
+    },
+    "NBTTagLong": {
+      "fqn": "net.minecraft.nbt.NBTTagLong",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 1,
+      "swap": null
+    },
+    "NBTTagShort": {
+      "fqn": "net.minecraft.nbt.NBTTagShort",
+      "category": "SUPPRESS",
+      "reason": "nbt-subtype",
+      "imports": 1,
+      "swap": null
+    },
+    "IWorldAccess": {
+      "fqn": "net.minecraft.world.IWorldAccess",
+      "category": "SUPPRESS",
+      "reason": "world-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "GuiInventory": {
+      "fqn": "net.minecraft.client.gui.inventory.GuiInventory",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "C0DPacketCloseWindow": {
+      "fqn": "net.minecraft.network.play.client.C0DPacketCloseWindow",
+      "category": "SUPPRESS",
+      "reason": "networking",
+      "imports": 1,
+      "swap": null
+    },
+    "PathFinder": {
+      "fqn": "net.minecraft.pathfinding.PathFinder",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 1,
+      "swap": null
+    },
+    "MapColor": {
+      "fqn": "net.minecraft.block.material.MapColor",
+      "category": "SUPPRESS",
+      "reason": "block-internal",
+      "imports": 1,
+      "swap": null
+    },
+    "RenderGlobal": {
+      "fqn": "net.minecraft.client.renderer.RenderGlobal",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "IRecipe": {
+      "fqn": "net.minecraft.item.crafting.IRecipe",
+      "category": "SUPPRESS",
+      "reason": "recipe-system",
+      "imports": 1,
+      "swap": null
+    },
+    "GuiSlot": {
+      "fqn": "net.minecraft.client.gui.GuiSlot",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "RenderLiving": {
+      "fqn": "net.minecraft.client.renderer.entity.RenderLiving",
+      "category": "SUPPRESS",
+      "reason": "client",
+      "imports": 1,
+      "swap": null
+    },
+    "ShapedRecipes": {
+      "fqn": "net.minecraft.item.crafting.ShapedRecipes",
+      "category": "SUPPRESS",
+      "reason": "recipe-system",
+      "imports": 1,
+      "swap": null
+    },
+    "DataWatcher": {
+      "fqn": "net.minecraft.entity.DataWatcher",
+      "category": "SUPPRESS",
+      "reason": "entity-hierarchy",
+      "imports": 1,
+      "swap": null
+    },
+    "EntityAITasks": {
+      "fqn": "net.minecraft.entity.ai.EntityAITasks",
+      "category": "SUPPRESS",
+      "reason": "entity-ai",
+      "imports": 1,
+      "swap": null
+    },
+    "EventBus": {
+      "fqn": "cpw.mods.fml.common.eventhandler.EventBus",
+      "category": "SUPPRESS",
+      "reason": "event-system",
+      "imports": 1,
+      "swap": null
+    }
+  }
+}

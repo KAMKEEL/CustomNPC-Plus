@@ -1,0 +1,3010 @@
+{
+  "_meta": {
+    "generated": "2026-03-16T01:18:34.138209+00:00",
+    "mc_root": "mc1710/src/main/java",
+    "core_root": "core/src/main/java",
+    "classifications_source": "tools/migration/mc_type_mappings.json",
+    "total_files_in_core": 140,
+    "files_with_counterpart": 32,
+    "files_without_counterpart": 108,
+    "passed": 18,
+    "warned": 6,
+    "failed": 8
+  },
+  "results": [
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/conditions/ConditionFilter.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/controllers/data/ability/conditions/ConditionFilter.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/conditions/ConditionFilter.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/data/energy/EnergyAnchorData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/data/energy/EnergyAnchorData.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/data/energy/EnergyBarrierData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/data/energy/EnergyBarrierData.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/data/energy/EnergyChargingData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/data/energy/EnergyChargingData.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/data/energy/EnergyCombatData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/data/energy/EnergyCombatData.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/data/energy/EnergyDisplayData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/data/energy/EnergyDisplayData.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/data/energy/EnergyHomingData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/data/energy/EnergyHomingData.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/data/energy/EnergyLifespanData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/data/energy/EnergyLifespanData.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/data/energy/EnergyLightningData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/data/energy/EnergyLightningData.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/data/energy/EnergyPanelData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/data/energy/EnergyPanelData.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/data/ProjectileData.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/controllers/data/ability/data/ProjectileData.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/data/ProjectileData.java",
+      "verdict": "WARN",
+      "verdict_reason": "2 body diff(s)",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 2,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": [
+        {
+          "name": "readNBT",
+          "signature": "void readNBT(NBTTagCompound nbt)",
+          "similarity_ratio": 0.824,
+          "diff_line_count": 3,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,5 +1,6 @@",
+            " {",
+            "-        anchor.readNBT(new NBTWrapper(nbt));",
+            "+        // OLD: anchor.readNBT(new NBTWrapper(nbt));",
+            "+        anchor.readNBT(nbt);",
+            "         colorOverride = nbt.getBoolean(\"colorOverride\");",
+            "         if (colorOverride) {",
+            "             innerColor = nbt.getInteger(\"overrideInnerColor\");"
+          ]
+        },
+        {
+          "name": "writeNBT",
+          "signature": "void writeNBT(NBTTagCompound nbt)",
+          "similarity_ratio": 0.824,
+          "diff_line_count": 3,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,5 +1,6 @@",
+            " {",
+            "-        anchor.writeNBT(new NBTWrapper(nbt));",
+            "+        // OLD: anchor.writeNBT(new NBTWrapper(nbt));",
+            "+        anchor.writeNBT(nbt);",
+            "         nbt.setBoolean(\"colorOverride\", colorOverride);",
+            "         if (colorOverride) {",
+            "             nbt.setInteger(\"overrideInnerColor\", innerColor);"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/enums/AbilityPhase.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/enums/AbilityPhase.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/enums/AnchorPoint.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/enums/AnchorPoint.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/enums/HitType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/enums/HitType.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/enums/InvulnerableMode.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/enums/InvulnerableMode.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/enums/LockMode.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/enums/LockMode.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/enums/RotationMode.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/enums/RotationMode.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/enums/TargetFilter.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/enums/TargetFilter.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/enums/TargetingMode.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/enums/TargetingMode.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/ability/enums/UserType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/ability/enums/UserType.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/attribute/AttributeDefinition.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/attribute/AttributeDefinition.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/attribute/AttributeValueType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/attribute/AttributeValueType.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/attribute/PlayerAttribute.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/attribute/PlayerAttribute.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/attribute/PlayerAttributeMap.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/attribute/PlayerAttributeMap.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/profile/EnumProfileOperation.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/profile/EnumProfileOperation.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/profile/ProfileInfoEntry.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/profile/ProfileInfoEntry.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/profile/ProfileOperation.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/controllers/data/profile/ProfileOperation.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/profile/ProfileOperation.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/profile/Slot.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/controllers/data/profile/Slot.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/profile/Slot.java",
+      "verdict": "WARN",
+      "verdict_reason": "2 body diff(s)",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 2,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": [
+        {
+          "name": "fromNBT",
+          "signature": "Slot fromNBT(int id, NBTTagCompound slotNBT)",
+          "similarity_ratio": 0.812,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -6,10 +6,10 @@",
+            "         slot.setLastLoaded(lastLoaded);",
+            "         slot.setTemporary(temporary);",
+            "         if (slotNBT.hasKey(\"Components\")) {",
+            "-            INbt compCompound = slotNBT.getCompoundTag(\"Components\");",
+            "-            Set<String> keys = compCompound.func_150296_c();",
+            "+            INbt compCompound = slotNBT.getCompound(\"Components\");",
+            "+            Set<String> keys = compCompound.getKeySet();"
+          ]
+        },
+        {
+          "name": "toNBT",
+          "signature": "NBTTagCompound toNBT()",
+          "similarity_ratio": 0.667,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,12 +1,12 @@",
+            " {",
+            "-        INbt slotNBT = new INbt();",
+            "+        INbt slotNBT = NBT.compound();",
+            "         slotNBT.setString(\"Name\", name);",
+            "         slotNBT.setLong(\"LastLoaded\", lastLoaded);",
+            "         slotNBT.setBoolean(\"Temporary\", temporary);",
+            "-        INbt compCompound = new INbt();"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/telegraph/Telegraph.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/telegraph/Telegraph.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/controllers/data/telegraph/TelegraphType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/controllers/data/telegraph/TelegraphType.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/developer/Developer.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/developer/Developer.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/developer/Developer.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/network/enums/EnumChannelType.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/network/enums/EnumChannelType.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/network/enums/EnumChannelType.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/network/enums/EnumConfigOperation.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/network/enums/EnumConfigOperation.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/network/enums/EnumConfigOperation.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/network/enums/EnumDataPacket.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/network/enums/EnumDataPacket.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/network/enums/EnumDataPacket.java",
+      "verdict": "WARN",
+      "verdict_reason": "1 unmigrated type(s)",
+      "unmigrated_count": 1,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [
+        {
+          "mc_name": "Explosion",
+          "pa_name": "IExplosion",
+          "lines": [
+            80
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/network/enums/EnumItemPacketType.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/network/enums/EnumItemPacketType.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/network/enums/EnumItemPacketType.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/network/enums/EnumPlayerPacket.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/network/enums/EnumPlayerPacket.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/network/enums/EnumPlayerPacket.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/network/enums/EnumRequestPacket.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/network/enums/EnumRequestPacket.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/network/enums/EnumRequestPacket.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/network/enums/EnumSoundOperation.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/network/enums/EnumSoundOperation.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/network/enums/EnumSoundOperation.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/network/enums/EnumSyncAction.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/network/enums/EnumSyncAction.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/network/enums/EnumSyncAction.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/network/enums/EnumSyncType.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/network/enums/EnumSyncType.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/network/enums/EnumSyncType.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/util/CNPCDebug.java",
+      "old_file": "mc1710/src/main/java/kamkeel/npcs/util/CNPCDebug.java",
+      "new_file": "core/src/main/java/kamkeel/npcs/util/CNPCDebug.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "kamkeel/npcs/util/FileNameHelper.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/util/FileNameHelper.java"
+    },
+    {
+      "relative_path": "kamkeel/npcs/util/TextSplitter.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/kamkeel/npcs/util/TextSplitter.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/AiMutex.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/AiMutex.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumAnimation.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumAnimation.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumAnimationPart.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumAnimationPart.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumAuctionPage.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumAuctionPage.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumAuctionSort.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumAuctionSort.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumAvailabilityDialog.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumAvailabilityDialog.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumAvailabilityFaction.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumAvailabilityFaction.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumAvailabilityFactionType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumAvailabilityFactionType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumAvailabilityQuest.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumAvailabilityQuest.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumBannerVariant.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumBannerVariant.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumBardInstrument.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumBardInstrument.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumCategoryType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumCategoryType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumCombatPolicy.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumCombatPolicy.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumCompanionJobs.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumCompanionJobs.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumCompanionStage.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumCompanionStage.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumDayTime.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumDayTime.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumDiagramLayout.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumDiagramLayout.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumGuiType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumGuiType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumJobType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumJobType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumMovingType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumMovingType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumNavType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumNavType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumNpcToolMaterial.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumNpcToolMaterial.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumOptionType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumOptionType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumParticleType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumParticleType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumPartyExchange.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumPartyExchange.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumPartyObjectives.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumPartyObjectives.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumPartyRequirements.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumPartyRequirements.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumPlayerData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumPlayerData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumPlayerPacket.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumPlayerPacket.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumProfileSync.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumProfileSync.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumQuestCompletion.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumQuestCompletion.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumQuestRepeat.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumQuestRepeat.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumQuestType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumQuestType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumRoleType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumRoleType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumScriptType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumScriptType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumScrollData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumScrollData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumStandingType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumStandingType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumStockReset.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/constants/EnumStockReset.java",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumStockReset.java",
+      "verdict": "WARN",
+      "verdict_reason": "2 body diff(s)",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 2,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": [
+        {
+          "name": "getDisplayName",
+          "signature": "String getDisplayName()",
+          "similarity_ratio": 0.667,
+          "diff_line_count": 2,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,3 +1,3 @@",
+            " {",
+            "-        return StatCollector.translateToLocal(langKey);",
+            "+        return langKey;",
+            "     }"
+          ]
+        },
+        {
+          "name": "getDisplayNames",
+          "signature": "String[] getDisplayNames()",
+          "similarity_ratio": 0.875,
+          "diff_line_count": 2,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -2,7 +2,7 @@",
+            "         EnumStockReset[] values = values();",
+            "         String[] names = new String[values.length];",
+            "         for (int i = 0; i < values.length; i++) {",
+            "-            names[i] = values[i].getDisplayName();",
+            "+            names[i] = values[i].langKey;",
+            "         }",
+            "         return names;"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumTextureType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumTextureType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/EnumTradeSlotType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/EnumTradeSlotType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/MarkType.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/MarkType.java"
+    },
+    {
+      "relative_path": "noppes/npcs/constants/NBTTypes.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/constants/NBTTypes.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/APIRegistry.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/APIRegistry.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/APIRegistry.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/CategoryManager.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/CategoryManager.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/CategoryManager.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/AbilityHotbarData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/AbilityHotbarData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/AuctionFilter.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/AuctionFilter.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/Category.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/Category.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/CloneFolder.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/CloneFolder.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/DialogColorData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/DialogColorData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/DialogImage.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/DialogImage.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/EffectKey.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/EffectKey.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/Faction.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/data/Faction.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/Faction.java",
+      "verdict": "FAIL",
+      "verdict_reason": "4 missing method(s)",
+      "unmigrated_count": 1,
+      "missing_methods_count": 4,
+      "semantic_diffs_count": 2,
+      "unmigrated": [
+        {
+          "mc_name": "EntityPlayer",
+          "pa_name": "IPlayer",
+          "lines": [
+            81,
+            82,
+            83,
+            87,
+            88,
+            89
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [
+        {
+          "name": "isAggressiveToNpc",
+          "signature": "boolean isAggressiveToNpc(EntityNPCInterface entity)",
+          "line": 97
+        },
+        {
+          "name": "isAggressiveToPlayer",
+          "signature": "boolean isAggressiveToPlayer(IPlayer player)",
+          "line": 217
+        },
+        {
+          "name": "isFriendlyToPlayer",
+          "signature": "boolean isFriendlyToPlayer(IPlayer player)",
+          "line": 209
+        },
+        {
+          "name": "isNeutralToPlayer",
+          "signature": "boolean isNeutralToPlayer(IPlayer player)",
+          "line": 213
+        }
+      ],
+      "semantic_body_diffs": [
+        {
+          "name": "getEnemyFactions",
+          "signature": "IFaction[] getEnemyFactions()",
+          "similarity_ratio": 0.625,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,9 +1,7 @@",
+            " {",
+            "-        ArrayList<IFaction> enemyFactions = new ArrayList<>();",
+            "-",
+            "+        ArrayList<Faction> enemyFactions = new ArrayList<>();",
+            "         for (int id : this.attackFactions) {",
+            "             enemyFactions.add(FactionController.getInstance().get(id));",
+            "         }"
+          ]
+        },
+        {
+          "name": "writeNBT",
+          "signature": "void writeNBT(NBTTagCompound compound)",
+          "similarity_ratio": 0.933,
+          "diff_line_count": 2,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -11,5 +11,5 @@",
+            "         compound.setBoolean(\"GetsAttacked\", getsAttacked);",
+            "         compound.setBoolean(\"IsPassive\", isPassive);",
+            " ",
+            "-        compound.setTag(\"AttackFactions\", NBTTags.nbtIntegerSet(attackFactions));",
+            "+        compound.setTagList(\"AttackFactions\", NBTTags.nbtIntegerSet(attackFactions));",
+            "     }"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/Frame.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/Frame.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/FramePart.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/FramePart.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/HitboxData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/HitboxData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/InnDoorData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/InnDoorData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/ItemDisplayData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/ItemDisplayData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/Line.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/Line.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/Lines.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/Lines.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/Magic.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/data/Magic.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/Magic.java",
+      "verdict": "FAIL",
+      "verdict_reason": "2 missing method(s)",
+      "unmigrated_count": 1,
+      "missing_methods_count": 2,
+      "semantic_diffs_count": 2,
+      "unmigrated": [
+        {
+          "mc_name": "ItemStack",
+          "pa_name": "IItemStack",
+          "lines": [
+            18,
+            19,
+            47,
+            51,
+            81,
+            84,
+            88,
+            89
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [
+        {
+          "name": "getItem",
+          "signature": "ItemStack getItem()",
+          "line": 144
+        },
+        {
+          "name": "setItem",
+          "signature": "void setItem(ItemStack item)",
+          "line": 135
+        }
+      ],
+      "semantic_body_diffs": [
+        {
+          "name": "readNBT",
+          "signature": "void readNBT(NBTTagCompound compound)",
+          "similarity_ratio": 0.655,
+          "diff_line_count": 19,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -6,21 +6,18 @@",
+            " ",
+            "         type = EnumTextureType.values()[compound.getInteger(\"Type\")];",
+            "         iconTexture = compound.getString(\"IconTexture\");",
+            "-        if (type == EnumTextureType.ITEM && !iconTexture.isEmpty()) {",
+            "-            String[] parts = iconTexture.split(\":\");",
+            "-            if (parts.length == 2) {",
+            "-                String modID = parts[0];"
+          ]
+        },
+        {
+          "name": "writeNBT",
+          "signature": "void writeNBT(NBTTagCompound compound)",
+          "similarity_ratio": 0.511,
+          "diff_line_count": 23,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -5,22 +5,17 @@",
+            "         compound.setInteger(\"Color\", color);",
+            "         compound.setString(\"IconTexture\", iconTexture);",
+            "         compound.setInteger(\"Type\", type.ordinal());",
+            "-        INbtList interactionsList = new INbtList();",
+            "+        INbtList interactionsList = NBT.list();",
+            "         for (Map.Entry<Integer, Float> entry : interactions.entrySet()) {",
+            "-            INbt interactionTag = new INbt();"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/MagicAssociation.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/MagicAssociation.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/MagicCycle.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/MagicCycle.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/MagicData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/MagicData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/MagicEntry.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/MagicEntry.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/PartyOptions.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/PartyOptions.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/PlayerDialogData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/PlayerDialogData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/PlayerEffect.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/data/PlayerEffect.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/PlayerEffect.java",
+      "verdict": "WARN",
+      "verdict_reason": "1 unmigrated type(s), 2 body diff(s)",
+      "unmigrated_count": 1,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 2,
+      "unmigrated": [
+        {
+          "mc_name": "EntityPlayer",
+          "pa_name": "IPlayer",
+          "lines": [
+            71,
+            74
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [],
+      "semantic_body_diffs": [
+        {
+          "name": "getName",
+          "signature": "String getName()",
+          "similarity_ratio": 0.4,
+          "diff_line_count": 9,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,8 @@",
+            " {",
+            "-        CustomEffect effect = CustomEffectController.getInstance().get(this.id, this.index);",
+            "-        if (effect != null)",
+            "-            return effect.getName();",
+            "-",
+            "+        // TODO: Requires CustomEffectController - implement via callback or platform service",
+            "+        // OLD CODE:"
+          ]
+        },
+        {
+          "name": "performEffect",
+          "signature": "void performEffect(IPlayer player)",
+          "similarity_ratio": 0.211,
+          "diff_line_count": 15,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,12 @@",
+            " {",
+            "-        if (player != null && player.getMCEntity() != null && player.getMCEntity() instanceof IPlayer) {",
+            "-            CustomEffect effect = CustomEffectController.getInstance().get(this.id, this.index);",
+            "-            if (effect != null)",
+            "-                effect.onTick((IPlayer) player.getMCEntity(), this);",
+            "-        }",
+            "+        // Base implementation is a no-op. mc1710 shadow overrides to use"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/PlayerEffectData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/PlayerEffectData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/PlayerTransportData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/PlayerTransportData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/ProfileOptions.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/ProfileOptions.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/SkinOverlay.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/SkinOverlay.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/Tag.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/Tag.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/TagMap.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/TagMap.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/TintData.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/TintData.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/TraderStock.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/TraderStock.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/TransportCategory.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/TransportCategory.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/data/TransportLocation.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/data/TransportLocation.java"
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/FactionController.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/FactionController.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/FactionController.java",
+      "verdict": "FAIL",
+      "verdict_reason": "1 missing method(s)",
+      "unmigrated_count": 1,
+      "missing_methods_count": 1,
+      "semantic_diffs_count": 7,
+      "unmigrated": [
+        {
+          "mc_name": "NBTTagCompound",
+          "pa_name": "INbt",
+          "lines": [
+            157
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [
+        {
+          "name": "loadFactions",
+          "signature": "void loadFactions(DataInputStream stream)",
+          "line": 83
+        }
+      ],
+      "semantic_body_diffs": [
+        {
+          "name": "delete",
+          "signature": "IFaction delete(int id)",
+          "similarity_ratio": 0.848,
+          "diff_line_count": 5,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,13 +1,14 @@",
+            " {",
+            "         if (id >= 0 && this.factions.size() > 1) {",
+            "-            Faction faction = (Faction) this.factions.remove(id);",
+            "+            Faction faction = this.factions.remove(id);",
+            "             saveFactions();",
+            "             if (faction == null) {",
+            "                 return null;"
+          ]
+        },
+        {
+          "name": "getNBT",
+          "signature": "NBTTagCompound getNBT()",
+          "similarity_ratio": 0.615,
+          "diff_line_count": 10,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,13 +1,13 @@",
+            " {",
+            "-        INbtList list = new INbtList();",
+            "+        INbtList list = NBT.list();",
+            "         for (int slot : factions.keySet()) {",
+            "             Faction faction = factions.get(slot);",
+            "-            INbt nbtfactions = new INbt();",
+            "+            INbt nbtfactions = NBT.compound();"
+          ]
+        },
+        {
+          "name": "list",
+          "signature": "List<IFaction> list()",
+          "similarity_ratio": 0.667,
+          "diff_line_count": 2,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,3 +1,3 @@",
+            " {",
+            "-        return new ArrayList(this.factions.values());",
+            "+        return new ArrayList<Faction>(this.factions.values());",
+            "     }"
+          ]
+        },
+        {
+          "name": "load",
+          "signature": "void load()",
+          "similarity_ratio": 0.966,
+          "diff_line_count": 2,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         factions = new HashMap<Integer, Faction>();",
+            "         lastUsedID = 0;",
+            "-        File saveDir = CustomNpcs.getWorldSaveDirectory();",
+            "+        File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();",
+            "         if (saveDir == null) {",
+            "             return;"
+          ]
+        },
+        {
+          "name": "loadFactionsFile",
+          "signature": "void loadFactionsFile(File file)",
+          "similarity_ratio": 0.333,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,5 +1,7 @@",
+            " {",
+            "-        DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));",
+            "-        loadFactions(var1);",
+            "-        var1.close();",
+            "+        // OLD: DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));",
+            "+        // OLD: loadFactions(var1);",
+            "+        // OLD: var1.close();"
+          ]
+        },
+        {
+          "name": "saveFaction",
+          "signature": "void saveFaction(Faction faction)",
+          "similarity_ratio": 0.829,
+          "diff_line_count": 7,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -13,8 +13,9 @@",
+            "         factions.remove(faction.id);",
+            "         factions.put(faction.id, faction);",
+            " ",
+            "-        INbt facCompound = new INbt();",
+            "-        faction.writeNBT(facCompound);",
+            "-        SyncController.syncUpdate(EnumSyncType.FACTION, -1, facCompound);",
+            "+        // TODO: mc1710 version also calls:"
+          ]
+        },
+        {
+          "name": "saveFactions",
+          "signature": "void saveFactions()",
+          "similarity_ratio": 0.826,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,10 +1,11 @@",
+            " {",
+            "         try {",
+            "-            File saveDir = CustomNpcs.getWorldSaveDirectory();",
+            "+            File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();",
+            "             File file = new File(saveDir, \"factions.dat_new\");",
+            "             File file1 = new File(saveDir, \"factions.dat_old\");",
+            "             File file2 = new File(saveDir, \"factions.dat\");"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/GlobalDataController.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/GlobalDataController.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/GlobalDataController.java",
+      "verdict": "WARN",
+      "verdict_reason": "1 unmigrated type(s), 3 body diff(s)",
+      "unmigrated_count": 1,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 3,
+      "unmigrated": [
+        {
+          "mc_name": "NBTTagCompound",
+          "pa_name": "INbt",
+          "lines": [
+            41,
+            54
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [],
+      "semantic_body_diffs": [
+        {
+          "name": "load",
+          "signature": "void load()",
+          "similarity_ratio": 0.947,
+          "diff_line_count": 2,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,5 +1,5 @@",
+            " {",
+            "-        File saveDir = CustomNpcs.getWorldSaveDirectory();",
+            "+        File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();",
+            "         try {",
+            "             File file = new File(saveDir, \"global.dat\");",
+            "             if (file.exists()) {"
+          ]
+        },
+        {
+          "name": "loadData",
+          "signature": "void loadData(File file)",
+          "similarity_ratio": 0.4,
+          "diff_line_count": 9,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,8 @@",
+            " {",
+            "-        INbt nbttagcompound1;",
+            "-        try (FileInputStream fis = new FileInputStream(file)) {",
+            "-            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);",
+            "-        }",
+            "+        // OLD: INbt nbttagcompound1;",
+            "+        // OLD: try (FileInputStream fis = new FileInputStream(file)) {"
+          ]
+        },
+        {
+          "name": "saveData",
+          "signature": "void saveData()",
+          "similarity_ratio": 0.862,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,15 +1,17 @@",
+            " {",
+            "         customNPCThread.execute(() -> {",
+            "             try {",
+            "-                File saveDir = CustomNpcs.getWorldSaveDirectory();",
+            "+                File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();",
+            " ",
+            "-                INbt nbttagcompound = new INbt();"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/MagicController.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/MagicController.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/MagicController.java",
+      "verdict": "FAIL",
+      "verdict_reason": "1 missing method(s)",
+      "unmigrated_count": 2,
+      "missing_methods_count": 1,
+      "semantic_diffs_count": 8,
+      "unmigrated": [
+        {
+          "mc_name": "NBTTagCompound",
+          "pa_name": "INbt",
+          "lines": [
+            272,
+            340
+          ],
+          "in_import": false
+        },
+        {
+          "mc_name": "ItemStack",
+          "pa_name": "IItemStack",
+          "lines": [
+            78,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [
+        {
+          "name": "loadMagic",
+          "signature": "void loadMagic(DataInputStream stream)",
+          "line": 198
+        }
+      ],
+      "semantic_body_diffs": [
+        {
+          "name": "getNBT",
+          "signature": "NBTTagCompound getNBT()",
+          "similarity_ratio": 0.488,
+          "diff_line_count": 21,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,20 +1,21 @@",
+            " {",
+            "-        INbtList magicList = new INbtList();",
+            "+        INbtList magicList = NBT.list();",
+            "         for (Magic mag : magics.values()) {",
+            "-            INbt magCompound = new INbt();",
+            "+            INbt magCompound = NBT.compound();",
+            "             mag.writeNBT(magCompound);"
+          ]
+        },
+        {
+          "name": "load",
+          "signature": "void load()",
+          "similarity_ratio": 0.327,
+          "diff_line_count": 107,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -5,7 +5,7 @@",
+            "         lastUsedCycleID = 0;",
+            "         lastUsedMagicID = 0;",
+            " ",
+            "-        File saveDir = CustomNpcs.getWorldSaveDirectory();",
+            "+        File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();",
+            "         if (saveDir == null) return;",
+            "         try {"
+          ]
+        },
+        {
+          "name": "loadMagicFile",
+          "signature": "void loadMagicFile(File file)",
+          "similarity_ratio": 0.25,
+          "diff_line_count": 12,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,9 @@",
+            " {",
+            "-        DataInputStream stream = new DataInputStream(",
+            "-            new BufferedInputStream(new GZIPInputStream(new FileInputStream(file)))",
+            "-        );",
+            "-        loadMagic(stream);",
+            "-        stream.close();",
+            "+        // OLD: DataInputStream stream = new DataInputStream("
+          ]
+        },
+        {
+          "name": "removeCycle",
+          "signature": "void removeCycle(int categoryId)",
+          "similarity_ratio": 0.8,
+          "diff_line_count": 3,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,8 @@",
+            " {",
+            "         if (cycles.containsKey(categoryId)) {",
+            "             cycles.remove(categoryId);",
+            "-            SyncController.syncRemove(EnumSyncType.MAGIC_CYCLE, categoryId);",
+            "+            // TODO: mc1710 version also calls:",
+            "+            // OLD: SyncController.syncRemove(EnumSyncType.MAGIC_CYCLE, categoryId);",
+            "             saveMagicData();"
+          ]
+        },
+        {
+          "name": "removeMagic",
+          "signature": "void removeMagic(int magicID)",
+          "similarity_ratio": 0.8,
+          "diff_line_count": 3,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,8 @@",
+            " {",
+            "         if (magics.containsKey(magicID)) {",
+            "             magics.remove(magicID);",
+            "-            SyncController.syncRemove(EnumSyncType.MAGIC, magicID);",
+            "+            // TODO: mc1710 version also calls:",
+            "+            // OLD: SyncController.syncRemove(EnumSyncType.MAGIC, magicID);",
+            "             saveMagicData();"
+          ]
+        },
+        {
+          "name": "saveCycle",
+          "signature": "void saveCycle(MagicCycle cycle)",
+          "similarity_ratio": 0.789,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -11,9 +11,9 @@",
+            "         }",
+            "         cycles.put(cycle.id, cycle);",
+            " ",
+            "-        INbt cycleCompound = new INbt();",
+            "-        cycle.writeNBT(new NBTWrapper(cycleCompound));",
+            "-        SyncController.syncUpdate(EnumSyncType.MAGIC_CYCLE, -1, cycleCompound);",
+            "-"
+          ]
+        },
+        {
+          "name": "saveMagic",
+          "signature": "void saveMagic(Magic mag)",
+          "similarity_ratio": 0.789,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -11,9 +11,9 @@",
+            "         }",
+            "         magics.put(mag.id, mag);",
+            " ",
+            "-        INbt magicCompound = new INbt();",
+            "-        mag.writeNBT(magicCompound);",
+            "-        SyncController.syncUpdate(EnumSyncType.MAGIC, -1, magicCompound);",
+            "-"
+          ]
+        },
+        {
+          "name": "saveMagicData",
+          "signature": "void saveMagicData()",
+          "similarity_ratio": 0.8,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,10 +1,11 @@",
+            " {",
+            "         try {",
+            "-            File saveDir = CustomNpcs.getWorldSaveDirectory();",
+            "+            File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();",
+            "             File fileNew = new File(saveDir, \"magic.dat_new\");",
+            "             File fileOld = new File(saveDir, \"magic.dat_old\");",
+            "             File fileCurrent = new File(saveDir, \"magic.dat\");"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/ServerTagMapController.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/ServerTagMapController.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/ServerTagMapController.java",
+      "verdict": "FAIL",
+      "verdict_reason": "1 missing method(s)",
+      "unmigrated_count": 1,
+      "missing_methods_count": 1,
+      "semantic_diffs_count": 3,
+      "unmigrated": [
+        {
+          "mc_name": "NBTTagCompound",
+          "pa_name": "INbt",
+          "lines": [
+            58
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [
+        {
+          "name": "loadTagMaps",
+          "signature": "void loadTagMaps(DataInputStream stream)",
+          "line": 71
+        }
+      ],
+      "semantic_body_diffs": [
+        {
+          "name": "getDir",
+          "signature": "File getDir()",
+          "similarity_ratio": 0.833,
+          "diff_line_count": 2,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,5 +1,5 @@",
+            " {",
+            "-        File dir = new File(CustomNpcs.getWorldSaveDirectory(), \"clones\");",
+            "+        File dir = new File(PlatformServiceHolder.get().getWorldSaveDirectory(), \"clones\");",
+            "         if (!dir.exists())",
+            "             dir.mkdir();",
+            "         return dir;"
+          ]
+        },
+        {
+          "name": "loadTagMapFile",
+          "signature": "void loadTagMapFile(File file)",
+          "similarity_ratio": 0.308,
+          "diff_line_count": 9,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,5 +1,8 @@",
+            " {",
+            "-        DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));",
+            "-        loadTagMaps(var1);",
+            "-        var1.close();",
+            "+        // OLD: DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));",
+            "+        // OLD: INbt nbtCompound = CompressedStreamTools.read(var1);",
+            "+        // OLD: this.tagMap.readNBT(new NBTWrapper(nbtCompound));"
+          ]
+        },
+        {
+          "name": "saveTagMap",
+          "signature": "void saveTagMap(TagMap tagMap)",
+          "similarity_ratio": 0.893,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -9,7 +9,8 @@",
+            "             File file = new File(saveDir, \"___tagmap.dat_new\");",
+            "             File file1 = new File(saveDir, \"___tagmap.dat_old\");",
+            "             File file2 = new File(saveDir, \"___tagmap.dat\");",
+            "-            CompressedStreamTools.writeCompressed(((NBTWrapper) tagMap.writeNBT()).getMCTag(), new FileOutputStream(file));",
+            "+            // OLD: CompressedStreamTools.writeCompressed(((NBTWrapper) tagMap.writeNBT()).getMCTag(), new FileOutputStream(file));",
+            "+            PlatformServiceHolder.get().writeCompressedNBT(tagMap.writeNBT(), file);",
+            "             if (file1.exists()) {"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/TagController.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/TagController.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/TagController.java",
+      "verdict": "FAIL",
+      "verdict_reason": "2 missing method(s)",
+      "unmigrated_count": 1,
+      "missing_methods_count": 2,
+      "semantic_diffs_count": 9,
+      "unmigrated": [
+        {
+          "mc_name": "EntityPlayerMP",
+          "pa_name": "IPlayer",
+          "lines": [
+            26
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [
+        {
+          "name": "loadTags",
+          "signature": "void loadTags(DataInputStream stream)",
+          "line": 85
+        },
+        {
+          "name": "sendCategoryTagMap",
+          "signature": "void sendCategoryTagMap(EntityPlayerMP player, HashMap<String, HashSet<UUID>> itemTags)",
+          "line": 289
+        }
+      ],
+      "semantic_body_diffs": [
+        {
+          "name": "TagController",
+          "signature": "TagController()",
+          "similarity_ratio": 0.625,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -2,10 +2,4 @@",
+            "         instance = this;",
+            "         tags = new HashMap<Integer, Tag>();",
+            "         loadTags();",
+            "-//\t\tif(tags.isEmpty()){",
+            "-//\t\t\t// TO-DO",
+            "-//\t\t\ttags.put(0,new Faction(0,\"Friendly\", 0x00DD00, 2000));",
+            "-//\t\t\ttags.put(1,new Faction(1,\"Neutral\", 0xF2DD00, 1000));"
+          ]
+        },
+        {
+          "name": "delete",
+          "signature": "ITag delete(int id)",
+          "similarity_ratio": 0.933,
+          "diff_line_count": 2,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,6 +1,6 @@",
+            " {",
+            "         if (id >= 0 && this.tags.size() > 1) {",
+            "-            Tag tag = (Tag) this.tags.remove(id);",
+            "+            Tag tag = this.tags.remove(id);",
+            "             saveTags();",
+            "             if (tag == null) {",
+            "                 return null;"
+          ]
+        },
+        {
+          "name": "getNBT",
+          "signature": "NBTTagCompound getNBT()",
+          "similarity_ratio": 0.519,
+          "diff_line_count": 13,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,13 +1,14 @@",
+            " {",
+            "-        INbtList list = new INbtList();",
+            "+        INbtList list = NBT.list();",
+            "         for (int slot : tags.keySet()) {",
+            "             Tag tag = tags.get(slot);",
+            "-            INbt nbtfactions = new INbt();",
+            "-            tag.writeNBT(new NBTWrapper(nbtfactions));"
+          ]
+        },
+        {
+          "name": "list",
+          "signature": "List<ITag> list()",
+          "similarity_ratio": 0.667,
+          "diff_line_count": 2,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,3 +1,3 @@",
+            " {",
+            "-        return new ArrayList(this.tags.values());",
+            "+        return new ArrayList<Tag>(this.tags.values());",
+            "     }"
+          ]
+        },
+        {
+          "name": "loadTags",
+          "signature": "void loadTags()",
+          "similarity_ratio": 0.93,
+          "diff_line_count": 3,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,6 +1,5 @@",
+            " {",
+            "-",
+            "-        File saveDir = CustomNpcs.getWorldSaveDirectory();",
+            "+        File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();",
+            "         if (saveDir == null) {",
+            "             return;",
+            "         }"
+          ]
+        },
+        {
+          "name": "loadTagsFile",
+          "signature": "void loadTagsFile(File file)",
+          "similarity_ratio": 0.333,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,5 +1,7 @@",
+            " {",
+            "-        DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));",
+            "-        loadTags(var1);",
+            "-        var1.close();",
+            "+        // OLD: DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));",
+            "+        // OLD: loadTags(var1);",
+            "+        // OLD: var1.close();"
+          ]
+        },
+        {
+          "name": "readTagUUIDs",
+          "signature": "HashSet<UUID> readTagUUIDs(NBTTagCompound compound, String key)",
+          "similarity_ratio": 0.833,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -2,9 +2,9 @@",
+            "         HashSet<UUID> uuids = new HashSet<>();",
+            "         if (compound.hasKey(key)) {",
+            "             INbtList list = compound.getTagList(key, 8);",
+            "-            for (int i = 0; i < list.tagCount(); i++) {",
+            "+            for (int i = 0; i < list.size(); i++) {",
+            "                 try {",
+            "-                    uuids.add(UUID.fromString(list.getStringTagAt(i)));"
+          ]
+        },
+        {
+          "name": "saveTags",
+          "signature": "void saveTags()",
+          "similarity_ratio": 0.826,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,10 +1,11 @@",
+            " {",
+            "         try {",
+            "-            File saveDir = CustomNpcs.getWorldSaveDirectory();",
+            "+            File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();",
+            "             File file = new File(saveDir, \"tags.dat_new\");",
+            "             File file1 = new File(saveDir, \"tags.dat_old\");",
+            "             File file2 = new File(saveDir, \"tags.dat\");"
+          ]
+        },
+        {
+          "name": "writeTagUUIDs",
+          "signature": "void writeTagUUIDs(NBTTagCompound compound, String key, HashSet<UUID> tagUUIDs)",
+          "similarity_ratio": 0.667,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,9 +1,9 @@",
+            " {",
+            "         if (tagUUIDs != null && !tagUUIDs.isEmpty()) {",
+            "-            INbtList list = new INbtList();",
+            "+            INbtList list = NBT.list();",
+            "             for (UUID uuid : tagUUIDs) {",
+            "-                list.appendTag(new NBTTagString(uuid.toString()));",
+            "+                list.addString(uuid.toString());"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/controllers/TransportController.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/controllers/TransportController.java",
+      "new_file": "core/src/main/java/noppes/npcs/controllers/TransportController.java",
+      "verdict": "FAIL",
+      "verdict_reason": "1 missing method(s)",
+      "unmigrated_count": 1,
+      "missing_methods_count": 1,
+      "semantic_diffs_count": 6,
+      "unmigrated": [
+        {
+          "mc_name": "NBTTagCompound",
+          "pa_name": "INbt",
+          "lines": [
+            22,
+            67
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [
+        {
+          "name": "saveLocation",
+          "signature": "TransportLocation saveLocation(int categoryId, NBTTagCompound compound, EntityNPCInterface npc)",
+          "line": 257
+        }
+      ],
+      "semantic_body_diffs": [
+        {
+          "name": "categories",
+          "signature": "ITransportCategory[] categories()",
+          "similarity_ratio": 0.667,
+          "diff_line_count": 2,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,3 +1,3 @@",
+            " {",
+            "-        return (new ArrayList<>(categories.values())).toArray(new ITransportCategory[0]);",
+            "+        return new ArrayList<>(categories.values()).toArray(new TransportCategory[0]);",
+            "     }"
+          ]
+        },
+        {
+          "name": "getCategory",
+          "signature": "ITransportCategory getCategory(String title)",
+          "similarity_ratio": 0.632,
+          "diff_line_count": 7,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,11 +1,8 @@",
+            " {",
+            "-        TransportCategory category = null;",
+            "         for (TransportCategory c : categories.values()) {",
+            "             if (c.title.equals(title)) {",
+            "-                category = c;",
+            "-                break;",
+            "+                return c;"
+          ]
+        },
+        {
+          "name": "getNBT",
+          "signature": "NBTTagCompound getNBT()",
+          "similarity_ratio": 0.5,
+          "diff_line_count": 12,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,12 +1,12 @@",
+            " {",
+            "-        INbtList list = new INbtList();",
+            "+        INbtList list = NBT.list();",
+            "         for (TransportCategory category : categories.values()) {",
+            "-            INbt compound = new INbt();",
+            "-            category.writeNBT(new NBTWrapper(compound));",
+            "-            list.appendTag(compound);"
+          ]
+        },
+        {
+          "name": "loadCategories",
+          "signature": "void loadCategories()",
+          "similarity_ratio": 0.864,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,5 +1,5 @@",
+            " {",
+            "-        File saveDir = CustomNpcs.getWorldSaveDirectory();",
+            "+        File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();",
+            "         if (saveDir == null)",
+            "             return;",
+            "         try {",
+            "@@ -8,7 +8,7 @@"
+          ]
+        },
+        {
+          "name": "loadCategories",
+          "signature": "void loadCategories(File file)",
+          "similarity_ratio": 0.692,
+          "diff_line_count": 16,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,19 +1,21 @@",
+            " {",
+            "         HashMap<Integer, TransportLocation> locations = new HashMap<Integer, TransportLocation>();",
+            "         HashMap<Integer, TransportCategory> categories = new HashMap<Integer, TransportCategory>();",
+            "-        INbt nbttagcompound1;",
+            "-        try (FileInputStream fis = new FileInputStream(file)) {",
+            "-            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);",
+            "-        }"
+          ]
+        },
+        {
+          "name": "saveCategories",
+          "signature": "void saveCategories()",
+          "similarity_ratio": 0.826,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,10 +1,11 @@",
+            " {",
+            "         try {",
+            "-            File saveDir = CustomNpcs.getWorldSaveDirectory();",
+            "+            File saveDir = PlatformServiceHolder.get().getWorldSaveDirectory();",
+            "             File file = new File(saveDir, \"transport.dat_new\");",
+            "             File file1 = new File(saveDir, \"transport.dat_old\");",
+            "             File file2 = new File(saveDir, \"transport.dat\");"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/core/CoreConfig.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/core/CoreConfig.java"
+    },
+    {
+      "relative_path": "noppes/npcs/core/NBT.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/core/NBT.java"
+    },
+    {
+      "relative_path": "noppes/npcs/core/package-info.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/core/package-info.java"
+    },
+    {
+      "relative_path": "noppes/npcs/NBTTags.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/NBTTags.java",
+      "new_file": "core/src/main/java/noppes/npcs/NBTTags.java",
+      "verdict": "FAIL",
+      "verdict_reason": "9 missing method(s)",
+      "unmigrated_count": 3,
+      "missing_methods_count": 9,
+      "semantic_diffs_count": 36,
+      "unmigrated": [
+        {
+          "mc_name": "NBTTagCompound",
+          "pa_name": "INbt",
+          "lines": [
+            515,
+            517
+          ],
+          "in_import": false
+        },
+        {
+          "mc_name": "ItemStack",
+          "pa_name": "IItemStack",
+          "lines": [
+            20,
+            39,
+            42,
+            43
+          ],
+          "in_import": false
+        },
+        {
+          "mc_name": "NBTTagList",
+          "pa_name": "INbtList",
+          "lines": [
+            40,
+            41,
+            428,
+            516,
+            518,
+            521
+          ],
+          "in_import": false
+        }
+      ],
+      "missing_methods": [
+        {
+          "name": "GetScript",
+          "signature": "List<IScriptUnit> GetScript(NBTTagCompound compound, IScriptHandler handler)",
+          "line": 555
+        },
+        {
+          "name": "GetScriptOld",
+          "signature": "List<IScriptUnit> GetScriptOld(NBTTagList list, IScriptHandler handler)",
+          "line": 543
+        },
+        {
+          "name": "NBTScript",
+          "signature": "NBTTagList NBTScript(List<IScriptUnit> scripts)",
+          "line": 567
+        },
+        {
+          "name": "getIntAt",
+          "signature": "int getIntAt(NBTTagList tagList, int index)",
+          "line": 578
+        },
+        {
+          "name": "getItemStackArray",
+          "signature": "ItemStack[] getItemStackArray(NBTTagList tagList)",
+          "line": 51
+        },
+        {
+          "name": "getItemStackList",
+          "signature": "HashMap<Integer, ItemStack> getItemStackList(NBTTagList tagList)",
+          "line": 37
+        },
+        {
+          "name": "nbtDoubleList",
+          "signature": "NBTTagList nbtDoubleList(?... ?)",
+          "line": 488
+        },
+        {
+          "name": "nbtItemStackArray",
+          "signature": "NBTTagList nbtItemStackArray(ItemStack[] inventory)",
+          "line": 304
+        },
+        {
+          "name": "nbtItemStackList",
+          "signature": "NBTTagList nbtItemStackList(HashMap<Integer, ItemStack> inventory)",
+          "line": 286
+        }
+      ],
+      "semantic_body_diffs": [
+        {
+          "name": "GetLongStringMap",
+          "signature": "TreeMap<Long, String> GetLongStringMap(NBTTagList tagList)",
+          "similarity_ratio": 0.6,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,9 +1,9 @@",
+            " {",
+            "-        TreeMap list = new TreeMap();",
+            "+        TreeMap<Long, String> list = new TreeMap<>();",
+            " ",
+            "-        for (int i = 0; i < tagList.tagCount(); ++i) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "-            list.put(Long.valueOf(nbttagcompound.getLong(\"Long\")), nbttagcompound.getString(\"String\"));"
+          ]
+        },
+        {
+          "name": "NBTLongStringMap",
+          "signature": "NBTTagList NBTLongStringMap(Map<Long, String> map)",
+          "similarity_ratio": 0.606,
+          "diff_line_count": 13,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,16 +1,13 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (map == null) {",
+            "             return nbttaglist;",
+            "         } else {",
+            "-            Iterator var2 = map.keySet().iterator();"
+          ]
+        },
+        {
+          "name": "NBTMerge",
+          "signature": "NBTTagCompound NBTMerge(NBTTagCompound data, NBTTagCompound merge)",
+          "similarity_ratio": 0.385,
+          "diff_line_count": 16,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,11 +1,15 @@",
+            " {",
+            "-        INbt compound = (INbt) data.copy();",
+            "-        Set<String> names = merge.func_150296_c();",
+            "+        INbt compound = data.copy();",
+            "+        Set<String> names = merge.getKeySet();",
+            "         for (String name : names) {",
+            "-            INbtBase base = merge.getTag(name);"
+          ]
+        },
+        {
+          "name": "getBooleanList",
+          "signature": "HashMap<Integer, Boolean> getBooleanList(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<Integer, Boolean> list = new HashMap<Integer, Boolean>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.put(nbttagcompound.getInteger(\"Slot\"), nbttagcompound.getBoolean(\"Boolean\"));"
+          ]
+        },
+        {
+          "name": "getIntegerArraySet",
+          "signature": "ArrayList<int[]> getIntegerArraySet(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         ArrayList<int[]> set = new ArrayList<int[]>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt compound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt compound = tagList.getCompound(i);",
+            "             set.add(compound.getIntArray(\"Array\"));"
+          ]
+        },
+        {
+          "name": "getIntegerByteMap",
+          "signature": "HashMap<Integer, Byte> getIntegerByteMap(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<Integer, Byte> list = new HashMap<Integer, Byte>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.put(nbttagcompound.getInteger(\"Slot\"), nbttagcompound.getByte(\"Byte\"));"
+          ]
+        },
+        {
+          "name": "getIntegerDoubleMap",
+          "signature": "HashMap<Integer, Double> getIntegerDoubleMap(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<Integer, Double> list = new HashMap<Integer, Double>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.put(nbttagcompound.getInteger(\"Slot\"), nbttagcompound.getDouble(\"Double\"));"
+          ]
+        },
+        {
+          "name": "getIntegerFloatMap",
+          "signature": "HashMap<Integer, Float> getIntegerFloatMap(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<Integer, Float> list = new HashMap<Integer, Float>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.put(nbttagcompound.getInteger(\"Slot\"), nbttagcompound.getFloat(\"Float\"));"
+          ]
+        },
+        {
+          "name": "getIntegerIntegerMap",
+          "signature": "HashMap<Integer, Integer> getIntegerIntegerMap(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<Integer, Integer> list = new HashMap<Integer, Integer>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.put(nbttagcompound.getInteger(\"Slot\"), nbttagcompound.getInteger(\"Integer\"));"
+          ]
+        },
+        {
+          "name": "getIntegerLongMap",
+          "signature": "HashMap<Integer, Long> getIntegerLongMap(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<Integer, Long> list = new HashMap<Integer, Long>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.put(nbttagcompound.getInteger(\"Slot\"), nbttagcompound.getLong(\"Long\"));"
+          ]
+        },
+        {
+          "name": "getIntegerSet",
+          "signature": "HashSet<Integer> getIntegerSet(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashSet<Integer> list = new HashSet<Integer>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.add(nbttagcompound.getInteger(\"Integer\"));"
+          ]
+        },
+        {
+          "name": "getIntegerStringMap",
+          "signature": "HashMap<Integer, String> getIntegerStringMap(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<Integer, String> list = new HashMap<Integer, String>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.put(nbttagcompound.getInteger(\"Slot\"), nbttagcompound.getString(\"Value\"));"
+          ]
+        },
+        {
+          "name": "getStringArray",
+          "signature": "String[] getStringArray(NBTTagList tagList, int size)",
+          "similarity_ratio": 0.8,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         String[] arr = new String[size];",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             String line = nbttagcompound.getString(\"Value\");"
+          ]
+        },
+        {
+          "name": "getStringIntegerArrayMap",
+          "signature": "HashMap<String, int[]> getStringIntegerArrayMap(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<String, int[]> list = new HashMap<String, int[]>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.put(nbttagcompound.getString(\"Slot\"), nbttagcompound.getIntArray(\"Value\"));"
+          ]
+        },
+        {
+          "name": "getStringIntegerArrayMap",
+          "signature": "HashMap<String, int[]> getStringIntegerArrayMap(NBTTagList tagList, int arrayLength)",
+          "similarity_ratio": 0.8,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<String, int[]> list = new HashMap<String, int[]>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             int[] a = nbttagcompound.getIntArray(\"Value\");"
+          ]
+        },
+        {
+          "name": "getStringIntegerMap",
+          "signature": "HashMap<String, Integer> getStringIntegerMap(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<String, Integer> list = new HashMap<String, Integer>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.put(nbttagcompound.getString(\"Slot\"), nbttagcompound.getInteger(\"Value\"));"
+          ]
+        },
+        {
+          "name": "getStringList",
+          "signature": "List<String> getStringList(NBTTagList tagList)",
+          "similarity_ratio": 0.778,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         List<String> list = new ArrayList<String>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             String line = nbttagcompound.getString(\"Line\");"
+          ]
+        },
+        {
+          "name": "getStringSet",
+          "signature": "HashSet<String> getStringSet(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashSet<String> list = new HashSet<>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.add(nbttagcompound.getString(\"String\"));"
+          ]
+        },
+        {
+          "name": "getStringStringMap",
+          "signature": "HashMap<String, String> getStringStringMap(NBTTagList tagList)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 4,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,7 +1,7 @@",
+            " {",
+            "         HashMap<String, String> list = new HashMap<String, String>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "+            INbt nbttagcompound = tagList.getCompound(i);",
+            "             list.put(nbttagcompound.getString(\"Slot\"), nbttagcompound.getString(\"Value\"));"
+          ]
+        },
+        {
+          "name": "getVectorMap",
+          "signature": "HashMap<String, Vector<String>> getVectorMap(NBTTagList tagList)",
+          "similarity_ratio": 0.733,
+          "diff_line_count": 8,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,11 +1,11 @@",
+            " {",
+            "         HashMap<String, Vector<String>> map = new HashMap<String, Vector<String>>();",
+            "-        for (int i = 0; i < tagList.tagCount(); i++) {",
+            "+        for (int i = 0; i < tagList.size(); i++) {",
+            "             Vector<String> values = new Vector<String>();",
+            "-            INbt nbttagcompound = tagList.getCompoundTagAt(i);",
+            "+            INbt nbttagcompound = tagList.getCompound(i);"
+          ]
+        },
+        {
+          "name": "nbtBooleanList",
+          "signature": "NBTTagList nbtBooleanList(HashMap<Integer, Boolean> updatedSlots)",
+          "similarity_ratio": 0.786,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,14 +1,14 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (updatedSlots == null)",
+            "             return nbttaglist;",
+            "         HashMap<Integer, Boolean> inventory2 = updatedSlots;",
+            "         for (Integer slot : inventory2.keySet()) {"
+          ]
+        },
+        {
+          "name": "nbtIntegerArraySet",
+          "signature": "NBTTagList nbtIntegerArraySet(List<int[]> set)",
+          "similarity_ratio": 0.727,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,11 +1,11 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (set == null)",
+            "             return nbttaglist;",
+            "         for (int[] arr : set) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtIntegerByteMap",
+          "signature": "NBTTagList nbtIntegerByteMap(Map<Integer, Byte> lines)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,12 +1,12 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (lines == null)",
+            "             return nbttaglist;",
+            "         for (int slot : lines.keySet()) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtIntegerDoubleMap",
+          "signature": "NBTTagList nbtIntegerDoubleMap(Map<Integer, Double> lines)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,12 +1,12 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (lines == null)",
+            "             return nbttaglist;",
+            "         for (int slot : lines.keySet()) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtIntegerFloatMap",
+          "signature": "NBTTagList nbtIntegerFloatMap(Map<Integer, Float> lines)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,12 +1,12 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (lines == null)",
+            "             return nbttaglist;",
+            "         for (int slot : lines.keySet()) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtIntegerIntegerMap",
+          "signature": "NBTTagList nbtIntegerIntegerMap(Map<Integer, Integer> lines)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,12 +1,12 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (lines == null)",
+            "             return nbttaglist;",
+            "         for (int slot : lines.keySet()) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtIntegerLongMap",
+          "signature": "NBTTagList nbtIntegerLongMap(Map<Integer, Long> lines)",
+          "similarity_ratio": 0.75,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,12 +1,12 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (lines == null)",
+            "             return nbttaglist;",
+            "         for (int slot : lines.keySet()) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtIntegerSet",
+          "signature": "NBTTagList nbtIntegerSet(HashSet<Integer> set)",
+          "similarity_ratio": 0.727,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,11 +1,11 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (set == null)",
+            "             return nbttaglist;",
+            "         for (int slot : set) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtIntegerStringMap",
+          "signature": "NBTBase nbtIntegerStringMap(HashMap<Integer, String> map)",
+          "similarity_ratio": 0.769,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,13 +1,13 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (map == null)",
+            "             return nbttaglist;",
+            "         for (int slot : map.keySet()) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtStringArray",
+          "signature": "NBTTagList nbtStringArray(String[] list)",
+          "similarity_ratio": 0.786,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,14 +1,14 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (list == null)",
+            "             return nbttaglist;",
+            "         for (int i = 0; i < list.length; i++) {",
+            "             if (list[i] == null)"
+          ]
+        },
+        {
+          "name": "nbtStringIntegerArrayMap",
+          "signature": "NBTTagList nbtStringIntegerArrayMap(Map<String, int[]> map)",
+          "similarity_ratio": 0.769,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,13 +1,13 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (map == null)",
+            "             return nbttaglist;",
+            "         for (String slot : map.keySet()) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtStringIntegerMap",
+          "signature": "NBTTagList nbtStringIntegerMap(Map<String, Integer> map)",
+          "similarity_ratio": 0.769,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,13 +1,13 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (map == null)",
+            "             return nbttaglist;",
+            "         for (String slot : map.keySet()) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtStringList",
+          "signature": "NBTTagList nbtStringList(List<String> list)",
+          "similarity_ratio": 0.667,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,9 +1,9 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         for (String s : list) {",
+            "-            INbt nbttagcompound = new INbt();",
+            "+            INbt nbttagcompound = NBT.compound();",
+            "             nbttagcompound.setString(\"Line\", s);"
+          ]
+        },
+        {
+          "name": "nbtStringSet",
+          "signature": "NBTTagList nbtStringSet(HashSet<String> collection)",
+          "similarity_ratio": 0.727,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,11 +1,11 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (collection == null)",
+            "             return nbttaglist;",
+            "         for (String slot : collection) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtStringStringMap",
+          "signature": "NBTTagList nbtStringStringMap(Map<String, String> map)",
+          "similarity_ratio": 0.769,
+          "diff_line_count": 6,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,13 +1,13 @@",
+            " {",
+            "-        INbtList nbttaglist = new INbtList();",
+            "+        INbtList nbttaglist = NBT.list();",
+            "         if (map == null)",
+            "             return nbttaglist;",
+            "         for (String slot : map.keySet()) {",
+            "-            INbt nbttagcompound = new INbt();"
+          ]
+        },
+        {
+          "name": "nbtVectorMap",
+          "signature": "NBTTagList nbtVectorMap(Map<String, Vector<String>> map)",
+          "similarity_ratio": 0.611,
+          "diff_line_count": 14,
+          "diff_preview": [
+            "--- old (normalized)",
+            "+++ new (normalized)",
+            "@@ -1,18 +1,18 @@",
+            " {",
+            "-        INbtList list = new INbtList();",
+            "+        INbtList list = NBT.list();",
+            "         if (map == null)",
+            "             return list;",
+            "         for (String key : map.keySet()) {",
+            "-            INbt compound = new INbt();"
+          ]
+        }
+      ]
+    },
+    {
+      "relative_path": "noppes/npcs/scripted/constants/AnimationType.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/scripted/constants/AnimationType.java",
+      "new_file": "core/src/main/java/noppes/npcs/scripted/constants/AnimationType.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "noppes/npcs/scripted/constants/EntityType.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/scripted/constants/EntityType.java",
+      "new_file": "core/src/main/java/noppes/npcs/scripted/constants/EntityType.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "noppes/npcs/scripted/constants/JobType.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/scripted/constants/JobType.java",
+      "new_file": "core/src/main/java/noppes/npcs/scripted/constants/JobType.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "noppes/npcs/scripted/constants/RoleType.java",
+      "old_file": "mc1710/src/main/java/noppes/npcs/scripted/constants/RoleType.java",
+      "new_file": "core/src/main/java/noppes/npcs/scripted/constants/RoleType.java",
+      "verdict": "PASS",
+      "verdict_reason": "all methods present, no unmigrated types, no body drift",
+      "unmigrated_count": 0,
+      "missing_methods_count": 0,
+      "semantic_diffs_count": 0,
+      "unmigrated": [],
+      "missing_methods": [],
+      "semantic_body_diffs": []
+    },
+    {
+      "relative_path": "noppes/npcs/util/CacheHashMap.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/util/CacheHashMap.java"
+    },
+    {
+      "relative_path": "noppes/npcs/util/CustomNPCsThreader.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/util/CustomNPCsThreader.java"
+    },
+    {
+      "relative_path": "noppes/npcs/util/LRUHashMap.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/util/LRUHashMap.java"
+    },
+    {
+      "relative_path": "noppes/npcs/util/MillisTimer.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/util/MillisTimer.java"
+    },
+    {
+      "relative_path": "noppes/npcs/util/SizeOfObjectUtil.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/util/SizeOfObjectUtil.java"
+    },
+    {
+      "relative_path": "noppes/npcs/util/ValueUtil.java",
+      "verdict": "NO_COUNTERPART",
+      "verdict_reason": "No mc1710 original found",
+      "new_file": "core/src/main/java/noppes/npcs/util/ValueUtil.java"
+    }
+  ],
+  "summary": {
+    "PASS": [
+      "kamkeel/npcs/controllers/data/ability/conditions/ConditionFilter.java",
+      "kamkeel/npcs/controllers/data/profile/ProfileOperation.java",
+      "kamkeel/npcs/developer/Developer.java",
+      "kamkeel/npcs/network/enums/EnumChannelType.java",
+      "kamkeel/npcs/network/enums/EnumConfigOperation.java",
+      "kamkeel/npcs/network/enums/EnumItemPacketType.java",
+      "kamkeel/npcs/network/enums/EnumPlayerPacket.java",
+      "kamkeel/npcs/network/enums/EnumRequestPacket.java",
+      "kamkeel/npcs/network/enums/EnumSoundOperation.java",
+      "kamkeel/npcs/network/enums/EnumSyncAction.java",
+      "kamkeel/npcs/network/enums/EnumSyncType.java",
+      "kamkeel/npcs/util/CNPCDebug.java",
+      "noppes/npcs/controllers/APIRegistry.java",
+      "noppes/npcs/controllers/CategoryManager.java",
+      "noppes/npcs/scripted/constants/AnimationType.java",
+      "noppes/npcs/scripted/constants/EntityType.java",
+      "noppes/npcs/scripted/constants/JobType.java",
+      "noppes/npcs/scripted/constants/RoleType.java"
+    ],
+    "WARN": [
+      "kamkeel/npcs/controllers/data/ability/data/ProjectileData.java",
+      "kamkeel/npcs/controllers/data/profile/Slot.java",
+      "kamkeel/npcs/network/enums/EnumDataPacket.java",
+      "noppes/npcs/constants/EnumStockReset.java",
+      "noppes/npcs/controllers/data/PlayerEffect.java",
+      "noppes/npcs/controllers/GlobalDataController.java"
+    ],
+    "FAIL": [
+      "noppes/npcs/controllers/data/Faction.java",
+      "noppes/npcs/controllers/data/Magic.java",
+      "noppes/npcs/controllers/FactionController.java",
+      "noppes/npcs/controllers/MagicController.java",
+      "noppes/npcs/controllers/ServerTagMapController.java",
+      "noppes/npcs/controllers/TagController.java",
+      "noppes/npcs/controllers/TransportController.java",
+      "noppes/npcs/NBTTags.java"
+    ],
+    "NO_COUNTERPART": [
+      "kamkeel/npcs/controllers/data/ability/data/energy/EnergyAnchorData.java",
+      "kamkeel/npcs/controllers/data/ability/data/energy/EnergyBarrierData.java",
+      "kamkeel/npcs/controllers/data/ability/data/energy/EnergyChargingData.java",
+      "kamkeel/npcs/controllers/data/ability/data/energy/EnergyCombatData.java",
+      "kamkeel/npcs/controllers/data/ability/data/energy/EnergyDisplayData.java",
+      "kamkeel/npcs/controllers/data/ability/data/energy/EnergyHomingData.java",
+      "kamkeel/npcs/controllers/data/ability/data/energy/EnergyLifespanData.java",
+      "kamkeel/npcs/controllers/data/ability/data/energy/EnergyLightningData.java",
+      "kamkeel/npcs/controllers/data/ability/data/energy/EnergyPanelData.java",
+      "kamkeel/npcs/controllers/data/ability/enums/AbilityPhase.java",
+      "kamkeel/npcs/controllers/data/ability/enums/AnchorPoint.java",
+      "kamkeel/npcs/controllers/data/ability/enums/HitType.java",
+      "kamkeel/npcs/controllers/data/ability/enums/InvulnerableMode.java",
+      "kamkeel/npcs/controllers/data/ability/enums/LockMode.java",
+      "kamkeel/npcs/controllers/data/ability/enums/RotationMode.java",
+      "kamkeel/npcs/controllers/data/ability/enums/TargetFilter.java",
+      "kamkeel/npcs/controllers/data/ability/enums/TargetingMode.java",
+      "kamkeel/npcs/controllers/data/ability/enums/UserType.java",
+      "kamkeel/npcs/controllers/data/attribute/AttributeDefinition.java",
+      "kamkeel/npcs/controllers/data/attribute/AttributeValueType.java",
+      "kamkeel/npcs/controllers/data/attribute/PlayerAttribute.java",
+      "kamkeel/npcs/controllers/data/attribute/PlayerAttributeMap.java",
+      "kamkeel/npcs/controllers/data/profile/EnumProfileOperation.java",
+      "kamkeel/npcs/controllers/data/profile/ProfileInfoEntry.java",
+      "kamkeel/npcs/controllers/data/telegraph/Telegraph.java",
+      "kamkeel/npcs/controllers/data/telegraph/TelegraphType.java",
+      "kamkeel/npcs/util/FileNameHelper.java",
+      "kamkeel/npcs/util/TextSplitter.java",
+      "noppes/npcs/constants/AiMutex.java",
+      "noppes/npcs/constants/EnumAnimation.java",
+      "noppes/npcs/constants/EnumAnimationPart.java",
+      "noppes/npcs/constants/EnumAuctionPage.java",
+      "noppes/npcs/constants/EnumAuctionSort.java",
+      "noppes/npcs/constants/EnumAvailabilityDialog.java",
+      "noppes/npcs/constants/EnumAvailabilityFaction.java",
+      "noppes/npcs/constants/EnumAvailabilityFactionType.java",
+      "noppes/npcs/constants/EnumAvailabilityQuest.java",
+      "noppes/npcs/constants/EnumBannerVariant.java",
+      "noppes/npcs/constants/EnumBardInstrument.java",
+      "noppes/npcs/constants/EnumCategoryType.java",
+      "noppes/npcs/constants/EnumCombatPolicy.java",
+      "noppes/npcs/constants/EnumCompanionJobs.java",
+      "noppes/npcs/constants/EnumCompanionStage.java",
+      "noppes/npcs/constants/EnumDayTime.java",
+      "noppes/npcs/constants/EnumDiagramLayout.java",
+      "noppes/npcs/constants/EnumGuiType.java",
+      "noppes/npcs/constants/EnumJobType.java",
+      "noppes/npcs/constants/EnumMovingType.java",
+      "noppes/npcs/constants/EnumNavType.java",
+      "noppes/npcs/constants/EnumNpcToolMaterial.java",
+      "noppes/npcs/constants/EnumOptionType.java",
+      "noppes/npcs/constants/EnumParticleType.java",
+      "noppes/npcs/constants/EnumPartyExchange.java",
+      "noppes/npcs/constants/EnumPartyObjectives.java",
+      "noppes/npcs/constants/EnumPartyRequirements.java",
+      "noppes/npcs/constants/EnumPlayerData.java",
+      "noppes/npcs/constants/EnumPlayerPacket.java",
+      "noppes/npcs/constants/EnumProfileSync.java",
+      "noppes/npcs/constants/EnumQuestCompletion.java",
+      "noppes/npcs/constants/EnumQuestRepeat.java",
+      "noppes/npcs/constants/EnumQuestType.java",
+      "noppes/npcs/constants/EnumRoleType.java",
+      "noppes/npcs/constants/EnumScriptType.java",
+      "noppes/npcs/constants/EnumScrollData.java",
+      "noppes/npcs/constants/EnumStandingType.java",
+      "noppes/npcs/constants/EnumTextureType.java",
+      "noppes/npcs/constants/EnumTradeSlotType.java",
+      "noppes/npcs/constants/MarkType.java",
+      "noppes/npcs/constants/NBTTypes.java",
+      "noppes/npcs/controllers/data/AbilityHotbarData.java",
+      "noppes/npcs/controllers/data/AuctionFilter.java",
+      "noppes/npcs/controllers/data/Category.java",
+      "noppes/npcs/controllers/data/CloneFolder.java",
+      "noppes/npcs/controllers/data/DialogColorData.java",
+      "noppes/npcs/controllers/data/DialogImage.java",
+      "noppes/npcs/controllers/data/EffectKey.java",
+      "noppes/npcs/controllers/data/Frame.java",
+      "noppes/npcs/controllers/data/FramePart.java",
+      "noppes/npcs/controllers/data/HitboxData.java",
+      "noppes/npcs/controllers/data/InnDoorData.java",
+      "noppes/npcs/controllers/data/ItemDisplayData.java",
+      "noppes/npcs/controllers/data/Line.java",
+      "noppes/npcs/controllers/data/Lines.java",
+      "noppes/npcs/controllers/data/MagicAssociation.java",
+      "noppes/npcs/controllers/data/MagicCycle.java",
+      "noppes/npcs/controllers/data/MagicData.java",
+      "noppes/npcs/controllers/data/MagicEntry.java",
+      "noppes/npcs/controllers/data/PartyOptions.java",
+      "noppes/npcs/controllers/data/PlayerDialogData.java",
+      "noppes/npcs/controllers/data/PlayerEffectData.java",
+      "noppes/npcs/controllers/data/PlayerTransportData.java",
+      "noppes/npcs/controllers/data/ProfileOptions.java",
+      "noppes/npcs/controllers/data/SkinOverlay.java",
+      "noppes/npcs/controllers/data/Tag.java",
+      "noppes/npcs/controllers/data/TagMap.java",
+      "noppes/npcs/controllers/data/TintData.java",
+      "noppes/npcs/controllers/data/TraderStock.java",
+      "noppes/npcs/controllers/data/TransportCategory.java",
+      "noppes/npcs/controllers/data/TransportLocation.java",
+      "noppes/npcs/core/CoreConfig.java",
+      "noppes/npcs/core/NBT.java",
+      "noppes/npcs/core/package-info.java",
+      "noppes/npcs/util/CacheHashMap.java",
+      "noppes/npcs/util/CustomNPCsThreader.java",
+      "noppes/npcs/util/LRUHashMap.java",
+      "noppes/npcs/util/MillisTimer.java",
+      "noppes/npcs/util/SizeOfObjectUtil.java",
+      "noppes/npcs/util/ValueUtil.java"
+    ]
+  }
+}

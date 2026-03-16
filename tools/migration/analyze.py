@@ -16,6 +16,7 @@ Subcommands:
   coverage-report     Migration coverage analysis (P3)
   classify            Classify MC type for migration strategy (P0)
   classify-all        Classify ALL MC types in index and output as JSON (P0)
+  generate-mappings   Generate mc_type_mappings.json from curated classifications
 
 Usage:
   python analyze.py query-type EntityPlayer
@@ -2252,6 +2253,204 @@ def add_migration_diff_args(subparsers):
 
 
 # ============================================================
+# generate-mappings: Build mc_type_mappings.json from curated classifications
+# ============================================================
+
+
+def cmd_generate_mappings(args):
+    """Read mc_type_classifications_original.json and produce mc_type_mappings.json."""
+    project_root = (
+        Path(args.project_root) if args.project_root else auto_detect_project_root()
+    )
+
+    cls_path = Path(args.classifications)
+    if not cls_path.is_absolute():
+        cls_path = project_root / args.classifications
+    if not cls_path.exists():
+        print(f"ERROR: Classifications file not found: {cls_path}", file=sys.stderr)
+        return 1
+
+    with open(cls_path, "r", encoding="utf-8") as f:
+        cls_data = json.load(f)
+
+    types = cls_data.get("types", {})
+    allowed_categories = None
+    if args.category:
+        allowed_categories = set(c.upper() for c in args.category)
+
+    mappings = {}
+    category_counts = defaultdict(int)
+
+    for type_name, info in types.items():
+        if type_name.startswith("__"):
+            continue
+
+        category = info.get("category", "")
+        if not category:
+            continue
+
+        if allowed_categories and category not in allowed_categories:
+            continue
+
+        category_counts[category] += 1
+        imports = info.get("imports", 0)
+        fqn = info.get("fqn", "")
+
+        if category == "EXISTING":
+            pa_name = info.get("pa", "")
+            pa_package = info.get("package", "")
+            pa_fqn = f"{pa_package}.{pa_name}" if pa_package and pa_name else ""
+            entry = {
+                "fqn": fqn,
+                "category": category,
+                "pa_name": pa_name,
+                "pa_package": pa_package,
+                "pa_fqn": pa_fqn,
+                "imports": imports,
+                "swap": [type_name, pa_name, fqn, pa_fqn],
+            }
+
+        elif category == "INTERFACE":
+            pa_name = info.get("pa", "")
+            pa_package = info.get("package", "")
+            pa_fqn = f"{pa_package}.{pa_name}" if pa_package and pa_name else ""
+            entry = {
+                "fqn": fqn,
+                "category": category,
+                "pa_name": pa_name,
+                "pa_package": pa_package,
+                "pa_fqn": pa_fqn,
+                "imports": imports,
+                "swap": [type_name, pa_name, fqn, pa_fqn],
+            }
+            if "methods" in info:
+                entry["methods"] = info["methods"]
+            if "constructors" in info:
+                entry["constructors"] = info["constructors"]
+
+        elif category == "SERVICE":
+            entry = {
+                "fqn": fqn,
+                "category": category,
+                "service_target": info.get("service", ""),
+                "imports": imports,
+                "methods": info.get("methods", {}),
+                "swap": None,
+            }
+
+        elif category == "TRANSFORM":
+            entry = {
+                "fqn": fqn,
+                "category": category,
+                "patterns": info.get("patterns", []),
+                "imports": imports,
+                "swap": None,
+            }
+
+        elif category == "SUPPRESS":
+            entry = {
+                "fqn": fqn,
+                "category": category,
+                "reason": info.get("reason", ""),
+                "imports": imports,
+                "swap": None,
+            }
+
+        else:
+            entry = {
+                "fqn": fqn,
+                "category": category,
+                "imports": imports,
+                "swap": None,
+            }
+
+        mappings[type_name] = entry
+
+    timestamp = datetime.now(timezone.utc).isoformat()
+    total_types = len(mappings)
+
+    cat_order = ["EXISTING", "INTERFACE", "SERVICE", "TRANSFORM", "SUPPRESS"]
+    categories_summary = {}
+    for cat in cat_order:
+        if category_counts.get(cat, 0) > 0:
+            categories_summary[cat] = category_counts[cat]
+    for cat, count in sorted(category_counts.items()):
+        if cat not in categories_summary and count > 0:
+            categories_summary[cat] = count
+
+    output = {
+        "_meta": {
+            "generated": timestamp,
+            "source": cls_path.name,
+            "total_types": total_types,
+            "categories": categories_summary,
+        },
+        "mappings": mappings,
+    }
+
+    if args.json_output:
+        json.dump(output, sys.stdout, indent=2, ensure_ascii=True)
+        print()
+    else:
+        output_path = Path(args.output)
+        if not output_path.is_absolute():
+            output_path = project_root / args.output
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(output, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+
+        print()
+        print("=" * 80)
+        print("GENERATE MAPPINGS")
+        print("=" * 80)
+        print(f"  Source:       {cls_path.name}")
+        print(f"  Total types:  {total_types}")
+        print()
+        print("  CATEGORY BREAKDOWN:")
+        for cat in cat_order:
+            count = categories_summary.get(cat, 0)
+            if count > 0:
+                print(f"    {cat:<14}{count:>4} types")
+        print()
+        print(f"  Output written: {output_path}")
+        print("=" * 80)
+        print()
+
+    return 0
+
+
+def add_generate_mappings_args(subparsers):
+    p = subparsers.add_parser(
+        "generate-mappings",
+        help="Generate mc_type_mappings.json from curated classifications",
+    )
+    p.add_argument(
+        "--output",
+        default="tools/migration/mc_type_mappings.json",
+        help="Output JSON file path (default: tools/migration/mc_type_mappings.json)",
+    )
+    p.add_argument(
+        "--classifications",
+        default="tools/migration/mc_type_classifications_original.json",
+        help="Path to source classifications JSON (relative to project root)",
+    )
+    p.add_argument(
+        "--json",
+        dest="json_output",
+        action="store_true",
+        help="Print output to stdout as JSON instead of writing to file",
+    )
+    p.add_argument(
+        "--category",
+        nargs="+",
+        help="Filter to specific categories (e.g. EXISTING INTERFACE)",
+    )
+    p.add_argument("--project-root", help="Project root (auto-detected if omitted)")
+    p.set_defaults(func=cmd_generate_mappings)
+
+
+# ============================================================
 # Main CLI
 # ============================================================
 
@@ -2274,6 +2473,7 @@ def main():
     add_coverage_report_args(subparsers)
     add_classify_args(subparsers)
     add_classify_all_args(subparsers)
+    add_generate_mappings_args(subparsers)
 
     args = parser.parse_args()
 
