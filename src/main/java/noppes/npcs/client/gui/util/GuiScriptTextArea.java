@@ -12,7 +12,7 @@ import noppes.npcs.client.gui.util.script.*;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 // New interpreter system imports
 import noppes.npcs.client.gui.util.script.autocomplete.AutocompleteMenu;
-import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
+import bigguy.texteditor.render.RenderLine;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
@@ -558,7 +558,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 if (container != null && container.lines != null && cursorLine < container.lines.size()) {
                     LineData ld = container.lines.get(cursorLine);
                     int cursorOffset = selection.getCursorPosition() - ld.start;
-                    ScriptLine sl = container.getDocument() != null ? container.getDocument().getLine(cursorLine) : null;
+                    RenderLine sl = container.getOrchestrator() != null ? container.getOrchestrator().getRenderModel().getLine(cursorLine) : null;
                     if (sl != null) {
                         cursorCol = sl.getRenderedWidth(0, Math.min(cursorOffset, ld.text.length()));
                     } else {
@@ -862,7 +862,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Render Viewport
         for (int i = renderStart; i <= renderEnd; i++) {
             LineData data = list.get(i);
-            ScriptLine scriptLine = container.getDocument().getLine(i);
+            RenderLine scriptLine = container.getOrchestrator().getRenderModel().getLine(i);
+            if (scriptLine == null) continue;
             String line = data.text;
             int w = line.length();
             // Use integer Y relative to scrolledLine; fractional offset applied via GL translate
@@ -1154,7 +1155,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (i >= scroll.getScrolledLine() && i <= scroll.getScrolledLine() + this.container.visibleLines +1) {
                 double yPos = (i - scroll.getScrolledLine()) * this.container.lineHeight;
                 if (yMouseD >= yPos && yMouseD < yPos + this.container.lineHeight) {
-                    ScriptLine scriptLine = container.getDocument() != null ? container.getDocument().getLine(i) : null;
+                    RenderLine scriptLine = container.getOrchestrator() != null ? container.getOrchestrator().getRenderModel().getLine(i) : null;
                     int lineWidth = 0;
                     char[] chars = data.text.toCharArray();
 
@@ -1223,7 +1224,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             return null;
         }
         
-        ScriptLine lineData = container.getDocument().getLine(lineIdx);
+        RenderLine lineData = container.getOrchestrator() != null ? container.getOrchestrator().getRenderModel().getLine(lineIdx) : null;
+        if (lineData == null) return null;
         String lineText = lineData.getText();
         int lineStart = lineData.getGlobalStart();
         

@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import bigguy.texteditor.ScriptOrchestrator;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.script.JavaTextContainer;
 import noppes.npcs.constants.ScriptContext;
@@ -30,6 +31,7 @@ public class ScriptTextContainer extends JavaTextContainer {
     public static boolean USE_NEW_INTERPRETER = true;
 
     private ScriptDocument document;
+    private ScriptOrchestrator orchestrator;
 
     /** The scripting language: "ECMAScript", "Groovy", etc. */
     private String language = "ECMAScript";
@@ -44,6 +46,7 @@ public class ScriptTextContainer extends JavaTextContainer {
         super(text);
         if (USE_NEW_INTERPRETER) {
             document = new ScriptDocument(text);
+            orchestrator = new ScriptOrchestrator();
         }
     }
     
@@ -52,6 +55,7 @@ public class ScriptTextContainer extends JavaTextContainer {
         this.language = language != null ? language : "ECMAScript";
         if (USE_NEW_INTERPRETER) {
             document = new ScriptDocument(text, this.language);
+            orchestrator = new ScriptOrchestrator();
         }
     }
     
@@ -127,9 +131,13 @@ public class ScriptTextContainer extends JavaTextContainer {
         lineHeight = ClientProxy.Font.height();
         if (lineHeight == 0) lineHeight = 12;
 
-        // Initialize the document
-        document.setText(text);
-        document.init(width, height);
+        // Initialize the document (legacy — still needed for semantic analysis)
+      //  document.setText(text);
+        //document.init(width, height);
+
+        // Initialize the orchestrator (new CST-based pipeline)
+        orchestrator.setLineHeight(lineHeight);
+        orchestrator.onTextChanged(text);
 
         // Convert ScriptLines to LineData for compatibility
         rebuildLineData();
@@ -155,6 +163,9 @@ public class ScriptTextContainer extends JavaTextContainer {
             document = new ScriptDocument(this.text, this.language);
             document.setScriptContext(this.scriptContext);
             document.setEditorGlobals(this.editorGlobals);
+        }
+        if (orchestrator == null) {
+            orchestrator = new ScriptOrchestrator();
         }
         
         init(width, height);
@@ -203,7 +214,7 @@ public class ScriptTextContainer extends JavaTextContainer {
         }
         
         //ScriptProfiler.setEnabled(true);
-        document.formatCodeText();
+       // document.formatCodeText();
         ScriptProfiler.setEnabled(false);
         rebuildLineData();
     }
@@ -239,6 +250,13 @@ public class ScriptTextContainer extends JavaTextContainer {
      */
     public ScriptDocument getDocument() {
         return document;
+    }
+
+    /**
+     * Get the ScriptOrchestrator for the new CST-based pipeline.
+     */
+    public ScriptOrchestrator getOrchestrator() {
+        return orchestrator;
     }
 
     /**
