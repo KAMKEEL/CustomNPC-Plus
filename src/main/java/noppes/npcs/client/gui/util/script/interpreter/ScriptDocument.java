@@ -159,6 +159,50 @@ public class ScriptDocument {
     // Populated in inferLambdaParameterTypes() (method calls, constructors, field assignments).
     // Consumed by resolveExpressionType() to avoid re-inferring lambda context.
     private final Map<Integer, LambdaCacheEntry> lambdaCache = new HashMap<>();
+
+    // Per-format-cycle cache for resolveSimpleName results.
+    // Avoids repeated wildcard-package Class.forName() scans for the same simple name.
+    // Key: simple name, Value: resolved TypeInfo (may be unresolved for cached misses).
+    // Cleared at start of each formatCodeText() cycle.
+    private final Map<String, TypeInfo> simpleNameCache = new HashMap<>();
+
+    // Profiler accumulators for resolve chain diagnosis (active only when ScriptProfiler.isEnabled())
+    private long profResolveTypePosNs, profResolveTypeNs, profSubstituteNs, profFindEnclosingNs;
+    private long profTrackUsageOverheadNs, profResolveBaseNs, profCachedSimpleNs;
+    private int profResolveTypePosCalls, profResolveTypeCalls, profFindEnclosingCalls;
+    private int profCacheHits, profCacheMisses;
+    private int profResolveBasePrimitive, profResolveBaseString, profResolveBaseScript;
+    private int profResolveBaseDotName, profResolveBaseSimple;
+
+    private void resetResolveProfiler() {
+        profResolveTypePosNs = profResolveTypeNs = profSubstituteNs = profFindEnclosingNs = 0;
+        profTrackUsageOverheadNs = profResolveBaseNs = profCachedSimpleNs = 0;
+        profResolveTypePosCalls = profResolveTypeCalls = profFindEnclosingCalls = 0;
+        profCacheHits = profCacheMisses = 0;
+        profResolveBasePrimitive = profResolveBaseString = profResolveBaseScript = 0;
+        profResolveBaseDotName = profResolveBaseSimple = 0;
+    }
+
+    private void printResolveProfiler() {
+        System.out.println("  [resolve-profiler] ---- resolve chain breakdown ----");
+        emitAccumulatedNanos("resolveType(name,pos) TOTAL", profResolveTypePosNs);
+        System.out.println(String.format("  [resolve-profiler]   calls: %d", profResolveTypePosCalls));
+        emitAccumulatedNanos("  resolveType(name) inner", profResolveTypeNs);
+        System.out.println(String.format("  [resolve-profiler]   calls: %d", profResolveTypeCalls));
+        emitAccumulatedNanos("  substituteTypeParams", profSubstituteNs);
+        emitAccumulatedNanos("  findEnclosingScriptType", profFindEnclosingNs);
+        System.out.println(String.format("  [resolve-profiler]   findEnclosing calls: %d", profFindEnclosingCalls));
+        emitAccumulatedNanos("  trackUsage overhead", profTrackUsageOverheadNs);
+        emitAccumulatedNanos("  resolveBase lambda", profResolveBaseNs);
+        emitAccumulatedNanos("  cachedResolveSimpleName", profCachedSimpleNs);
+        System.out.println(String.format("  [resolve-profiler]   cache hits: %d, misses: %d, rate: %.1f%%",
+            profCacheHits, profCacheMisses,
+            (profCacheHits + profCacheMisses) > 0 ? 100.0 * profCacheHits / (profCacheHits + profCacheMisses) : 0));
+        System.out.println(String.format("  [resolve-profiler]   resolveBase branches: primitive=%d string=%d script=%d dotName=%d simple=%d",
+            profResolveBasePrimitive, profResolveBaseString, profResolveBaseScript,
+            profResolveBaseDotName, profResolveBaseSimple));
+        System.out.println("  [resolve-profiler] ---- end ----");
+    }
     
     // Thread-local to communicate SAM conflict errors from resolveIdentifier back to parseMethodArguments
     // Set when injectSamParameterTypes detects a conflict, cleared after argument is created
@@ -388,6 +432,7 @@ public class ScriptDocument {
             scriptMethodSamContexts.clear();
             objectLiterals.clear();
             lambdaCache.clear();
+            simpleNameCache.clear();
 
             List<ScriptLine.Mark> marks = formatUnified();
 
@@ -4319,10 +4364,7 @@ public class ScriptDocument {
     }
 
     public TypeInfo resolveType(String typeName) {
-        /**
-         * Resolve a JS type name to unified TypeInfo.
-         * Handles JS primitives, .d.ts defined types, and falls back to Java types.
-         */
+        profResolveTypeCalls++;
         if (isJavaScript()) 
             return typeResolver.resolveJSType(typeName);
         
@@ -4394,12 +4436,22 @@ public class ScriptDocument {
      * @return The resolved TypeInfo, or an unresolved TypeInfo if not found
      */
     public TypeInfo resolveType(String typeName, int position) {
-        // First: delegate to the standard (positionless) resolver
-        TypeInfo resolved = resolveType(typeName);
+        boolean p = ScriptProfiler.isEnabled();
+        long t0 = p ? System.nanoTime() : 0;
+        profResolveTypePosCalls++;
 
-        // If already resolved, no need for positional fallback
+        long t1 = p ? System.nanoTime() : 0;
+        TypeInfo resolved = resolveType(typeName);
+        if (p) profResolveTypeNs += System.nanoTime() - t1;
+
         if (resolved != null && resolved.isResolved()) {
-            return substituteTypeParams(resolved, position);
+            long tSub = p ? System.nanoTime() : 0;
+            TypeInfo result = substituteTypeParams(resolved, position);
+            if (p) {
+                profSubstituteNs += System.nanoTime() - tSub;
+                profResolveTypePosNs += System.nanoTime() - t0;
+            }
+            return result;
         }
 
         if (typeName != null && !typeName.contains(".")) {
@@ -4407,27 +4459,30 @@ public class ScriptDocument {
             String baseTypeName = arraySplit.base;
             int arrayDims = arraySplit.dimensions;
 
+            long tEnc = p ? System.nanoTime() : 0;
+            profFindEnclosingCalls++;
             ScriptTypeInfo enclosing = findEnclosingScriptType(position);
+            if (p) profFindEnclosingNs += System.nanoTime() - tEnc;
+
             while (enclosing != null) {
-                // Check if the name is a declared type parameter on this class (e.g., E in class Box<E>)
                 TypeParamInfo typeParam = enclosing.getDeclaredTypeParam(baseTypeName);
                 if (typeParam != null) {
                     TypeInfo result = TypeInfo.typeParameter(baseTypeName, typeParam);
                     for (int i = 0; i < arrayDims; i++) result = TypeInfo.arrayOf(result);
+                    if (p) profResolveTypePosNs += System.nanoTime() - t0;
                     return result;
                 }
                 
-                // Check inner classes
                 ScriptTypeInfo inner = enclosing.getInnerClass(typeName);
                 if (inner != null) {
+                    if (p) profResolveTypePosNs += System.nanoTime() - t0;
                     return inner;
                 }
-                // Move up to the parent type — inner classes of outer types are also in scope
                 enclosing = enclosing.getOuterClass();
             }
         }
 
-        // Return whatever resolveType() returned (possibly unresolved)
+        if (p) profResolveTypePosNs += System.nanoTime() - t0;
         return resolved;
     }
     
@@ -4437,48 +4492,50 @@ public class ScriptDocument {
      * Used for Java/Groovy scripts.
      */
     private TypeInfo resolveTypeAndTrackUsage(String typeName) {
+        boolean p = ScriptProfiler.isEnabled();
+        long tOverhead = p ? System.nanoTime() : 0;
+
         if (typeName == null || typeName.isEmpty())
             return TypeInfo.unresolved(typeName, typeName);
 
         final String normalized = typeName.trim();
         final String normalizedFinal = stripLeadingModifiers(normalized);
 
-        // Split array suffixes first
         TypeStringNormalizer.ArraySplit arraySplit = TypeStringNormalizer.splitArraySuffixes(normalizedFinal);
         String baseExpr = arraySplit.base;
         int arrayDims = arraySplit.dimensions;
 
-        // Base type resolver with import tracking
+        if (p) profTrackUsageOverheadNs += System.nanoTime() - tOverhead;
+
         Function<String, TypeInfo> resolveBase = baseName -> {
+            boolean pp = ScriptProfiler.isEnabled();
+            long tBase = pp ? System.nanoTime() : 0;
             TypeInfo resolved;
 
-            // Primitives
             if (TypeResolver.isPrimitiveType(baseName)) {
+                profResolveBasePrimitive++;
                 resolved = TypeInfo.fromPrimitive(baseName);
             }
-            // Common java.lang.String
             else if ("String".equals(baseName)) {
+                profResolveBaseString++;
                 resolved = typeResolver.resolveFullName("java.lang.String");
             }
-            // Script-defined types (simple names only)
             else if (!baseName.contains(".") && scriptTypes.containsKey(baseName)) {
+                profResolveBaseScript++;
                 resolved = scriptTypes.get(baseName);
             }
-            // Script-defined inner types (dot-separated, e.g., "Outer.Inner")
-            // Checked before Java full-name resolution so script types shadow Java types
             else if (baseName.contains(".") && scriptTypesByDotName.containsKey(baseName)) {
+                profResolveBaseScript++;
                 resolved = scriptTypesByDotName.get(baseName);
             }
-            // Fully-qualified Java types
             else if (baseName.contains(".")) {
+                profResolveBaseDotName++;
                 resolved = typeResolver.resolveFullName(baseName);
-                // Fallback: "SimpleName.InnerClass" where SimpleName is a known import
-                // e.g., "Map.Entry" when java.util.Map is imported → java.util.Map$Entry
                 if (resolved == null || !resolved.isResolved()) {
                     int firstDot = baseName.indexOf('.');
                     String outerSimple = baseName.substring(0, firstDot);
                     String innerPath = baseName.substring(firstDot + 1);
-                    TypeInfo outerType = typeResolver.resolveSimpleName(outerSimple, importsBySimpleName, wildcardPackages);
+                    TypeInfo outerType = cachedResolveSimpleName(outerSimple);
                     if (outerType != null && outerType.isResolved() && outerType.getJavaClass() != null) {
                         Class<?> currentClass = outerType.getJavaClass();
                         for (String part : innerPath.split("\\.")) {
@@ -4494,7 +4551,6 @@ public class ScriptDocument {
                         }
                         if (currentClass != null) {
                             resolved = TypeInfo.fromClass(currentClass);
-                            // Track import usage for the outer class
                             ImportData usedImport = importsBySimpleName.get(outerSimple);
                             if (usedImport != null) {
                                 usedImport.incrementUsage();
@@ -4511,11 +4567,12 @@ public class ScriptDocument {
                     }
                 }
             }
-            // Imported/simple
             else {
-                resolved = typeResolver.resolveSimpleName(baseName, importsBySimpleName, wildcardPackages);
+                profResolveBaseSimple++;
+                long tSimple = pp ? System.nanoTime() : 0;
+                resolved = cachedResolveSimpleName(baseName);
+                if (pp) profCachedSimpleNs += System.nanoTime() - tSimple;
 
-                // Track import usage
                 if (resolved != null && resolved.isResolved()) {
                     ImportData usedImport = importsBySimpleName.get(baseName);
                     if (usedImport != null) {
@@ -4532,23 +4589,20 @@ public class ScriptDocument {
                 }
             }
 
+            if (pp) profResolveBaseNs += System.nanoTime() - tBase;
             return resolved != null ? resolved : TypeInfo.unresolved(baseName, normalizedFinal);
         };
 
         TypeInfo resolved;
 
-        // Fast path: no generics - skip expensive parsing
         if (!baseExpr.contains("<")) {
             resolved = resolveBase.apply(baseExpr);
         } else {
-            // Slow path: parse and resolve generics
             GenericTypeParser.ParsedType parsed = GenericTypeParser.parse(baseExpr);
             if (parsed != null) {
-                // Normalize whitespace around dots in base name
                 String baseName = parsed.baseName.replaceAll("\\s*\\.\\s*", ".").trim();
                 resolved = resolveBase.apply(baseName);
 
-                // Apply generic arguments
                 if (parsed.hasTypeArgs() && resolved != null && resolved.isResolved()) {
                    List<TypeInfo> resolvedArgs = new ArrayList<>();
                     for (GenericTypeParser.ParsedType argParsed : parsed.typeArgs) {
@@ -4565,16 +4619,29 @@ public class ScriptDocument {
                     }
                 }
             } else
-                // Fallback: treat as simple type
                 resolved = resolveBase.apply(baseExpr);
         }
 
-        // Apply array dimensions
         for (int i = 0; i < arrayDims; i++) {
             resolved = TypeInfo.arrayOf(resolved);
         }
 
         return resolved;
+    }
+
+    /**
+     * Cached wrapper for typeResolver.resolveSimpleName() that avoids repeated
+     * wildcard-package scanning for the same simple name within a format cycle.
+     */
+    private TypeInfo cachedResolveSimpleName(String simpleName) {
+        if (simpleNameCache.containsKey(simpleName)) {
+            profCacheHits++;
+            return simpleNameCache.get(simpleName);
+        }
+        profCacheMisses++;
+        TypeInfo result = typeResolver.resolveSimpleName(simpleName, importsBySimpleName, wildcardPackages);
+        simpleNameCache.put(simpleName, result);
+        return result;
     }
 
     /**
@@ -9856,73 +9923,83 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
     }
 
     private void markImportedClassUsages(List<ScriptLine.Mark> marks) {
-        // Find uppercase identifiers followed by dot (static method calls, field access)
+        boolean profiling = ScriptProfiler.isEnabled();
+        if (profiling) resetResolveProfiler();
+
+        // ── Loop 1: classUsage ── identifiers followed by dot
+        long loop1RegexNs = 0, loop1ExcludedNs = 0, loop1ResolveNs = 0;
+        int loop1Matches = 0, loop1Resolved = 0, loop1Skipped = 0;
+
+        long t0 = profiling ? System.nanoTime() : 0;
         Pattern classUsage = Pattern.compile("\\b([A-Za-z][a-zA-Z0-9_]*)\\s*\\.");
         Matcher m = classUsage.matcher(text);
+        if (profiling) loop1RegexNs = System.nanoTime() - t0;
 
         while (m.find()) {
+            loop1Matches++;
             String className = m.group(1);
             int start = m.start(1);
             int end = m.end(1);
 
-            if (isExcluded(start))
-                continue;
+            long tExcl = profiling ? System.nanoTime() : 0;
+            boolean excluded = isExcluded(start);
+            if (!excluded) excluded = isInImportOrPackage(start);
+            if (profiling) loop1ExcludedNs += System.nanoTime() - tExcl;
+            if (excluded) { loop1Skipped++; continue; }
 
-            // Skip in import/package statements
-            if (isInImportOrPackage(start))
-                continue;
-
-            // For JavaScript, first check synthetic types (Nashorn built-ins like Java, print, etc.)
             if (isJavaScript()) {
                 if (typeResolver.isSyntheticType(className)) {
                     SyntheticType syntheticType = typeResolver.getSyntheticType(className);
-                    // Mark as IMPORTED_CLASS since it's a type reference
-                    // Pass the TypeInfo (which the hover system can display)
                     marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.IMPORTED_CLASS,
                             syntheticType.getTypeInfo()));
                     continue;
                 }
                 JSTypeRegistry jsRegistry = JSTypeRegistry.getInstance();
                 if (jsRegistry.isGlobalImport(className)) {
-                    // Mark as IMPORTED_CLASS since it's a type reference
                     TypeInfo globalType = TypeInfo.fromJSTypeInfo(jsRegistry.getGlobalImportType(className));
                     marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.INTERFACE_DECL, globalType));
                     continue;
                 }
             }
             
-            // Use position-aware resolution so inner class names (e.g., OrbBuilder inside Outer)
-            // resolve via the positional fallback that walks enclosing.getInnerClass(name).
+            long tRes = profiling ? System.nanoTime() : 0;
             TypeInfo info = resolveType(className, start);
+            if (profiling) loop1ResolveNs += System.nanoTime() - tRes;
+
             if (info != null && info.isResolved()) {
+                loop1Resolved++;
                 marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), info));
             } else {
-                // Unknown type - mark as undefined
                 marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
             }
         }
 
-        // Also mark uppercase identifiers in type positions (new X(), X variable, etc.)
+        // ── Loop 2: typeUsage ── identifiers in type positions (new, decl, etc.)
+        long loop2RegexNs = 0, loop2ExcludedNs = 0, loop2ResolveNs = 0;
+        long loop2CtorParseNs = 0, loop2CtorMatchNs = 0, loop2CtorValidateNs = 0;
+        long loop2QualWalkNs = 0;
+        int loop2Matches = 0, loop2Resolved = 0, loop2Skipped = 0;
+        int loop2CtorCalls = 0, loop2CtorSecondPass = 0;
+
+        t0 = profiling ? System.nanoTime() : 0;
         Pattern typeUsage = Pattern.compile("\\b(new\\s+)?([A-Za-z][a-zA-Z0-9_]*)(?:\\s*<[^>]*>)?\\s*(?:\\(|\\[|\\b[a-z])");
         Matcher tm = typeUsage.matcher(text);
+        if (profiling) loop2RegexNs = System.nanoTime() - t0;
 
         while (tm.find()) {
+            loop2Matches++;
             String className = tm.group(2);
             String newKeyword = tm.group(1);
             int start = tm.start(2);
             int end = tm.end(2);
 
-            if (isExcluded(start))
-                continue;
+            long tExcl = profiling ? System.nanoTime() : 0;
+            boolean excluded = isExcluded(start);
+            if (!excluded) excluded = isInImportOrPackage(start);
+            if (profiling) loop2ExcludedNs += System.nanoTime() - tExcl;
+            if (excluded) { loop2Skipped++; continue; }
 
-            // Skip in import/package statements
-            if (isInImportOrPackage(start))
-                continue;
-
-            // When the class name is preceded by a dot (e.g., OrbBuilder in AbilityLine.OrbBuilder),
-            // walk backwards to reconstruct the full qualified name and resolve via scriptTypesByDotName.
-            // resolveType(simpleNameOnly) fails outside the enclosing class body; the qualified name always works.
-            // We also track outerQualStart so we can detect 'new' before the full qualified name.
+            long tQual = profiling ? System.nanoTime() : 0;
             String resolveKey = className;
             int outerQualStart = start;
             if (isPrecededByDot(start)) {
@@ -9939,18 +10016,21 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                     while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) pos--;
                 }
             }
+            if (profiling) loop2QualWalkNs += System.nanoTime() - tQual;
+
+            long tRes = profiling ? System.nanoTime() : 0;
             TypeInfo info = resolveType(resolveKey, start);
             if (info == null || !info.isResolved()) {
                 info = resolveType(className, start);
             }
+            if (profiling) loop2ResolveNs += System.nanoTime() - tRes;
+
             boolean isClassTypeInfo = false;
             ClassTypeInfo classRef = null;
             FieldInfo varInfo = null;
-            // If not a class name, check if it's a variable holding a ClassTypeInfo
             if ((info == null || !info.isResolved()) && isJavaScript()) {
                 varInfo = resolveVariable(className, start);
                 if (varInfo != null && varInfo.getTypeInfo() instanceof ClassTypeInfo) {
-                    // Variable holds a class reference (like var File = Java.type("java.io.File"))
                     classRef = (ClassTypeInfo) varInfo.getTypeInfo();
                     info = classRef.getInstanceType();
                     isClassTypeInfo = true;
@@ -9958,10 +10038,8 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
             }
             
             if (info != null && info.isResolved()) {
+                loop2Resolved++;
                 boolean isNewCreation = newKeyword != null && newKeyword.trim().equals("new");
-                // For dot-qualified types like 'new AbilityLine.OrbBuilder(...)', the regex never
-                // captures 'new' in group 1 because 'new' precedes 'AbilityLine', not 'OrbBuilder'.
-                // Detect it by checking whether outerQualStart is preceded by the 'new' keyword.
                 if (!isNewCreation && outerQualStart < start) {
                     int checkPos = outerQualStart - 1;
                     while (checkPos >= 0 && Character.isWhitespace(text.charAt(checkPos))) checkPos--;
@@ -9974,14 +10052,11 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                 }
                 boolean isConstructorDecl = info instanceof ScriptTypeInfo && className.equals(info.getSimpleName());
                 
-                // Check if this is a "new" expression or constructor declaration
                 if (isNewCreation || isConstructorDecl) {
-                    // Find opening paren after the class name
                     int searchPos = end;
                     while (searchPos < text.length() && Character.isWhitespace(text.charAt(searchPos)))
                         searchPos++;
                     
-                    // Skip generic args or diamond operator (e.g., <Integer> or <>)
                     if (searchPos < text.length() && text.charAt(searchPos) == '<') {
                         int closeAngle = text.indexOf('>', searchPos);
                         if (closeAngle >= 0) {
@@ -9996,31 +10071,28 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                         int closeParen = findMatchingParen(openParen); 
                         
                         if (closeParen >= 0) {
-                            // For constructor declarations, verify it's followed by opening brace 
                             if (isConstructorDecl && !isNewCreation) {
                                 int braceSearch = closeParen + 1;
                                 while (braceSearch < text.length() && Character.isWhitespace(text.charAt(braceSearch)))
                                     braceSearch++;
                                 
                                 if (braceSearch >= text.length() || text.charAt(braceSearch) != '{') {
-                                    // Not a constructor declaration, treat as normal type usage
                                     marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), info));
                                     continue;
                                 }
                             }
                             
-                            // Parse arguments to find matching constructor
+                            loop2CtorCalls++;
+                            long tParse = profiling ? System.nanoTime() : 0;
                             List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen,
                                     null, info);
+                            if (profiling) loop2CtorParseNs += System.nanoTime() - tParse;
+
                             int argCount = arguments.size();
                             TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType)
                                                            .toArray(TypeInfo[]::new);
 
-
-                            // Try to find matching constructor (may be null if not found).
-                            // First try exact type-match; if that fails but constructors exist, fall back to
-                            // arg-count match so validate() can fire a WRONG_ARG_TYPE error instead of
-                            // incorrectly treating the call as "no constructor matches N arguments".
+                            long tMatch = profiling ? System.nanoTime() : 0;
                             MethodInfo constructor = null;
                             if (info.hasConstructors()) {
                                 constructor = info.findConstructor(argTypes);
@@ -10028,24 +10100,23 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                                     constructor = info.findConstructor(argCount);
                                 }
                             }
+                            if (profiling) loop2CtorMatchNs += System.nanoTime() - tMatch;
 
-                            // Second pass: re-parse arguments with expected parameter types from resolved constructor
-                            // This enables SAM type inference for lambda arguments (e.g., Consumer<T> parameters)
                             if (constructor != null && constructor.getParameters().size() == arguments.size()) {
+                                loop2CtorSecondPass++;
+                                long tParse2 = profiling ? System.nanoTime() : 0;
                                 arguments = parseMethodArguments(openParen + 1, closeParen, constructor, info);
+                                if (profiling) loop2CtorParseNs += System.nanoTime() - tParse2;
                             }
                             
-                            // Create MethodCallInfo for constructor
-                            // Use the actual variable name (className) for variables, not the class's simple name
                             MethodCallInfo ctorCall;
                             if (isClassTypeInfo) {
-                                // Use constructor directly with variable name
                                 ctorCall = new MethodCallInfo(
-                                    className,           // Use variable name, not class name
+                                    className,
                                     start, end,
                                     openParen, closeParen,
                                     arguments,
-                                        classRef,                // The actual class type
+                                        classRef,
                                     constructor,
                                     false
                                 ).setConstructor(true);
@@ -10056,9 +10127,11 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                                 );
                             }
                             
+                            long tVal = profiling ? System.nanoTime() : 0;
                             ctorCall.validate();
-                            methodCalls.add(ctorCall);  // Add to methodCalls list for error tracking
+                            if (profiling) loop2CtorValidateNs += System.nanoTime() - tVal;
 
+                            methodCalls.add(ctorCall);
 
                             TokenType type = isClassTypeInfo ? varInfo.isGlobal() ? TokenType.GLOBAL_FIELD
                                     : TokenType.LOCAL_FIELD : TokenType.METHOD_CALL;
@@ -10070,9 +10143,37 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
                 
                 marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), info));
             } else {
-                // Unknown type - mark as undefined
                 marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
             }
+        }
+
+        // ── Emit profiler sections from accumulated timings ──
+        if (profiling) {
+            emitAccumulatedNanos("classUsage.regexCompile", loop1RegexNs);
+            emitAccumulatedNanos("classUsage.isExcluded", loop1ExcludedNs);
+            emitAccumulatedNanos("classUsage.resolveType", loop1ResolveNs);
+            emitAccumulatedNanos("typeUsage.regexCompile", loop2RegexNs);
+            emitAccumulatedNanos("typeUsage.isExcluded", loop2ExcludedNs);
+            emitAccumulatedNanos("typeUsage.qualWalk", loop2QualWalkNs);
+            emitAccumulatedNanos("typeUsage.resolveType", loop2ResolveNs);
+            emitAccumulatedNanos("typeUsage.ctorParse", loop2CtorParseNs);
+            emitAccumulatedNanos("typeUsage.ctorMatch", loop2CtorMatchNs);
+            emitAccumulatedNanos("typeUsage.ctorValidate", loop2CtorValidateNs);
+
+            System.out.println("[markImportedClassUsages] Loop1: " + loop1Matches + " matches, "
+                + loop1Skipped + " skipped, " + loop1Resolved + " resolved"
+                + " | Loop2: " + loop2Matches + " matches, " + loop2Skipped + " skipped, "
+                + loop2Resolved + " resolved, " + loop2CtorCalls + " ctors ("
+                + loop2CtorSecondPass + " 2nd-pass)");
+
+            printResolveProfiler();
+        }
+    }
+
+    private void emitAccumulatedNanos(String name, long nanos) {
+        double ms = nanos / 1_000_000.0;
+        if (ms >= 0.01) {
+            System.out.println(String.format("  [profiler] %-30s %8.2f ms", name, ms));
         }
     }
 
@@ -11046,7 +11147,7 @@ for (ScriptTypeInfo type:scriptTypes.values()) {
         Set<TypeInfo> types = new HashSet<>();
         for (ImportData imp : imports) {
             if (!imp.isWildcard() && imp.isResolved()) {
-                TypeInfo type = typeResolver.resolveSimpleName(imp.getSimpleName(), importsBySimpleName, wildcardPackages);
+                TypeInfo type = cachedResolveSimpleName(imp.getSimpleName());
                 if (type != null && type.isResolved()) {
                     types.add(type);
                 }
