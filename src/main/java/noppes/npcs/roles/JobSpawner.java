@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.VersionCompatibility;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -100,6 +101,7 @@ public class JobSpawner extends JobInterface {
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
+        VersionCompatibility.CheckSpawnerCompatibility(compound, MathHelper.floor_double(npc.posX), MathHelper.floor_double(npc.posY), MathHelper.floor_double(npc.posZ), npc.worldObj);
         compound1 = compound.getCompoundTag("SpawnerNBT1");
         compound2 = compound.getCompoundTag("SpawnerNBT2");
         compound3 = compound.getCompoundTag("SpawnerNBT3");

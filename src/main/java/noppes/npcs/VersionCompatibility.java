@@ -1,9 +1,9 @@
 package noppes.npcs;
 
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.*;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
+import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -48,6 +48,23 @@ public class VersionCompatibility {
             // Fix DialogDarkenScreen
             if (compound.hasKey("DialogDarkenScreen")) {
                 compound.removeTag("DialogDarkenScreen");
+            }
+
+            if (compound.hasKey("FiringDelay") && compound.hasKey("DelayVariance")) {
+                int min = compound.getInteger("FiringDelay");
+                int max = compound.getInteger("DelayVariance");
+                compound.setInteger("minDelay", min);
+                compound.setInteger("maxDelay", max);
+                compound.removeTag("FiringDelay");
+                compound.removeTag("DelayVariance");
+            }
+
+            if (compound.hasKey("pEffect")) {
+                int effect = compound.getInteger("pEffect");
+                EnumPotionType enumPotionType = EnumPotionType.fromOrdinal(effect);
+                if (enumPotionType == EnumPotionType.Fire) {
+                    compound.setBoolean("pBurnItem", true);
+                }
             }
         }
         if (npc.npcVersion < 12) {
@@ -110,6 +127,56 @@ public class VersionCompatibility {
 
                 compound.setIntArray("StartPosNew", new int[]{x, y, z});
             }
+
+            NBTTagList movingPathLegacy = compound.getTagList("MovingPath", Constants.NBT.TAG_LIST);
+
+            if (movingPathLegacy.tagCount() > 0) {
+                NBTTagList MovingPathNew = new NBTTagList();
+
+                for (int i = movingPathLegacy.tagCount() - 1; i >= 0; i--) {
+                    NBTTagList array = (NBTTagList) movingPathLegacy.removeTag(i);
+
+                    if (array.tagCount() == 3) {
+                        int x = array.getCompoundTagAt(0).getInteger("Slot");
+                        int y = array.getCompoundTagAt(1).getInteger("Slot");
+                        int z = array.getCompoundTagAt(2).getInteger("Slot");
+
+                        NBTTagCompound pathPoint = new NBTTagCompound();
+                        pathPoint.setIntArray("Array", new int[]{x, y, z});
+
+                        MovingPathNew.appendTag(pathPoint);
+                    }
+                }
+
+                NBTTagList finalList = new NBTTagList();
+                for (int i = MovingPathNew.tagCount() - 1; i >= 0; i--) {
+                    finalList.appendTag(MovingPathNew.getCompoundTagAt(i));
+                }
+
+                compound.setTag("MovingPathNew", finalList);
+            }
+
+            if (compound.hasKey("NpcJob")) {
+                int npcJob = compound.getInteger("NpcJob");
+                if (npcJob == 5) {
+                    compound.setByte("BossBar", (byte) 1);
+                    compound.setInteger("NpcJob", 0);
+                }
+            }
+
+            if (compound.hasKey("SkinColor")) {
+                int skinColor = compound.getInteger("SkinColor");
+                if (skinColor != 16777215) {
+                    compound.setBoolean("TintEnabled", true);
+                    compound.setInteger("GeneralTint", skinColor);
+                    compound.setInteger("GeneralAlpha", 100);
+                    compound.setBoolean("GeneralTintEnabled", true);
+                }
+            }
+
+            if (!compound.getString("GlowTexture").isEmpty() && compound.getInteger("NpcVisible") == 1) {
+                compound.setInteger("NpcVisible", 2);
+            }
         }
         if (npc.npcVersion == 13) {
             boolean bo = compound.getBoolean("HealthRegen");
@@ -121,6 +188,16 @@ public class VersionCompatibility {
 
         }
         npc.npcVersion = ModRev;
+    }
+
+    public static void CheckSpawnerCompatibility(NBTTagCompound compound, int x, int y, int z, World world) {
+        for (int i = 1; i <= 6; i++) {
+            NBTTagCompound tag = compound.getCompoundTag("SpawnerNBT" + i);
+            if (tag.hasNoTags() || tag.getInteger("ModRev") == ModRev) continue;
+
+            tag.setString("id", "customnpcs.CustomNpc");
+            compound.setTag("SpawnerNBT" + i, tag);
+        }
     }
 
     public static void CheckModelCompatibility(EntityNPCInterface npc, NBTTagCompound compound) {

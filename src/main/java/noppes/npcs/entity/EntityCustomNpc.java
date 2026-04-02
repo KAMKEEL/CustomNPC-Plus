@@ -1,6 +1,7 @@
 package noppes.npcs.entity;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -9,6 +10,7 @@ import noppes.npcs.VersionCompatibility;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
+import zengyj.ModelType;
 
 public class EntityCustomNpc extends EntityNPCFlying {
     public ModelData modelData = new ModelData();
@@ -24,6 +26,13 @@ public class EntityCustomNpc extends EntityNPCFlying {
             npcVersion = compound.getInteger("ModRev");
             VersionCompatibility.CheckModelCompatibility(this, compound);
             modelData.readFromNBT(compound.getCompoundTag("NpcModelData"));
+        }
+
+        //Fix Entity Class for Legacy Npc
+        if (compound.hasKey("ModelType")) {
+            int modelType = compound.getInteger("ModelType");
+            Class<? extends EntityLivingBase> clazz = (Class<? extends EntityLivingBase>) EntityList.stringToClassMapping.get(ModelType.values()[modelType].entityName);
+            modelData.setEntityClass(clazz);
         }
     }
 
