@@ -254,6 +254,7 @@ import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.input.Keyboard;
+import somehussar.gui.guides.GuideController;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.InventoryTabVanilla;
 import tconstruct.client.tabs.TabRegistry;
@@ -390,6 +391,7 @@ public class ClientProxy extends CommonProxy {
             if (TabRegistry.getTabList().isEmpty()) {
                 TabRegistry.registerTab(new InventoryTabVanilla());
             }
+            GuideController.forceGuideButtonToBeFirst();
             TabRegistry.registerTab(new InventoryTabCustomNpc());
         }
     }
