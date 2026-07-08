@@ -254,15 +254,13 @@ import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.input.Keyboard;
-import somehussar.gui.guides.GuideController;
-import tconstruct.client.tabs.InventoryTabCustomNpc;
-import tconstruct.client.tabs.InventoryTabVanilla;
-import tconstruct.client.tabs.TabRegistry;
+import tconstruct.client.tabs.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 public class ClientProxy extends CommonProxy {
@@ -387,13 +385,32 @@ public class ClientProxy extends CommonProxy {
         MinecraftForge.EVENT_BUS.register(new LightningHandler());
 
         if (ConfigClient.InventoryGuiEnabled) {
-            MinecraftForge.EVENT_BUS.register(new TabRegistry());
-            if (TabRegistry.getTabList().isEmpty()) {
-                TabRegistry.registerTab(new InventoryTabVanilla());
-            }
-            GuideController.forceGuideButtonToBeFirst();
-            TabRegistry.registerTab(new InventoryTabCustomNpc());
+            setupTabs();
         }
+    }
+
+    private void setupTabs() {
+        MinecraftForge.EVENT_BUS.register(new TabRegistry());
+
+        ensureInventoryTabIsFirst();
+
+        TabRegistry.getTabList().add(1, new InventoryTabGuides());
+        TabRegistry.registerTab(new InventoryTabCustomNpc());
+    }
+
+    private void ensureInventoryTabIsFirst() {
+        List<AbstractTab> tabList = TabRegistry.getTabList();
+
+        // Find the first inventory tab or create one.
+        InventoryTabVanilla vanillaTab = tabList.stream()
+            .filter(InventoryTabVanilla.class::isInstance)
+            .map(InventoryTabVanilla.class::cast)
+            .findFirst()
+            .orElseGet(InventoryTabVanilla::new);
+
+        // Move the inventory tab to be the FIRST in the list no matter what.
+        tabList.remove(vanillaTab);
+        tabList.add(0, vanillaTab);
     }
 
     public FakePlayer getCommandPlayer(IWorld world) {
