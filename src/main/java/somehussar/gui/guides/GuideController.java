@@ -5,7 +5,7 @@ import tconstruct.client.tabs.InventoryTabGuides;
 import tconstruct.client.tabs.TabRegistry;
 
 // TODO: THIS IS JUST THE CLIENT SIDE CONTROLLER
-// NEED SERVER SIDE
+//       NEED SERVER SIDE
 public class GuideController {
     private static boolean isGuideLoaded = true;
 
@@ -17,7 +17,7 @@ public class GuideController {
         GuideController.isGuideLoaded = isGuideLoaded;
     }
 
-    public static void forceGuideButtonToBeFirst() {
-        TabRegistry.getTabList().add(0, new InventoryTabGuides());
+    public static boolean glint() {
+        return true;
     }
 }
