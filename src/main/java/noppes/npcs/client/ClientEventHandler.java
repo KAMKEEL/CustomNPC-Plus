@@ -19,7 +19,9 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.hud.ClientHudManager;
 import noppes.npcs.client.gui.hud.CompassHudComponent;
@@ -36,6 +38,7 @@ import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.controllers.data.MarkData;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
+import somehussar.gui.guides.GuideController;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -77,6 +80,12 @@ public class ClientEventHandler {
         } catch (ClassNotFoundException e) {
             renderPlayerJBRA = null;
         }
+    }
+
+    @SubscribeEvent
+    public void worldEventLoad(WorldEvent.Load event) {
+        GuideController.resetGlint();
+        GuideController.handleWorldJoin();
     }
 
     @SubscribeEvent

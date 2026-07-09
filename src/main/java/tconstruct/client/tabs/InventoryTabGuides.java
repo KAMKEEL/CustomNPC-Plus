@@ -2,11 +2,14 @@ package tconstruct.client.tabs;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.achievement.GuiAchievement;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.stats.Achievement;
+import net.minecraft.stats.AchievementList;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -28,6 +31,7 @@ public class InventoryTabGuides extends AbstractTab {
         int ySize = 166;
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 
+        GuideController.disableGlint();
         if (!(gui instanceof GuiInventory))
             return;
 
