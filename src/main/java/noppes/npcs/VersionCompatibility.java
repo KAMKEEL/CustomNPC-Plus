@@ -1,9 +1,7 @@
 package noppes.npcs;
 
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.*;
+import net.minecraftforge.common.util.Constants;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -109,6 +107,34 @@ public class VersionCompatibility {
                 int x = ((NBTTagInt) list.removeTag(0)).func_150287_d();
 
                 compound.setIntArray("StartPosNew", new int[]{x, y, z});
+            }
+
+            NBTTagList movingPathLegacy = compound.getTagList("MovingPath", Constants.NBT.TAG_LIST);
+
+            if (movingPathLegacy.tagCount() > 0) {
+                NBTTagList MovingPathNew = new NBTTagList();
+
+                for (int i = movingPathLegacy.tagCount() - 1; i >= 0; i--) {
+                    NBTTagList array = (NBTTagList) movingPathLegacy.removeTag(i);
+
+                    if (array.tagCount() == 3) {
+                        int x = array.getCompoundTagAt(0).getInteger("Slot");
+                        int y = array.getCompoundTagAt(1).getInteger("Slot");
+                        int z = array.getCompoundTagAt(2).getInteger("Slot");
+
+                        NBTTagCompound pathPoint = new NBTTagCompound();
+                        pathPoint.setIntArray("Array", new int[]{x, y, z});
+
+                        MovingPathNew.appendTag(pathPoint);
+                    }
+                }
+
+                NBTTagList finalList = new NBTTagList();
+                for (int i = MovingPathNew.tagCount() - 1; i >= 0; i--) {
+                    finalList.appendTag(MovingPathNew.getCompoundTagAt(i));
+                }
+
+                compound.setTag("MovingPathNew", finalList);
             }
         }
         if (npc.npcVersion == 13) {
