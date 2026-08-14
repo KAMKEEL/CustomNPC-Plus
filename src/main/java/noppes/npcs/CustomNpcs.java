@@ -125,7 +125,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.11.1")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.11.2")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -317,7 +317,7 @@ public class CustomNpcs {
         new AddonManager();
         new AttributeController();
         new MagicController();
-        
+
         SyncController.register();
 
 
