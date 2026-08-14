@@ -3,6 +3,7 @@ package kamkeel.npcs.fixtures;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.util.NBTJsonUtil;
@@ -80,6 +81,34 @@ public final class WorldWriter {
         File file = new File(new File(customnpcs, "quests"), dir + "/" + quest.id + ".json");
         writeJson(file, quest.writeToNBTPartial(new NBTTagCompound()));
         manifest.record(world, "quest", String.valueOf(quest.id), rel(file), note);
+    }
+
+    // ------------------------------------------------------------------
+    // Custom effects -- CustomEffectController.saveCustomEffect / loadEffectsFromDir
+    //
+    // The filename is the name: loadEffectsFromDir overwrites whatever `name` the file contained
+    // with the filename minus .json. An empty category means the effect sits at the root of
+    // customeffects/, which is what CategoryManager calls Uncategorized -- there is no category
+    // file anywhere, only the directory.
+    // ------------------------------------------------------------------
+    public void effect(String category, CustomEffect effect, String note) {
+        effect(category, effect.getName(), effect, note);
+    }
+
+    /**
+     * As {@link #effect}, with the filename stated separately.
+     *
+     * <p>Needed because the filename and the {@code name} key are genuinely independent on disk,
+     * and a fixture proving the loader prefers the filename has to be able to disagree with it.
+     */
+    public void effect(String category, String fileName, CustomEffect effect, String note) {
+        File dir = new File(customnpcs, "customeffects");
+        if (category != null && !category.isEmpty()) {
+            dir = new File(dir, NoppesStringUtils.cleanFileName(category));
+        }
+        File file = new File(dir, NoppesStringUtils.cleanFileName(fileName) + ".json");
+        writeJson(file, effect.writeToNBT(true));
+        manifest.record(world, "effect", String.valueOf(effect.id), rel(file), note);
     }
 
     /**

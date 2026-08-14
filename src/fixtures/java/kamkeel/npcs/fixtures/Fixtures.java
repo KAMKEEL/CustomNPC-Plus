@@ -1,6 +1,7 @@
 package kamkeel.npcs.fixtures;
 
 import cpw.mods.fml.common.Loader;
+import kamkeel.npcs.addon.DBCAddon;
 import net.minecraft.init.Bootstrap;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -48,6 +49,12 @@ public final class Fixtures {
         }
         installBareLoader();
         Bootstrap.func_151354_b();
+        // PlayerData.getNBT ends with DBCAddon.instance.writeToNBT(...), and the field is only set
+        // by the constructor. DBCAddon is a shell whose methods a companion mod replaces by mixin,
+        // so every method here is a no-op -- constructing one costs nothing and is what stops a
+        // player record from throwing on its last line. Without the addon installed this is
+        // exactly the state a real server is in.
+        new DBCAddon();
         booted = true;
         verifyRegistry();
     }
