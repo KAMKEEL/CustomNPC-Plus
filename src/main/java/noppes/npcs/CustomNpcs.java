@@ -11,7 +11,6 @@ import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppedEvent;
-import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.relauncher.Side;
@@ -50,7 +49,6 @@ import net.minecraft.block.BlockVine;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
@@ -91,7 +89,6 @@ import noppes.npcs.controllers.ServerTagMapController;
 import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.TransportController;
-import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.EntityChairMount;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -124,7 +121,6 @@ import noppes.npcs.scripted.NpcAPI;
 import somehussar.janino.AdvancedClassFilter;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -429,31 +425,6 @@ public class CustomNpcs {
         CustomNpcsPermissions.Instance.init();
     }
 
-
-    @EventHandler
-    public void stopping(FMLServerStoppingEvent event) {
-        // Fired while everyone is still connected. Custom effects (and any other
-        // player data changed since the last save) only live in memory, and the
-        // logout event is not guaranteed to be delivered during shutdown, so flush
-        // every online player synchronously here.
-        MinecraftServer server = MinecraftServer.getServer();
-        if (server == null || server.getConfigurationManager() == null)
-            return;
-
-        for (Object obj : new ArrayList<Object>(server.getConfigurationManager().playerEntityList)) {
-            if (!(obj instanceof EntityPlayer))
-                continue;
-            try {
-                PlayerData data = PlayerData.get((EntityPlayer) obj);
-                if (data != null) {
-                    data.flushEffects();
-                    data.save(true);
-                }
-            } catch (Exception e) {
-                LogWriter.except(e);
-            }
-        }
-    }
 
     @EventHandler
     public void stopped(FMLServerStoppedEvent event) {
