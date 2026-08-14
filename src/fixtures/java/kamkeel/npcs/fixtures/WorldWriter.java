@@ -47,7 +47,10 @@ public final class WorldWriter {
         this.world = world;
         this.root = new File(outputRoot, world);
         this.customnpcs = new File(root, "customnpcs");
-        this.readable = new File(root, "_readable");
+        // Outside the world directory, not inside it. A generated <world>/ is meant to be usable
+        // as a drop-in overlay -- Scribe's smoke harness copies a set's contents straight into a
+        // server's world -- so it must contain customnpcs/ and nothing else.
+        this.readable = new File(new File(outputRoot, "_readable"), world);
         this.manifest = manifest;
         mkdirs(customnpcs);
         mkdirs(readable);

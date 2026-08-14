@@ -30,15 +30,17 @@ public final class Readme {
         sb.append("## Layout\n\n");
         sb.append("```\n");
         for (FixtureWorld world : worlds) {
-            sb.append(world.name()).append("/\n");
-            sb.append("  customnpcs/   <- exactly a CustomNPC+ world directory, and nothing else\n");
-            sb.append("  _readable/    <- NBTJsonUtil renderings of the .dat files, for humans\n");
+            sb.append(world.name()).append("/customnpcs/    <- a CustomNPC+ world directory, and nothing else\n");
         }
-        sb.append("manifest.json   <- which file holds which case, and why\n");
+        sb.append("_readable/<world>/   <- NBTJsonUtil renderings of the .dat files, for humans\n");
+        sb.append("manifest.json        <- which file holds which case, and why\n");
         sb.append("```\n\n");
-        sb.append("`customnpcs/` can be dropped straight into a save directory. `_readable/` is a\n");
-        sb.append("debugging aid: it is CustomNPC+'s own JSON rendering, which suffixes scalars\n");
-        sb.append("with their type (`5b`, `5L`, `1.0f`) and so is deliberately not strict JSON.\n\n");
+        sb.append("Each `<world>/` holds `customnpcs/` and nothing else, so it drops straight into\n");
+        sb.append("a save directory -- or, in Scribe, works as-is as a `cnpc_data_sets` overlay.\n");
+        sb.append("The readable renderings sit outside the world directories for that reason.\n\n");
+        sb.append("`_readable/` is a debugging aid, not a fixture: it is CustomNPC+'s own JSON\n");
+        sb.append("rendering, which suffixes scalars with their type (`5b`, `5L`, `1.0f`) and is\n");
+        sb.append("therefore deliberately not strict JSON. The widths being visible is the point.\n\n");
 
         sb.append("## The worlds\n\n");
         for (FixtureWorld world : worlds) {
