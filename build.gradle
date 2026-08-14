@@ -58,6 +58,43 @@ sourceSets.main.java {
 }
 
 // ============================================================================
+// Scribe fixtures -- an offline generator for CustomNPC+ save data.
+//
+// Its own source set, so nothing here reaches the mod jar. It runs CustomNPC+'s
+// own writeToNBT/writeNBT methods against a bootstrapped-but-unlaunched
+// Minecraft, and writes the results into a world layout copied from each
+// controller. See src/fixtures/README.md.
+// ============================================================================
+sourceSets {
+    fixtures {
+        java.srcDirs = ['src/fixtures/java']
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
+tasks.register('scribeFixtures', JavaExec) {
+    group 'CustomNPC+'
+    description 'Generates CustomNPC+ save fixtures for Scribe. -Pout=<dir>, -Pworlds=<a,b>'
+    dependsOn 'fixturesClasses'
+    classpath = sourceSets.fixtures.runtimeClasspath
+    mainClass = 'kamkeel.npcs.fixtures.FixtureGenerator'
+    // Off the project dir, because CustomNpcs.getWorldSaveDirectory() resolves "." and
+    // a stray relative write would land in the repo root.
+    workingDir = project.buildDir
+    doFirst {
+        // Resolved against the project directory, not workingDir, so -Pout=build/x means what it
+        // looks like rather than build/build/x.
+        def out = project.hasProperty('out') ? project.file(project.property('out'))
+                                             : new File(project.buildDir, 'scribe-fixtures')
+        args = [out.absolutePath]
+        if (project.hasProperty('worlds')) {
+            args += ['--worlds', project.property('worlds')]
+        }
+    }
+}
+
+// ============================================================================
 // TypeScript Definition Generation Task
 // Generates .d.ts files from Java API sources for scripting IDE support
 // ============================================================================
