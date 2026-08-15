@@ -21,6 +21,7 @@ import io.github.somehussar.janinoloader.api.IDynamicCompiler;
 import io.github.somehussar.janinoloader.api.IDynamicCompilerBuilder;
 import kamkeel.npcs.addon.AddonManager;
 import kamkeel.npcs.command.CommandKamkeel;
+import kamkeel.npcs.command.GuideCommand;
 import kamkeel.npcs.command.profile.CommandProfile;
 import kamkeel.npcs.controllers.AbilityController;
 import kamkeel.npcs.controllers.AttributeController;
@@ -120,6 +121,7 @@ import noppes.npcs.entity.old.EntityNpcMonsterMale;
 import noppes.npcs.entity.old.EntityNpcNagaFemale;
 import noppes.npcs.entity.old.EntityNpcNagaMale;
 import noppes.npcs.entity.old.EntityNpcSkeleton;
+import noppes.npcs.guide.GuideServerTasks;
 import noppes.npcs.scripted.NpcAPI;
 import somehussar.janino.AdvancedClassFilter;
 
@@ -471,6 +473,8 @@ public class CustomNpcs {
         EntityEnergyProjectile.clearAllProjectiles();
         EntityEnergyBarrier.clearAllBarriers();
         EnergyChargeTracker.Instance.clear();
+        // 关服后不会再有 tick 来排干这个队列，留着只会把上一局的任务带进下一局。
+        GuideServerTasks.clear();
 
         if (FMLCommonHandler.instance().getSide().isClient())
             clientJaninoCompiler = null;
@@ -481,6 +485,7 @@ public class CustomNpcs {
     public void serverstart(FMLServerStartingEvent event) {
         event.registerServerCommand(new CommandNoppes());
         event.registerServerCommand(new CommandKamkeel());
+        event.registerServerCommand(new GuideCommand());
         if (ConfigMain.ProfilesEnabled)
             event.registerServerCommand(new CommandProfile());
     }

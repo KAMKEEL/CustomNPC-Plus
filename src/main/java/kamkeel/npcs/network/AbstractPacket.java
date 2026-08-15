@@ -50,6 +50,18 @@ public abstract class AbstractPacket {
         return false;
     }
 
+    /**
+     * Whether this packet is exempt from the server-wide "Only Ops Edit NPCs" gate.
+     *
+     * That gate blocks every REQUEST packet from non-ops, which is right for the editing
+     * packets it was written for, but wrong for player-facing features that explicitly do
+     * not require op. Defaults to false so no existing packet changes behaviour; override
+     * to true only for packets that are safe for any player to send.
+     */
+    public boolean bypassOpsOnly() {
+        return false;
+    }
+
     public void setNPC(EntityNPCInterface npc) {
         this.npc = npc;
     }
