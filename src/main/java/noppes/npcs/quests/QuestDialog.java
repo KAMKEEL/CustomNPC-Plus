@@ -264,6 +264,12 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
             return true;
         } else {
             HashMap<Integer, Boolean> readValues = new HashMap<>();
+            // Every required dialog starts unread. Without this the map only ever receives true,
+            // so the check below cannot find a false and a shared objective is always complete --
+            // including for a party that has read nothing at all.
+            for (int dialogId : dialogs.values()) {
+                readValues.put(dialogId, false);
+            }
             for (UUID uuid : party.getPlayerUUIDs()) {
                 EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
                 PlayerData playerData;
