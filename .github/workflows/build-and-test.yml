@@ -38,9 +38,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: |
-            8
-            17
-            21
+            25
           distribution: 'zulu'
 
       - name: Setup Gradle
