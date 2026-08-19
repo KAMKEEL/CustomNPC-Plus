@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;
@@ -54,44 +55,25 @@ public class QuestTrackingComponent extends HudComponent {
         NBTTagList nbtTagList = compound.getTagList("ObjectiveList", 8);
         for (int i = 0; i < nbtTagList.tagCount(); i++) {
             String objective = nbtTagList.getStringTagAt(i);
-
-            String[] split = objective.split(":");
-            split = split[split.length - 1].split("/");
-
-            boolean completed = false;
-
-            try {
-                if (split.length < 2)
-                    throw new NumberFormatException("catch");
-
-                int killed = Integer.parseInt(split[0].trim());
-                int total = Integer.parseInt(split[1].trim());
-
-                if (killed / total == 1) {
-                    completed = true;
-                }
-            } catch (NumberFormatException e) {
-                if (objective.endsWith("(Done)") || objective.endsWith("(read)") || (objective.endsWith("Found") && !objective.endsWith("Not Found"))) {
-                    completed = true;
-                }
-            }
+            boolean completed = isCompletedObjective(objective);
+            String displayObjective = localizeObjective(objective);
 
             if (completed) {
-                objective = "&a&m" + objective;
+                displayObjective = "&a&m" + displayObjective;
             } else {
-                objective = "&6" + objective;
+                displayObjective = "&6" + displayObjective;
             }
 
-            objectives.add(objective);
+            objectives.add(displayObjective);
         }
         String turnIn = "";
         boolean instantComplete = compound.getBoolean("Instant");
         if (instantComplete) {
-            turnIn = "Completed automatically";
+            turnIn = translate("quest.completedautomatically", "Completed automatically");
         } else {
             String npcName = compound.getString("TurnInNPC");
             if (!npcName.isEmpty()) {
-                turnIn = "Complete with " + npcName;
+                turnIn = translateFormatted("quest.completewith", "Complete with %s", npcName);
             }
         }
         setQuestData(quest, category, objectives, turnIn);
@@ -303,6 +285,79 @@ public class QuestTrackingComponent extends HudComponent {
 
     private String convertColorCodes(String text) {
         return text.replaceAll("&([0-9a-fk-or])", "§$1");
+    }
+
+    private boolean isCompletedObjective(String objective) {
+        String[] split = objective.split(":");
+        split = split[split.length - 1].split("/");
+
+        try {
+            if (split.length < 2)
+                throw new NumberFormatException("catch");
+
+            int current = Integer.parseInt(split[0].trim());
+            int total = Integer.parseInt(split[1].trim());
+            return total > 0 && current >= total;
+        } catch (NumberFormatException e) {
+            return objective.endsWith("(Done)") || objective.endsWith("(read)")
+                || (objective.endsWith("Found") && !objective.endsWith("Not Found"));
+        }
+    }
+
+    private String localizeObjective(String objective) {
+        if (objective.startsWith("Completed: ")) {
+            return translateFormatted("quest.completedplayers", "Completed: %s", objective.substring("Completed: ".length()));
+        }
+
+        String localized = objective;
+        localized = replaceSuffix(localized, "(Done)", "quest.done", "(Done)");
+        localized = replaceSuffix(localized, "(read)", "quest.read", "(read)");
+        localized = replaceSuffix(localized, "(unread)", "quest.unread", "(unread)");
+
+        int separator = localized.lastIndexOf(":");
+        if (separator > 0) {
+            String name = localized.substring(0, separator);
+            String status = localized.substring(separator + 1).trim();
+            if (status.matches("\\d+(\\s*/\\s*\\d+)?")) {
+                name = localizeObjectiveName(name);
+                return name + localized.substring(separator, separator + 1) + localized.substring(separator + 1);
+            }
+            if (status.equals("Found") || status.equals("Not Found")) {
+                name = localizeObjectiveName(name);
+                status = translate(status.equals("Found") ? "quest.found" : "quest.notfound", status);
+                return name + ": " + status;
+            }
+        }
+
+        return localized;
+    }
+
+    private String replaceSuffix(String text, String suffix, String translationKey, String fallback) {
+        if (text.endsWith(suffix)) {
+            return text.substring(0, text.length() - suffix.length()) + translate(translationKey, fallback);
+        }
+        return text;
+    }
+
+    private String translate(String key, String fallback) {
+        String translated = StatCollector.translateToLocal(key);
+        return translated.equals(key) ? fallback : translated;
+    }
+
+    private String translateFormatted(String key, String fallback, Object... args) {
+        String translated = StatCollector.translateToLocal(key);
+        return String.format(translated.equals(key) ? fallback : translated, args);
+    }
+
+    private String localizeObjectiveName(String name) {
+        String translated = StatCollector.translateToLocal(name);
+        if (!translated.equals(name))
+            name = translated;
+
+        translated = StatCollector.translateToLocal("entity." + name + ".name");
+        if (!translated.equals("entity." + name + ".name"))
+            name = translated;
+        return name;
     }
 
     private ArrayList<String> splitLines(String text, int maxWidth) {
