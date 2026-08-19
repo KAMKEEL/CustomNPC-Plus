@@ -446,8 +446,7 @@ public class CustomNpcs {
             try {
                 PlayerData data = PlayerData.get((EntityPlayer) obj);
                 if (data != null) {
-                    data.flushEffects();
-                    data.save(true);
+                    data.save();
                 }
             } catch (Exception e) {
                 LogWriter.except(e);
