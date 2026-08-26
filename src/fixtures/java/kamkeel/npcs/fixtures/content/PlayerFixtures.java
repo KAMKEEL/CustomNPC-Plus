@@ -73,15 +73,43 @@ public final class PlayerFixtures {
 
         PlayerData extras = player("069a79f4-44e9-4726-a5be-fca90e38aaf5", "Notch");
         QuestData withExtras = questData(75, false);
-        withExtras.extraData.setInteger("Zombie", 14);
-        withExtras.extraData.setInteger("Skeleton", 3);
-        withExtras.extraData.setString("LastLocation", "Northern Watchtower");
+        withExtras.extraData.setTag("Killed", killed("Zombie", 14, "Skeleton", 3));
+        withExtras.extraData.setBoolean("LocationFound", true);
+        withExtras.extraData.setBoolean("Location2Found", true);
         extras.questData.activeQuests.put(75, withExtras);
         extras.dialogData.dialogsRead.add(58);
         out.add(new Case<PlayerData>("", extras,
-            "an active quest whose ExtraData holds per-objective counters. This is where kill "
-                + "counts and reached locations actually live -- the quest itself stores only the "
-                + "targets, so a reader that ignores ExtraData can never show progress"));
+            "an active quest whose ExtraData holds per-objective progress, in the shapes the "
+                + "quest classes actually read. Kill counts are a Killed tag list of Slot/Value "
+                + "compounds -- NBTTags.getStringIntegerMap -- not loose integers keyed by mob "
+                + "name, and a reached location is a boolean under its own key. The quest stores "
+                + "only the targets, so a reader that ignores ExtraData can never show progress"));
+
+        PlayerData party = player("11111111-2222-3333-4444-555555555555", "PartyMember");
+        QuestData shared = questData(76, false);
+        // The per-player half of a party kill quest: QuestKill keys it by the player's own name
+        // rather than by slot, so two members of one party each carry their own tally.
+        shared.extraData.setTag("PartyMemberKilled", killed("Creeper", 2));
+        shared.extraData.setTag("Killed", killed("Creeper", 5));
+        party.questData.activeQuests.put(76, shared);
+        out.add(new Case<PlayerData>("", party,
+            "a party kill quest, which stores the group total under Killed and each member's own "
+                + "share under <playerName>Killed. The second key is composed from a name, so it "
+                + "cannot be enumerated from the quest -- only from the party that took it"));
+
+        PlayerData foreign = player("22222222-3333-4444-5555-666666666666", "AddonUser");
+        QuestData unclaimed = questData(77, false);
+        // ExtraData is an opaque compound: nothing validates its keys, so an addon that stores
+        // its own progress there produces a file no objective kind here can read. Deliberate,
+        // and the case a reader has to report rather than silently drop.
+        unclaimed.extraData.setInteger("dbcaddon:KiCharged", 900);
+        unclaimed.extraData.setString("dbcaddon:Form", "SuperSaiyan");
+        foreign.questData.activeQuests.put(77, unclaimed);
+        out.add(new Case<PlayerData>("", foreign,
+            "an active quest whose ExtraData holds only keys no objective kind claims, which is "
+                + "what an addon writing its own progress leaves behind. Nothing validates this "
+                + "compound, so a reader meets it on a real server and has to say so rather than "
+                + "drop it"));
 
         PlayerData nil = player("00000000-0000-0000-0000-000000000000", "NilUuid");
         nil.dialogData.dialogsRead.add(1);
@@ -122,6 +150,25 @@ public final class PlayerFixtures {
      * never touches it -- the quest id is the map key in the enclosing list, not part of the
      * entry. So a bare Quest carrying the right id is enough and nothing is invented.
      */
+    /**
+     * A counter map in the shape {@code NBTTags.nbtStringIntegerMap} writes and
+     * {@code getStringIntegerMap} reads: a list of {@code {Slot, Value}} compounds.
+     *
+     * <p>Written out by hand rather than through {@code NBTTags} so the fixture states the shape
+     * it is asserting. A generator that borrows the reader's own helper agrees with it by
+     * construction and proves nothing about it.
+     */
+    private static NBTTagList killed(Object... slotsAndCounts) {
+        NBTTagList list = new NBTTagList();
+        for (int at = 0; at < slotsAndCounts.length; at += 2) {
+            NBTTagCompound entry = new NBTTagCompound();
+            entry.setString("Slot", (String) slotsAndCounts[at]);
+            entry.setInteger("Value", ((Integer) slotsAndCounts[at + 1]).intValue());
+            list.appendTag(entry);
+        }
+        return list;
+    }
+
     private static QuestData questData(int questId, boolean completed) {
         Quest quest = new Quest();
         quest.id = questId;
