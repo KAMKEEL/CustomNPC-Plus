@@ -114,7 +114,7 @@ public class NBTJsonUtil {
             return list;
         }
         if (json.startsWith("\"")) {
-            json.cut(1);
+            json.cutDirty(1);
             String s = "";
             boolean ignore = false;
             while (!json.startsWith("\"") || ignore) {
