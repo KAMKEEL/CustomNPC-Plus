@@ -38,19 +38,6 @@ public class BlockWaypoint extends BlockContainer {
     }
 
     @Override
-    public void onBlockPlacedBy(World world, int i, int j, int k, EntityLivingBase entityliving, ItemStack item) {
-        if (entityliving instanceof EntityPlayer) {
-            if (!world.isRemote) {
-                // Server-side: sync TileEntity data to client and open GUI (same as onBlockActivated)
-                TileEntity tile = world.getTileEntity(i, j, k);
-                NBTTagCompound compound = new NBTTagCompound();
-                tile.writeToNBT(compound);
-                PacketHandler.Instance.sendToPlayer(new GuiWaypointPacket(compound), (EntityPlayerMP) entityliving);
-            }
-        }
-    }
-
-    @Override
     public TileEntity createNewTileEntity(World var1, int var2) {
         return new TileWaypoint();
     }
