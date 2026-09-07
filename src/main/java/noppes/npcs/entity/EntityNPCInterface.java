@@ -129,6 +129,7 @@ import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.data.ILine;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.EntityUtil;
+import noppes.npcs.config.ConfigExperimental;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimation;
@@ -1600,9 +1601,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             }
             droppedXp = event.expDropped;
 
-            if (this.recentlyHit > 0) {
+            if (ConfigExperimental.LegacyDrop) {
                 inventory.dropItems(entity, droppedItems);
+            }
+            if (this.recentlyHit > 0) {
                 inventory.dropXp(entity, droppedXp);
+                if (!ConfigExperimental.LegacyDrop) {
+                    inventory.dropItems(entity, droppedItems);
+                }
             }
             Line line = advanced.getKilledLine();
             if (line != null)
