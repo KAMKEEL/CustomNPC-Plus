@@ -57,6 +57,15 @@ public class VersionCompatibility {
             if (compound.hasKey("DialogDarkenScreen")) {
                 compound.removeTag("DialogDarkenScreen");
             }
+
+            if (compound.hasKey("FiringDelay") && compound.hasKey("DelayVariance")) {
+                int min = compound.getInteger("FiringDelay");
+                int max = compound.getInteger("DelayVariance");
+                compound.setInteger("minDelay", min);
+                compound.setInteger("maxDelay", max);
+                compound.removeTag("FiringDelay");
+                compound.removeTag("DelayVariance");
+            }
         }
         if (npc.npcVersion < 12) {
             CompatabilityFix(compound, npc.advanced.writeToNBT(new NBTTagCompound()));
