@@ -281,6 +281,7 @@ remote.reset=Reset
 remote.tp=Tp to
 remote.resetall=Reset All
 remote.freeze=Freeze NPCs
+remote.unfreeze=Unfreeze NPCs
 
 spawner.entities=Entities
 spawner.clones=Clones
@@ -845,6 +846,7 @@ quest.completed=Quest Complete
 quest.newquest=New Quest
 quest.noquests=You have no active quests
 quest.completewith=Complete with %s
+quest.autocompleted=Completed automatically
 quest.randomitem=Random Item
 quest.exp=Exp
 quest.takeitems=Take Items
@@ -853,6 +855,18 @@ quest.track=Track
 quest.tracking=Tracking
 quest.alerts=Alerts
 quest.noAlerts=No Alerts
+quest.repeat.left=You have %s left until you can repeat this quest.
+
+quest.status.read=(read)
+quest.status.unread=(unread)
+quest.status.done=(Done)
+quest.status.found=Found
+quest.status.notfound=Not Found
+
+time.day=%d day
+time.hour=%d hour
+time.minute=%d minute
+time.second=%d second
 
 gui.api=API
 

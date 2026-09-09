@@ -886,7 +886,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public String millisToTime(long millis) {
-        return NoppesUtilServer.millisToTime(millis);
+        return NoppesUtilServer.millisToTime(millis).getFormattedText();
     }
 
     public String ticksToTime(long ticks) {

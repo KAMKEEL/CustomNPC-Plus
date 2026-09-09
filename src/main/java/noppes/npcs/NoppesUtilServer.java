@@ -38,9 +38,7 @@ import net.minecraft.tileentity.MobSpawnerBaseLogic;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityCommandBlock;
 import net.minecraft.tileentity.TileEntityMobSpawner;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.config.ConfigMain;
@@ -1041,7 +1039,7 @@ public class NoppesUtilServer {
         return is == null || is.stackSize == 0 || is.getItem() == null;
     }
 
-    public static String millisToTime(long millis) {
+    public static IChatComponent millisToTime(long millis) {
         long seconds = millis / 1000;
         long minutes = seconds / 60;
         long hours = minutes / 60;
@@ -1050,18 +1048,36 @@ public class NoppesUtilServer {
         minutes %= 60;
         hours %= 24;
 
-        StringBuilder sb = new StringBuilder();
+        IChatComponent root = new ChatComponentText("");
+        boolean hasPrevious = false;
+
         if (days > 0) {
-            sb.append(days).append(" day").append(days == 1 ? "" : "s").append(", ");
+            root.appendSibling(new ChatComponentTranslation("time.day", days));
+            hasPrevious = true;
         }
         if (hours > 0) {
-            sb.append(hours).append(" hour").append(hours == 1 ? "" : "s").append(", ");
+            if (hasPrevious) {
+                root.appendSibling(new ChatComponentText(", "));
+            }
+            root.appendSibling(new ChatComponentTranslation("time.hour", hours));
+            hasPrevious = true;
         }
         if (minutes > 0) {
-            sb.append(minutes).append(" minute").append(minutes == 1 ? "" : "s").append(", ");
+            if (hasPrevious) {
+                root.appendSibling(new ChatComponentText(", "));
+            }
+            root.appendSibling(new ChatComponentTranslation("time.minute", minutes));
+            hasPrevious = true;
         }
-        sb.append(seconds).append(" second").append(seconds == 1 ? "" : "s");
-        return sb.toString();
+
+        if (seconds > 0 || !hasPrevious) {
+            if (hasPrevious) {
+                root.appendSibling(new ChatComponentText(", "));
+            }
+            root.appendSibling(new ChatComponentTranslation("time.second", seconds));
+        }
+
+        return root;
     }
 
     /**
