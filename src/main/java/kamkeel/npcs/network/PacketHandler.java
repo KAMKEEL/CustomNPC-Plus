@@ -9,6 +9,7 @@ import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.enums.EnumChannelType;
 import kamkeel.npcs.network.packets.data.*;
+import kamkeel.npcs.network.packets.data.GuideTargetPacket;
 import kamkeel.npcs.network.packets.data.ability.AbilityCooldownSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.AbilityHotbarSyncPacket;
 import kamkeel.npcs.network.packets.data.ability.PlayerAbilityStatePacket;
@@ -78,6 +79,7 @@ import kamkeel.npcs.network.packets.player.profile.ProfileRemovePacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileRenamePacket;
 import kamkeel.npcs.network.packets.request.DimensionsGetPacket;
 import kamkeel.npcs.network.packets.request.GuiRequestPacket;
+import kamkeel.npcs.network.packets.request.GuideQueryPacket;
 import kamkeel.npcs.network.packets.request.IsGuiOpenInform;
 import kamkeel.npcs.network.packets.request.MailOpenSetupPacket;
 import kamkeel.npcs.network.packets.request.MerchantUpdatePacket;
@@ -565,6 +567,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new TileEntitySavePacket());
         REQUEST_PACKET.registerPacket(new MountPacket());
         REQUEST_PACKET.registerPacket(new DimensionTeleportPacket());
+        REQUEST_PACKET.registerPacket(new GuideQueryPacket());
     }
 
     public void registerDataPackets() {
@@ -587,6 +590,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new VillagerListPacket());
         DATA_PACKET.registerPacket(new PlayerDataInfoPacket());
         DATA_PACKET.registerPacket(new ProfileSharedQuestPacket());
+        DATA_PACKET.registerPacket(new GuideTargetPacket());
 
         // Data | GUI Packets
         DATA_PACKET.registerPacket(new GuiClosePacket());
@@ -759,7 +763,7 @@ public class PacketHandler {
             }
 
             if (side == Side.SERVER) {
-                if (abstractPacket.getChannel() == REQUEST_PACKET && ConfigMain.OpsOnly && !NoppesUtilServer.isOp(player)) {
+                if (abstractPacket.getChannel() == REQUEST_PACKET && ConfigMain.OpsOnly && !abstractPacket.bypassOpsOnly() && !NoppesUtilServer.isOp(player)) {
                     LogWriter.error(String.format("%s tried to use CNPC+ without being an op", player.getCommandSenderName()));
                     return;
                 }
