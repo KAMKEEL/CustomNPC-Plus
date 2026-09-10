@@ -1338,13 +1338,17 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.height = newHeight;
         this.setPosition(posX, posY, posZ);
 
-        if (newWidth > oldWidth && !this.firstUpdate && !this.worldObj.isRemote) {
+        // Only push when the box really grew into a block, and only by the half-width it grew:
+        // setPosition already recentered it, unlike vanilla setSize which grows from the corner.
+        if (newWidth > oldWidth && !this.firstUpdate && !this.worldObj.isRemote
+            && !worldObj.getCollidingBoundingBoxes(this, boundingBox).isEmpty()) {
             // Lying and crawling widen the box, and moveEntity would answer that by stepping the
             // npc up onto whatever it now touches. Only the horizontal push is wanted here.
+            float push = (oldWidth - newWidth) / 2;
             float prevStepHeight = this.stepHeight;
             this.stepHeight = 0.0F;
             try {
-                this.moveEntity(oldWidth - newWidth, 0.0D, oldWidth - newWidth);
+                this.moveEntity(push, 0.0D, push);
             } finally {
                 this.stepHeight = prevStepHeight;
             }
@@ -1666,11 +1670,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     public boolean isVeryNearAssignedPlace() {
+        // Scaled by the footprint: 0.2 for a default 0.6 wide npc, so big npcs are not held to a
+        // tolerance finer than their own body. Floored for corpses, which shrink to 0.00001.
+        double t = Math.max(0.2, width / 3);
         double xx = posX - getStartXPos();
         double zz = posZ - getStartZPos();
-        if (xx < -0.2 || xx > 0.2)
+        if (xx < -t || xx > t)
             return false;
-        return !(zz < -0.2) && !(zz > 0.2);
+        return !(zz < -t) && !(zz > t);
     }
 
     @Override

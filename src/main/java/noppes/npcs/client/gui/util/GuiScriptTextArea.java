@@ -1780,6 +1780,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     @Override
     public boolean textboxKeyTyped(char c, int i) {
+        // Stay out of it while another box has the caret.
+        //
+        // GuiNPCInterface hands every key to every text field it holds, and the
+        // plain field returns early when it is not focused. This one overrode
+        // that method and never checked, so a character typed into any other
+        // box on the screen was also appended to the script - which reads as
+        // the keypress happening twice.
+        if (activeTextfield != null && activeTextfield != this) {
+            return false;
+        }
         if (KEYS_OVERLAY.keyTyped(c, i))
             return true;
 
