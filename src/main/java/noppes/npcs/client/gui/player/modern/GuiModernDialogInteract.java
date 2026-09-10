@@ -37,6 +37,8 @@ import java.util.Iterator;
 import java.util.List;
 
 public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClose {
+    private static final int OPTION_INDICATOR_GAP = 2;
+
     private Dialog dialog;
     private int selected = 0;
     private List<TextBlockClient> lineBlocks = new ArrayList<TextBlockClient>();
@@ -192,6 +194,7 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
         selected = -1;
         for (int i = 0; i < this.options.size(); i++) {
             int optionHeight = height / 2 - 30 + i * (13 + 6);
+            int optionTextX = width - 221;
             int optionNum = options.get(i);
             DialogOption option = dialog.options.get(optionNum);
             if (mouseX >= width - 237 && mouseX <= width - 14 && mouseY >= optionHeight && mouseY <= optionHeight + 13) {
@@ -204,9 +207,9 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
             if (getQuestByOptionId(optionNum) != null) {
                 drawString(fontRendererObj, "!", width - 229, optionHeight + 3, 0x76e85b);
             } else {
-                drawString(fontRendererObj, ">", width - 229, optionHeight + 3, -1);
+                drawString(fontRendererObj, ">", getOptionIndicatorX(optionTextX), optionHeight + 3, -1);
             }
-            drawString(fontRendererObj, option.title, width - 221, optionHeight + 3, option.optionColor);
+            drawString(fontRendererObj, option.title, optionTextX, optionHeight + 3, option.optionColor);
         }
         GL11.glPopMatrix();
         GL11.glPopMatrix();
@@ -218,6 +221,10 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
             return option.getDialog().getQuest();
         }
         return null;
+    }
+
+    private int getOptionIndicatorX(int optionTextX) {
+        return optionTextX - ClientProxy.Font.width(">") - OPTION_INDICATOR_GAP;
     }
 
     public void drawNpc(EntityNPCInterface entity, int x, int y, float zoomed, int rotation) {
