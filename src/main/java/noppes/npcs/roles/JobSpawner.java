@@ -146,6 +146,10 @@ public class JobSpawner extends JobInterface {
     @Override
     public void aiUpdateTask() {
         if (spawned.isEmpty()) {
+            spawned = getNearbySpawned();
+        }
+
+        if (spawned.isEmpty()) {
             if (spawnType == 0) {
                 if (spawnEntity(number + 1) == null && !doesntDie)
                     npc.setDead();
