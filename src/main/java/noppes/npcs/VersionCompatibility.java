@@ -1,5 +1,7 @@
 package noppes.npcs;
 
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
@@ -10,6 +12,7 @@ import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.ModelRotate;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -30,6 +33,18 @@ public class VersionCompatibility {
                 if (EnumPotionType.fromOrdinal(compound.getInteger("pEffect")) == EnumPotionType.Fire) {
                     compound.setBoolean("pBurnItem", true);
                 }
+            }
+
+            if (compound.hasKey("GuardAttackAll") && compound.getBoolean("GuardAttackAll") && !compound.hasKey("GuardSpecific") && !compound.hasKey("GuardTargets")) {
+                List<String> all = new ArrayList<String>();
+                for (Object entity : EntityList.stringToClassMapping.keySet()) {
+                    String name = "entity." + entity + ".name";
+                    Class cl = (Class) EntityList.stringToClassMapping.get(entity);
+                    if (EntityLivingBase.class.isAssignableFrom(cl))
+                        all.add(name);
+                }
+                compound.setBoolean("GuardSpecific", true);
+                compound.setTag("GuardTargets", NBTTags.nbtStringList(all));
             }
         }
         if (npc.npcVersion < 22) {
