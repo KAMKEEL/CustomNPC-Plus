@@ -6,12 +6,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.blocks.BlockNpcRedstone;
 import noppes.npcs.controllers.data.Availability;
 
 import java.util.List;
 
-public class TileRedstoneBlock extends TileEntity {
+public class TileRedstoneBlock extends TileEntity implements ITilePermission {
     public int onRange = 6;
     public int offRange = 10;
 
@@ -137,5 +138,10 @@ public class TileRedstoneBlock extends TileEntity {
 
     public boolean canUpdate() {
         return true;
+    }
+
+    @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.EDIT_REDSTONE;
     }
 }

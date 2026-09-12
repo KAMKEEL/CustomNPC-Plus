@@ -6,6 +6,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.data.Party;
@@ -18,7 +19,7 @@ import noppes.npcs.quests.QuestLocation;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TileWaypoint extends TileEntity {
+public class TileWaypoint extends TileEntity implements ITilePermission {
 
     public String name = "";
 
@@ -101,5 +102,10 @@ public class TileWaypoint extends TileEntity {
         if (!name.isEmpty())
             compound.setString("LocationName", name);
         compound.setInteger("LocationRange", range);
+    }
+
+    @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.EDIT_WAYPOINT;
     }
 }

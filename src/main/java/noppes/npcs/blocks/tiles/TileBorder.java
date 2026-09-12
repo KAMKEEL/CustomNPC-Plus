@@ -12,11 +12,12 @@ import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentTranslation;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.controllers.data.Availability;
 
 import java.util.List;
 
-public class TileBorder extends TileEntity implements IEntitySelector {
+public class TileBorder extends TileEntity implements IEntitySelector, ITilePermission {
     public Availability availability = new Availability();
     public AxisAlignedBB boundingbox;
     public int rotation = 0;
@@ -108,5 +109,10 @@ public class TileBorder extends TileEntity implements IEntitySelector {
     @Override
     public boolean isEntityApplicable(Entity var1) {
         return var1 instanceof EntityPlayerMP || var1 instanceof EntityEnderPearl;
+    }
+
+    @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.EDIT_BLOCKS;
     }
 }
