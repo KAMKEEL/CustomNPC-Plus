@@ -75,9 +75,14 @@ public final class TileEntitySavePacket extends AbstractPacket {
         int x = incomingCompound.getInteger("x");
         int y = incomingCompound.getInteger("y");
         int z = incomingCompound.getInteger("z");
+        String id = incomingCompound.getString("id");
+
         TileEntity tile = player.worldObj.getTileEntity(x, y, z);
 
         if (tile == null)
+            return false;
+
+        if (!ITilePermission.doesIDMatch(tile.getClass(), id))
             return false;
 
         boolean validatesPacket = tile instanceof ITilePermission;
