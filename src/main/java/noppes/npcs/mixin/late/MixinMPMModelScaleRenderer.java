@@ -1,4 +1,4 @@
-package noppes.npcs.mixin;
+package noppes.npcs.mixin.late;
 
 import net.minecraft.client.model.ModelRenderer;
 import noppes.npcs.AnimationMixinFunctions;

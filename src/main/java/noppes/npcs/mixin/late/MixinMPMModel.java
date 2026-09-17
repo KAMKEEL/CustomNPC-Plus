@@ -1,9 +1,8 @@
-package noppes.npcs.mixin;
+package noppes.npcs.mixin.late;
 
 import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.model.ModelRenderer;
+import noppes.npcs.client.model.PlayerModelAnimation;
 import net.minecraft.entity.Entity;
-import noppes.npcs.AnimationMixinFunctions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Unique;
@@ -21,6 +20,7 @@ public abstract class MixinMPMModel {
 
     @Unique private static boolean cnpc$loggedModelEntry;
     @Unique private static boolean cnpc$loggedModelHook;
+    @Unique private PlayerModelAnimation.Pose cnpc$pose;
 
     @Inject(
         method = {
@@ -34,6 +34,7 @@ public abstract class MixinMPMModel {
     private void cnpc$logModelEntry(Entity entity, float limbSwing, float limbSwingAmount,
                                      float age, float yaw, float pitch, float scale,
                                      CallbackInfo callbackInfo) {
+        cnpc$pose = PlayerModelAnimation.capture((ModelBiped) (Object) this);
         if (!cnpc$loggedModelEntry) {
             cnpc$loggedModelEntry = true;
             System.out.println("[CustomNPC+] MPM ModelMPM render method is running");
@@ -64,16 +65,24 @@ public abstract class MixinMPMModel {
                 + model.bipedRightArm.getClass().getName());
         }
 
-        ModelRenderer[] parts = new ModelRenderer[]{
-            model.bipedHead,
-            model.bipedBody,
-            model.bipedRightArm,
-            model.bipedLeftArm,
-            model.bipedRightLeg,
-            model.bipedLeftLeg
-        };
-        for (ModelRenderer part : parts) {
-            AnimationMixinFunctions.applyValues(part);
+        PlayerModelAnimation.apply(model);
+    }
+
+    @Inject(
+        method = {
+            "render(Lnet/minecraft/entity/Entity;FFFFFF)V",
+            "func_78088_a(Lnet/minecraft/entity/Entity;FFFFFF)V"
+        },
+        at = @At("RETURN"),
+        remap = false,
+        require = 1
+    )
+    private void cnpc$restorePlayerPose(Entity entity, float limbSwing, float limbSwingAmount,
+                                         float age, float yaw, float pitch, float scale,
+                                         CallbackInfo callbackInfo) {
+        if (cnpc$pose != null) {
+            cnpc$pose.restore();
+            cnpc$pose = null;
         }
     }
 }

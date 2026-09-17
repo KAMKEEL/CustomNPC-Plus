@@ -1,6 +1,7 @@
 package noppes.npcs.mixin;
 
 import cpw.mods.fml.relauncher.FMLLaunchHandler;
+import noppes.npcs.OptionalModelMixins;
 import noppes.npcs.config.ConfigMixin;
 import org.spongepowered.asm.lib.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -29,7 +30,8 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {
-
+        // The targets are read by now; a jar lent so Mixin could read one goes back.
+        OptionalModelMixins.releaseLentJars();
     }
 
     @Override
@@ -52,10 +54,16 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
             }
             if (ConfigMixin.AnimationMixin) {
                 mixins.add("MixinModelRenderer");
-                mixins.add("MixinMPMModel");
-                mixins.add("MixinMPMModelScaleRenderer");
+                if (OptionalModelMixins.lateLoaderAvailable()) {
+                    System.out.println("[CustomNPC+] UniMixins is here; the other mods' model mixins load late");
+                } else {
+                    for (String name : OptionalModelMixins.playerModelMixins(false)) {
+                        mixins.add("late." + name);
+                    }
+                }
                 mixins.add("MixinRendererLivingEntity");
             }
+            System.out.println("[CustomNPC+] Client mixins chosen: " + mixins);
             if (ConfigMixin.FirstPersonAnimationMixin) {
                 mixins.add("MixinItemRenderer");
             }
@@ -76,15 +84,21 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-        if (mixinClassName.contains("MixinMPMModel")) {
-            System.out.println("[CustomNPC+] Applying MPM animation mixin to " + targetClassName);
+        if (isPlayerCompatibilityMixin(mixinClassName)) {
+            System.out.println("[CustomNPC+] Applying player animation mixin to " + targetClassName);
         }
     }
 
     @Override
     public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-        if (mixinClassName.contains("MixinMPMModel")) {
-            System.out.println("[CustomNPC+] Applied MPM animation mixin to " + targetClassName);
+        if (isPlayerCompatibilityMixin(mixinClassName)) {
+            System.out.println("[CustomNPC+] Applied player animation mixin to " + targetClassName);
         }
+    }
+
+    private static boolean isPlayerCompatibilityMixin(String mixinClassName) {
+        return mixinClassName.contains("MixinMPMModel")
+            || mixinClassName.contains("MixinGalacticraftPlayerModel")
+            || mixinClassName.contains("MixinPlayerAPIModel");
     }
 }
