@@ -19,7 +19,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(targets = "noppes.mpm.client.model.ModelMPM", remap = false)
 public abstract class MixinMPMModel {
 
+    @Unique private static boolean cnpc$loggedModelEntry;
     @Unique private static boolean cnpc$loggedModelHook;
+
+    @Inject(
+        method = {
+            "render(Lnet/minecraft/entity/Entity;FFFFFF)V",
+            "func_78088_a(Lnet/minecraft/entity/Entity;FFFFFF)V"
+        },
+        at = @At("HEAD"),
+        remap = false,
+        require = 1
+    )
+    private void cnpc$logModelEntry(Entity entity, float limbSwing, float limbSwingAmount,
+                                     float age, float yaw, float pitch, float scale,
+                                     CallbackInfo callbackInfo) {
+        if (!cnpc$loggedModelEntry) {
+            cnpc$loggedModelEntry = true;
+            System.out.println("[CustomNPC+] MPM ModelMPM render method is running");
+        }
+    }
 
     @Inject(
         method = {
