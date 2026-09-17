@@ -14,7 +14,7 @@ import java.util.Set;
 public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
     @Override
     public void onLoad(String mixinPackage) {
-
+        System.out.println("[CustomNPC+] Mixin plugin loaded from " + mixinPackage);
     }
 
     @Override
@@ -39,6 +39,9 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
         String configPath = "config" + File.separator + "CustomNpcPlus" + File.separator;
         ConfigMixin.init(new File(configPath + "mixin.cfg"));
         boolean client = FMLLaunchHandler.side().isClient();
+        System.out.println("[CustomNPC+] Choosing mixins: side=" + FMLLaunchHandler.side()
+            + ", animation=" + ConfigMixin.AnimationMixin
+            + ", firstPersonAnimation=" + ConfigMixin.FirstPersonAnimationMixin);
 
         List<String> mixins = new ArrayList<>();
 
@@ -65,16 +68,22 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
             mixins.add("MixinEntityTrackerEntry");
         }
 
+        System.out.println("[CustomNPC+] Selected mixins: " + mixins);
+
         return mixins;
     }
 
     @Override
     public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-
+        if (mixinClassName.endsWith("MixinMPMModelScaleRenderer")) {
+            System.out.println("[CustomNPC+] Applying MPM animation mixin to " + targetClassName);
+        }
     }
 
     @Override
     public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-
+        if (mixinClassName.endsWith("MixinMPMModelScaleRenderer")) {
+            System.out.println("[CustomNPC+] Applied MPM animation mixin to " + targetClassName);
+        }
     }
 }
