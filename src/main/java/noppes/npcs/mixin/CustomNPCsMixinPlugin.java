@@ -52,6 +52,7 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
             }
             if (ConfigMixin.AnimationMixin) {
                 mixins.add("MixinModelRenderer");
+                mixins.add("MixinMPMModel");
                 mixins.add("MixinMPMModelScaleRenderer");
                 mixins.add("MixinRendererLivingEntity");
             }
@@ -75,14 +76,14 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-        if (mixinClassName.endsWith("MixinMPMModelScaleRenderer")) {
+        if (mixinClassName.contains("MixinMPMModel")) {
             System.out.println("[CustomNPC+] Applying MPM animation mixin to " + targetClassName);
         }
     }
 
     @Override
     public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-        if (mixinClassName.endsWith("MixinMPMModelScaleRenderer")) {
+        if (mixinClassName.contains("MixinMPMModel")) {
             System.out.println("[CustomNPC+] Applied MPM animation mixin to " + targetClassName);
         }
     }

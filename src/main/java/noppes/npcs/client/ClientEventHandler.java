@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ClientEventHandler {
+    private static boolean loggedPlayerRenderer;
     public static final RenderCNPCPlayer renderCNPCSelf = new RenderCNPCPlayer();
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
     public static HashMap<Integer, Long> disabledButtonTimes = new HashMap<>();
@@ -227,6 +228,16 @@ public class ClientEventHandler {
     public void onRenderPlayer(RenderPlayerEvent.Pre event) {
         ClientEventHandler.renderingNpc = null;
         ClientEventHandler.renderingPlayer = event.entityPlayer;
+        if (!loggedPlayerRenderer) {
+            loggedPlayerRenderer = true;
+            String model = event.renderer.mainModel == null ? "null"
+                : event.renderer.mainModel.getClass().getName();
+            String arm = event.renderer.modelBipedMain == null
+                || event.renderer.modelBipedMain.bipedRightArm == null ? "null"
+                : event.renderer.modelBipedMain.bipedRightArm.getClass().getName();
+            System.out.println("[CustomNPC+] Active player renderer="
+                + event.renderer.getClass().getName() + "; model=" + model + "; arm=" + arm);
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
