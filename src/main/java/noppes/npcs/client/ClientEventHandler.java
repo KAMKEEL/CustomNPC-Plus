@@ -28,6 +28,7 @@ import noppes.npcs.client.gui.hud.QuestTrackingComponent;
 import noppes.npcs.client.gui.hud.ability.AbilityHotbarComponent;
 import noppes.npcs.client.gui.player.AuctionTooltipHandler;
 import noppes.npcs.client.KeyPressHandler;
+import noppes.npcs.client.model.PlayerModelAnimation;
 import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -71,6 +72,7 @@ public class ClientEventHandler {
     public static ModelBase playerModel;
 
     private Class<?> renderPlayerJBRA;
+    private PlayerModelAnimation.Pose equippedItemPose;
 
     public ClientEventHandler() {
         try {
@@ -248,6 +250,7 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Post event) {
+        restoreEquippedItemPose();
         EntityPlayer player = event.entityPlayer;
         ClientEventHandler.renderingPlayer = null;
 
@@ -275,6 +278,31 @@ public class ClientEventHandler {
                 renderCNPCPlayer.doRender(player, d0, d1, d2, f1, event.partialRenderTick);
             }
         }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void applyEquippedItemPose(RenderPlayerEvent.Specials.Pre event) {
+        restoreEquippedItemPose();
+        ModelBiped model = event.renderer.modelBipedMain;
+        if (model == null) {
+            return;
+        }
+
+        equippedItemPose = PlayerModelAnimation.capture(model);
+        PlayerModelAnimation.apply(model);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
+    public void restoreEquippedItemPose(RenderPlayerEvent.Specials.Post event) {
+        restoreEquippedItemPose();
+    }
+
+    private void restoreEquippedItemPose() {
+        if (equippedItemPose == null) {
+            return;
+        }
+        equippedItemPose.restore();
+        equippedItemPose = null;
     }
 
     @SubscribeEvent
