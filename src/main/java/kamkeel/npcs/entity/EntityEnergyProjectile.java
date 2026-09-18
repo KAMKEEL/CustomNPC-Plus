@@ -911,42 +911,17 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
 
     @Override
     public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int posRotationIncrements) {
-        int steps = Math.max(1, posRotationIncrements);
-        double dx = x - this.posX;
-        double dy = y - this.posY;
-        double dz = z - this.posZ;
-        double dotToCurrentMotion = dx * this.motionX + dy * this.motionY + dz * this.motionZ;
-
-        // Spawn-time and large correction snaps: avoid visible startup rubber-banding.
-        if (worldObj != null && worldObj.isRemote) {
-            double distSq = dx * dx + dy * dy + dz * dz;
-            // Launch-time stale tracker packets can arrive one update late and point behind
-            // an already-predicted projectile. Skipping these avoids visible backward "bounce".
-            if (ticksExisted <= 24 && distSq <= 4.0D && dotToCurrentMotion < -0.0025D) {
-                return;
-            }
-            if (ticksExisted <= 2 || distSq > 16.0D) {
-                this.setPosition(x, y, z);
-                syncPositionState(x, y, z, true);
-                return;
-            }
-        }
-
         this.interpTargetX = x;
         this.interpTargetY = y;
         this.interpTargetZ = z;
-        if (worldObj != null && worldObj.isRemote && ticksExisted <= 24 && dotToCurrentMotion < 0.0D) {
-            // Keep existing velocity when correction points opposite current travel
-            // to prevent launch-time reverse lerp.
-            this.interpTargetMotionX = this.motionX;
-            this.interpTargetMotionY = this.motionY;
-            this.interpTargetMotionZ = this.motionZ;
-        } else {
-            this.interpTargetMotionX = dx / steps;
-            this.interpTargetMotionY = dy / steps;
-            this.interpTargetMotionZ = dz / steps;
-        }
-        this.interpSteps = steps;
+        this.rotationYaw = yaw;
+        this.rotationPitch = pitch;
+
+        // Energy projectiles are tracked every tick. Minecraft's usual three-tick
+        // interpolation continually falls behind that update rate at higher speeds.
+        // One tick still gives RenderManager a full partial-tick transition without
+        // accumulating a correction that later has to snap.
+        this.interpSteps = 1;
     }
 
     @Override
@@ -959,14 +934,7 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
         this.motionZ = motionZ;
     }
 
-    /**
-     * Handle client-side position interpolation.
-     * Only moves position during active interpolation (interpSteps > 0).
-     * Does NOT predict/drift between server updates — the motion values are
-     * derived from correction deltas, not actual entity velocity, so applying
-     * them between updates causes entities to fly off in wrong directions.
-     * This matches vanilla Minecraft behavior for non-player entities.
-     */
+    /** Move the client copy through the latest server position update. */
     protected void handleClientInterpolation() {
         if (this.interpSteps > 0) {
             double dx = this.interpTargetX - this.posX;
@@ -983,10 +951,6 @@ public abstract class EntityEnergyProjectile extends EntityEnergyAbility {
             double newX = this.posX + dx / this.interpSteps;
             double newY = this.posY + dy / this.interpSteps;
             double newZ = this.posZ + dz / this.interpSteps;
-
-            this.motionX = this.motionX + (this.interpTargetMotionX - this.motionX) / this.interpSteps;
-            this.motionY = this.motionY + (this.interpTargetMotionY - this.motionY) / this.interpSteps;
-            this.motionZ = this.motionZ + (this.interpTargetMotionZ - this.motionZ) / this.interpSteps;
 
             this.setPosition(newX, newY, newZ);
             this.interpSteps--;

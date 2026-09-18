@@ -38,6 +38,9 @@ public abstract class RenderEnergy extends Render {
      */
     protected boolean shouldSkipInitialActiveRender(Entity entity) {
         if (!(entity instanceof EntityEnergyAbility)) return false;
+        // Moving projectiles must be visible at their launch point. Hiding their first
+        // tick makes faster shots first appear several blocks away from the caster.
+        if (entity instanceof EntityEnergyProjectile) return false;
         EntityEnergyAbility ability = (EntityEnergyAbility) entity;
         return !ability.isPreviewMode() && !ability.isCharging() && ability.ticksExisted <= HIDE_INITIAL_ACTIVE_TICKS;
     }
