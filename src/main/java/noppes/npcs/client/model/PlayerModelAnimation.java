@@ -1,11 +1,15 @@
 package noppes.npcs.client.model;
 
+import kamkeel.npcs.addon.DBCAddon;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.entity.Entity;
 import noppes.npcs.AnimationMixinFunctions;
 import java.util.HashSet;
 import java.util.Set;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.ClientEventHandler;
+import noppes.npcs.controllers.data.AnimationData;
 
 public final class PlayerModelAnimation {
     private PlayerModelAnimation() {
@@ -13,6 +17,22 @@ public final class PlayerModelAnimation {
 
     public static Pose capture(ModelBiped model) {
         return new Pose(parts(model));
+    }
+
+    /**
+     * Avoids snapshotting and reapplying six model parts for every visible
+     * player when there is no animation capable of changing their pose.
+     * DBC is kept on the compatibility path because its optional addon owns
+     * its animation-active check inside applyRenderModel.
+     */
+    public static boolean shouldApply(Entity entity) {
+        if (entity == null) {
+            return false;
+        }
+
+        AnimationData data = ClientCacheHandler.playerAnimations.get(entity.getUniqueID());
+        return data != null && data.animation != null && data.isActive()
+            || DBCAddon.IsAvailable();
     }
 
     private static final Set<String> REPORTED = new HashSet<String>();

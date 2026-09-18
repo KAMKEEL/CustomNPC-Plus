@@ -1,6 +1,7 @@
 package noppes.npcs.mixin.late;
 
 import net.minecraft.client.model.ModelBiped;
+import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.model.PlayerModelAnimation;
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,6 +22,7 @@ public abstract class MixinMPMModel {
     @Unique private static boolean cnpc$loggedModelEntry;
     @Unique private static boolean cnpc$loggedModelHook;
     @Unique private PlayerModelAnimation.Pose cnpc$pose;
+    @Unique private boolean cnpc$rendering;
 
     @Inject(
         method = {
@@ -34,11 +36,16 @@ public abstract class MixinMPMModel {
     private void cnpc$logModelEntry(Entity entity, float limbSwing, float limbSwingAmount,
                                      float age, float yaw, float pitch, float scale,
                                      CallbackInfo callbackInfo) {
-        cnpc$pose = PlayerModelAnimation.capture((ModelBiped) (Object) this);
         if (!cnpc$loggedModelEntry) {
             cnpc$loggedModelEntry = true;
             System.out.println("[CustomNPC+] MPM ModelMPM render method is running");
         }
+
+        cnpc$rendering = ClientEventHandler.renderingPlayer == entity
+            && ClientEventHandler.renderingPlayerAnimation;
+        cnpc$pose = cnpc$rendering
+            ? PlayerModelAnimation.capture((ModelBiped) (Object) this)
+            : null;
     }
 
     @Inject(
@@ -58,6 +65,10 @@ public abstract class MixinMPMModel {
     private void cnpc$applyPlayerAnimation(Entity entity, float limbSwing, float limbSwingAmount,
                                             float age, float yaw, float pitch, float scale,
                                             CallbackInfo callbackInfo) {
+        if (!cnpc$rendering) {
+            return;
+        }
+
         ModelBiped model = (ModelBiped) (Object) this;
         if (!cnpc$loggedModelHook) {
             cnpc$loggedModelHook = true;
@@ -84,5 +95,6 @@ public abstract class MixinMPMModel {
             cnpc$pose.restore();
             cnpc$pose = null;
         }
+        cnpc$rendering = false;
     }
 }

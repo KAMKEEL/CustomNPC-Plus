@@ -1,6 +1,7 @@
 package noppes.npcs.mixin.late;
 
 import net.minecraft.client.model.ModelBiped;
+import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.model.PlayerModelAnimation;
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,9 +31,15 @@ public abstract class MixinGalacticraftPlayerModel {
     private void cnpc$beginRender(Entity entity, float limbSwing, float limbSwingAmount,
                                    float age, float yaw, float pitch, float scale,
                                    CallbackInfo callbackInfo) {
+        cnpc$rendering = ClientEventHandler.renderingPlayer == entity
+            && ClientEventHandler.renderingPlayerAnimation;
+        if (!cnpc$rendering) {
+            cnpc$pose = null;
+            return;
+        }
+
         ModelBiped model = (ModelBiped) (Object) this;
         cnpc$pose = PlayerModelAnimation.capture(model);
-        cnpc$rendering = true;
     }
 
     @Inject(

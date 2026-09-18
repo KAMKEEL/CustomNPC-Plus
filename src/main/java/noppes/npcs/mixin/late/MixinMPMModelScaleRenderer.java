@@ -2,9 +2,7 @@ package noppes.npcs.mixin.late;
 
 import net.minecraft.client.model.ModelRenderer;
 import noppes.npcs.AnimationMixinFunctions;
-import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.ClientEventHandler;
-import noppes.npcs.controllers.data.AnimationData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Unique;
@@ -45,6 +43,11 @@ public abstract class MixinMPMModelScaleRenderer {
             System.out.println("[CustomNPC+] MPM ModelScaleRenderer render hook is running; model="
                 + renderer.baseModel.getClass().getName());
         }
+        cnpc$changed = false;
+        if (!ClientEventHandler.renderingPlayerAnimation) {
+            return;
+        }
+
         cnpc$pointX = renderer.rotationPointX;
         cnpc$pointY = renderer.rotationPointY;
         cnpc$pointZ = renderer.rotationPointZ;
@@ -58,25 +61,21 @@ public abstract class MixinMPMModelScaleRenderer {
         try {
             cnpc$changed = AnimationMixinFunctions.applyValues(renderer);
             if (ClientEventHandler.renderingPlayer != null) {
-                AnimationData data = ClientCacheHandler.playerAnimations.get(
-                    ClientEventHandler.renderingPlayer.getUniqueID());
-                if (data != null && data.animation != null && data.isActive()) {
-                    boolean valuesChanged = cnpc$pointX != renderer.rotationPointX
-                        || cnpc$pointY != renderer.rotationPointY
-                        || cnpc$pointZ != renderer.rotationPointZ
-                        || cnpc$angleX != renderer.rotateAngleX
-                        || cnpc$angleY != renderer.rotateAngleY
-                        || cnpc$angleZ != renderer.rotateAngleZ;
-                    if (!cnpc$loggedAnimation) {
-                        cnpc$loggedAnimation = true;
-                        System.out.println("[CustomNPC+] MPM render hook sees active animation for "
-                            + ClientEventHandler.renderingPlayer.getCommandSenderName());
-                    }
-                    if (valuesChanged && !cnpc$loggedChangedValues) {
-                        cnpc$loggedChangedValues = true;
-                        System.out.println("[CustomNPC+] MPM animation changed limb values; limb="
-                            + renderer.getClass().getName());
-                    }
+                boolean valuesChanged = cnpc$pointX != renderer.rotationPointX
+                    || cnpc$pointY != renderer.rotationPointY
+                    || cnpc$pointZ != renderer.rotationPointZ
+                    || cnpc$angleX != renderer.rotateAngleX
+                    || cnpc$angleY != renderer.rotateAngleY
+                    || cnpc$angleZ != renderer.rotateAngleZ;
+                if (!cnpc$loggedAnimation) {
+                    cnpc$loggedAnimation = true;
+                    System.out.println("[CustomNPC+] MPM render hook sees active animation for "
+                        + ClientEventHandler.renderingPlayer.getCommandSenderName());
+                }
+                if (valuesChanged && !cnpc$loggedChangedValues) {
+                    cnpc$loggedChangedValues = true;
+                    System.out.println("[CustomNPC+] MPM animation changed limb values; limb="
+                        + renderer.getClass().getName());
                 }
             }
         } catch (Exception ignored) {

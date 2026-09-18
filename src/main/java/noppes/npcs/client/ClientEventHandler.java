@@ -64,6 +64,7 @@ public class ClientEventHandler {
     public static boolean renderingEntityInGUI;
     public static EntityNPCInterface renderingNpc;
     public static EntityPlayer renderingPlayer;
+    public static boolean renderingPlayerAnimation;
     public static HashMap<EnumAnimationPart, String[]> partNames = new HashMap<>();
     public static HashMap<Class<?>, Field[]> declaredFieldCache = new HashMap<>();
 
@@ -164,6 +165,7 @@ public class ClientEventHandler {
     public void onRenderEntity(RenderLivingEvent.Pre event) {
         if (event.entity instanceof EntityNPCInterface) {
             ClientEventHandler.renderingPlayer = null;
+            ClientEventHandler.renderingPlayerAnimation = false;
             ClientEventHandler.renderingNpc = (EntityNPCInterface) event.entity;
         }
         ClientEventHandler.renderer = event.renderer;
@@ -230,6 +232,7 @@ public class ClientEventHandler {
     public void onRenderPlayer(RenderPlayerEvent.Pre event) {
         ClientEventHandler.renderingNpc = null;
         ClientEventHandler.renderingPlayer = event.entityPlayer;
+        ClientEventHandler.renderingPlayerAnimation = PlayerModelAnimation.shouldApply(event.entityPlayer);
         if (!loggedPlayerRenderer) {
             loggedPlayerRenderer = true;
             String model = event.renderer.mainModel == null ? "null"
@@ -253,6 +256,7 @@ public class ClientEventHandler {
         restoreEquippedItemPose();
         EntityPlayer player = event.entityPlayer;
         ClientEventHandler.renderingPlayer = null;
+        ClientEventHandler.renderingPlayerAnimation = false;
 
         if (hasOverlays(player)) {
             if (renderPlayerJBRA != null && renderPlayerJBRA.isInstance(event.renderer))
@@ -283,6 +287,10 @@ public class ClientEventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void applyEquippedItemPose(RenderPlayerEvent.Specials.Pre event) {
         restoreEquippedItemPose();
+        if (!ClientEventHandler.renderingPlayerAnimation) {
+            return;
+        }
+
         ModelBiped model = event.renderer.modelBipedMain;
         if (model == null) {
             return;
