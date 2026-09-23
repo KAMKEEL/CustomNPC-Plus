@@ -88,4 +88,7 @@ public enum EnumDataPacket {
 
     // Energy Barrier Client Sync (visual properties and barrier-specific data)
     BARRIER_CLIENT_SYNC,
+
+    // 引路系统
+    GUIDE_TARGET,
 }

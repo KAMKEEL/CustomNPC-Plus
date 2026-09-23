@@ -1,5 +1,13 @@
 # CustomNPC+ 1.11 Changelog
 
+## NPC 引路
+- `/guide <NPC名>`（别名 `/yl`）在世界里画出通往目标 NPC 的路径，所有玩家可用，不需要 OP
+- 死亡空间风格的贴地发光带：能量脉冲沿线流向目标，近处清晰、20 格外淡出，往前走前方线段依次浮现
+- 终点菱形标记，15 格内开始渐显、5 格内完全不透明
+- 远距离自动分段引路：每秒重算一段，走一段算一段
+- `/guide stop` 停止，`/guide` 查看当前目标与距离
+- 已知限制：目标 NPC 所在区块未加载时找不到；不支持跨维度
+
 ## Ability System
 - Phase-based abilities (Wind-up, Active, Dazed) with configurable cooldowns, targeting, range, interrupts, invulnerability, and magic damage
 - **Melee:** Slam, Heavy Hit, Cutter

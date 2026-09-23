@@ -15,12 +15,16 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.action.ActionManager;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.guide.GuideServerTasks;
 
 public class ServerTickHandler {
 
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == Phase.END) {
+            // 引路的刷新请求是在 netty IO 线程上收到的，实际查询排到这里、在主线程上跑。
+            GuideServerTasks.runPending();
+
             ActionManager.GLOBAL.tick();
 
             // Process auction system tick

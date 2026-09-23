@@ -230,4 +230,6 @@ public enum EnumRequestPacket {
     CopyAbilityScripts,
     LinkedItemClone,
     EffectClone,
+
+    GuideQuery,
 }
