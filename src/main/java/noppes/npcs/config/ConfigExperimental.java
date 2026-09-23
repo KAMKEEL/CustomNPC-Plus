@@ -14,6 +14,8 @@ public class ConfigExperimental {
     public final static String SERVER = "Server";
     public static Property ModernGuiSystemProperty;
     public static boolean ModernGuiSystem = false;
+    public static Property useLegacyRenderProperty;
+    public static boolean useLegacyRender = false;
 
 
     public static void init(File configFile) {
@@ -24,6 +26,8 @@ public class ConfigExperimental {
 
             ModernGuiSystemProperty = config.get(CLIENT, "Experimental Dialog GUI", false, "Enables the new CNPC+ Modern GUI for Dialog and Quest information");
             ModernGuiSystem = ModernGuiSystemProperty.getBoolean(false);
+            useLegacyRenderProperty = config.get(CLIENT,"Legacy Render",false, "Use legacy Render for compatibility");
+            useLegacyRender = useLegacyRenderProperty.getBoolean(false);
         } catch (Exception e) {
             FMLLog.log(Level.ERROR, e, "CNPC+ has had a problem loading its experimental configuration");
         } finally {

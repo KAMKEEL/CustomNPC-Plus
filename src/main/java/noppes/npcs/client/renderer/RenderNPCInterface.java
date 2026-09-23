@@ -26,6 +26,7 @@ import noppes.npcs.api.ISkinOverlay;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
+import noppes.npcs.config.ConfigExperimental;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.controllers.data.SkinOverlay;
@@ -438,6 +439,8 @@ public class RenderNPCInterface extends RenderLiving {
     }
 
     protected int getColorMultiplier(EntityLivingBase p_77030_1_, float p_77030_2_, float p_77030_3_) {
+        if (ConfigExperimental.useLegacyRender) return 0;
+
         EntityNPCInterface npc = (EntityNPCInterface) p_77030_1_;
         TintData tintData = npc.display.tintData;
         int alpha = (int) (0xff * ((double) tintData.getGeneralAlpha() / 100d)) << 24;
@@ -449,6 +452,13 @@ public class RenderNPCInterface extends RenderLiving {
         if (GeckoAddonClient.Instance.isGeckoModel(mainModel)) {
             GeckoAddonClient.Instance.geckoRenderModel((ModelMPM) mainModel, npc, npc.rotationYaw, Minecraft.getMinecraft().timer.renderPartialTicks);
         } else if (this.getEntityTexture(entityliving) != null) {
+            if (ConfigExperimental.useLegacyRender && npc.display.tintData.isTintEnabled() && npc.display.tintData.isGeneralTintEnabled()) {
+                float red = (float)(npc.display.tintData.getGeneralTint() >> 16 & 255) / 255.0F;
+                float green = (float)(npc.display.tintData.getGeneralTint() >> 8 & 255) / 255.0F;
+                float blue = (float)(npc.display.tintData.getGeneralTint() & 255) / 255.0F;
+                
+                GL11.glColor3f(red, green, blue);
+            }
             super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
         }
 
@@ -545,18 +555,18 @@ public class RenderNPCInterface extends RenderLiving {
     @Override
     public ResourceLocation getEntityTexture(Entity entity) {
         EntityNPCInterface npc = (EntityNPCInterface) entity;
-    
+
         // Early exit if texture already resolved
         if (npc.textureLocation != null) {
             return npc.textureLocation;
         }
-    
+
         // SkinType 0: custom texture or default
         if (npc.display.skinType == 0) {
             if (npc.display.texture.isEmpty()) {
                 return npc.textureLocation = fallBackSkin(npc);
             }
-    
+
             try {
                 if (npc instanceof EntityCustomNpc && ((EntityCustomNpc) npc).modelData.entityClass == null) {
                     npc.textureLocation = adjustLocalTexture(npc, new ResourceLocation(npc.display.texture));
@@ -569,37 +579,37 @@ public class RenderNPCInterface extends RenderLiving {
                 return fallBackSkin(npc);
             }
         }
-    
+
         // SkinType 1: player profile skin
         else if (npc.display.skinType == 1 && npc.display.playerProfile != null) {
             final Minecraft minecraft = Minecraft.getMinecraft();
             Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
             if (map.containsKey(Type.SKIN)) {
                 npc.textureLocation = minecraft.func_152342_ad()
-                        .func_152792_a((MinecraftProfileTexture) map.get(Type.SKIN), Type.SKIN);
+                    .func_152792_a((MinecraftProfileTexture) map.get(Type.SKIN), Type.SKIN);
             }
             LastTextureTick = 0;
         }
-    
+
         // SkinType 2 / 3: load from URL
         else if (npc.display.skinType == 2 || npc.display.skinType == 3) {
             if (npc.display.url.isEmpty()) { // If URL is empty → fallback
                 return fallBackSkin(npc);
             }
-    
+
             ResourceLocation location = new ResourceLocation("skins/" + (npc.display.skinType + npc.display.url).hashCode());
-    
+
             try {
                 if (ClientCacheHandler.isCachedNPC(location)) { // If URL is cached
                     ResourceLocation loc = ClientCacheHandler
-                            .getNPCTexture(npc.display.url, npc.display.skinType == 3, location)
-                            .getLocation();
+                        .getNPCTexture(npc.display.url, npc.display.skinType == 3, location)
+                        .getLocation();
                     if (loc == null) return fallBackSkin(npc);
                     npc.textureLocation = loc;
                 } else if (LastTextureTick >= 5) { // Prevent request flooding
                     ResourceLocation loc = ClientCacheHandler
-                            .getNPCTexture(npc.display.url, npc.display.skinType == 3, location)
-                            .getLocation();
+                        .getNPCTexture(npc.display.url, npc.display.skinType == 3, location)
+                        .getLocation();
                     if (loc == null) return fallBackSkin(npc);
                     npc.textureLocation = loc;
                     LastTextureTick = 0;
@@ -610,12 +620,12 @@ public class RenderNPCInterface extends RenderLiving {
                 return fallBackSkin(npc);
             }
         }
-    
+
         // Fallback: if no valid skin type matched
         else {
             return fallBackSkin(npc);
         }
-    
+
         // Final safety net
         return npc.textureLocation == null ? fallBackSkin(npc) : npc.textureLocation;
     }
