@@ -45,6 +45,12 @@ src/main/resources/assets/customnpcs/api
 df/
 tmp/
 src/test
+!src/test/
+!src/test/java/
+!src/test/java/noppes/
+!src/test/java/noppes/npcs/
+!src/test/java/noppes/npcs/client/
+!src/test/java/noppes/npcs/client/UnicodeLineWrapperTest.java
 node_modules
 .github/pages-dist
 

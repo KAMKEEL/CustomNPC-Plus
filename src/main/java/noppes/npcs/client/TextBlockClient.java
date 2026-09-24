@@ -9,6 +9,8 @@ import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.TextBlock;
 import noppes.npcs.controllers.data.Dialog;
 
+import java.util.List;
+
 public class TextBlockClient extends TextBlock {
     private ChatStyle style;
     public int color = 0xe0e0e0;
@@ -41,38 +43,25 @@ public class TextBlockClient extends TextBlock {
         style = new ChatStyle();
         text = NoppesStringUtils.formatText(text, obs);
 
-        String line = "";
-        text = text.replace("\n", " \n ");
-        text = text.replace("\r", " \r ");
-        String[] words = text.split(" ");
-
-        FontRenderer font = Minecraft.getMinecraft().fontRenderer;
-        for (String word : words) {
-            if (word.isEmpty())
-                continue;
-            if (word.length() == 1) {
-                char c = word.charAt(0);
-                if (c == '\r' || c == '\n') {
-                    addLine(line);
-                    line = "";
-                    continue;
+        final FontRenderer font = Minecraft.getMinecraft().fontRenderer;
+        UnicodeLineWrapper.WidthMeasurer measurer = mcFont
+            ? new UnicodeLineWrapper.WidthMeasurer() {
+                @Override
+                public int width(String value) {
+                    return font.getStringWidth(value);
                 }
             }
-            String newLine;
-            if (line.isEmpty())
-                newLine = word;
-            else
-                newLine = line + " " + word;
+            : new UnicodeLineWrapper.WidthMeasurer() {
+                @Override
+                public int width(String value) {
+                    return ClientProxy.Font.width(value);
+                }
+            };
 
-            if ((mcFont ? font.getStringWidth(newLine) : ClientProxy.Font.width(newLine)) > lineWidth) {
-                addLine(line);
-                line = word.trim();
-            } else {
-                line = newLine;
-            }
-        }
-        if (!line.isEmpty())
+        List<String> wrappedLines = UnicodeLineWrapper.wrap(text, lineWidth, measurer);
+        for (String line : wrappedLines) {
             addLine(line);
+        }
     }
 
     private void addLine(String text) {
