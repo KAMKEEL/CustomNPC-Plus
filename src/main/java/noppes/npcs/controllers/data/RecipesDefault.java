@@ -7,6 +7,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
 import noppes.npcs.config.ConfigItem;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.RecipeController;
 
 public class RecipesDefault {
@@ -27,8 +28,10 @@ public class RecipesDefault {
 
     public static void loadDefaultRecipes(int i) {
         if (i < 0) {
-            addRecipe("Npc Wand", CustomItems.wand, true, "XX", " Y", " Y", 'X', Items.bread, 'Y', Items.stick);
-            addRecipe("Mob Cloner", CustomItems.cloner, true, "XX", "XY", " Y", 'X', Items.bread, 'Y', Items.stick);
+            if (!ConfigMain.OpsOnly) {
+                addRecipe("Npc Wand", CustomItems.wand, true, "XX", " Y", " Y", 'X', Items.bread, 'Y', Items.stick);
+                addRecipe("Mob Cloner", CustomItems.cloner, true, "XX", "XY", " Y", 'X', Items.bread, 'Y', Items.stick);
+            }
             addRecipe("Carpentry Bench", CustomItems.carpentyBench, true, "XYX", "Z Z", "Z Z", 'X', Blocks.planks, 'Z', Items.stick, 'Y', Blocks.crafting_table);
 
             ItemStack anvil = new ItemStack(CustomItems.carpentyBench);

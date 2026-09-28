@@ -384,14 +384,6 @@ public class ClientProxy extends CommonProxy {
 
         // Lightning effect rendering system
         MinecraftForge.EVENT_BUS.register(new LightningHandler());
-
-        if (ConfigClient.InventoryGuiEnabled) {
-            MinecraftForge.EVENT_BUS.register(new TabRegistry());
-            if (TabRegistry.getTabList().isEmpty()) {
-                TabRegistry.registerTab(new InventoryTabVanilla());
-            }
-            TabRegistry.registerTab(new InventoryTabCustomNpc());
-        }
     }
 
     public FakePlayer getCommandPlayer(IWorld world) {
