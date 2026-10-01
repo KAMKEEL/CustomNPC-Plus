@@ -46,7 +46,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             return;
         if (!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
             setNpcFlyingState(false);
-            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+            moveWithoutMountHandling(p_70612_1_, p_70612_2_);
             return;
         }
 
@@ -70,7 +70,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         } else if (heightOffGround < Math.ceil(this.height) && this.motionY == 0) {
             this.flyLimitAllow = false;
             setNpcFlyingState(false);
-            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+            moveWithoutMountHandling(p_70612_1_, p_70612_2_);
             return;
         }
         this.flyLimitAllow = true;
@@ -81,7 +81,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             desiredMotionY = -Math.abs(this.ais.flyGravity);
         }
         this.motionY = desiredMotionY;
-        super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+        moveWithoutMountHandling(p_70612_1_, p_70612_2_);
         this.motionY = desiredMotionY;
 
         this.updateLimbSwing();

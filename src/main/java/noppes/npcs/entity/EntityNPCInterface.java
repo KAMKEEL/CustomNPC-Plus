@@ -434,7 +434,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (this.ticksExisted % 20 == 0)
             faction = getFaction();
         if (!worldObj.isRemote) {
-            if (!isKilled() && this.ticksExisted % 20 == 0) {
+            if (this.ticksExisted % 20 == 0 && !isKilled()) {
                 if (this.getHealth() < this.getMaxHealth()) {
                     if (stats.healthRegen > 0 && !isAttacking())
                         heal(stats.healthRegen);
@@ -1423,7 +1423,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     public void onCollide() {
-        if (!isEntityAlive() || ticksExisted % 4 != 0)
+        if (ticksExisted % 4 != 0 || !isEntityAlive())
             return;
 
         AxisAlignedBB axisalignedbb = null;
@@ -2277,6 +2277,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (handleMountedMovement(strafe, forward)) {
             return;
         }
+        moveWithoutMountHandling(strafe, forward);
+    }
+
+    /** Normal movement, for callers that already ran the mount handling this tick. */
+    protected void moveWithoutMountHandling(float strafe, float forward) {
         double d0 = this.posX;
         double d1 = this.posY;
         double d2 = this.posZ;

@@ -140,6 +140,9 @@ public class DataTimers implements ITimers {
     }
 
     public void update() {
+        // Runs every tick for every npc and player. Most have no timers, so skip the copy.
+        if (this.timers.isEmpty())
+            return;
         Iterator<DataTimers.Timer> var1 = (new ArrayList<>(this.timers.values())).iterator();
 
         while (var1.hasNext()) {
