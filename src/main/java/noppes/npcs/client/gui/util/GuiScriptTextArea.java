@@ -68,6 +68,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public boolean doubleClicked = false;
     public boolean tripleClicked = false;
     private int clickCount = 0;
+    // Character the last key press carried, so its copy from lwjgl3ify's text input can be dropped.
+    private char lastKeyChar = 0;
     private long lastClicked = 0L;
     
     // ==================== TEXT & CONTAINER ====================
@@ -1780,13 +1782,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     @Override
     public boolean textboxKeyTyped(char c, int i) {
-        // Stay out of it while another box has the caret.
-        //
-        // GuiNPCInterface hands every key to every text field it holds, and the
-        // plain field returns early when it is not focused. This one overrode
-        // that method and never checked, so a character typed into any other
-        // box on the screen was also appended to the script - which reads as
-        // the keypress happening twice.
+        // With lwjgl3ify text input on, one key press sends the key with its
+        // character and then the same character again with key code 0. Drop the copy.
+        char previous = lastKeyChar;
+        lastKeyChar = i != 0 && ChatAllowedCharacters.isAllowedCharacter(c) ? c : 0;
+        if (i == 0 && previous != 0 && c == previous)
+            return false;
+
+        // Another box has the caret.
         if (activeTextfield != null && activeTextfield != this) {
             return false;
         }
