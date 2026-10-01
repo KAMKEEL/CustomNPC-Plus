@@ -26,7 +26,7 @@ public final class NPCMountUtil {
 
     public static boolean handleMountedMovement(EntityNPCInterface npc, MountState state, float strafe, float forward) {
         if (npc.advanced.role != EnumRoleType.Mount || !(npc.roleInterface instanceof RoleMount)) {
-            resetMountedFlightState(npc, state);
+            resetWithoutRider(npc, state);
             return false;
         }
         if (npc.riddenByEntity != null && !(npc.riddenByEntity instanceof EntityPlayer)) {
@@ -34,7 +34,7 @@ public final class NPCMountUtil {
             return false;
         }
         if (!(npc.riddenByEntity instanceof EntityPlayer)) {
-            resetMountedFlightState(npc, state);
+            resetWithoutRider(npc, state);
             return false;
         }
 
@@ -233,12 +233,13 @@ public final class NPCMountUtil {
     }
 
     public static void applyUnriddenFlightDescent(EntityNPCInterface npc, MountState state, RoleMount mount) {
+        // A flying npc's own movement sets its flying flag.
+        if (npc.canFly()) {
+            return;
+        }
         if (mount == null || !mount.isFlyingMountEnabled()) {
             npc.setNpcFlyingState(false);
             npc.setNpcJumpingState(false);
-            return;
-        }
-        if (npc.canFly()) {
             return;
         }
         if (npc.onGround) {
@@ -312,6 +313,21 @@ public final class NPCMountUtil {
 
     public static boolean isMountInFlightMode(MountState state) {
         return state.flightMode;
+    }
+
+    /**
+     * Reset for an npc with no player on it. A flying npc sets its flying flag right after this,
+     * so clearing it here would flip it every tick and resend the npc's data every tick.
+     */
+    private static void resetWithoutRider(EntityNPCInterface npc, MountState state) {
+        if (!npc.canFly()) {
+            resetMountedFlightState(npc, state);
+            return;
+        }
+        state.flightMode = false;
+        state.jumpPressed = false;
+        state.flightToggleTimer = 0;
+        npc.setNpcJumpingState(false);
     }
 
     public static void resetMountedFlightState(EntityNPCInterface npc, MountState state) {
