@@ -64,6 +64,10 @@ public class RenderCNPCPlayer extends RenderPlayer {
             return false;
         }
 
+        // Saved so postRenderOverlay can put the lights back where they were. Placing them again
+        // there would put them in the model's flipped space and light the overlay from below.
+        GL11.glPushAttrib(GL11.GL_LIGHTING_BIT | GL11.GL_ENABLE_BIT);
+
         // Overlay & Glow
         GL11.glEnable(GL11.GL_BLEND);
         if (overlayData.blend) {
@@ -112,12 +116,10 @@ public class RenderCNPCPlayer extends RenderPlayer {
         GL11.glLoadIdentity();
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
 
-        GL11.glEnable(GL11.GL_LIGHTING);
+        GL11.glPopAttrib();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        GL11.glDisable(GL11.GL_BLEND);
         GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
         Minecraft.getMinecraft().entityRenderer.enableLightmap((double) 0);
-        RenderHelper.enableStandardItemLighting();
     }
 
     @Override
