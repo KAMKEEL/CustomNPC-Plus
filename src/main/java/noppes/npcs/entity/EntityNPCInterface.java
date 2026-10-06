@@ -539,10 +539,23 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         updateClient = false;
     }
 
+    /** Who last used a tool on this NPC and when, so an offhand click right after it does not run the interact. */
+    private String toolUser;
+    private long toolUsedAt;
+
+    /** Marks that this player just used the Wand, Scripter or Cloner on this NPC. */
+    public void markToolUse(EntityPlayer player) {
+        toolUser = player.getCommandSenderName();
+        toolUsedAt = worldObj.getTotalWorldTime();
+    }
+
     @Override
     public boolean interact(EntityPlayer player) {
         if (worldObj.isRemote)
             return false;
+        // An offhand mod like Backhand clicks again with the other hand after a tool click is cancelled
+        if (player.getCommandSenderName().equals(toolUser) && worldObj.getTotalWorldTime() - toolUsedAt <= 2)
+            return true;
         ItemStack currentItem = player.inventory.getCurrentItem();
         if (currentItem != null) {
             Item item = currentItem.getItem();
