@@ -104,7 +104,6 @@ public class ServerEventsHandler {
                 return;
             }
             event.setCanceled(true);
-            ((EntityNPCInterface) event.target).markToolUse(event.entityPlayer);
             NoppesUtilServer.sendOpenGui(event.entityPlayer, EnumGuiType.MainMenuDisplay, (EntityNPCInterface) event.target);
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
                 LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface) (event.target)).display.getName(), (int) (event.target).posX, (int) (event.target).posY, (int) (event.target).posZ, (event.target).worldObj.getWorldInfo().getWorldName()));
@@ -120,7 +119,6 @@ public class ServerEventsHandler {
             PacketHandler.Instance.sendToPlayer(new ClonerPacket(compound), (EntityPlayerMP) event.entityPlayer);
             data.cloned = compound;
             if (event.target instanceof EntityNPCInterface) {
-                ((EntityNPCInterface) event.target).markToolUse(event.entityPlayer);
                 NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface) event.target);
             }
             event.setCanceled(true);
@@ -128,7 +126,6 @@ public class ServerEventsHandler {
             if (!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_SCRIPTER))
                 return;
             NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface) event.target);
-            ((EntityNPCInterface) event.target).markToolUse(event.entityPlayer);
             event.setCanceled(true);
             GuiOpenPacket.openGUI((EntityPlayerMP) event.entityPlayer, EnumGuiType.Script, 0, 0, 0);
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
