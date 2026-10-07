@@ -1,6 +1,7 @@
 package noppes.npcs.controllers;
 
 import kamkeel.npcs.controllers.ProfileController;
+import net.minecraft.util.IChatComponent;
 import noppes.npcs.client.ProfileClientConfig;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
@@ -56,9 +57,8 @@ public class PlayerQuestController {
         } else {
             long timeUntilRepeat = questData.quest.getTimeUntilRepeat(player);
             if (timeUntilRepeat > 0 && questData.quest.getIsRepeatable() && questData.quest.repeat != EnumQuestRepeat.NONE && questData.quest.repeat != EnumQuestRepeat.REPEATABLE) {
-                String timeString = NoppesUtilServer.millisToTime(timeUntilRepeat);
-                String message = "You have " + timeString + " left until you can repeat this quest.";
-                player.addChatMessage(new ChatComponentTranslation(NoppesStringUtils.formatText(message, player)));
+                IChatComponent timeString = NoppesUtilServer.millisToTime(timeUntilRepeat);
+                player.addChatMessage(new ChatComponentTranslation("quest.repeat.left", timeString));
             }
         }
     }

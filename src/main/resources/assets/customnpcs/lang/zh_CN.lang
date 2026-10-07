@@ -212,6 +212,7 @@ remote.reset=重置
 remote.tp=传送至
 remote.resetall=重置所有
 remote.freeze=冻结NPC
+remote.unfreeze=解冻NPC
 
 spawner.entities=实体
 spawner.clones=克隆NPC
@@ -377,7 +378,7 @@ stats.respawn=重生
 stats.deadbody=隐藏尸体
 stats.fireimmune=火焰免疫
 stats.candrown=可以被淹死
-stats.firesound:=声音设置
+stats.firesound=声音设置
 stats.creaturetype=生物类型
 stats.normal=普通
 stats.reverse=反转
@@ -619,7 +620,8 @@ quest.notfound=没有找到
 quest.completed=任务完成
 quest.newquest=新任务
 quest.noquests=你现在没有进行中的任务~
-quest.completewith=完成用了 %s
+quest.completewith=于 %s 处完成
+quest.autocompleted=自动完成
 quest.randomitem=随机物品
 quest.exp=经验值
 quest.takeitems=是否拿取玩家物品
@@ -628,6 +630,19 @@ quest.track=追踪
 quest.tracking=追踪
 quest.alerts=提醒
 quest.noAlerts=无提醒
+quest.repeat.left=距离你再次接取此任务还需等待 %s。
+
+quest.status.read=(已读)
+quest.status.unread=(未读)
+quest.status.done=(已完成)
+quest.status.found=已找到
+quest.status.notfound=未找到
+
+time.day=%d 天
+time.hour=%d 小时
+time.minute=%d 分钟
+time.second=%d 秒
+
 
 script.apidoc=API 文档
 script.apisrc=API 源
@@ -1028,8 +1043,8 @@ item.npcBlueprint.name=蓝图
 item.npcRing.name=戒指
 
 item.npcSkull.name=颅骨
-item.npcSaphire.name=紫水晶
-item.npcAmethyst.name=蓝宝石
+item.npcSaphire.name=蓝宝石
+item.npcAmethyst.name=紫水晶
 item.npcRuby.name=红宝石
 item.npcBronzeIngot.name=青铜锭
 item.npcDemonicIngot.name=魔化锭

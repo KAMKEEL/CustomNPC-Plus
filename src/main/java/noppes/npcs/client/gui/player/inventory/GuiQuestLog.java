@@ -327,6 +327,15 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
                 }
                 process = name + process.substring(index);
             }
+
+            if (process.endsWith("(read)")) {
+                process = process.substring(0, process.length() - 6) + StatCollector.translateToLocal("quest.status.read");
+            } else if (process.endsWith("(unread)")) {
+                process = process.substring(0, process.length() - 8) + StatCollector.translateToLocal("quest.status.unread");
+            } else if (process.endsWith("(Done)")) {
+                process = process.substring(0, process.length() - 6) + StatCollector.translateToLocal("quest.status.done");
+            }
+
             fontRendererObj.drawString("- " + process, guiLeft + 144, yoffset, CustomNpcResourceListener.DefaultTextColor);
             yoffset += 10;
         }
