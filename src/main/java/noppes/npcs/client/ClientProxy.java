@@ -161,6 +161,8 @@ import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.script.PackageFinder;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.type.ClassIndex;
+import noppes.npcs.client.guide.GuideRenderer;
+import noppes.npcs.client.guide.GuideSession;
 import noppes.npcs.client.model.ModelNPCGolem;
 import noppes.npcs.client.model.ModelNpcCrystal;
 import noppes.npcs.client.model.ModelNpcDragon;
@@ -383,6 +385,10 @@ public class ClientProxy extends CommonProxy {
 
         // Lightning effect rendering system
         MinecraftForge.EVENT_BUS.register(new LightningHandler());
+
+        // NPC 引路系统
+        FMLCommonHandler.instance().bus().register(GuideSession.Instance);
+        MinecraftForge.EVENT_BUS.register(new GuideRenderer());
     }
 
     public FakePlayer getCommandPlayer(IWorld world) {
