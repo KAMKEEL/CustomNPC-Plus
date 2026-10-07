@@ -815,7 +815,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                     if (npc.isKilled() || !npc.advanced.defendFaction || npc.faction.id != faction.id)
                         continue;
 
-                    if (npc.canSee(this) || npc.ais.directLOS || npc.canSee(attackingEntity))
+                    if (!npc.ais.directLOS || npc.canSee(this) || npc.canSee(attackingEntity))
                         npc.onAttack(attackingEntity);
                 }
                 setAttackTarget(attackingEntity);
