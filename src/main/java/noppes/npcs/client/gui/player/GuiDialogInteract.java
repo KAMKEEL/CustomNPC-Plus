@@ -38,6 +38,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
+    private static final String OPTION_INDICATOR = ">";
+    private static final int OPTION_INDICATOR_GAP = 2;
+
     private GuiScreen parent;
     private Dialog dialog;
     private int selected = 0;
@@ -478,10 +481,12 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
             int id = options.get(k);
             DialogOption option = dialog.options.get(id);
             int y = offset + (k + 1) * ClientProxy.Font.height();
+            int optionTextX = getOptionTextX(k);
+            String optionText = NoppesStringUtils.formatText(option.title, player, npc);
             offset += dialog.optionSpaceY;
 
             if (selected == k) {
-                drawString(fontRendererObj, ">", guiLeft - 60, y, 0xe0e0e0);
+                drawString(fontRendererObj, OPTION_INDICATOR, getOptionIndicatorX(optionTextX, optionText), y, 0xe0e0e0);
             }
 
             GL11.glPushMatrix();
@@ -501,7 +506,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
                 OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
                 GL11.glDisable(GL11.GL_ALPHA_TEST);
 
-                GL11.glTranslatef(guiLeft - 30 + dialog.optionSpaceX * k, y, 0.0F);
+                GL11.glTranslatef(optionTextX, y, 0.0F);
                 image.color = selected == k ? image.selectedColor : image.color;
                 GL11.glTranslatef(image.x, image.y, 0.0f);
                 image.onRender(mc);
@@ -512,9 +517,32 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
             }
             GL11.glPopMatrix();
 
-            drawString(fontRendererObj, NoppesStringUtils.formatText(option.title, player, npc), guiLeft - 30 + dialog.optionSpaceX * k, y, option.optionColor);
+            drawString(fontRendererObj, optionText, optionTextX, y, option.optionColor);
             GL11.glPopMatrix();
         }
+    }
+
+    private int getOptionTextX(int optionIndex) {
+        return guiLeft - 30 + dialog.optionSpaceX * optionIndex;
+    }
+
+    private int getOptionIndicatorX(int optionTextX, String optionText) {
+        return optionTextX + getLeadingTextWidth(optionText) - ClientProxy.Font.width(OPTION_INDICATOR) - OPTION_INDICATOR_GAP;
+    }
+
+    private int getLeadingTextWidth(String text) {
+        int prefixEnd = 0;
+        while (prefixEnd < text.length()) {
+            char character = text.charAt(prefixEnd);
+            if (character == '\u00A7' && prefixEnd + 1 < text.length()) {
+                prefixEnd += 2;
+            } else if (Character.isWhitespace(character)) {
+                prefixEnd++;
+            } else {
+                break;
+            }
+        }
+        return ClientProxy.Font.width(text.substring(0, prefixEnd));
     }
 
     private void drawDialogString(String text, int left, int count, boolean mainDialogText, TextBlockClient block) {
@@ -741,4 +769,3 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
         grabMouse(false);
     }
 }
-
