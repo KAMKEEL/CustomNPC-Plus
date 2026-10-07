@@ -90,6 +90,10 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         return false;
     }
 
+    public boolean isMouseOver(int x, int y) {
+        return x >= this.posX && x <= this.posX + this.width && y >= this.posY && y <= this.posY + this.height;
+    }
+
     @Override
     public void mouseClicked(int i, int j, int k) {
         boolean wasFocused = isFocused();
@@ -214,7 +218,7 @@ public class GuiNpcTextArea extends GuiNpcTextField {
 
 
         int k2 = Mouse.getDWheel();
-        if (k2 != 0 && isFocused()) {
+        if (k2 != 0 && (isFocused() || isMouseOver(mouseX, mouseY))) {
             addScrollY(k2 < 0 ? -10 : 10);
         }
 

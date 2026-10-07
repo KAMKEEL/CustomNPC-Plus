@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NBTTags;
@@ -48,6 +49,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
     private HashMap<Integer, GuiMenuSideButton> sideButtons = new HashMap<Integer, GuiMenuSideButton>();
     private QuestLogData data = new QuestLogData();
     private boolean noQuests = false;
+    // 0 = Party 1 = Objectives 2  = Quest Log
     private byte questPages = 1;
     private static long lastClicked = System.currentTimeMillis();
     private boolean isPartySet = false;
@@ -58,6 +60,14 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
     private float sideButtonScroll = 0;
     private float destSideButtonScroll = 0;
 
+    private TextBlockClient block;
+
+    private int textPosX, textPosY, textWidth, textHeight;
+    private int textListHeight;
+    private float textScrolledY = 0;
+    private int textStartClick = -1;
+    private boolean textClickVerticalBar = false;
+
     public GuiQuestLog() {
         super();
         this.player = mc.thePlayer;
@@ -67,11 +77,11 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.QuestLog));
     }
 
+    @Override
     public void initGui() {
         super.initGui();
 
         sideButtons.clear();
-
         noQuests = false;
 
         if (data.categories.isEmpty()) {
@@ -115,7 +125,6 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
                 }
             }
         }
-
 
         String partyQuestName = ClientCacheHandler.party != null ? ClientCacheHandler.party.getCurrentQuestName() : null;
         isPartySet = Objects.equals(partyQuestName, data.selectedQuest);
@@ -162,6 +171,17 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         if (trackingButton.enabled && trackingButton.getValue() == 1) {
             trackingButton.packedFGColour = 0x32CD32;
         }
+
+        this.textPosX = guiLeft + 142;
+        this.textPosY = guiTop + 20;
+        this.textWidth = 168;
+        this.textHeight = 150;
+
+        if (data.getQuestText() != null) {
+            this.block = new TextBlockClient(data.getQuestText(), textWidth - 10, true, player);
+        }
+        this.textListHeight = (block != null) ? block.lines.size() * fontRendererObj.FONT_HEIGHT : 0;
+        this.textScrolledY = 0;
     }
 
     @Override
@@ -272,6 +292,27 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         if (!data.hasSelectedQuest())
             return;
 
+        if (questPages == 2) {
+            int dWheel = Mouse.getDWheel();
+            if (dWheel != 0 && isMouseInTextZone(i, j)) {
+                addTextScrollY(dWheel < 0 ? -10 : 10);
+            }
+
+            if (Mouse.isButtonDown(0)) {
+                if (textClickVerticalBar) {
+                    if (textStartClick >= 0) {
+                        addTextScrollY(textStartClick - (j - textPosY));
+                    }
+                    textStartClick = j - textPosY;
+                } else if (hoverTextVerticalScrollBar(i, j)) {
+                    textClickVerticalBar = true;
+                    textStartClick = j - textPosY;
+                }
+            } else {
+                textClickVerticalBar = false;
+            }
+        }
+
         if (questPages == 1) {
             drawProgress();
             String title = StatCollector.translateToLocal("gui.text");
@@ -300,12 +341,84 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
     }
 
     private void drawQuestText() {
-        TextBlockClient block = new TextBlockClient(data.getQuestText(), 174, true, player);
-        int yoffset = guiTop + 5;
+        if (block == null || block.lines.isEmpty())
+            return;
+
+        int startLine = getTextStartLineY();
+        int maxLine = textHeight / fontRendererObj.FONT_HEIGHT + startLine;
+
+        int lineCount = 0;
         for (int i = 0; i < block.lines.size(); i++) {
-            String text = block.lines.get(i).getFormattedText();
-            fontRendererObj.drawString(text, guiLeft + 142, guiTop + 20 + (i * fontRendererObj.FONT_HEIGHT), CustomNpcResourceListener.DefaultTextColor);
+            if (lineCount >= startLine && lineCount < maxLine) {
+                String text = block.lines.get(i).getFormattedText();
+                int textY = textPosY + ((lineCount - startLine) * fontRendererObj.FONT_HEIGHT);
+                fontRendererObj.drawString(text, textPosX, textY, CustomNpcResourceListener.DefaultTextColor);
+            }
+            lineCount++;
         }
+
+        drawTextVerticalScrollBar();
+    }
+
+    private int getTextStartLineY() {
+        if (!isTextScrolling())
+            textScrolledY = 0;
+        return MathHelper.ceiling_double_int(textScrolledY * textListHeight / fontRendererObj.FONT_HEIGHT);
+    }
+
+    private boolean isTextScrolling() {
+        return textListHeight > textHeight - 4;
+    }
+
+    private void addTextScrollY(int scrolled) {
+        if (!isTextScrolling()) return;
+
+        textScrolledY -= 1f * scrolled / textHeight;
+
+        if (textScrolledY < 0)
+            textScrolledY = 0;
+
+        float max = 1 - 1f * (textHeight + 2) / textListHeight;
+        if (textScrolledY > max)
+            textScrolledY = max;
+    }
+
+    private boolean isMouseInTextZone(int x, int y) {
+        return x >= textPosX && x <= textPosX + textWidth && y >= textPosY && y <= textPosY + textHeight;
+    }
+
+    private boolean hoverTextVerticalScrollBar(int x, int y) {
+        if (!isTextScrolling())
+            return false;
+
+        return y >= textPosY && y <= textPosY + textHeight && x >= textPosX + textWidth - 8 && x <= textPosX + textWidth;
+    }
+
+    private int getTextVerticalBarSize() {
+        return (int) (1f * textHeight / textListHeight * (textHeight - 4));
+    }
+
+    private void drawTextVerticalScrollBar() {
+        if (!isTextScrolling())
+            return;
+
+        mc.renderEngine.bindTexture(GuiCustomScroll.resource);
+        int x = textPosX + textWidth - 6;
+        int y = (int) (textPosY + textScrolledY * textHeight) + 2;
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+        int sbSize = getTextVerticalBarSize();
+
+        // Top (U=176, V=9, W=5, H=1)
+        drawTexturedModalRect(x, y, 176, 9, 5, 1);
+
+        // Center (U=176, V=10, W=5, H=1)
+        for (int k = 0; k < sbSize; k++) {
+            drawTexturedModalRect(x, y + k + 1, 176, 10, 5, 1);
+        }
+
+        // Bottom (U=176, V=11, W=5, H=1)
+        drawTexturedModalRect(x, y + sbSize + 1, 176, 11, 5, 1);
     }
 
     private void drawProgress() {
@@ -342,8 +455,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         }
     }
 
-    protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
-    }
+    protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {}
 
     @Override
     public void mouseClicked(int i, int j, int k) {
@@ -423,7 +535,6 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
             PacketClient.sendClient(new QuestLogToServerPacket(compound, this.data.trackedQuestKey));
         }
     }
-
 
     public boolean isMouseInScrollZone(int x, int y) {
         int scrollZoneLeft = guiLeft - 69; // Left boundary of the scroll zone
